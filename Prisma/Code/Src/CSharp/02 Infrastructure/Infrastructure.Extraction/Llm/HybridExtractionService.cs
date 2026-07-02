@@ -12,9 +12,13 @@ namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Llm;
 /// <list type="number">
 ///   <item>Deterministic — always runs via <see cref="IFieldExtractor{PdfSource}"/>.</item>
 ///   <item>LLM-text — gated by <c>LlmProviders:TextExtractorEnabled</c>; uses the OCR text
-///         surfaced by the deterministic track in <c>AdditionalFields["_OcrText"]</c>.</item>
+///         surfaced by the deterministic track in <c>AdditionalFields["_OcrText"]</c>.
+///         Calls <see cref="ILlmExpedienteExtractor{TxtSource}.ExtractExpedienteAsync"/> so
+///         <c>SolicitudPartes</c> survive into the candidate without being flattened.</item>
 ///   <item>LLM-vision — gated by <c>LlmProviders:VisionExtractorEnabled</c>; rasterises every
-///         PDF page via <see cref="IPdfToImageConverter"/> and sends them to the vision LLM.</item>
+///         PDF page via <see cref="IPdfToImageConverter"/> and sends them to the vision LLM.
+///         Also calls <see cref="ILlmExpedienteExtractor{ImageSource}.ExtractExpedienteAsync"/>
+///         for the same reason.</item>
 /// </list>
 /// <para>All candidates are passed to <see cref="IExtractionReconciler"/> regardless of their
 /// <see cref="TrackStatus"/> so the reconciler receives a complete audit trail.</para>
@@ -24,8 +28,8 @@ namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Llm;
 public sealed class HybridExtractionService : IHybridExtractionService
 {
     private readonly IFieldExtractor<PdfSource> _deterministicPdf;
-    private readonly IFieldExtractor<TxtSource> _llmText;
-    private readonly IFieldExtractor<ImageSource> _llmVision;
+    private readonly ILlmExpedienteExtractor<TxtSource> _llmText;
+    private readonly ILlmExpedienteExtractor<ImageSource> _llmVision;
     private readonly IPdfToImageConverter _converter;
     private readonly IExtractionReconciler _reconciler;
     private readonly IOptionsMonitor<LlmProvidersOptions> _options;
@@ -38,12 +42,14 @@ public sealed class HybridExtractionService : IHybridExtractionService
     /// The active deterministic PDF extractor (bound to <c>PdfOcrFieldExtractor</c> in DI).
     /// </param>
     /// <param name="llmText">
-    /// The LLM text extractor (concrete <c>LlmTxtFieldExtractor</c> resolved by type in DI;
-    /// distinct from the <c>IFieldExtractor&lt;TxtSource&gt;</c> binding which targets
+    /// The LLM text extractor exposed as <see cref="ILlmExpedienteExtractor{TxtSource}"/>
+    /// (concrete <c>LlmTxtFieldExtractor</c> registered in DI; distinct from the
+    /// <c>IFieldExtractor&lt;TxtSource&gt;</c> binding which targets
     /// <c>AdaptiveTxtFieldExtractor</c>).
     /// </param>
     /// <param name="llmVision">
-    /// The LLM vision extractor (concrete <see cref="LlmVisionFieldExtractor"/> resolved by type in DI).
+    /// The LLM vision extractor exposed as <see cref="ILlmExpedienteExtractor{ImageSource}"/>
+    /// (concrete <c>LlmVisionFieldExtractor</c> registered in DI).
     /// </param>
     /// <param name="converter">PDF-to-image rasteriser used by the vision track.</param>
     /// <param name="reconciler">Per-field merge engine.</param>
@@ -51,8 +57,8 @@ public sealed class HybridExtractionService : IHybridExtractionService
     /// <param name="logger">Structured logger.</param>
     public HybridExtractionService(
         IFieldExtractor<PdfSource> deterministicPdf,
-        IFieldExtractor<TxtSource> llmText,
-        IFieldExtractor<ImageSource> llmVision,
+        ILlmExpedienteExtractor<TxtSource> llmText,
+        ILlmExpedienteExtractor<ImageSource> llmVision,
         IPdfToImageConverter converter,
         IExtractionReconciler reconciler,
         IOptionsMonitor<LlmProvidersOptions> options,
@@ -142,29 +148,30 @@ public sealed class HybridExtractionService : IHybridExtractionService
 
                 var txtSource = new TxtSource(ocrText);
 
-                Result<ExtractedFields> txtResult;
+                // Call ExtractExpedienteAsync so SolicitudPartes survive into the candidate.
+                Result<Expediente> txtExpResult;
                 try
                 {
-                    txtResult = await _llmText
-                        .ExtractFieldsAsync(txtSource, [])
+                    txtExpResult = await _llmText
+                        .ExtractExpedienteAsync(txtSource, cancellationToken)
                         .ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogWarning(ex, "HybridExtractionService: llm-text extractor threw unexpectedly.");
-                    txtResult = Result<ExtractedFields>.WithFailure($"LLM text extractor threw: {ex.Message}");
+                    txtExpResult = Result<Expediente>.WithFailure($"LLM text extractor threw: {ex.Message}");
                 }
 
-                if (txtResult.IsSuccess && txtResult.Value is not null)
+                if (txtExpResult.IsSuccess && txtExpResult.Value is not null)
                 {
                     candidates.Add(new LabelledExtraction(
                         "llm-text",
-                        MapToExpediente(txtResult.Value),
+                        txtExpResult.Value,
                         TrackStatus.Available));
                 }
                 else
                 {
-                    var errMsg = txtResult.Errors?.FirstOrDefault() ?? "llm-text extraction failed";
+                    var errMsg = txtExpResult.Errors?.FirstOrDefault() ?? "llm-text extraction failed";
                     candidates.Add(new LabelledExtraction("llm-text", null, TrackStatus.Failed, errMsg));
                 }
             }
@@ -206,30 +213,31 @@ public sealed class HybridExtractionService : IHybridExtractionService
             {
                 var imageSource = new ImageSource(documentId, convResult.Value);
 
-                Result<ExtractedFields> visResult;
+                // Call ExtractExpedienteAsync so SolicitudPartes survive into the candidate.
+                Result<Expediente> visExpResult;
                 try
                 {
-                    visResult = await _llmVision
-                        .ExtractFieldsAsync(imageSource, [])
+                    visExpResult = await _llmVision
+                        .ExtractExpedienteAsync(imageSource, cancellationToken)
                         .ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogWarning(ex, "HybridExtractionService: llm-vision extractor threw unexpectedly.");
-                    visResult = Result<ExtractedFields>.WithFailure(
+                    visExpResult = Result<Expediente>.WithFailure(
                         $"LLM vision extractor threw: {ex.Message}");
                 }
 
-                if (visResult.IsSuccess && visResult.Value is not null)
+                if (visExpResult.IsSuccess && visExpResult.Value is not null)
                 {
                     candidates.Add(new LabelledExtraction(
                         "llm-vision",
-                        MapToExpediente(visResult.Value),
+                        visExpResult.Value,
                         TrackStatus.Available));
                 }
                 else
                 {
-                    var errMsg = visResult.Errors?.FirstOrDefault() ?? "llm-vision extraction failed";
+                    var errMsg = visExpResult.Errors?.FirstOrDefault() ?? "llm-vision extraction failed";
                     // Distinguish provider capability gap from a general runtime failure.
                     var status = errMsg.Contains("VisionGenerate", StringComparison.OrdinalIgnoreCase)
                         ? TrackStatus.SkippedNoCapability
@@ -257,8 +265,9 @@ public sealed class HybridExtractionService : IHybridExtractionService
 
     /// <summary>
     /// Maps an <see cref="ExtractedFields"/> value object to an <see cref="Expediente"/> entity.
-    /// Follows the same field-to-property mapping that
-    /// <c>PdfProcessingService.MapExtractedFieldsToExpediente</c> uses in the Web.UI layer.
+    /// Used for the DETERMINISTIC track only — the deterministic regex extractor produces no partes.
+    /// LLM tracks call <see cref="ILlmExpedienteExtractor{T}.ExtractExpedienteAsync"/> directly
+    /// and receive an <see cref="Expediente"/> with <c>SolicitudPartes</c> already populated.
     /// </summary>
     private static Expediente MapToExpediente(ExtractedFields fields)
     {

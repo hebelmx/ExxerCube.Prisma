@@ -1,3 +1,4 @@
+using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Llm;
 using ExxerCube.Prisma.Infrastructure.Classification.Llm;
 using ExxerCube.Prisma.Infrastructure.Extraction.Txt.Llm;
@@ -256,5 +257,70 @@ public sealed class LlmTxtFieldExtractorTests
         var result = await extractor.ExtractFieldsAsync(new TxtSource("Texto del oficio."), []);
 
         result.IsSuccess.ShouldBeFalse();
+    }
+
+    // -----------------------------------------------------------------------
+    // ILlmExpedienteExtractor<TxtSource> — ExtractExpedienteAsync
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public async Task ExtractExpedienteAsync_HappyPath_ReturnsExpedienteWithPartes()
+    {
+        // Arrange — canned JSON with two partes
+        const string json = """
+            {
+              "expediente": "789/2025",
+              "solicitante": "Pedro Alvarado",
+              "monto": null,
+              "cuenta": null,
+              "rfc": null,
+              "curp": null,
+              "partes": [
+                {
+                  "nombre": "Ana Ramírez López",
+                  "rfc": "RALA900301AAA",
+                  "curp": null,
+                  "fechaNacimiento": "1990-03-01",
+                  "caracter": "Contribuyente"
+                },
+                {
+                  "nombre": "Luis Torres",
+                  "rfc": null,
+                  "curp": null,
+                  "fechaNacimiento": null,
+                  "caracter": "Patrón"
+                }
+              ]
+            }
+            """;
+
+        var factory = MakeFactory(json);
+        var extractor = new LlmTxtFieldExtractor(factory, _defaultOptions, _logger);
+        var source = new TxtSource("Texto de oficio con partes.", ocrConfidence: 0.85f);
+        var ct = TestContext.Current.CancellationToken;
+
+        // Act — call the new port directly
+        var result = await extractor.ExtractExpedienteAsync(source, ct);
+
+        // Assert — full Expediente with SolicitudPartes populated
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+
+        var expediente = result.Value!;
+        expediente.NumeroExpediente.ShouldBe("789/2025");
+        expediente.NombreSolicitante.ShouldBe("Pedro Alvarado");
+
+        expediente.SolicitudPartes.Count.ShouldBe(2);
+
+        var parte0 = expediente.SolicitudPartes[0];
+        parte0.Nombre.ShouldBe("Ana Ramírez López");
+        parte0.Rfc.ShouldBe("RALA900301AAA");
+        parte0.Caracter.ShouldBe("Contribuyente");
+        parte0.FechaNacimiento.ShouldBe(new DateOnly(1990, 3, 1));
+
+        var parte1 = expediente.SolicitudPartes[1];
+        parte1.Nombre.ShouldBe("Luis Torres");
+        parte1.Rfc.ShouldBeNull();
+        parte1.Caracter.ShouldBe("Patrón");
     }
 }

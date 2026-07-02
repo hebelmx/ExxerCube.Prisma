@@ -233,4 +233,69 @@ public sealed class LlmVisionFieldExtractorTests
 
         result.IsSuccess.ShouldBeFalse();
     }
+
+    // -----------------------------------------------------------------------
+    // ILlmExpedienteExtractor<ImageSource> — ExtractExpedienteAsync
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public async Task ExtractExpedienteAsync_HappyPath_ReturnsExpedienteWithPartes()
+    {
+        // Arrange — canned JSON with two partes
+        const string json = """
+            {
+              "expediente": "456/2025",
+              "solicitante": "Claudia Reyes",
+              "monto": null,
+              "cuenta": null,
+              "rfc": null,
+              "curp": null,
+              "partes": [
+                {
+                  "nombre": "Roberto Sánchez Díaz",
+                  "rfc": "SADR750101BBB",
+                  "curp": null,
+                  "fechaNacimiento": "1975-01-01",
+                  "caracter": "Contribuyente"
+                },
+                {
+                  "nombre": "Empresa XYZ S.A. de C.V.",
+                  "rfc": "EXY200101CCC",
+                  "curp": null,
+                  "fechaNacimiento": null,
+                  "caracter": "Patrón Determinado"
+                }
+              ]
+            }
+            """;
+
+        var ct = TestContext.Current.CancellationToken;
+        var extractor = BuildExtractor(MakeVisionFactory(json));
+
+        // Act — call the new port directly
+        var result = await extractor.ExtractExpedienteAsync(OnePageSource, ct);
+
+        // Assert — full Expediente with SolicitudPartes populated
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+
+        var expediente = result.Value!;
+        expediente.NumeroExpediente.ShouldBe("456/2025");
+        expediente.NombreSolicitante.ShouldBe("Claudia Reyes");
+        // Provenance marker for vision track
+        expediente.AdditionalFields["_ExtractionSource"].ShouldBe("llm-vision");
+
+        expediente.SolicitudPartes.Count.ShouldBe(2);
+
+        var parte0 = expediente.SolicitudPartes[0];
+        parte0.Nombre.ShouldBe("Roberto Sánchez Díaz");
+        parte0.Rfc.ShouldBe("SADR750101BBB");
+        parte0.Caracter.ShouldBe("Contribuyente");
+        parte0.FechaNacimiento.ShouldBe(new DateOnly(1975, 1, 1));
+
+        var parte1 = expediente.SolicitudPartes[1];
+        parte1.Nombre.ShouldBe("Empresa XYZ S.A. de C.V.");
+        parte1.Rfc.ShouldBe("EXY200101CCC");
+        parte1.Caracter.ShouldBe("Patrón Determinado");
+    }
 }

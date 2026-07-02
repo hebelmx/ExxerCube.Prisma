@@ -8,16 +8,24 @@ namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Llm;
 /// LLM-backed field extractor for <see cref="ImageSource"/> (rasterised document pages).
 /// Sends the page images to the active <see cref="ILlmProvider"/> as vision input,
 /// validates the response through <see cref="LlmExtractionGate"/>, and maps it to
-/// <see cref="ExtractedFields"/> via <see cref="LlmExpedienteMapper"/>.
+/// a full <see cref="Expediente"/> (including <c>SolicitudPartes</c>) via
+/// <see cref="LlmExpedienteMapper"/>.
 /// </summary>
 /// <remarks>
 /// Ships DARK: registered as a concrete scoped service but does NOT replace the active
 /// <c>IFieldExtractor&lt;PdfSource&gt;</c> or any other deterministic binding until an
 /// upstream orchestrator explicitly routes an <see cref="ImageSource"/> to this extractor.
+/// <para>
+/// Implements both <see cref="IFieldExtractor{ImageSource}"/> (backward compat) and
+/// <see cref="ILlmExpedienteExtractor{ImageSource}"/> (returns the full
+/// <see cref="Expediente"/> with partes so they survive into reconciliation).
+/// The canonical implementation is <see cref="ExtractExpedienteAsync"/>; <see cref="ExtractFieldsAsync"/>
+/// delegates to it and wraps the result into <see cref="ExtractedFields"/> for compat.
+/// </para>
 /// The shared DTO/gate/mapper from <c>Infrastructure.Extraction.Txt</c> are reused verbatim;
 /// only the provenance marker (<c>_ExtractionSource=llm-vision</c>) differs from the text path.
 /// </remarks>
-public sealed class LlmVisionFieldExtractor : IFieldExtractor<ImageSource>
+public sealed class LlmVisionFieldExtractor : IFieldExtractor<ImageSource>, ILlmExpedienteExtractor<ImageSource>
 {
     private static readonly JsonSerializerOptions JsonOpts = new(JsonSerializerDefaults.Web)
     {
@@ -40,25 +48,31 @@ public sealed class LlmVisionFieldExtractor : IFieldExtractor<ImageSource>
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    // -----------------------------------------------------------------------
+    // ILlmExpedienteExtractor<ImageSource> — canonical implementation
+    // -----------------------------------------------------------------------
+
     /// <inheritdoc />
     /// <remarks>
-    /// The <paramref name="fieldDefinitions"/> parameter is accepted for interface compatibility
-    /// but the LLM prompt always extracts the full <see cref="LlmExpedienteDto"/> schema.
-    /// No <c>CancellationToken</c> on the interface — passes <c>CancellationToken.None</c> to
-    /// the provider (mirrors the text-extractor contract).
+    /// Sends page images to the active vision-capable <see cref="ILlmProvider"/>,
+    /// validates the response through <see cref="LlmExtractionGate"/>, and maps it to a full
+    /// <see cref="Expediente"/> (including <c>SolicitudPartes</c>) via <see cref="LlmExpedienteMapper"/>.
+    /// Provider resolution and network calls are guarded by try/catch — never throws.
+    /// No <c>CancellationToken</c> is propagated to the provider (passes <c>CancellationToken.None</c>
+    /// — mirrors the established text-extractor contract).
     /// </remarks>
-    public async Task<Result<ExtractedFields>> ExtractFieldsAsync(
+    public async Task<Result<Expediente>> ExtractExpedienteAsync(
         ImageSource source,
-        FieldDefinition[] fieldDefinitions)
+        CancellationToken cancellationToken = default)
     {
         if (source is null)
-            return Result<ExtractedFields>.WithFailure("ImageSource cannot be null.");
+            return Result<Expediente>.WithFailure("ImageSource cannot be null.");
 
         if (source.PagePngs is null || source.PagePngs.Count == 0)
-            return Result<ExtractedFields>.WithFailure("ImageSource contains no page images.");
+            return Result<Expediente>.WithFailure("ImageSource contains no page images.");
 
         // Resolve INSIDE a guard: GetActive() throws on a misconfigured LlmProviders:Active,
-        // and IFieldExtractor must never throw — convert to WithFailure.
+        // and this method must never throw — convert to WithFailure.
         ILlmProvider provider;
         try
         {
@@ -67,12 +81,12 @@ public sealed class LlmVisionFieldExtractor : IFieldExtractor<ImageSource>
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "LlmVisionFieldExtractor: provider resolution failed unexpectedly.");
-            return Result<ExtractedFields>.WithFailure($"LLM provider resolution failed: {ex.Message}");
+            return Result<Expediente>.WithFailure($"LLM provider resolution failed: {ex.Message}");
         }
 
         if (!provider.Capabilities.HasFlag(LlmCapabilities.VisionGenerate))
         {
-            return Result<ExtractedFields>.WithFailure(
+            return Result<Expediente>.WithFailure(
                 $"Active provider '{provider.Name}' does not support vision " +
                 "(VisionGenerate capability is required for image-based extraction).");
         }
@@ -97,7 +111,7 @@ public sealed class LlmVisionFieldExtractor : IFieldExtractor<ImageSource>
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "LlmVisionFieldExtractor: provider threw unexpectedly.");
-            return Result<ExtractedFields>.WithFailure($"LLM provider call failed: {ex.Message}");
+            return Result<Expediente>.WithFailure($"LLM provider call failed: {ex.Message}");
         }
 
         if (!llmResult.IsSuccess)
@@ -105,7 +119,7 @@ public sealed class LlmVisionFieldExtractor : IFieldExtractor<ImageSource>
             _logger.LogWarning(
                 "LlmVisionFieldExtractor: provider returned failure — {Error}",
                 llmResult.Errors?.FirstOrDefault());
-            return Result<ExtractedFields>.WithFailure(
+            return Result<Expediente>.WithFailure(
                 $"LLM provider failed: {llmResult.Errors?.FirstOrDefault() ?? "unknown error"}");
         }
 
@@ -118,19 +132,52 @@ public sealed class LlmVisionFieldExtractor : IFieldExtractor<ImageSource>
         {
             _logger.LogWarning(
                 ex, "LlmVisionFieldExtractor: JSON parse failed. Raw: {Raw}", llmResult.Value);
-            return Result<ExtractedFields>.WithFailure($"JSON parse error: {ex.Message}");
+            return Result<Expediente>.WithFailure($"JSON parse error: {ex.Message}");
         }
 
         if (!LlmExtractionGate.IsValid(dto, out var reason))
         {
             _logger.LogWarning("LlmVisionFieldExtractor: gate rejected DTO — {Reason}", reason);
-            return Result<ExtractedFields>.WithFailure($"Gate rejected LLM output: {reason}");
+            return Result<Expediente>.WithFailure($"Gate rejected LLM output: {reason}");
         }
 
         var expediente = LlmExpedienteMapper.ToExpediente(dto!);
-
         // Override provenance marker — the mapper sets "llm-text"; correct it for this track.
         expediente.AdditionalFields["_ExtractionSource"] = "llm-vision";
+
+        _logger.LogInformation(
+            "LlmVisionFieldExtractor: extraction complete — Expediente={Expediente}, Partes={ParteCount}",
+            expediente.NumeroExpediente, expediente.SolicitudPartes.Count);
+
+        return Result<Expediente>.WithSuccess(expediente);
+    }
+
+    // -----------------------------------------------------------------------
+    // IFieldExtractor<ImageSource> — delegates to ExtractExpedienteAsync and wraps
+    // -----------------------------------------------------------------------
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Delegates to <see cref="ExtractExpedienteAsync"/> and wraps the returned
+    /// <see cref="Expediente"/> into an <see cref="ExtractedFields"/> value object for
+    /// backward compatibility.
+    /// Note: <c>SolicitudPartes</c> are NOT present in the returned <see cref="ExtractedFields"/>;
+    /// use <see cref="ExtractExpedienteAsync"/> when partes must survive.
+    /// </remarks>
+    public async Task<Result<ExtractedFields>> ExtractFieldsAsync(
+        ImageSource source,
+        FieldDefinition[] fieldDefinitions)
+    {
+        var expResult = await ExtractExpedienteAsync(source, CancellationToken.None)
+            .ConfigureAwait(false);
+
+        if (!expResult.IsSuccess)
+        {
+            return Result<ExtractedFields>.WithFailure(
+                expResult.Errors?.FirstOrDefault() ?? "LLM vision extraction failed");
+        }
+
+        var expediente = expResult.Value!;
 
         // Build ExtractedFields from the mapped Expediente (same shape as the text extractor).
         var fields = new ExtractedFields
@@ -149,10 +196,6 @@ public sealed class LlmVisionFieldExtractor : IFieldExtractor<ImageSource>
         {
             fields.AdditionalFields["NombreSolicitante"] = expediente.NombreSolicitante;
         }
-
-        _logger.LogInformation(
-            "LlmVisionFieldExtractor: extraction complete — Expediente={Expediente}, Partes={ParteCount}",
-            expediente.NumeroExpediente, expediente.SolicitudPartes.Count);
 
         return Result<ExtractedFields>.WithSuccess(fields);
     }

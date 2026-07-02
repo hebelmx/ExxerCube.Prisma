@@ -1,4 +1,5 @@
 using System.Text.Json;
+using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Llm;
 using ExxerCube.Prisma.Infrastructure.Classification.Llm;
@@ -11,7 +12,16 @@ namespace ExxerCube.Prisma.Infrastructure.Extraction.Txt.Llm;
 /// Ships DARK: registered as a concrete scoped service but does NOT replace the active
 /// <c>IFieldExtractor&lt;TxtSource&gt;</c> binding until <c>LlmProviders:TextExtractorEnabled=true</c>.
 /// </summary>
-public sealed class LlmTxtFieldExtractor : IFieldExtractor<TxtSource>
+/// <remarks>
+/// Implements both <see cref="IFieldExtractor{TxtSource}"/> (for compatibility with the existing
+/// pipeline) and <see cref="ILlmExpedienteExtractor{TxtSource}"/> (returns the full
+/// <see cref="Expediente"/> with <c>SolicitudPartes</c> so partes survive into reconciliation).
+/// <para>
+/// The canonical implementation is <see cref="ExtractExpedienteAsync"/>; <see cref="ExtractFieldsAsync"/>
+/// delegates to it and wraps the result into <see cref="ExtractedFields"/> for backward compatibility.
+/// </para>
+/// </remarks>
+public sealed class LlmTxtFieldExtractor : IFieldExtractor<TxtSource>, ILlmExpedienteExtractor<TxtSource>
 {
     private static readonly JsonSerializerOptions JsonOpts = new(JsonSerializerDefaults.Web)
     {
@@ -38,33 +48,33 @@ public sealed class LlmTxtFieldExtractor : IFieldExtractor<TxtSource>
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    // -----------------------------------------------------------------------
+    // ILlmExpedienteExtractor<TxtSource> — canonical implementation
+    // -----------------------------------------------------------------------
+
     /// <inheritdoc />
     /// <remarks>
     /// Sends the OCR text to the active LLM provider with a Spanish extraction prompt,
-    /// validates the response through <see cref="LlmExtractionGate"/>, and maps it to
-    /// <see cref="ExtractedFields"/> via <see cref="LlmExpedienteMapper"/>.
-    /// The <paramref name="fieldDefinitions"/> parameter is accepted for interface compatibility
-    /// but the LLM prompt always extracts the full <see cref="LlmExpedienteDto"/> schema.
+    /// validates the response through <see cref="LlmExtractionGate"/>, and maps it to a
+    /// full <see cref="Expediente"/> (including <c>SolicitudPartes</c>) via
+    /// <see cref="LlmExpedienteMapper"/>.
+    /// Provider resolution and network calls are guarded by try/catch — never throws.
     /// </remarks>
-    public async Task<Result<ExtractedFields>> ExtractFieldsAsync(
+    public async Task<Result<Expediente>> ExtractExpedienteAsync(
         TxtSource source,
-        FieldDefinition[] fieldDefinitions)
+        CancellationToken cancellationToken = default)
     {
         if (source is null)
-        {
-            return Result<ExtractedFields>.WithFailure("TxtSource cannot be null.");
-        }
+            return Result<Expediente>.WithFailure("TxtSource cannot be null.");
 
         if (string.IsNullOrWhiteSpace(source.TextContent))
-        {
-            return Result<ExtractedFields>.WithFailure("TxtSource.TextContent cannot be null or empty.");
-        }
+            return Result<Expediente>.WithFailure("TxtSource.TextContent cannot be null or empty.");
 
         var systemPrompt = BuildSystemPrompt();
         var request = new LlmRequest(systemPrompt, source.TextContent);
 
         // Resolve the provider INSIDE the try: GetActive() throws on a misconfigured
-        // LlmProviders:Active, and IFieldExtractor must never throw — convert to WithFailure.
+        // LlmProviders:Active, and this method must never throw — convert to WithFailure.
         Result<string> llmResult;
         try
         {
@@ -80,14 +90,14 @@ public sealed class LlmTxtFieldExtractor : IFieldExtractor<TxtSource>
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "LlmTxtFieldExtractor: provider resolution/call failed unexpectedly.");
-            return Result<ExtractedFields>.WithFailure($"LLM provider call failed: {ex.Message}");
+            return Result<Expediente>.WithFailure($"LLM provider call failed: {ex.Message}");
         }
 
         if (!llmResult.IsSuccess)
         {
             _logger.LogWarning("LlmTxtFieldExtractor: provider returned failure — {Error}",
                 llmResult.Errors?.FirstOrDefault());
-            return Result<ExtractedFields>.WithFailure(
+            return Result<Expediente>.WithFailure(
                 $"LLM provider failed: {llmResult.Errors?.FirstOrDefault() ?? "unknown error"}");
         }
 
@@ -100,16 +110,51 @@ public sealed class LlmTxtFieldExtractor : IFieldExtractor<TxtSource>
         {
             _logger.LogWarning(ex, "LlmTxtFieldExtractor: JSON parse failed. Raw response: {Raw}",
                 llmResult.Value);
-            return Result<ExtractedFields>.WithFailure($"JSON parse error: {ex.Message}");
+            return Result<Expediente>.WithFailure($"JSON parse error: {ex.Message}");
         }
 
         if (!LlmExtractionGate.IsValid(dto, out var reason))
         {
             _logger.LogWarning("LlmTxtFieldExtractor: gate rejected DTO — {Reason}", reason);
-            return Result<ExtractedFields>.WithFailure($"Gate rejected LLM output: {reason}");
+            return Result<Expediente>.WithFailure($"Gate rejected LLM output: {reason}");
         }
 
         var expediente = LlmExpedienteMapper.ToExpediente(dto!);
+
+        _logger.LogInformation(
+            "LlmTxtFieldExtractor: extraction complete — Expediente={Expediente}, Partes={ParteCount}",
+            expediente.NumeroExpediente,
+            expediente.SolicitudPartes.Count);
+
+        return Result<Expediente>.WithSuccess(expediente);
+    }
+
+    // -----------------------------------------------------------------------
+    // IFieldExtractor<TxtSource> — delegates to ExtractExpedienteAsync and wraps
+    // -----------------------------------------------------------------------
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Delegates to <see cref="ExtractExpedienteAsync"/> and wraps the returned
+    /// <see cref="Expediente"/> into an <see cref="ExtractedFields"/> value object for
+    /// backward compatibility with callers that consume the scalar-only shape.
+    /// Note: <c>SolicitudPartes</c> are NOT present in the returned <see cref="ExtractedFields"/>;
+    /// use <see cref="ExtractExpedienteAsync"/> when partes must survive.
+    /// </remarks>
+    public async Task<Result<ExtractedFields>> ExtractFieldsAsync(
+        TxtSource source,
+        FieldDefinition[] fieldDefinitions)
+    {
+        var expResult = await ExtractExpedienteAsync(source, CancellationToken.None)
+            .ConfigureAwait(false);
+
+        if (!expResult.IsSuccess)
+        {
+            return Result<ExtractedFields>.WithFailure(
+                expResult.Errors?.FirstOrDefault() ?? "LLM text extraction failed");
+        }
+
+        var expediente = expResult.Value!;
 
         // Build ExtractedFields from the mapped Expediente.
         var fields = new ExtractedFields
@@ -130,6 +175,7 @@ public sealed class LlmTxtFieldExtractor : IFieldExtractor<TxtSource>
             fields.AdditionalFields["NombreSolicitante"] = expediente.NombreSolicitante;
         }
 
+        // source is non-null here (validated in ExtractExpedienteAsync).
         // Carry OCR provenance so the reconciliator can weight the signal.
         if (source.OcrConfidence.HasValue)
         {
@@ -141,11 +187,6 @@ public sealed class LlmTxtFieldExtractor : IFieldExtractor<TxtSource>
         {
             fields.AdditionalFields["_OcrText"] = source.TextContent;
         }
-
-        _logger.LogInformation(
-            "LlmTxtFieldExtractor: extraction complete — Expediente={Expediente}, Partes={ParteCount}",
-            expediente.NumeroExpediente,
-            expediente.SolicitudPartes.Count);
 
         return Result<ExtractedFields>.WithSuccess(fields);
     }

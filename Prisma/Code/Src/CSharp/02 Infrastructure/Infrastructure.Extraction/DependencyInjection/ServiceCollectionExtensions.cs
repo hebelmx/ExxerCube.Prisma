@@ -91,19 +91,25 @@ public static class ServiceCollectionExtensions
         // IExtractionReconciler is wired but nothing calls it until S3 wiring.
         // ----------------------------------------------------------------
         services.AddScoped<LlmVisionFieldExtractor>();
+
+        // Expose LlmVisionFieldExtractor as ILlmExpedienteExtractor<ImageSource> so
+        // HybridExtractionService can inject by interface (mockable) and receive the full
+        // Expediente with SolicitudPartes. Forwards to the same scoped instance.
+        services.AddScoped<ILlmExpedienteExtractor<ImageSource>>(
+            sp => sp.GetRequiredService<LlmVisionFieldExtractor>());
+
         services.AddScoped<IExtractionReconciler, ExtractionReconciler>();
 
         // ----------------------------------------------------------------
         // S3a: HybridExtractionService — orchestrates deterministic + LLM tracks.
         // Ships DARK: LlmProviders:TextExtractorEnabled and VisionExtractorEnabled both default false.
-        // The factory resolves LlmTxtFieldExtractor and LlmVisionFieldExtractor by CONCRETE type so
-        // the deterministic IFieldExtractor<TxtSource> binding (AdaptiveTxtFieldExtractor) is not
-        // disturbed.
+        // Injects ILlmExpedienteExtractor<T> (not IFieldExtractor<T>) for LLM tracks so the full
+        // Expediente (including SolicitudPartes) is preserved without an ExtractedFields round-trip.
         // ----------------------------------------------------------------
         services.AddScoped<IHybridExtractionService>(sp => new HybridExtractionService(
             sp.GetRequiredService<IFieldExtractor<PdfSource>>(),
-            sp.GetRequiredService<Infrastructure.Extraction.Txt.Llm.LlmTxtFieldExtractor>(),
-            sp.GetRequiredService<LlmVisionFieldExtractor>(),
+            sp.GetRequiredService<ILlmExpedienteExtractor<TxtSource>>(),
+            sp.GetRequiredService<ILlmExpedienteExtractor<ImageSource>>(),
             sp.GetRequiredService<IPdfToImageConverter>(),
             sp.GetRequiredService<IExtractionReconciler>(),
             sp.GetRequiredService<IOptionsMonitor<LlmProvidersOptions>>(),

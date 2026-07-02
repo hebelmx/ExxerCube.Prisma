@@ -9,6 +9,8 @@ namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction;
 /// <summary>
 /// Unit tests for <see cref="HybridExtractionService"/>.
 /// All extractors, the PDF converter, and the reconciler are mocked — no real I/O or LLM calls.
+/// LLM tracks are now mocked via <see cref="ILlmExpedienteExtractor{T}"/> (not IFieldExtractor),
+/// which makes them trivially mockable and ensures <c>SolicitudPartes</c> can be asserted.
 /// </summary>
 public sealed class HybridExtractionServiceTests
 {
@@ -32,19 +34,19 @@ public sealed class HybridExtractionServiceTests
         return f;
     }
 
-    private static ExtractedFields MakeLlmFields(string expediente = "123/2024")
+    private static Expediente MakeLlmExpediente(string expediente = "123/2024")
     {
-        var f = new ExtractedFields { Expediente = expediente };
-        f.AdditionalFields["NombreSolicitante"] = "Juan Pérez";
-        f.AdditionalFields["_ExtractionSource"] = "llm-text";
-        return f;
+        var e = new Expediente { NumeroExpediente = expediente };
+        e.AdditionalFields["NombreSolicitante"] = "Juan Pérez";
+        e.AdditionalFields["_ExtractionSource"] = "llm-text";
+        return e;
     }
 
-    private static ExtractedFields MakeVisionFields(string expediente = "123/2024")
+    private static Expediente MakeVisionExpediente(string expediente = "123/2024")
     {
-        var f = new ExtractedFields { Expediente = expediente };
-        f.AdditionalFields["_ExtractionSource"] = "llm-vision";
-        return f;
+        var e = new Expediente { NumeroExpediente = expediente };
+        e.AdditionalFields["_ExtractionSource"] = "llm-vision";
+        return e;
     }
 
     private static ReconciliationResult FakeReconciliation(IReadOnlyList<LabelledExtraction> candidates) =>
@@ -98,16 +100,16 @@ public sealed class HybridExtractionServiceTests
 
     private HybridExtractionService Build(
         IFieldExtractor<PdfSource>? det = null,
-        IFieldExtractor<TxtSource>? llmText = null,
-        IFieldExtractor<ImageSource>? llmVision = null,
+        ILlmExpedienteExtractor<TxtSource>? llmText = null,
+        ILlmExpedienteExtractor<ImageSource>? llmVision = null,
         IPdfToImageConverter? converter = null,
         IExtractionReconciler? reconciler = null,
         IOptionsMonitor<LlmProvidersOptions>? options = null,
         ITestOutputHelper? output = null)
     {
         det ??= Substitute.For<IFieldExtractor<PdfSource>>();
-        llmText ??= Substitute.For<IFieldExtractor<TxtSource>>();
-        llmVision ??= Substitute.For<IFieldExtractor<ImageSource>>();
+        llmText ??= Substitute.For<ILlmExpedienteExtractor<TxtSource>>();
+        llmVision ??= Substitute.For<ILlmExpedienteExtractor<ImageSource>>();
         converter ??= MakeConverter();
         reconciler ??= MakeReconciler();
         options ??= MakeOptions();
@@ -208,9 +210,9 @@ public sealed class HybridExtractionServiceTests
         det.ExtractFieldsAsync(Arg.Any<PdfSource>(), Arg.Any<FieldDefinition[]>())
             .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeDetFields())));
 
-        var llmText = Substitute.For<IFieldExtractor<TxtSource>>();
-        llmText.ExtractFieldsAsync(Arg.Any<TxtSource>(), Arg.Any<FieldDefinition[]>())
-            .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeLlmFields())));
+        var llmText = Substitute.For<ILlmExpedienteExtractor<TxtSource>>();
+        llmText.ExtractExpedienteAsync(Arg.Any<TxtSource>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<Expediente>.WithSuccess(MakeLlmExpediente())));
 
         var reconciler = MakeReconciler();
         var sut = Build(det: det, llmText: llmText, reconciler: reconciler,
@@ -236,13 +238,13 @@ public sealed class HybridExtractionServiceTests
         det.ExtractFieldsAsync(Arg.Any<PdfSource>(), Arg.Any<FieldDefinition[]>())
             .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeDetFields())));
 
-        var llmText = Substitute.For<IFieldExtractor<TxtSource>>();
-        llmText.ExtractFieldsAsync(Arg.Any<TxtSource>(), Arg.Any<FieldDefinition[]>())
-            .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeLlmFields())));
+        var llmText = Substitute.For<ILlmExpedienteExtractor<TxtSource>>();
+        llmText.ExtractExpedienteAsync(Arg.Any<TxtSource>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<Expediente>.WithSuccess(MakeLlmExpediente())));
 
-        var llmVision = Substitute.For<IFieldExtractor<ImageSource>>();
-        llmVision.ExtractFieldsAsync(Arg.Any<ImageSource>(), Arg.Any<FieldDefinition[]>())
-            .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeVisionFields())));
+        var llmVision = Substitute.For<ILlmExpedienteExtractor<ImageSource>>();
+        llmVision.ExtractExpedienteAsync(Arg.Any<ImageSource>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<Expediente>.WithSuccess(MakeVisionExpediente())));
 
         var reconciler = MakeReconciler();
         var sut = Build(det: det, llmText: llmText, llmVision: llmVision,
@@ -264,13 +266,13 @@ public sealed class HybridExtractionServiceTests
         det.ExtractFieldsAsync(Arg.Any<PdfSource>(), Arg.Any<FieldDefinition[]>())
             .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeDetFields())));
 
-        var llmText = Substitute.For<IFieldExtractor<TxtSource>>();
-        llmText.ExtractFieldsAsync(Arg.Any<TxtSource>(), Arg.Any<FieldDefinition[]>())
-            .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeLlmFields())));
+        var llmText = Substitute.For<ILlmExpedienteExtractor<TxtSource>>();
+        llmText.ExtractExpedienteAsync(Arg.Any<TxtSource>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<Expediente>.WithSuccess(MakeLlmExpediente())));
 
-        var llmVision = Substitute.For<IFieldExtractor<ImageSource>>();
-        llmVision.ExtractFieldsAsync(Arg.Any<ImageSource>(), Arg.Any<FieldDefinition[]>())
-            .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeVisionFields())));
+        var llmVision = Substitute.For<ILlmExpedienteExtractor<ImageSource>>();
+        llmVision.ExtractExpedienteAsync(Arg.Any<ImageSource>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<Expediente>.WithSuccess(MakeVisionExpediente())));
 
         IReadOnlyList<LabelledExtraction>? captured = null;
         var reconciler = Substitute.For<IExtractionReconciler>();
@@ -301,9 +303,9 @@ public sealed class HybridExtractionServiceTests
         det.ExtractFieldsAsync(Arg.Any<PdfSource>(), Arg.Any<FieldDefinition[]>())
             .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeDetFields())));
 
-        var llmText = Substitute.For<IFieldExtractor<TxtSource>>();
-        llmText.ExtractFieldsAsync(Arg.Any<TxtSource>(), Arg.Any<FieldDefinition[]>())
-            .Returns(Task.FromResult(Result<ExtractedFields>.WithFailure("LLM timeout")));
+        var llmText = Substitute.For<ILlmExpedienteExtractor<TxtSource>>();
+        llmText.ExtractExpedienteAsync(Arg.Any<TxtSource>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<Expediente>.WithFailure("LLM timeout")));
 
         IReadOnlyList<LabelledExtraction>? captured = null;
         var reconciler = Substitute.For<IExtractionReconciler>();
@@ -378,9 +380,9 @@ public sealed class HybridExtractionServiceTests
             .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeDetFields(ocrText: expectedOcrText))));
 
         TxtSource? capturedSource = null;
-        var llmText = Substitute.For<IFieldExtractor<TxtSource>>();
-        llmText.ExtractFieldsAsync(Arg.Do<TxtSource>(s => capturedSource = s), Arg.Any<FieldDefinition[]>())
-            .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeLlmFields())));
+        var llmText = Substitute.For<ILlmExpedienteExtractor<TxtSource>>();
+        llmText.ExtractExpedienteAsync(Arg.Do<TxtSource>(s => capturedSource = s), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<Expediente>.WithSuccess(new Expediente())));
 
         var sut = Build(det: det, llmText: llmText,
             options: MakeOptions(textEnabled: true, visionEnabled: false));
@@ -405,9 +407,9 @@ public sealed class HybridExtractionServiceTests
             .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeDetFields())));
 
         ImageSource? capturedSource = null;
-        var llmVision = Substitute.For<IFieldExtractor<ImageSource>>();
-        llmVision.ExtractFieldsAsync(Arg.Do<ImageSource>(s => capturedSource = s), Arg.Any<FieldDefinition[]>())
-            .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeVisionFields())));
+        var llmVision = Substitute.For<ILlmExpedienteExtractor<ImageSource>>();
+        llmVision.ExtractExpedienteAsync(Arg.Do<ImageSource>(s => capturedSource = s), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<Expediente>.WithSuccess(new Expediente())));
 
         var sut = Build(det: det, llmVision: llmVision,
             options: MakeOptions(textEnabled: false, visionEnabled: true));
@@ -431,9 +433,9 @@ public sealed class HybridExtractionServiceTests
         det.ExtractFieldsAsync(Arg.Any<PdfSource>(), Arg.Any<FieldDefinition[]>())
             .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeDetFields())));
 
-        var llmVision = Substitute.For<IFieldExtractor<ImageSource>>();
-        llmVision.ExtractFieldsAsync(Arg.Any<ImageSource>(), Arg.Any<FieldDefinition[]>())
-            .Returns(Task.FromResult(Result<ExtractedFields>.WithFailure(
+        var llmVision = Substitute.For<ILlmExpedienteExtractor<ImageSource>>();
+        llmVision.ExtractExpedienteAsync(Arg.Any<ImageSource>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<Expediente>.WithFailure(
                 "Active provider 'Ollama' does not support vision (VisionGenerate capability is required)")));
 
         IReadOnlyList<LabelledExtraction>? captured = null;
@@ -455,7 +457,7 @@ public sealed class HybridExtractionServiceTests
     }
 
     // ───────────────────────────────────────────────────────────────────────
-    // ExtractedFields → Expediente mapping (key fields)
+    // ExtractedFields → Expediente mapping (key fields, deterministic track)
     // ───────────────────────────────────────────────────────────────────────
 
     [Fact]
@@ -494,5 +496,63 @@ public sealed class HybridExtractionServiceTests
         detExpediente.NombreSolicitante.ShouldBe("PEPE TOÑO PALOMA FLORES");
         detExpediente.DiasPlazo.ShouldBe(7);
         detExpediente.TieneAseguramiento.ShouldBeTrue();
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    // KEY: SolicitudPartes survive through the llm-text candidate
+    // ───────────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task ExtractAsync_LlmTextReturnsExpedienteWithPartes_PartesPreservedInCandidate()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        // Arrange — deterministic provides OCR text; llm-text returns Expediente with 2 partes.
+        var det = Substitute.For<IFieldExtractor<PdfSource>>();
+        det.ExtractFieldsAsync(Arg.Any<PdfSource>(), Arg.Any<FieldDefinition[]>())
+            .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeDetFields())));
+
+        var expedienteWithPartes = new Expediente { NumeroExpediente = "123/2024" };
+        expedienteWithPartes.SolicitudPartes.Add(new SolicitudParte
+        {
+            ParteId = 1,
+            Nombre = "Juan Pérez García",
+            Rfc = "PEJJ800101AAA",
+            Caracter = "Contribuyente",
+        });
+        expedienteWithPartes.SolicitudPartes.Add(new SolicitudParte
+        {
+            ParteId = 2,
+            Nombre = "María López Ruiz",
+            Rfc = "LOMM850202BBB",
+            Caracter = "Patrón",
+        });
+
+        var llmText = Substitute.For<ILlmExpedienteExtractor<TxtSource>>();
+        llmText.ExtractExpedienteAsync(Arg.Any<TxtSource>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<Expediente>.WithSuccess(expedienteWithPartes)));
+
+        IReadOnlyList<LabelledExtraction>? captured = null;
+        var reconciler = Substitute.For<IExtractionReconciler>();
+        reconciler
+            .ReconcileAsync(Arg.Do<IReadOnlyList<LabelledExtraction>>(c => captured = c), Arg.Any<CancellationToken>())
+            .Returns(ci => Task.FromResult(Result<ReconciliationResult>.WithSuccess(
+                FakeReconciliation((IReadOnlyList<LabelledExtraction>)ci[0]))));
+
+        var sut = Build(det: det, llmText: llmText, reconciler: reconciler,
+            options: MakeOptions(textEnabled: true, visionEnabled: false));
+
+        // Act
+        await sut.ExtractAsync(FakePdfBytes, DocId, ct);
+
+        // Assert — 2 partes survive into the llm-text candidate without being dropped
+        captured.ShouldNotBeNull();
+        var llmCand = captured!.FirstOrDefault(c => c.Source == "llm-text");
+        llmCand.ShouldNotBeNull();
+        llmCand!.Status.ShouldBe(TrackStatus.Available);
+        llmCand.Fields.ShouldNotBeNull();
+        llmCand.Fields!.SolicitudPartes.Count.ShouldBe(2);
+        llmCand.Fields.SolicitudPartes[0].Nombre.ShouldBe("Juan Pérez García");
+        llmCand.Fields.SolicitudPartes[1].Rfc.ShouldBe("LOMM850202BBB");
     }
 }

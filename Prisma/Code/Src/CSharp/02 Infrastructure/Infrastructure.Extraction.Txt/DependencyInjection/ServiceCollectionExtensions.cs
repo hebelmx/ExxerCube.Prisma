@@ -30,6 +30,12 @@ public static class ServiceCollectionExtensions
         // deterministic binding above.  Ships DARK: LlmProviders:TextExtractorEnabled=false.
         services.AddScoped<LlmTxtFieldExtractor>();
 
+        // Also expose the concrete as ILlmExpedienteExtractor<TxtSource> so HybridExtractionService
+        // can inject it by interface (mockable in tests) and receive the full Expediente with partes.
+        // The factory forwards to the same scoped instance — one object per scope.
+        services.AddScoped<ILlmExpedienteExtractor<TxtSource>>(
+            sp => sp.GetRequiredService<LlmTxtFieldExtractor>());
+
         return services;
     }
 }
