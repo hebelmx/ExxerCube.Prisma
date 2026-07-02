@@ -243,4 +243,18 @@ public sealed class LlmTxtFieldExtractorTests
 
         result.IsSuccess.ShouldBeFalse();
     }
+
+    // Adversarial review F2: a misconfigured active provider makes GetActive() THROW —
+    // the extractor must convert it to WithFailure, never propagate (IFieldExtractor is no-throw).
+    [Fact]
+    public async Task ExtractFieldsAsync_ProviderResolutionThrows_ReturnsFailure()
+    {
+        var factory = Substitute.For<ILlmProviderFactory>();
+        factory.GetActive().Returns(_ => throw new InvalidOperationException("misconfigured active provider"));
+        var extractor = new LlmTxtFieldExtractor(factory, _defaultOptions, _logger);
+
+        var result = await extractor.ExtractFieldsAsync(new TxtSource("Texto del oficio."), []);
+
+        result.IsSuccess.ShouldBeFalse();
+    }
 }

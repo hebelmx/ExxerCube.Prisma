@@ -63,22 +63,23 @@ public sealed class LlmTxtFieldExtractor : IFieldExtractor<TxtSource>
         var systemPrompt = BuildSystemPrompt();
         var request = new LlmRequest(systemPrompt, source.TextContent);
 
-        _logger.LogDebug(
-            "LlmTxtFieldExtractor: calling provider '{Provider}' with {Length} chars of OCR text.",
-            _providerFactory.GetActive().Name,
-            source.TextContent.Length);
-
+        // Resolve the provider INSIDE the try: GetActive() throws on a misconfigured
+        // LlmProviders:Active, and IFieldExtractor must never throw — convert to WithFailure.
         Result<string> llmResult;
         try
         {
-            llmResult = await _providerFactory
-                .GetActive()
+            var provider = _providerFactory.GetActive();
+            _logger.LogDebug(
+                "LlmTxtFieldExtractor: calling provider '{Provider}' with {Length} chars of OCR text.",
+                provider.Name,
+                source.TextContent.Length);
+            llmResult = await provider
                 .GenerateAsync(request, CancellationToken.None)
                 .ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "LlmTxtFieldExtractor: provider threw unexpectedly.");
+            _logger.LogWarning(ex, "LlmTxtFieldExtractor: provider resolution/call failed unexpectedly.");
             return Result<ExtractedFields>.WithFailure($"LLM provider call failed: {ex.Message}");
         }
 

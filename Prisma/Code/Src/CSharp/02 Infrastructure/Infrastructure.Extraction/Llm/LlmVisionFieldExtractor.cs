@@ -57,7 +57,18 @@ public sealed class LlmVisionFieldExtractor : IFieldExtractor<ImageSource>
         if (source.PagePngs is null || source.PagePngs.Count == 0)
             return Result<ExtractedFields>.WithFailure("ImageSource contains no page images.");
 
-        var provider = _providerFactory.GetActive();
+        // Resolve INSIDE a guard: GetActive() throws on a misconfigured LlmProviders:Active,
+        // and IFieldExtractor must never throw — convert to WithFailure.
+        ILlmProvider provider;
+        try
+        {
+            provider = _providerFactory.GetActive();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "LlmVisionFieldExtractor: provider resolution failed unexpectedly.");
+            return Result<ExtractedFields>.WithFailure($"LLM provider resolution failed: {ex.Message}");
+        }
 
         if (!provider.Capabilities.HasFlag(LlmCapabilities.VisionGenerate))
         {

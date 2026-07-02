@@ -236,4 +236,30 @@ public sealed class LlmExtractionGateTests
 
         LlmExtractionGate.IsValid(dto).ShouldBeTrue();
     }
+
+    // -----------------------------------------------------------------------
+    // CURP structural validation (adversarial review F1)
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void IsValid_WellFormedCurp_ReturnsTrue()
+    {
+        var dto = new LlmExpedienteDto("804/2025", null, null, null, null, "MAHJ920101HDFRLM09", null);
+
+        LlmExtractionGate.IsValid(dto).ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData("UCM444444ABCDEF")]      // OCR-mangled fragment (too short)
+    [InlineData("CURP-HALLUCINATED")]    // hallucinated garbage
+    [InlineData("MAHJ920101XDFRLM09")]   // invalid sex char (X)
+    public void Validate_MalformedCurp_ReportsReason(string badCurp)
+    {
+        var dto = new LlmExpedienteDto("804/2025", null, null, null, null, badCurp, null);
+
+        var reason = LlmExtractionGate.Validate(dto);
+
+        reason.ShouldNotBeNull();
+        reason!.ShouldContain("CURP");
+    }
 }

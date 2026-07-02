@@ -19,6 +19,11 @@ public static partial class LlmExtractionGate
     [GeneratedRegex(@"^[A-Z&Ñ]{3,4}\d{6}[A-Z0-9]{3}$", RegexOptions.CultureInvariant)]
     private static partial Regex RfcRegex();
 
+    // CURP: 18 chars — 4 letters, 6-digit date, sex (H/M), 5 letters (entity + consonants),
+    // homoclave (alnum), check digit. Structural check to reject OCR-mangled / hallucinated CURPs.
+    [GeneratedRegex(@"^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d$", RegexOptions.CultureInvariant)]
+    private static partial Regex CurpRegex();
+
     // -----------------------------------------------------------------------
     // Public API
     // -----------------------------------------------------------------------
@@ -58,6 +63,13 @@ public static partial class LlmExtractionGate
             && !RfcRegex().IsMatch(dto.Rfc))
         {
             return $"RFC '{dto.Rfc}' does not match required format.";
+        }
+
+        // CURP format — reject malformed / OCR-mangled / hallucinated CURP (spec: gate rejects RFC/CURP/...)
+        if (!string.IsNullOrWhiteSpace(dto.Curp)
+            && !CurpRegex().IsMatch(dto.Curp))
+        {
+            return $"CURP '{dto.Curp}' does not match required format.";
         }
 
         // Monto must parse to a positive decimal within a plausible range.

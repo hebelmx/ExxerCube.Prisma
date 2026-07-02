@@ -94,12 +94,23 @@ public sealed class ExtractionReconciler : IExtractionReconciler
         // If deterministic had none, pick the first LLM track that extracted partes.
         if (best.SolicitudPartes.Count == 0)
         {
-            var firstWithPartes = llms.FirstOrDefault(
-                c => c.Fields!.SolicitudPartes.Count > 0);
+            var withPartes = llms.Where(c => c.Fields!.SolicitudPartes.Count > 0).ToList();
+            var firstWithPartes = withPartes.FirstOrDefault();
             if (firstWithPartes?.Fields is not null)
             {
                 foreach (var parte in firstWithPartes.Fields.SolicitudPartes)
                     best.SolicitudPartes.Add(parte);
+
+                // Honesty: if another LLM track produced a different-sized party list, flag it for
+                // review rather than silently discarding it (never silently pick between conflicting LLMs).
+                var divergent = withPartes.Skip(1).FirstOrDefault(
+                    c => c.Fields!.SolicitudPartes.Count != firstWithPartes.Fields.SolicitudPartes.Count);
+                if (divergent is not null)
+                {
+                    reviewFlags.Add(
+                        $"SolicitudPartes: '{firstWithPartes.Source}' ({firstWithPartes.Fields.SolicitudPartes.Count}) " +
+                        $"vs '{divergent.Source}' ({divergent.Fields!.SolicitudPartes.Count}) disagree — used '{firstWithPartes.Source}'.");
+                }
             }
         }
 
