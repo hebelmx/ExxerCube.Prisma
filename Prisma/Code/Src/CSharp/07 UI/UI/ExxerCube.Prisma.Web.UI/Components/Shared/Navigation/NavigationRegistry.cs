@@ -119,6 +119,14 @@ internal static class NavigationRegistry
                     Match: NavLinkMatch.All,
                     Tags: new[] { "oficio", "resumen", "bloqueo", "desbloqueo", "documentacion", "transferencia", "informacion", "semantic", "ia", "atencion a autoridades" }),
                 new NavigationLink(
+                    "Hybrid Extractor Demo",
+                    "/hybrid-extraction",
+                    Icons.Material.Filled.Psychology,
+                    "3-way comparison: deterministic + optional LLM text/vision tracks over PRP1 PDF fixtures. Ships dark (LLM flags off).",
+                    Match: NavLinkMatch.All,
+                    Tags: new[] { "llm", "hybrid", "ai", "extractor", "demo", "comparison", "vision", "text" },
+                    RequiresAuthentication: true),
+                new NavigationLink(
                     "Adaptive DOCX Extractor",
                     "/adaptive-extractor",
                     Icons.Material.Filled.AutoAwesome,

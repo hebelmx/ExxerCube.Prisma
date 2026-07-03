@@ -1,0 +1,706 @@
+@page "/hybrid-extraction"
+@using Microsoft.AspNetCore.Authorization
+@using ExxerCube.Prisma.Domain.Llm
+@using ExxerCube.Prisma.Infrastructure.Classification.Llm
+@using Microsoft.Extensions.Options
+@using ExxerCube.Prisma.Web.UI.Services
+@using ExxerCube.Prisma.Web.UI.Components.Shared
+@attribute [Authorize]
+@implements IDisposable
+@inject IHybridExtractionService HybridService
+@inject ILlmProviderFactory ProviderFactory
+@inject IOptionsMonitor<LlmProvidersOptions> LlmOptions
+@inject FixtureLoaderService FixtureLoader
+@inject IJSRuntime JSRuntime
+@inject ISnackbar Snackbar
+@inject ILogger<HybridExtraction> Logger
+
+<PageTitle>Hybrid Extractor Demo</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+
+    <!-- ─── Page header ────────────────────────────────────────────────── -->
+    <MudText Typo="Typo.h4" Class="mb-1">
+        <MudIcon Icon="@Icons.Material.Filled.Psychology" Class="mr-2" />
+        Hybrid Extractor Demo
+    </MudText>
+    <MudText Typo="Typo.body2" Class="mb-4" Color="Color.Secondary">
+        Deterministic + optional LLM tracks (text / vision). 3-way comparison.
+        Ships <strong>dark</strong> — LLM tracks off by default.
+    </MudText>
+
+    <!-- ─── Provider switch panel ──────────────────────────────────────── -->
+    <MudPaper Class="pa-4 mb-4" Elevation="2">
+        <MudGrid AlignItems="AlignItems.Center">
+            <MudItem xs="12" sm="4">
+                <MudSelect T="string"
+                           Value="@_activeProviderName"
+                           ValueChanged="@SwitchProvider"
+                           Label="Active LLM Provider"
+                           Variant="Variant.Outlined"
+                           Dense="true">
+                    @foreach (var name in _registeredNames)
+                    {
+                        <MudSelectItem T="string" Value="@name">@name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="8">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Wrap="Wrap.Wrap">
+                    <MudText Typo="Typo.caption" Class="mr-2">Capabilities:</MudText>
+                    <MudChip T="string"
+                             Color="@(_capabilities.HasFlag(LlmCapabilities.TextGenerate) ? Color.Info : Color.Default)"
+                             Size="Size.Small"
+                             Icon="@Icons.Material.Filled.TextFields">Text</MudChip>
+                    <MudChip T="string"
+                             Color="@(_capabilities.HasFlag(LlmCapabilities.VisionGenerate) ? Color.Secondary : Color.Default)"
+                             Size="Size.Small"
+                             Icon="@Icons.Material.Filled.RemoveRedEye">Vision</MudChip>
+                    <MudChip T="string"
+                             Color="@(_capabilities.HasFlag(LlmCapabilities.StructuredOutput) ? Color.Success : Color.Default)"
+                             Size="Size.Small"
+                             Icon="@Icons.Material.Filled.DataObject">Structured</MudChip>
+                    <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+                    <MudChip T="string"
+                             Color="@(LlmOptions.CurrentValue.TextExtractorEnabled ? Color.Success : Color.Warning)"
+                             Size="Size.Small"
+                             Icon="@(LlmOptions.CurrentValue.TextExtractorEnabled ? Icons.Material.Filled.Check : Icons.Material.Filled.Block)">
+                        Text track @(LlmOptions.CurrentValue.TextExtractorEnabled ? "ON" : "OFF")
+                    </MudChip>
+                    <MudChip T="string"
+                             Color="@(LlmOptions.CurrentValue.VisionExtractorEnabled ? Color.Success : Color.Warning)"
+                             Size="Size.Small"
+                             Icon="@(LlmOptions.CurrentValue.VisionExtractorEnabled ? Icons.Material.Filled.Check : Icons.Material.Filled.Block)">
+                        Vision track @(LlmOptions.CurrentValue.VisionExtractorEnabled ? "ON" : "OFF")
+                    </MudChip>
+                </MudStack>
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+                    Set <code>LlmProviders:TextExtractorEnabled</code> / <code>VisionExtractorEnabled</code> to
+                    <code>true</code> to enable LLM tracks. Both are OFF by default (dark mode).
+                </MudText>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    <!-- ─── Two-column layout: PDF | Extraction ────────────────────────── -->
+    <MudGrid>
+
+        <!-- ── Left column: fixture selector + PDF viewer ─────────────── -->
+        <MudItem xs="12" md="5">
+            <MudPaper Class="pa-4 mb-3" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-3">
+                    <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-2" />
+                    Select PRP1 Fixture
+                </MudText>
+                <MudGrid>
+                    <MudItem xs="6">
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   FullWidth="true"
+                                   Disabled="@(_busyLoading || _busyRunning)"
+                                   OnClick="@(() => LoadFixture("222AAA-44444444442025.pdf"))">
+                            222AAA
+                        </MudButton>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Secondary"
+                                   FullWidth="true"
+                                   Disabled="@(_busyLoading || _busyRunning)"
+                                   OnClick="@(() => LoadFixture("333BBB-44444444442025.pdf"))">
+                            333BBB
+                        </MudButton>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Tertiary"
+                                   FullWidth="true"
+                                   Disabled="@(_busyLoading || _busyRunning)"
+                                   OnClick="@(() => LoadFixture("333ccc-6666666662025.pdf"))">
+                            333ccc
+                        </MudButton>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Info"
+                                   FullWidth="true"
+                                   Disabled="@(_busyLoading || _busyRunning)"
+                                   OnClick="@(() => LoadFixture("555CCC-6666662025.pdf"))">
+                            555CCC
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+
+                @if (_busyLoading)
+                {
+                    <MudAlert Severity="Severity.Info" Class="mt-3" Dense="true" Icon="@Icons.Material.Filled.HourglassEmpty">
+                        Loading fixture…
+                    </MudAlert>
+                }
+
+                @if (!string.IsNullOrEmpty(_fixtureName))
+                {
+                    <MudAlert Severity="Severity.Success" Class="mt-2" Dense="true" Icon="@Icons.Material.Filled.CheckCircle">
+                        Loaded: <strong>@_fixtureName</strong>
+                    </MudAlert>
+                }
+            </MudPaper>
+
+            <!-- PDF canvas -->
+            @if (_pdfBytes != null)
+            {
+                <MudPaper Class="pa-2" Elevation="2" Style="height: 680px; overflow: auto;">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">
+                        <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="Size.Small" Class="mr-1" />
+                        @_fixtureName
+                    </MudText>
+                    <canvas id="hybridPdfCanvas" style="width: 100%;"></canvas>
+                </MudPaper>
+            }
+        </MudItem>
+
+        <!-- ── Right column: run button + comparison table ─────────────── -->
+        <MudItem xs="12" md="7">
+
+            <!-- Run button -->
+            <MudPaper Class="pa-4 mb-3" Elevation="2">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.PlayArrow"
+                               Disabled="@(_pdfBytes == null || _busyLoading || _busyRunning)"
+                               OnClick="@RunExtraction"
+                               Size="Size.Large">
+                        Run Live Extraction
+                    </MudButton>
+                    @if (_busyRunning)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                        <MudText Typo="Typo.body2">@_statusMessage</MudText>
+                    }
+                    @if (_pdfBytes == null && !_busyLoading)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Select a fixture on the left first.
+                        </MudText>
+                    }
+                </MudStack>
+            </MudPaper>
+
+            <!-- Dark-mode notice -->
+            @if (!LlmOptions.CurrentValue.TextExtractorEnabled && !LlmOptions.CurrentValue.VisionExtractorEnabled)
+            {
+                <MudAlert Severity="Severity.Warning" Class="mb-3" Icon="@Icons.Material.Filled.Lightbulb">
+                    <strong>Dark mode</strong> — both LLM tracks are OFF.
+                    Only the deterministic column will appear.
+                    To see all three columns run Ollama (or set a Gemini API key) and flip the flags in
+                    <code>appsettings.json</code> or user-secrets.
+                </MudAlert>
+            }
+
+            <!-- Extraction error -->
+            @if (!string.IsNullOrEmpty(_extractionError))
+            {
+                <MudAlert Severity="Severity.Error" Class="mb-3" Icon="@Icons.Material.Filled.Error">
+                    @_extractionError
+                </MudAlert>
+            }
+
+            <!-- Result area -->
+            @if (_result != null)
+            {
+                <!-- ReviewFlags -->
+                @if (_result.ReviewFlags.Count > 0)
+                {
+                    <MudPaper Class="pa-3 mb-3" Elevation="1">
+                        <MudText Typo="Typo.subtitle2" Class="mb-2" Color="Color.Warning">
+                            <MudIcon Icon="@Icons.Material.Filled.Flag" Size="Size.Small" Class="mr-1" />
+                            Review Flags (@_result.ReviewFlags.Count)
+                        </MudText>
+                        @foreach (var flag in _result.ReviewFlags)
+                        {
+                            <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-1" NoIcon="true">
+                                @flag
+                            </MudAlert>
+                        }
+                    </MudPaper>
+                }
+
+                <!-- 3-way comparison table -->
+                <MudPaper Class="pa-3" Elevation="2">
+                    <MudText Typo="Typo.h6" Class="mb-3">
+                        <MudIcon Icon="@Icons.Material.Filled.CompareArrows" Class="mr-2" />
+                        3-Way Comparison — @_result.Candidates.Count candidate(s)
+                    </MudText>
+
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--mud-palette-divider);">
+                                    <th style="text-align: left; padding: 8px 6px; width: 22%; font-weight: 600;">Field</th>
+                                    @foreach (var candidate in _result.Candidates)
+                                    {
+                                        <th style="text-align: left; padding: 8px 6px;">
+                                            <MudStack Spacing="1">
+                                                <MudText Typo="Typo.subtitle2" Style="font-weight: 700;">
+                                                    @SourceDisplayName(candidate.Source)
+                                                </MudText>
+                                                <MudChip T="string"
+                                                         Size="Size.Small"
+                                                         Color="@TrackStatusColor(candidate.Status)"
+                                                         Icon="@TrackStatusIcon(candidate.Status)">
+                                                    @candidate.Status
+                                                </MudChip>
+                                                @if (!string.IsNullOrEmpty(candidate.Note))
+                                                {
+                                                    <MudText Typo="Typo.caption" Color="Color.Secondary"
+                                                             Style="font-size: 0.7rem; word-break: break-word;">
+                                                        @candidate.Note
+                                                    </MudText>
+                                                }
+                                            </MudStack>
+                                        </th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- ─ Scalar field rows ─ -->
+                                @foreach (var (fieldKey, fieldLabel) in FieldRows)
+                                {
+                                    var agreementLabel = GetRowAgreementLabel(fieldKey);
+                                    var rowStyle = GetRowStyle(agreementLabel);
+                                    <tr style="border-bottom: 1px solid var(--mud-palette-divider); @rowStyle">
+                                        <td style="padding: 8px 6px; vertical-align: top;">
+                                            <MudStack Spacing="0">
+                                                <MudText Typo="Typo.body2" Style="font-weight: 600;">@fieldLabel</MudText>
+                                                @if (!string.IsNullOrEmpty(agreementLabel))
+                                                {
+                                                    <MudChip T="string" Size="Size.Small"
+                                                             Color="@AgreementColor(agreementLabel)"
+                                                             Style="font-size: 0.65rem;">
+                                                        @agreementLabel
+                                                    </MudChip>
+                                                }
+                                            </MudStack>
+                                        </td>
+                                        @foreach (var candidate in _result.Candidates)
+                                        {
+                                            var (pillLabel, pillColor) = GetConfidencePill(candidate, agreementLabel);
+                                            <td style="padding: 8px 6px; vertical-align: top;">
+                                                @if (candidate.Status == TrackStatus.Available && candidate.Fields != null)
+                                                {
+                                                    var val = GetFieldValue(candidate.Fields, fieldKey);
+                                                    @if (!string.IsNullOrEmpty(val))
+                                                    {
+                                                        <MudStack Spacing="1">
+                                                            <MudText Typo="Typo.body2">@val</MudText>
+                                                            <MudChip T="string" Size="Size.Small" Color="@pillColor">
+                                                                @pillLabel
+                                                            </MudChip>
+                                                        </MudStack>
+                                                    }
+                                                    else
+                                                    {
+                                                        <MudText Typo="Typo.body2" Color="Color.Secondary"
+                                                                 Style="font-style: italic;">—</MudText>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <AbstainedShield Status="@candidate.Status" />
+                                                }
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+
+                                <!-- ─ Partes row ─ -->
+                                <tr style="border-bottom: 1px solid var(--mud-palette-divider);">
+                                    <td style="padding: 8px 6px; vertical-align: top;">
+                                        <MudText Typo="Typo.body2" Style="font-weight: 600;">Partes</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                            Headline: LLM tracks carry partes
+                                        </MudText>
+                                    </td>
+                                    @foreach (var candidate in _result.Candidates)
+                                    {
+                                        <td style="padding: 8px 6px; vertical-align: top;">
+                                            @if (candidate.Status == TrackStatus.Available && candidate.Fields != null)
+                                            {
+                                                @if (candidate.Fields.SolicitudPartes.Count > 0)
+                                                {
+                                                    <MudStack Spacing="1">
+                                                        @foreach (var parte in candidate.Fields.SolicitudPartes)
+                                                        {
+                                                            <MudPaper Class="pa-1" Elevation="0"
+                                                                      Style="border: 1px solid var(--mud-palette-divider); border-radius: 4px;">
+                                                                <MudText Typo="Typo.caption" Style="font-weight: 600;">
+                                                                    @parte.Nombre
+                                                                </MudText>
+                                                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                                    RFC: @(parte.Rfc ?? "—")
+                                                                </MudText>
+                                                                @if (!string.IsNullOrEmpty(parte.Curp))
+                                                                {
+                                                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                                        CURP: @parte.Curp
+                                                                    </MudText>
+                                                                }
+                                                                <MudChip T="string" Size="Size.Small"
+                                                                         Color="Color.Secondary"
+                                                                         Style="font-size: 0.65rem;">
+                                                                    @parte.Caracter
+                                                                </MudChip>
+                                                            </MudPaper>
+                                                        }
+                                                    </MudStack>
+                                                }
+                                                else
+                                                {
+                                                    <MudText Typo="Typo.body2" Color="Color.Secondary"
+                                                             Style="font-style: italic;">No partes</MudText>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <AbstainedShield Status="@candidate.Status" />
+                                            }
+                                        </td>
+                                    }
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Legend -->
+                    <MudDivider Class="my-3" />
+                    <MudStack Row="true" Spacing="3" Wrap="Wrap.Wrap">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Legend:</MudText>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <div style="width: 12px; height: 12px; background: var(--mud-palette-success); border-radius: 2px;"></div>
+                            <MudText Typo="Typo.caption">Consensus</MudText>
+                        </MudStack>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <div style="width: 12px; height: 12px; background: gold; border-radius: 2px;"></div>
+                            <MudText Typo="Typo.caption">Found by AI</MudText>
+                        </MudStack>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <div style="width: 12px; height: 12px; background: var(--mud-palette-warning); border-radius: 2px;"></div>
+                            <MudText Typo="Typo.caption">Models diverge</MudText>
+                        </MudStack>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            | Confidence pills: HIGH = consensus, MED = single-source or diverge
+                        </MudText>
+                    </MudStack>
+                </MudPaper>
+            }
+
+        </MudItem>
+    </MudGrid>
+
+</MudContainer>
+
+@code {
+    // ─── State ───────────────────────────────────────────────────────────────
+
+    private readonly CancellationTokenSource _cts = new();
+
+    private string _activeProviderName = string.Empty;
+    private LlmCapabilities _capabilities = LlmCapabilities.None;
+    private IReadOnlyList<string> _registeredNames = Array.Empty<string>();
+
+    private byte[]? _pdfBytes;
+    private string? _fixtureName;
+    private bool _busyLoading;
+    private bool _busyRunning;
+    private string _statusMessage = string.Empty;
+    private string? _extractionError;
+    private ReconciliationResult? _result;
+
+    private bool _needsPdfRender;
+
+    // Field rows for the comparison table (ordered for display).
+    private static readonly (string Key, string Label)[] FieldRows =
+    [
+        ("NumeroExpediente", "Número de Expediente"),
+        ("NombreSolicitante", "Nombre Solicitante"),
+        ("Monto", "Monto"),
+    ];
+
+    // ─── Lifecycle ───────────────────────────────────────────────────────────
+
+    protected override void OnInitialized()
+    {
+        _registeredNames = ProviderFactory.RegisteredNames;
+        RefreshActiveProvider();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_needsPdfRender && _pdfBytes != null)
+        {
+            _needsPdfRender = false;
+            try
+            {
+                var base64 = Convert.ToBase64String(_pdfBytes);
+                // renderPdf(canvasId, base64) — canvasId first (see DocumentProcessing.razor)
+                await JSRuntime.InvokeVoidAsync("renderPdf", "hybridPdfCanvas", base64);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Failed to render PDF on hybrid canvas.");
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        _cts.Cancel();
+        _cts.Dispose();
+    }
+
+    // ─── Provider switch ─────────────────────────────────────────────────────
+
+    private void SwitchProvider(string name)
+    {
+        var setResult = ProviderFactory.SetActive(name);
+        if (setResult.IsSuccess)
+        {
+            RefreshActiveProvider();
+            Snackbar.Add($"Active provider → {_activeProviderName}", Severity.Success);
+        }
+        else
+        {
+            var err = setResult.Errors?.FirstOrDefault() ?? "Unknown error";
+            Snackbar.Add($"Failed to switch provider: {err}", Severity.Error);
+        }
+    }
+
+    private void RefreshActiveProvider()
+    {
+        try
+        {
+            var provider = ProviderFactory.GetActive();
+            _activeProviderName = provider.Name;
+            _capabilities = provider.Capabilities;
+        }
+        catch (InvalidOperationException ex)
+        {
+            Logger.LogWarning(ex, "Failed to resolve active LLM provider.");
+            _activeProviderName = _registeredNames.Count > 0 ? _registeredNames[0] : "(none)";
+            _capabilities = LlmCapabilities.None;
+        }
+    }
+
+    // ─── Fixture loading ─────────────────────────────────────────────────────
+
+    private async Task LoadFixture(string fixtureName)
+    {
+        _busyLoading = true;
+        _result = null;
+        _extractionError = null;
+        StateHasChanged();
+
+        try
+        {
+            _pdfBytes = await FixtureLoader.LoadFixtureBytesAsync(fixtureName, _cts.Token)
+                .ConfigureAwait(false);
+            _fixtureName = fixtureName;
+            _needsPdfRender = true;
+            Snackbar.Add($"Loaded {fixtureName}", Severity.Success);
+        }
+        catch (FileNotFoundException ex)
+        {
+            Logger.LogWarning(ex, "Fixture not found: {Name}", fixtureName);
+            Snackbar.Add($"Fixture not found: {fixtureName}", Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading fixture: {Name}", fixtureName);
+            Snackbar.Add($"Error loading fixture: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _busyLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    // ─── Extraction ──────────────────────────────────────────────────────────
+
+    private async Task RunExtraction()
+    {
+        if (_pdfBytes == null || string.IsNullOrEmpty(_fixtureName))
+        {
+            Snackbar.Add("Load a fixture first.", Severity.Warning);
+            return;
+        }
+
+        _busyRunning = true;
+        _extractionError = null;
+        _result = null;
+        _statusMessage = "Running extraction (may take a moment for LLM tracks)…";
+        StateHasChanged();
+
+        try
+        {
+            Logger.LogInformation(
+                "HybridExtraction page: starting extraction for '{Fixture}'.", _fixtureName);
+
+            var extractResult = await HybridService
+                .ExtractAsync(_pdfBytes, _fixtureName, _cts.Token)
+                .ConfigureAwait(false);
+
+            if (extractResult.IsSuccess && extractResult.Value is not null)
+            {
+                _result = extractResult.Value;
+                Snackbar.Add(
+                    $"Extraction complete — {_result.Candidates.Count} candidate(s), " +
+                    $"{_result.ReviewFlags.Count} flag(s).",
+                    Severity.Success);
+            }
+            else
+            {
+                _extractionError = extractResult.Errors?.FirstOrDefault()
+                    ?? "Extraction returned a failure result.";
+                Snackbar.Add("Extraction failed — see error above.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Unexpected error during hybrid extraction.");
+            _extractionError = $"Unexpected error: {ex.Message}";
+            Snackbar.Add("Unexpected error — see error above.", Severity.Error);
+        }
+        finally
+        {
+            _busyRunning = false;
+            _statusMessage = string.Empty;
+            StateHasChanged();
+        }
+    }
+
+    // ─── Table helpers ───────────────────────────────────────────────────────
+
+    /// <summary>Returns the display-friendly name for a candidate source label.</summary>
+    private static string SourceDisplayName(string source) => source switch
+    {
+        "deterministic" => "Deterministic",
+        "llm-text"      => "LLM — Text",
+        "llm-vision"    => "LLM — Vision",
+        _               => source
+    };
+
+    /// <summary>
+    /// Extracts a scalar field value from an <see cref="Expediente"/> by logical key.
+    /// </summary>
+    private static string GetFieldValue(Expediente fields, string fieldKey) => fieldKey switch
+    {
+        "NumeroExpediente"  => fields.NumeroExpediente ?? string.Empty,
+        "NombreSolicitante" => fields.NombreSolicitante ?? string.Empty,
+        "Monto"             => fields.AdditionalFields.TryGetValue("Monto", out var m) && m != null
+                                   ? m
+                                   : string.Empty,
+        _                   => string.Empty
+    };
+
+    /// <summary>
+    /// Computes an agreement label for a given field key across all Available candidates.
+    /// Returns "Consensus", "Found by AI", "Models diverge", or empty string.
+    /// </summary>
+    private string GetRowAgreementLabel(string fieldKey)
+    {
+        if (_result == null) return string.Empty;
+
+        var available = _result.Candidates
+            .Where(c => c.Status == TrackStatus.Available && c.Fields != null)
+            .ToList();
+
+        if (available.Count <= 1) return string.Empty;
+
+        var nonEmptyDistinct = available
+            .Select(c => GetFieldValue(c.Fields!, fieldKey))
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (nonEmptyDistinct.Count == 0) return string.Empty; // all empty — not meaningful
+        if (nonEmptyDistinct.Count == 1) return "Consensus";
+
+        // Multiple distinct values — dig deeper
+        var det = available.FirstOrDefault(c => c.Source == "deterministic");
+        var detValue = det != null ? GetFieldValue(det.Fields!, fieldKey) : string.Empty;
+
+        var llmNonEmpty = available
+            .Where(c => c.Source != "deterministic")
+            .Select(c => GetFieldValue(c.Fields!, fieldKey))
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (llmNonEmpty.Count > 1) return "Models diverge";
+        if (string.IsNullOrWhiteSpace(detValue) && llmNonEmpty.Count > 0) return "Found by AI";
+        return "Models diverge";
+    }
+
+    /// <summary>Returns an inline CSS style for a table row based on its agreement label.</summary>
+    private static string GetRowStyle(string agreementLabel) => agreementLabel switch
+    {
+        "Consensus"      => "border-left: 4px solid var(--mud-palette-success);",
+        "Found by AI"    => "border-left: 4px solid gold;",
+        "Models diverge" => "border-left: 4px solid var(--mud-palette-warning);",
+        _                => string.Empty
+    };
+
+    /// <summary>Returns the MudBlazor Color for the agreement label chip.</summary>
+    private static Color AgreementColor(string agreementLabel) => agreementLabel switch
+    {
+        "Consensus"      => Color.Success,
+        "Found by AI"    => Color.Warning,
+        "Models diverge" => Color.Warning,
+        _                => Color.Default
+    };
+
+    /// <summary>
+    /// Returns the confidence pill label and color for a cell, based on the row's agreement
+    /// and the candidate's track status.
+    /// </summary>
+    private static (string Label, Color Color) GetConfidencePill(
+        LabelledExtraction candidate,
+        string agreementLabel)
+    {
+        if (candidate.Status != TrackStatus.Available || candidate.Fields == null)
+            return ("Abstained", Color.Default);
+
+        return agreementLabel switch
+        {
+            "Consensus"      => ("HIGH", Color.Success),
+            "Found by AI"    => candidate.Source == "deterministic"
+                                    ? ("—", Color.Default)
+                                    : ("HIGH", Color.Warning),
+            "Models diverge" => ("MED", Color.Warning),
+            _                => ("MED", Color.Primary)   // single-source
+        };
+    }
+
+    // ─── Track status display helpers ────────────────────────────────────────
+
+    private static Color TrackStatusColor(TrackStatus status) => status switch
+    {
+        TrackStatus.Available          => Color.Success,
+        TrackStatus.SkippedByFlag      => Color.Warning,
+        TrackStatus.SkippedNoCapability => Color.Warning,
+        TrackStatus.Failed             => Color.Error,
+        _                              => Color.Default
+    };
+
+    private static string TrackStatusIcon(TrackStatus status) => status switch
+    {
+        TrackStatus.Available          => Icons.Material.Filled.CheckCircle,
+        TrackStatus.SkippedByFlag      => Icons.Material.Filled.Block,
+        TrackStatus.SkippedNoCapability => Icons.Material.Filled.Warning,
+        TrackStatus.Failed             => Icons.Material.Filled.Error,
+        _                              => Icons.Material.Filled.Help
+    };
+}
+
