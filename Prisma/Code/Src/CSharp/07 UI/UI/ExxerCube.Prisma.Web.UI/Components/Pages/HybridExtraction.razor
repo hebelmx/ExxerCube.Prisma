@@ -503,8 +503,11 @@
 
         try
         {
-            _pdfBytes = await FixtureLoader.LoadFixtureBytesAsync(fixtureName, _cts.Token)
-                .ConfigureAwait(false);
+            // NOTE: no ConfigureAwait(false) — this is an interactive Blazor component.
+            // The continuation (and the finally's StateHasChanged) must resume on the
+            // Blazor Dispatcher, or StateHasChanged() throws "thread not associated with
+            // the Dispatcher" and terminates the circuit.
+            _pdfBytes = await FixtureLoader.LoadFixtureBytesAsync(fixtureName, _cts.Token);
             _fixtureName = fixtureName;
             _needsPdfRender = true;
             Snackbar.Add($"Loaded {fixtureName}", Severity.Success);
@@ -547,9 +550,10 @@
             Logger.LogInformation(
                 "HybridExtraction page: starting extraction for '{Fixture}'.", _fixtureName);
 
+            // No ConfigureAwait(false): stay on the Blazor Dispatcher so the finally's
+            // StateHasChanged() is valid (see LoadFixture note above).
             var extractResult = await HybridService
-                .ExtractAsync(_pdfBytes, _fixtureName, _cts.Token)
-                .ConfigureAwait(false);
+                .ExtractAsync(_pdfBytes, _fixtureName, _cts.Token);
 
             if (extractResult.IsSuccess && extractResult.Value is not null)
             {
