@@ -7,7 +7,7 @@
 #
 # Services (2 total):
 #   sqlserver       — SQL Server 2022 (persistence dependency)
-#   veriqan-worker  — Veriqan VEC Worker  (port 8080 on host)
+#   veriqan-worker  — Veriqan VEC Worker  (port 18090 on host)
 #
 # Volumes (2 total):
 #   veriqan-sqldata — SQL Server data files (named, persisted across restarts)
@@ -94,7 +94,9 @@ services:
     networks:
       - veriqan-dev
     ports:
-      - "8080:8080"
+      # Host port 18090 (was 8080 — collided with another project's service).
+      # Container-internal port stays 8080 (see ASPNETCORE_URLS below).
+      - "18090:8080"
     env_file: .env.veriqan
     environment:
       ASPNETCORE_URLS: "http://+:8080"

@@ -9,7 +9,7 @@ Run everything from the repo root
 ## 1. Bring up the stacks
 
 ```bash
-# Veriqan  (SQL 1434, worker 8080)
+# Veriqan  (SQL 1434, worker 18090)
 docker compose -p veriqan --env-file .env.veriqan -f docker-compose.veriqan.yml up --build -d
 
 # Prisma   (Web UI 8085, workers 18081/8082/8083, SIARA 8084, Seq 15341, SQL 1435)
@@ -32,10 +32,10 @@ curl -s localhost:8085/               # Prisma Web UI      -> 200
 curl -s localhost:18081/health        # Orion             -> Healthy
 curl -s localhost:8082/health         # Athena            -> Healthy
 curl -s localhost:8083/health         # Reconciliator     -> Healthy
-curl -s localhost:8080/health/ready   # Veriqan worker    -> Healthy
+curl -s localhost:18090/health/ready  # Veriqan worker    -> Healthy
 ```
 
-Browser: Prisma UI <http://localhost:8085> · Seq logs <http://localhost:15341> · Veriqan worker <http://localhost:8080>
+Browser: Prisma UI <http://localhost:8085> · Seq logs <http://localhost:15341> · Veriqan worker <http://localhost:18090>
 
 ### Visible browser-automation demo (X11)
 

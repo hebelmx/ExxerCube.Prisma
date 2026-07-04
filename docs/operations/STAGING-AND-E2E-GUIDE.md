@@ -21,7 +21,7 @@ cd <repo-root>   # /home/abel/ExxerProjects/IndFusion/ExxerCube.Prisma
 cp .env.example .env                    # set SA_PASSWORD (strong)
 cp .env.veriqan.example .env.veriqan    # set VERIQAN_SA_PASSWORD + VERIQAN_ENCRYPTION_KEY
 
-# Stage Veriqan (2 containers) — ports 1434 (SQL) + 8080 (worker)
+# Stage Veriqan (2 containers) — ports 1434 (SQL) + 18090 (worker)
 #   -p veriqan            : distinct Compose project (see §1c — MANDATORY)
 #   --env-file .env.veriqan : Veriqan's vars live here, not the default .env (see §5a)
 docker compose -p veriqan --env-file .env.veriqan -f docker-compose.veriqan.yml up --build -d
@@ -31,7 +31,7 @@ docker compose -p veriqan --env-file .env.veriqan -f docker-compose.veriqan.yml 
 docker compose -p prisma -f docker-compose.dev.yml -f docker-compose.staging.override.yml up --build -d
 
 # Smoke-check (see §4 / §5 for full checks)
-curl -s http://localhost:8080/health/ready   # Veriqan worker
+curl -s http://localhost:18090/health/ready   # Veriqan worker
 curl -s http://localhost:8085/health          # Prisma Web UI
 ```
 
@@ -69,7 +69,7 @@ SignalR reconciliation hub that Reconciliator connects to (Ember, ADR-009).
 | Service          | Role                                    | Container        | Host port |
 |------------------|-----------------------------------------|------------------|-----------|
 | `sqlserver`      | SQL Server 2022 (`VeriqanDb`)           | veriqan-sqlserver| **1434**  |
-| `veriqan-worker` | VEC verification worker (ASP.NET host)  | veriqan-worker   | **8080**  |
+| `veriqan-worker` | VEC verification worker (ASP.NET host)  | veriqan-worker   | **18090** |
 
 The worker bind-mounts the reference bundle CSVs from
 `./Prisma/Data/Veriqan/reference-bundles` (read-only) and falls back to

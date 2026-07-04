@@ -37,7 +37,7 @@ launched or killed. Wire `NavigationTargets__SiaraBrowserUrl` in the web-ui comp
 falls back to `SiaraUrl` then `http://localhost:8084` (dev non-container: same host, still works).
 
 **Never:** Do NOT point the Playwright agent at the browser-facing URL (its browser is in the container).
-Do NOT reintroduce `Process.Start` of a platform-specific exe. Do NOT change host port 8084 (8080 = Veriqan).
+Do NOT reintroduce `Process.Start` of a platform-specific exe. Do NOT change host port 8084 (18090 = Veriqan worker).
 
 ## I/O & Edge-Case Matrix
 
@@ -68,4 +68,4 @@ Do NOT reintroduce `Process.Start` of a platform-specific exe. Do NOT change hos
 `SiaraUrl=http://siara-simulator:8080`; `curl localhost:8084` → 302 (host-reachable target of "Open SIARA");
 web-ui boots, `GET /` → 200. Visual click-through of "Open SIARA" / "Check Availability" = demo step.
 
-**Note:** host port map documented in `docker-compose.staging.override.yml` (8084 sim; 8080 avoided = Veriqan).
+**Note:** host port map documented in `docker-compose.staging.override.yml` (8084 sim; 18090 = Veriqan worker).

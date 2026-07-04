@@ -139,7 +139,7 @@ Context:
 - Base image: `mcr.microsoft.com/dotnet/aspnet:10.0` (runtime); build image: `mcr.microsoft.com/dotnet/sdk:10.0`.
 - Build artifacts go to `E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\` (Directory.Build.props). The Dockerfile must use `dotnet publish` with `--output /app/publish`.
 - SQL Server connection string and CSV root directory must be ENV vars (not baked into the image).
-- `docker-compose.yml` must include: `veriqan-worker` service, `sqlserver` service (mcr.microsoft.com/mssql/server:2022-latest), a shared `veriqan-data` volume for the CSV reference bundle, and correct port mapping (8080 for HTTP).
+- `docker-compose.yml` must include: `veriqan-worker` service, `sqlserver` service (mcr.microsoft.com/mssql/server:2022-latest), a shared `veriqan-data` volume for the CSV reference bundle, and correct port mapping (host 18090 → container 8080 for HTTP).
 - Pattern: mirror the Prisma Dockerfile style if one exists, otherwise follow standard .NET 10 multi-stage convention.
 
 Constraints:
