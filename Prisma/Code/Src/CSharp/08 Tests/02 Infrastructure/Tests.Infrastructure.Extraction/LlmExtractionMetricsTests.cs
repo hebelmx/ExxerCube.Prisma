@@ -42,6 +42,25 @@ public sealed class LlmExtractionMetricsTests
     }
 
     // ───────────────────────────────────────────────────────────────────────
+    // Evaluate — diacritic-folded authority match (M2 normalization)
+    // ───────────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void NormalizeAuthority_DiacriticVariant_ReturnsMatched()
+    {
+        // Realistic Spanish-OCR accent variance: "Comisión" vs "Comision" must not score as a
+        // mismatch — NormalizeAuthority folds diacritics on both sides before comparing.
+        var result = LlmExtractionMetrics.Evaluate(
+            "222AAA-44444444442025", EvalTrack.LlmText, EvalField.AutoridadNombre,
+            gold: "Comisión Nacional Bancaria y de Valores",
+            candidate: "Comision Nacional Bancaria y de Valores");
+
+        result.Status.ShouldBe(EvalMatchStatus.Matched);
+        result.GoldNormalized.ShouldBe(result.CandidateNormalized);
+        LlmExtractionMetrics.NormalizeAuthority("Comisión").ShouldBe(LlmExtractionMetrics.NormalizeAuthority("Comision"));
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
     // Evaluate — format-normalized expediente match (different separators)
     // ───────────────────────────────────────────────────────────────────────
 
@@ -54,8 +73,31 @@ public sealed class LlmExtractionMetricsTests
             candidate: "a as1 2505 088637 phm");
 
         result.Status.ShouldBe(EvalMatchStatus.Matched);
-        result.GoldNormalized.ShouldBe("AAS12505088637PHM");
-        result.CandidateNormalized.ShouldBe("AAS12505088637PHM");
+        // Groups are re-joined with a single canonical separator (not concatenated bare) so that a
+        // genuine boundary shift between groups (see M3 guard test below) does not falsely match.
+        result.GoldNormalized.ShouldBe("A-AS1-2505-088637-PHM");
+        result.CandidateNormalized.ShouldBe("A-AS1-2505-088637-PHM");
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    // Evaluate — boundary-shifted expediente (M3 false-match guard)
+    // ───────────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void Evaluate_BoundaryShiftedExpediente_ReturnsMismatch()
+    {
+        // "22-2AAA-2025" and "222-AAA-2025" strip to the identical digit/letter soup
+        // ("222AAA2025") if separators are simply deleted — a false match masking a real boundary
+        // shift between groups. NormalizeCaseReference guards against this by re-joining the
+        // original alphanumeric groups with a single canonical separator, which preserves the group
+        // boundaries themselves (not just separator style), so these two compare as a mismatch.
+        var result = LlmExtractionMetrics.Evaluate(
+            "333BBB-44444444442025", EvalTrack.Deterministic, EvalField.NumeroExpediente,
+            gold: "22-2AAA-2025",
+            candidate: "222-AAA-2025");
+
+        result.Status.ShouldBe(EvalMatchStatus.Mismatch);
+        result.GoldNormalized.ShouldNotBe(result.CandidateNormalized);
     }
 
     [Fact]
@@ -205,6 +247,31 @@ public sealed class LlmExtractionMetricsTests
 
         var authority = accuracy.Single(a => a.Field == EvalField.AutoridadNombre && a.Track == EvalTrack.Deterministic);
         authority.Evaluable.ShouldBe(1); // fx1 excluded (no gold to grade against)
+        authority.Matches.ShouldBe(1);
+        authority.Accuracy.ShouldBe(1.0);
+    }
+
+    [Fact]
+    public void AggregateAccuracy_TrackSkippedWithRealGold_ExcludedFromDenominator()
+    {
+        // C3: a TrackSkipped row that DOES have real (non-empty) gold must NOT count in the
+        // denominator — the track was never attempted, so it must not be counted as an
+        // evaluable-but-wrong row (that would wrongly deflate accuracy). Distinct from the
+        // null-gold-exclusion test above: here gold is real, only the Status differs.
+        var results = new[]
+        {
+            LlmExtractionMetrics.Evaluate(
+                "fx1", EvalTrack.LlmText, EvalField.AutoridadNombre,
+                gold: "CNBV", candidate: null, skipReason: "Ollama unreachable"), // TrackSkipped, real gold
+            LlmExtractionMetrics.Evaluate(
+                "fx2", EvalTrack.LlmText, EvalField.AutoridadNombre,
+                gold: "CNBV", candidate: "CNBV"), // Matched
+        };
+
+        var accuracy = LlmExtractionMetrics.AggregateAccuracy(results);
+
+        var authority = accuracy.Single(a => a.Field == EvalField.AutoridadNombre && a.Track == EvalTrack.LlmText);
+        authority.Evaluable.ShouldBe(1); // fx1 excluded despite having real gold — it was skipped, not graded
         authority.Matches.ShouldBe(1);
         authority.Accuracy.ShouldBe(1.0);
     }

@@ -84,10 +84,15 @@ public sealed record TrackCoverage(EvalTrack Track, int NonNullCandidates, int T
 /// <para>
 /// Normalization rules (per <c>spec-llm-hybrid-extractor-S4A.md</c>):
 /// <list type="bullet">
-///   <item><description><see cref="EvalField.AutoridadNombre"/>: trim + collapse whitespace + case-insensitive.</description></item>
+///   <item><description><see cref="EvalField.AutoridadNombre"/>: trim + collapse whitespace +
+///   case-insensitive + diacritic-folded (so e.g. "Comisión" and "Comision" compare equal — realistic
+///   Spanish-OCR accent variance, not a genuine mismatch).</description></item>
 ///   <item><description><see cref="EvalField.NumeroExpediente"/> / <see cref="EvalField.NumeroOficio"/>:
-///   digit/format-normalized (only letters and digits survive, uppercased) so separator differences
-///   (<c>/</c>, <c>-</c>, spaces) never cause a false mismatch.</description></item>
+///   digit/format-normalized (only letters and digits survive, uppercased) and re-joined with a single
+///   canonical separator between the original alphanumeric groups, so separator-STYLE differences
+///   (<c>/</c> vs <c>-</c> vs spaces) never cause a false mismatch, while a genuine boundary shift
+///   between groups (e.g. <c>"22-2AAA-2025"</c> vs <c>"222-AAA-2025"</c>) still compares as a
+///   mismatch instead of collapsing to the same digit soup.</description></item>
 ///   <item><description><see cref="EvalField.ParteCount"/>: plain integer equality (see
 ///   <see cref="EvaluateParteCount"/>).</description></item>
 /// </list>
@@ -95,7 +100,10 @@ public sealed record TrackCoverage(EvalTrack Track, int NonNullCandidates, int T
 /// </remarks>
 public static class LlmExtractionMetrics
 {
-    /// <summary>Trims, collapses internal whitespace, and upper-invariants a string field (authority name).</summary>
+    /// <summary>
+    /// Trims, collapses internal whitespace, folds diacritics, and upper-invariants a string field
+    /// (authority name) — e.g. "Comisión Nacional..." and "Comision Nacional..." normalize equal.
+    /// </summary>
     public static string? NormalizeAuthority(string? raw)
     {
         if (string.IsNullOrWhiteSpace(raw))
@@ -103,13 +111,17 @@ public static class LlmExtractionMetrics
             return null;
         }
 
-        return CollapseWhitespace(raw.Trim()).ToUpperInvariant();
+        return RemoveDiacritics(CollapseWhitespace(raw.Trim()).ToUpperInvariant());
     }
 
     /// <summary>
-    /// Digit/format-normalizes a case-reference-shaped field (expediente/oficio numbers): keeps only
-    /// letters and digits, upper-invariants them, and drops separators (<c>/</c>, <c>-</c>, spaces) so
-    /// two differently-formatted but semantically identical references compare equal.
+    /// Digit/format-normalizes a case-reference-shaped field (expediente/oficio numbers): splits the
+    /// raw value into runs of letters/digits (upper-invariant), dropping any separator characters
+    /// (<c>/</c>, <c>-</c>, spaces) between them, then re-joins the groups with a single canonical
+    /// <c>-</c> separator. This makes separator-STYLE differences (e.g. <c>/</c> vs <c>-</c> vs
+    /// spaces) compare equal while still preserving the group BOUNDARIES themselves, so a value whose
+    /// digits are grouped differently (a boundary shift, not just a different separator) does not
+    /// falsely collapse to the same normalized string.
     /// </summary>
     public static string? NormalizeCaseReference(string? raw)
     {
@@ -118,16 +130,27 @@ public static class LlmExtractionMetrics
             return null;
         }
 
-        var sb = new StringBuilder(raw.Length);
+        var tokens = new List<string>();
+        var current = new StringBuilder();
         foreach (var c in raw)
         {
             if (char.IsLetterOrDigit(c))
             {
-                sb.Append(char.ToUpperInvariant(c));
+                current.Append(char.ToUpperInvariant(c));
+            }
+            else if (current.Length > 0)
+            {
+                tokens.Add(current.ToString());
+                current.Clear();
             }
         }
 
-        return sb.Length == 0 ? null : sb.ToString();
+        if (current.Length > 0)
+        {
+            tokens.Add(current.ToString());
+        }
+
+        return tokens.Count == 0 ? null : string.Join('-', tokens);
     }
 
     /// <summary>Dispatches to the correct normalization rule for a given <see cref="EvalField"/>.</summary>
@@ -207,7 +230,10 @@ public static class LlmExtractionMetrics
 
     /// <summary>
     /// Aggregates per-(field, track) accuracy = matches / fixtures-with-gold. Results whose gold value
-    /// is null/empty are excluded from the denominator (there is nothing to grade against).
+    /// is null/empty are excluded from the denominator (there is nothing to grade against), and results
+    /// whose <see cref="FieldEvalResult.Status"/> is <see cref="EvalMatchStatus.TrackSkipped"/> are ALSO
+    /// excluded — a skipped track was never attempted, so it must not count as an evaluable-but-wrong
+    /// row (that would silently deflate accuracy for fixtures the track never even ran against).
     /// </summary>
     public static IReadOnlyList<FieldAccuracy> AggregateAccuracy(IEnumerable<FieldEvalResult> results)
     {
@@ -215,7 +241,7 @@ public static class LlmExtractionMetrics
 
         var list = new List<FieldAccuracy>();
         foreach (var group in results
-                     .Where(r => !string.IsNullOrEmpty(r.GoldNormalized))
+                     .Where(r => !string.IsNullOrEmpty(r.GoldNormalized) && r.Status != EvalMatchStatus.TrackSkipped)
                      .GroupBy(r => (r.Field, r.Track)))
         {
             var evaluable = group.Count();
@@ -246,6 +272,26 @@ public static class LlmExtractionMetrics
         }
 
         return list;
+    }
+
+    /// <summary>
+    /// Folds diacritics (e.g. <c>í</c> → <c>i</c>, <c>ó</c> → <c>o</c>) via Unicode decomposition so
+    /// realistic Spanish-OCR accent variance (<c>"Comisión"</c> vs <c>"Comision"</c>) does not read as
+    /// a mismatch. Assumes the input is already upper-invariant.
+    /// </summary>
+    private static string RemoveDiacritics(string s)
+    {
+        var decomposed = s.Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder(decomposed.Length);
+        foreach (var c in decomposed)
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+            {
+                sb.Append(c);
+            }
+        }
+
+        return sb.ToString().Normalize(NormalizationForm.FormC);
     }
 
     private static string CollapseWhitespace(string s)

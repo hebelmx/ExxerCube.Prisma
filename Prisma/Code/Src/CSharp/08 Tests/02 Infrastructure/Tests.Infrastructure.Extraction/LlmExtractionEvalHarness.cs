@@ -38,9 +38,10 @@ namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction;
 /// <para>
 /// <strong>Tracks</strong> (per fixture): Deterministic = <see cref="PdfOcrFieldExtractor"/> (real
 /// Tesseract OCR → <see cref="AdaptiveTxtFieldExtractor"/>, the bar to beat); LLM-text =
-/// <see cref="LlmTxtFieldExtractor"/> over the same OCR text (prefers the committed
-/// <c>*.ocr.txt</c> companion where present); LLM-vision = <see cref="LlmVisionFieldExtractor"/> over
-/// the committed page images. All three are constructed by hand (no DI container).
+/// <see cref="LlmTxtFieldExtractor"/> over the EXACT SAME OCR text the deterministic track produced
+/// (apples-to-apples — the committed <c>*.ocr.txt</c> companion is only a fallback when the
+/// deterministic track produces no OCR text at all); LLM-vision = <see cref="LlmVisionFieldExtractor"/>
+/// over the committed page images. All three are constructed by hand (no DI container).
 /// </para>
 /// <para>
 /// <strong>Gold data sources:</strong>
@@ -202,9 +203,27 @@ public sealed class LlmExtractionEvalHarness
 
             AddDeterministicFieldResults(fixtureId, gold, detExpediente, detOficio, detAuthority, detFailureReason, allFieldResults, output);
 
-            // ── Resolve OCR text feed for the LLM-text track ───────────────────────────────
-            var committedOcrText = TryLoadCommittedOcrText(pdfDir, fixtureId);
-            var ocrTextForLlmText = committedOcrText ?? detOcrText;
+            // ── Resolve OCR text feed for the LLM-text track (M1: apples-to-apples with the
+            // deterministic track — feed it the SAME OCR text the deterministic extractor actually
+            // produced, so both tracks are compared on identical input). The committed `.ocr.txt`
+            // companion (only present for 222AAA) is used ONLY as a fallback when the deterministic
+            // track genuinely produced no OCR text at all. ──────────────────────────────────────
+            string? ocrTextForLlmText;
+            string ocrTextSource;
+            if (!string.IsNullOrWhiteSpace(detOcrText))
+            {
+                ocrTextForLlmText = detOcrText;
+                ocrTextSource = "deterministic-track-ocr (apples-to-apples)";
+            }
+            else
+            {
+                ocrTextForLlmText = TryLoadCommittedOcrText(pdfDir, fixtureId);
+                ocrTextSource = ocrTextForLlmText is not null
+                    ? "committed-.ocr.txt (fallback: deterministic track produced no OCR text)"
+                    : "(none available)";
+            }
+
+            output?.WriteLine($"  [LlmText] OCR text source: {ocrTextSource}");
 
             string? textTrackSkipReason = null;
             if (llmTextExtractor is null)
@@ -245,12 +264,17 @@ public sealed class LlmExtractionEvalHarness
                     llmTextFailureReason = $"exception: {ex.Message}";
                 }
 
-                if (llmTextExpediente is null && llmTextFailureReason is not null)
+                // C4: a per-fixture LLM call that throws, times out, returns a failed Result, fails
+                // JSON parsing, or is gate-rejected is an infra/gate SKIP (TrackSkipped), NOT a model
+                // miss (Missing) — passing a real skipReason here (instead of null) makes that
+                // attributable in the artifact rather than silently blaming the model's accuracy.
+                var llmTextSkipReason = llmTextExpediente is null ? llmTextFailureReason : null;
+                if (llmTextSkipReason is not null)
                 {
-                    output?.WriteLine($"  [LlmText] attempted but failed: {llmTextFailureReason}");
+                    output?.WriteLine($"  [LlmText] attempted but failed: {llmTextSkipReason}");
                 }
 
-                AddExpedienteFieldResults(fixtureId, EvalTrack.LlmText, gold, llmTextExpediente, null, allFieldResults, output);
+                AddExpedienteFieldResults(fixtureId, EvalTrack.LlmText, gold, llmTextExpediente, llmTextSkipReason, allFieldResults, output);
             }
 
             // ── Track 3: LLM-vision ─────────────────────────────────────────────────────────
@@ -291,12 +315,15 @@ public sealed class LlmExtractionEvalHarness
                     llmVisionFailureReason = $"exception: {ex.Message}";
                 }
 
-                if (llmVisionExpediente is null && llmVisionFailureReason is not null)
+                // C4: same reasoning as the LLM-text track above — a per-fixture failure is an
+                // infra/gate skip, not a model miss.
+                var llmVisionSkipReason = llmVisionExpediente is null ? llmVisionFailureReason : null;
+                if (llmVisionSkipReason is not null)
                 {
-                    output?.WriteLine($"  [LlmVision] attempted but failed: {llmVisionFailureReason}");
+                    output?.WriteLine($"  [LlmVision] attempted but failed: {llmVisionSkipReason}");
                 }
 
-                AddExpedienteFieldResults(fixtureId, EvalTrack.LlmVision, gold, llmVisionExpediente, null, allFieldResults, output);
+                AddExpedienteFieldResults(fixtureId, EvalTrack.LlmVision, gold, llmVisionExpediente, llmVisionSkipReason, allFieldResults, output);
             }
         }
 
@@ -418,8 +445,10 @@ public sealed class LlmExtractionEvalHarness
 
     /// <summary>
     /// Loads a committed <c>*.ocr.txt</c> companion for a fixture, if any exists on disk (only
-    /// <c>222AAA</c> has one today). Preferring the committed text over a fresh live-Tesseract run
-    /// reduces OCR variance in the LLM-text track's input.
+    /// <c>222AAA</c> has one today). This is used ONLY as a fallback for the LLM-text track when the
+    /// deterministic track's own OCR text is genuinely unavailable (M1: apples-to-apples — the
+    /// deterministic track's live OCR output is otherwise always preferred so both tracks see
+    /// identical input).
     /// </summary>
     private static string? TryLoadCommittedOcrText(string fixtureDir, string fixtureId)
     {
