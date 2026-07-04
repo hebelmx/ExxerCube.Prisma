@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Veriqan.Orchestration.DependencyInjection;
+using ExxerCube.Prisma.Veriqan.Web.UI.Options;
 using ExxerCube.Prisma.Veriqan.Web.UI.Services;
 using MudBlazor.Services;
 
@@ -47,6 +48,16 @@ builder.Services.AddSingleton<DemoDataService>();
 
 // ── Marked-page PDF→PNG rasterizer (VLD-S3): stateless, singleton is fine ──
 builder.Services.AddSingleton<IMarkedPageRenderer, MarkedPageRenderer>();
+
+// ── Demo live/canned runner seam (VLD-S2) ─────────────────────────────────
+builder.Services.Configure<DemoOptions>(builder.Configuration.GetSection(DemoOptions.Section));
+// Scoped: DemoRunner is itself resolved from the Blazor circuit's own DI scope, and opens a
+// further fresh scope per RunAsync call to resolve the scoped IVerificationPipeline.
+builder.Services.AddScoped<IDemoRunner, DemoRunner>();
+// MINIMAL mapping for now (VLD-S4 enriches with the LAW-vs-BRAND ledger, tiers, bbox rail data).
+builder.Services.AddSingleton<IVerificationOutcomeMapper, VerificationOutcomeMapper>();
+builder.Services.AddSingleton<IPipelineReadiness, PipelineReadiness>();
+builder.Services.AddHostedService<PipelineWarmupHostedService>();
 
 // ── Health (minimal, no DB dependency needed for demo) ──
 builder.Services.AddHealthChecks();

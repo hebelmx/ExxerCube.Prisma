@@ -52,6 +52,14 @@ public sealed class DemoDataService
     public DemoStatementCase? GetByJobId(Guid jobId) =>
         _cases.FirstOrDefault(c => c.JobId == jobId);
 
+    /// <summary>
+    /// Returns the canned demo case whose <see cref="DemoStatementCase.FileName"/> matches
+    /// <paramref name="fileName"/> (ordinal, case-insensitive), or <see langword="null"/> when
+    /// no fixture matches (added for VLD-S2's <see cref="IDemoRunner"/> canned-fallback lookup).
+    /// </summary>
+    public DemoStatementCase? GetByFileName(string fileName) =>
+        _cases.FirstOrDefault(c => string.Equals(c.FileName, fileName, StringComparison.OrdinalIgnoreCase));
+
     // -------------------------------------------------------------------------
     // Case builders
     // -------------------------------------------------------------------------
