@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>INFONAVIT/2024/994568</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>INFONAVIT/2024/994568</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Coordinación de Cobranza Coactiva</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>INFONAVIT/2024/994568</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>B/PL1-8038-704672-UIF</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>10</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>Liliana Villegas Hidalgo</NombreSolicitante>
+  <Referencia>REF-1191</Referencia>
+  <Referencia1>REF1-1682</Referencia1>
+  <Referencia2>REF2-5267</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Francisco Javier Montalvo Durán</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Especificar fechas de apertura y cierre de cuentas
+- Detallar operaciones superiores a $100,000.00 MN
+- Incluir números de cuenta, saldos y movimientos
+- Proporcionar información de todas las cuentas bancarias
+- Indicar titulares y co-titulares de las cuentas</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Francisco Javier Montalvo Durán</Nombre>
+    <Rfc>MODF630309G1R</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Pasaje Coahuila de Zaragoza No. 3251, Col. San Elvira los bajos, Municipio Nueva Botswana, Sinaloa, C.P. 94916</Domicilio>
+    <Complementarios>Tel: 06004887823, Email: xarmendariz@example.org</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

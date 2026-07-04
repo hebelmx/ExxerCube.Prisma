@@ -1,0 +1,50 @@
+{
+  "docId": "SEIDO-2025-128577_20260704_050228",
+  "seed": 2000,
+  "chaosLevel": "none",
+  "requirementType": "aseguramiento",
+  "folioSiara": "SEIDO/2025/128577",
+  "numeroOficio": "SEIDO/2025/128577",
+  "numeroExpediente": "B/FI1-7854-155349-SAT",
+  "autoridadNombre": "Subprocuraduría Especializada en Investigación de Delincuencia Organizada",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Eva Carbajal Macías",
+  "personaNombre": "Inés Solorzano Piña",
+  "personaRfc": "SOPI980125FXZ",
+  "solicitudPartes": [
+    {
+      "nombre": "Inés Solorzano Piña",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$5,170,621.41",
+  "fechaDiligencia": "04/07/2026",
+  "juzgadoNombre": "Subprocuraduría Especializada en Investigación de Delincuencia Organizada",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

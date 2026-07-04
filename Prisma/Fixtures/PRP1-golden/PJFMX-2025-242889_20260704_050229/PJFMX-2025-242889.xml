@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>PJFMX/2025/242889</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>PJFMX/2025/242889</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Tribunal Colegiado en Materia Penal del Primer Circuito</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>PJFMX/2025/242889</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>B/AS2-8342-272672-BBB</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>9</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>Leonardo Ureña Ortega</NombreSolicitante>
+  <Referencia>REF-1199</Referencia>
+  <Referencia1>REF1-9276</Referencia1>
+  <Referencia2>REF2-3706</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Cristobal Negrete Vaca</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Proporcionar información de todas las cuentas bancarias
+- Identificar operaciones inusuales o irregulares
+- Especificar fechas de apertura y cierre de cuentas
+- Detallar operaciones superiores a $100,000.00 MN
+- Reportar transferencias internacionales</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Cristobal Negrete Vaca</Nombre>
+    <Rfc>NEVC051211P40</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Calle Porras No. 2319, Col. Vieja Paraguay, Municipio San Irma de la Montaña, Oaxaca, C.P. 93882</Domicilio>
+    <Complementarios>Tel: 09377858470, Email: arcelia55@example.net</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

@@ -1,0 +1,50 @@
+{
+  "docId": "INFONAVIT-2024-234964_20260704_050225",
+  "seed": 1000,
+  "chaosLevel": "none",
+  "requirementType": "judicial",
+  "folioSiara": "INFONAVIT/2024/234964",
+  "numeroOficio": "INFONAVIT/2024/234964",
+  "numeroExpediente": "H/JU1-6622-466959-AAA",
+  "autoridadNombre": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Eduardo Contreras Arroyo",
+  "personaNombre": "Iván Sierra Rivero",
+  "personaRfc": "SIRI861105UEE",
+  "solicitudPartes": [
+    {
+      "nombre": "Iván Sierra Rivero",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$2,153,875.07",
+  "fechaDiligencia": "04/07/2026",
+  "juzgadoNombre": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

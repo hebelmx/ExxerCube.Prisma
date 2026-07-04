@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>INFONAVIT/2024/234964</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>INFONAVIT/2024/234964</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Dirección de Cobranza</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>INFONAVIT/2024/234964</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>H/JU1-6622-466959-AAA</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>10</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>Eduardo Contreras Arroyo</NombreSolicitante>
+  <Referencia>REF-8505</Referencia>
+  <Referencia1>REF1-2815</Referencia1>
+  <Referencia2>REF2-6620</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Iván Sierra Rivero</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Incluir números de cuenta, saldos y movimientos
+- Proporcionar información de todas las cuentas bancarias
+- Detallar operaciones superiores a $100,000.00 MN
+- Especificar fechas de apertura y cierre de cuentas
+- Indicar titulares y co-titulares de las cuentas</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Iván Sierra Rivero</Nombre>
+    <Rfc>SIRI861105UEE</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Corredor Jasso No. 3991, Col. San Olga los bajos, Municipio San Irene los altos, Nayarit, C.P. 38806</Domicilio>
+    <Complementarios>Tel: (681)296-5568x893, Email: gmata@example.org</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>FGRMX/2023/571625</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>FGRMX/2023/571625</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Unidad Especializada en Investigación de Terrorismo</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>FGRMX/2023/571625</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>B/FI1-3465-780088-FGR</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>9</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>Zeferino Ramón Limón</NombreSolicitante>
+  <Referencia>REF-4516</Referencia>
+  <Referencia1>REF1-3968</Referencia1>
+  <Referencia2>REF2-3320</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Jorge Luis Toro Solorzano</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Especificar fechas de apertura y cierre de cuentas
+- Detallar operaciones superiores a $100,000.00 MN
+- Incluir números de cuenta, saldos y movimientos
+- Proporcionar información de todas las cuentas bancarias
+- Indicar titulares y co-titulares de las cuentas</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Jorge Luis Toro Solorzano</Nombre>
+    <Rfc>TOSJ9906199V6</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Periférico Sur Rico No. 520, Col. San Carlota los altos, Municipio San Francisca los altos, Aguascalientes, C.P. 70023</Domicilio>
+    <Complementarios>Tel: (277)882-3266, Email: marreroelias@example.org</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

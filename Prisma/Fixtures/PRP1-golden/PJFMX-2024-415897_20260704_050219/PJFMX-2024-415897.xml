@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>PJFMX/2024/415897</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>PJFMX/2024/415897</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Juzgado Segundo de Distrito en Materia Civil</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>PJFMX/2024/415897</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>H/AS1-5886-149949-AAA</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>6</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>Reina Tamez Solorio</NombreSolicitante>
+  <Referencia>REF-1852</Referencia>
+  <Referencia1>REF1-3601</Referencia1>
+  <Referencia2>REF2-3539</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Jorge Feliciano Cisneros</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Indicar titulares y co-titulares de las cuentas
+- Incluir números de cuenta, saldos y movimientos
+- Especificar fechas de apertura y cierre de cuentas
+- Detallar operaciones superiores a $100,000.00 MN
+- Proporcionar información de todas las cuentas bancarias</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Jorge Feliciano Cisneros</Nombre>
+    <Rfc>FECJ5109151ZY</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Cerrada Jalisco No. 5524, Col. San Perla de la Montaña, Municipio Nueva Zimbabwe, Durango, C.P. 48326</Domicilio>
+    <Complementarios>Tel: 843-851-3022, Email: nelly21@example.com</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

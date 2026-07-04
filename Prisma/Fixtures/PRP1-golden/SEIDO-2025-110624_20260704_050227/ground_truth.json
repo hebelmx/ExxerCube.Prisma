@@ -1,0 +1,50 @@
+{
+  "docId": "SEIDO-2025-110624_20260704_050227",
+  "seed": 1000,
+  "chaosLevel": "none",
+  "requirementType": "judicial",
+  "folioSiara": "SEIDO/2025/110624",
+  "numeroOficio": "SEIDO/2025/110624",
+  "numeroExpediente": "B/AS1-5134-143257-IMX",
+  "autoridadNombre": "Subprocuraduría Especializada en Investigación de Delincuencia Organizada",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Germán Báez Loya",
+  "personaNombre": "Nadia Armas Carrera",
+  "personaRfc": "ARCN471207C0H",
+  "solicitudPartes": [
+    {
+      "nombre": "Nadia Armas Carrera",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$2,505,608.91",
+  "fechaDiligencia": "04/07/2026",
+  "juzgadoNombre": "Subprocuraduría Especializada en Investigación de Delincuencia Organizada",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

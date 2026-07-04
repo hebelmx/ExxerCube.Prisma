@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>PJFMX/2023/234626</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>PJFMX/2023/234626</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Tribunal Colegiado en Materia Penal del Primer Circuito</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>PJFMX/2023/234626</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>B/IN1-6602-894350-BBB</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>8</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>Estefanía Becerra Paz</NombreSolicitante>
+  <Referencia>REF-5742</Referencia>
+  <Referencia1>REF1-5341</Referencia1>
+  <Referencia2>REF2-4829</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Adán Lugo Arteaga</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Detallar operaciones superiores a $100,000.00 MN
+- Incluir números de cuenta, saldos y movimientos
+- Proporcionar información de todas las cuentas bancarias
+- Indicar titulares y co-titulares de las cuentas
+- Especificar fechas de apertura y cierre de cuentas</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Adán Lugo Arteaga</Nombre>
+    <Rfc>LUAA9407027J2</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Callejón República Federal Democrática de Nepal No. 7442, Col. San Camila de la Montaña, Municipio San Leonardo los altos, Baja California Sur, C.P. 11681</Domicilio>
+    <Complementarios>Tel: 855.678.0046, Email: fajardoruben@example.org</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

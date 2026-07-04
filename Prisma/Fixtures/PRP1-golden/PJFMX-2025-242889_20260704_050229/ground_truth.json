@@ -1,0 +1,50 @@
+{
+  "docId": "PJFMX-2025-242889_20260704_050229",
+  "seed": 2000,
+  "chaosLevel": "none",
+  "requirementType": "pld",
+  "folioSiara": "PJFMX/2025/242889",
+  "numeroOficio": "PJFMX/2025/242889",
+  "numeroExpediente": "B/AS2-8342-272672-BBB",
+  "autoridadNombre": "Poder Judicial de la Federación",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Leonardo Ureña Ortega",
+  "personaNombre": "Cristobal Negrete Vaca",
+  "personaRfc": "NEVC051211P40",
+  "solicitudPartes": [
+    {
+      "nombre": "Cristobal Negrete Vaca",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$8,466,617.18",
+  "fechaDiligencia": "04/07/2026",
+  "juzgadoNombre": "Poder Judicial de la Federación",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

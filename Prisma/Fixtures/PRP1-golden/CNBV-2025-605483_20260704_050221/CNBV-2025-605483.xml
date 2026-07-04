@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>CNBV/2025/605483</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>CNBV/2025/605483</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Visitaduría General</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>CNBV/2025/605483</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>B/PL1-9497-933469-BBB</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>8</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>Abigail Almonte Pelayo</NombreSolicitante>
+  <Referencia>REF-4198</Referencia>
+  <Referencia1>REF1-6615</Referencia1>
+  <Referencia2>REF2-4732</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Aurelio Laboy Alcaraz</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Incluir números de cuenta, saldos y movimientos
+- Proporcionar información de todas las cuentas bancarias
+- Detallar operaciones superiores a $100,000.00 MN
+- Indicar titulares y co-titulares de las cuentas
+- Especificar fechas de apertura y cierre de cuentas</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Aurelio Laboy Alcaraz</Nombre>
+    <Rfc>LAAA680429GKG</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Eje vial Iraq No. 5543, Col. San Andrés de la Montaña, Municipio San Gerardo los bajos, Querétaro, C.P. 33864</Domicilio>
+    <Complementarios>Tel: (575)094-8406x24436, Email: lourdescantu@example.org</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

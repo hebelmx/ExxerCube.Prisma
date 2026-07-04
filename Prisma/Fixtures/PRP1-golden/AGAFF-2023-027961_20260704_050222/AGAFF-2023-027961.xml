@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>AGAFF/2023/027961</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>AGAFF/2023/027961</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Administración Central de Fiscalización Estratégica</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>AGAFF/2023/027961</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>B/JU1-1075-509447-SAT</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>3</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>Olga Monroy Guajardo</NombreSolicitante>
+  <Referencia>REF-7896</Referencia>
+  <Referencia1>REF1-8131</Referencia1>
+  <Referencia2>REF2-4140</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Lourdes Rentería Alcántar</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Especificar fechas de apertura y cierre de cuentas
+- Detallar operaciones superiores a $100,000.00 MN
+- Indicar titulares y co-titulares de las cuentas
+- Incluir números de cuenta, saldos y movimientos
+- Proporcionar información de todas las cuentas bancarias</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Lourdes Rentería Alcántar</Nombre>
+    <Rfc>REAL0405239B6</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Corredor Saldivar No. 4907, Col. San Leonardo de la Montaña, Municipio Nueva Israel, Guerrero, C.P. 12829</Domicilio>
+    <Complementarios>Tel: 670-649-9020, Email: mauro24@example.com</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

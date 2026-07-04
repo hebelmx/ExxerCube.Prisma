@@ -1,0 +1,50 @@
+{
+  "docId": "INFONAVIT-2024-994568_20260704_050226",
+  "seed": 1000,
+  "chaosLevel": "none",
+  "requirementType": "judicial",
+  "folioSiara": "INFONAVIT/2024/994568",
+  "numeroOficio": "INFONAVIT/2024/994568",
+  "numeroExpediente": "B/PL1-8038-704672-UIF",
+  "autoridadNombre": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Liliana Villegas Hidalgo",
+  "personaNombre": "Francisco Javier Montalvo Durán",
+  "personaRfc": "MODF630309G1R",
+  "solicitudPartes": [
+    {
+      "nombre": "Francisco Javier Montalvo Durán",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$7,488,097.16",
+  "fechaDiligencia": "04/07/2026",
+  "juzgadoNombre": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

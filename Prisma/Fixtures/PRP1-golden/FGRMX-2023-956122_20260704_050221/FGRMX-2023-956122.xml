@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>FGRMX/2023/956122</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>FGRMX/2023/956122</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Subprocuraduría Especializada en Investigación de Delitos Federales</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>FGRMX/2023/956122</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>A/AS2-7278-537605-BBB</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>9</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>Hilda Salazar Lozano</NombreSolicitante>
+  <Referencia>REF-8464</Referencia>
+  <Referencia1>REF1-8569</Referencia1>
+  <Referencia2>REF2-9239</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Leonel Luna Alonzo</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Especificar fechas de apertura y cierre de cuentas
+- Incluir números de cuenta, saldos y movimientos
+- Detallar operaciones superiores a $100,000.00 MN
+- Proporcionar información de todas las cuentas bancarias
+- Indicar titulares y co-titulares de las cuentas</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Leonel Luna Alonzo</Nombre>
+    <Rfc>LUAL061104JGE</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Cerrada Norte Ureña No. 5166, Col. San Aurelio de la Montaña, Municipio San Karla de la Montaña, Sinaloa, C.P. 96198</Domicilio>
+    <Complementarios>Tel: +67(8)1230621617, Email: dulce-mariasandoval@example.com</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>
