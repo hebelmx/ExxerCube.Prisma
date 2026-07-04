@@ -131,6 +131,55 @@ date 2026-07-04 04:24Z. Coverage is per-track (12 evaluations = 3 fixtures × 4 
 > is correct for honesty but throttles coverage; whether to loosen it to per-field abstention (keep the
 > valid fields, null only the bad expediente) is a Gate-B design question, logged here, not changed in S4.
 
+### ✅ D3-golden — TRUSTWORTHY baseline on the source-contained corpus (2026-07-04 05:51Z)
+
+The measurement-validity problem above is **resolved.** A purpose-built golden corpus
+(`Prisma/Fixtures/PRP1-golden/`, 20 docs, gold = generator god's-eye `ground_truth.json`, every gold
+field verified source-contained at generation) was run through the same harness
+(`Eval_PRP1Golden_…`, models `llama3.1:8b`/`gemma3:12b`). Artifact:
+`docs/evaluation/llm-hybrid-extraction-baseline-golden-2026-07.md`.
+
+| Field | Deterministic acc | LLM-text acc | LLM-vision acc |
+|---|---|---|---|
+| NumeroExpediente | **85% (17/20)** | 100% (3/3)* | — (no page images) |
+| NumeroOficio | **100% (20/20)** | 0% (0/3)* | — |
+| AutoridadNombre | **0% (0/20)** | 67% (2/3)* | — |
+| ParteCount | — (architectural skip) | 33% (1/3)* | — |
+
+Coverage: Deterministic 57/80 (71%), LLM-text 9/80 (11%), LLM-vision 0/80 (0%). *LLM-text N is only 3
+— see finding (2).
+
+**The measurement is now valid** — the deterministic bar-to-beat scores 85–100% on expediente/oficio
+(vs 0% on the client fixtures), proving the harness measures real extraction quality, not a gold artifact.
+Three actionable findings — the payoff of a trustworthy baseline:
+
+1. **Deterministic `AutoridadNombre` = 0/20 (real production defect).** The deterministic
+   `AdaptiveTxtFieldExtractor` consistently returns the constant **recipient** ("Comisión Nacional
+   Bancaria y de Valores") instead of the **requesting** authority (the gold). The LLM-text track gets
+   **67%** here where it runs — a genuine S4-B value signal (the LLM finds the requesting authority the
+   deterministic path misses). → File a production ticket for the deterministic authority extractor.
+
+2. **LLM-text coverage is only 11% — the production gate skips 17/20 — and the dominant cause is the
+   `Monto` format check, not expediente.** The LLM returns monto with currency formatting
+   (`$9,976,691.72`); the gate rejects it as "not a valid decimal" and discards the **whole DTO**
+   (expediente/oficio/authority included). This is the **top lever** for the LLM path and a concrete
+   instance of the Gate-coupling concern above: (a) relax monto parsing to accept `$`/thousands
+   separators, and/or (b) move to per-field abstention so a bad monto nulls only monto. Until then S4-B's
+   LLM gains are **masked** (the 3 evaluable docs are a biased sample — those where the LLM happened to
+   omit monto). **D1/D2 verdict: not yet decidable for LLM-text** — N=3 and gate-selection-biased.
+
+3. **LLM-vision = 0% coverage (harness/corpus gap, not a model result).** `PRP1-golden` ships no
+   pre-rendered page images, so `LoadFixturePageImages` returns empty and the vision track structurally
+   skips. Fix: render PDF→images on the fly for the golden set (the deterministic track already does this
+   via `PdfToImageConverter`) — tracked as a harness follow-up before vision can be judged.
+
+**Did S4-B work? (honest read):** promising but not yet provable. Where observable, the LLM adds real
+value (requesting-authority 67% vs deterministic 0%; expediente 100% on the tiny N). But its impact is
+**gated away** on 85% of docs by the monto check, and vision is unmeasured. The trustworthy baseline's
+real product is not a pass/fail — it's the precise identification of the **two blockers to fix next**
+(monto gate coupling; vision page-image rendering) plus a **confirmed production bug** (deterministic
+authority). Deterministic remains the bar to beat on expediente (85%) and oficio (100%).
+
 ---
 
 ## Decision

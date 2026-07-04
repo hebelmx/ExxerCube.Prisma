@@ -60,6 +60,12 @@ public sealed class LlmExtractionEvalHarness
     private const string PrpSummaryFile = "Prisma/Fixtures/PRP1/prp1_summary.json";
     private const string PdfFixtureDir = "Prisma/Fixtures/PRP1";
 
+    // ── PRP1-golden: trustworthy corpus with a generator-stamped ground_truth.json per fixture
+    // (see Prisma/Fixtures/PRP1-golden/README.md) — unlike PRP1/ above, its gold is guaranteed to be
+    // rendered into the document body, so it is not subject to the "gold never recoverable by OCR"
+    // defect the client PRP1/ set has. ──────────────────────────────────────────────────────────────
+    private const string GoldenCorpusDir = "Prisma/Fixtures/PRP1-golden";
+
     // ── Ollama endpoint probed before running LLM tracks ──────────────────────
     private const string OllamaHealthUrl = "http://localhost:11434/api/tags";
     private const string OllamaBaseUrl = "http://localhost:11434";
@@ -72,6 +78,10 @@ public sealed class LlmExtractionEvalHarness
     // ── Committed baseline artifact paths (relative to repo root) — D3 in the S4-A spec ─────────
     private const string ArtifactJsonRelativePath = "docs/evaluation/llm-hybrid-extraction-baseline-2026-07.json";
     private const string ArtifactMarkdownRelativePath = "docs/evaluation/llm-hybrid-extraction-baseline-2026-07.md";
+
+    // ── Committed baseline artifact paths for the PRP1-golden run ────────────────────────────────
+    private const string GoldenArtifactJsonRelativePath = "docs/evaluation/llm-hybrid-extraction-baseline-golden-2026-07.json";
+    private const string GoldenArtifactMarkdownRelativePath = "docs/evaluation/llm-hybrid-extraction-baseline-golden-2026-07.md";
 
     private const string SmallNCaveat =
         "SMALL-N / DIRECTIONAL (N=3) — this is a baseline, not a statistical claim. " +
@@ -158,19 +168,154 @@ public sealed class LlmExtractionEvalHarness
                 providerFactory, XUnitLogger.CreateLogger<LlmVisionFieldExtractor>(output!));
         }
 
-        // ── 5. Run per-fixture evaluation across all three tracks ──────────────
+        // ── 5-8. Run per-fixture evaluation, aggregate, and emit artifacts (shared helper) ──────
+        var pdfDir = Path.Combine(repoRoot, PdfFixtureDir);
+
+        await RunEvalAsync(
+            repoRoot,
+            goldMap,
+            id => Path.Combine(pdfDir, $"{id}.pdf"),
+            ArtifactJsonRelativePath,
+            ArtifactMarkdownRelativePath,
+            ollamaReachable,
+            llmTextExtractor,
+            llmVisionExtractor,
+            detExtractor,
+            output,
+            ct);
+    }
+
+    /// <summary>
+    /// Runs the full eval harness against the PRP1-golden trustworthy corpus (see
+    /// <c>Prisma/Fixtures/PRP1-golden/README.md</c>): each fixture ships a generator-stamped
+    /// <c>ground_truth.json</c> whose gold values are guaranteed to be rendered into the document
+    /// body (unlike the client PRP1/ fixtures, whose XML-derived gold is often not recoverable by
+    /// OCR at all). Same three tracks, same pure metric engine, same artifact shape as
+    /// <see cref="Eval_PRP1Fixtures_ComputesFieldMetricsAndEmitsBaseline"/> — only the gold source
+    /// and PDF resolution differ.
+    /// </summary>
+    [Fact(Skip = "eval-only: run manually — remove Skip to execute (live Ollama + ~2min)")]
+    public async Task Eval_PRP1Golden_ComputesFieldMetricsAndEmitsBaseline()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var output = TestContext.Current.TestOutputHelper;
+        output?.WriteLine("=== PRP1-golden Field-Extraction Eval Harness ===");
+
+        // ── 1. Locate repo root ────────────────────────────────────────────────
+        var repoRoot = LocateRepoRoot();
+        if (repoRoot is null)
+        {
+            throw new ShouldAssertException(
+                "could not locate repo root (no directory containing " + ParsedDocumentsFile +
+                " found from " + AppContext.BaseDirectory + ").");
+        }
+
+        // ── 2. Load gold data from the PRP1-golden corpus ───────────────────────
+        var goldenRoot = Path.Combine(repoRoot, GoldenCorpusDir);
+        if (!Directory.Exists(goldenRoot))
+        {
+            throw new ShouldAssertException($"golden corpus directory not found: {goldenRoot}");
+        }
+
+        var goldMap = BuildGoldMapFromGoldenDir(goldenRoot, output);
+        goldMap.ShouldNotBeEmpty($"no gold fixtures loaded from {goldenRoot}");
+
+        // ── 3. Check Ollama availability ────────────────────────────────────────
+        var ollamaReachable = await IsOllamaReachableAsync(ct);
+        output?.WriteLine($"Ollama reachable at localhost:11434: {ollamaReachable} (text={TextModelTag}, vision={VisionModelTag})");
+        if (!ollamaReachable)
+        {
+            output?.WriteLine("  → LLM tracks will be TrackSkipped for every fixture (deterministic still runs).");
+        }
+
+        // ── 4. Build real services by hand (no DI container) ───────────────────
+        using var ocrExecutor = new TesseractOcrExecutor(XUnitLogger.CreateLogger<TesseractOcrExecutor>(output!));
+        var imagePreprocessor = new PassthroughImagePreprocessor();
+        var pdfToImageConverter = new PdfToImageConverter(XUnitLogger.CreateLogger<PdfToImageConverter>(output!));
+        var adaptiveTxtExtractor = new AdaptiveTxtFieldExtractor(XUnitLogger.CreateLogger<AdaptiveTxtFieldExtractor>(output!));
+        var detExtractor = new PdfOcrFieldExtractor(
+            ocrExecutor, imagePreprocessor, pdfToImageConverter, adaptiveTxtExtractor,
+            XUnitLogger.CreateLogger<PdfOcrFieldExtractor>(output!));
+
+        ILlmExpedienteExtractor<TxtSource>? llmTextExtractor = null;
+        ILlmExpedienteExtractor<ImageSource>? llmVisionExtractor = null;
+
+        if (ollamaReachable)
+        {
+            var llmOptions = new LlmProvidersOptions
+            {
+                Active = "Ollama",
+                Ollama = new OllamaProviderOptions
+                {
+                    BaseUrl = OllamaBaseUrl,
+                    Model = TextModelTag,
+                    VisionModel = VisionModelTag,
+                    TimeoutSeconds = 120,
+                },
+            };
+            var optionsMonitor = new StaticOptionsMonitor<LlmProvidersOptions>(llmOptions);
+            var ollamaProvider = new OllamaProvider(
+                new DirectHttpClientFactory(), optionsMonitor, XUnitLogger.CreateLogger<OllamaProvider>(output!));
+            var providerFactory = new LlmProviderFactory([ollamaProvider], optionsMonitor);
+
+            llmTextExtractor = new LlmTxtFieldExtractor(
+                providerFactory, Options.Create(llmOptions), XUnitLogger.CreateLogger<LlmTxtFieldExtractor>(output!));
+            llmVisionExtractor = new LlmVisionFieldExtractor(
+                providerFactory, XUnitLogger.CreateLogger<LlmVisionFieldExtractor>(output!));
+        }
+
+        // ── 5-8. Run per-fixture evaluation, aggregate, and emit artifacts (shared helper) ──────
+        await RunEvalAsync(
+            repoRoot,
+            goldMap,
+            id => goldMap.TryGetValue(id, out var g) ? g.PdfPath : null,
+            GoldenArtifactJsonRelativePath,
+            GoldenArtifactMarkdownRelativePath,
+            ollamaReachable,
+            llmTextExtractor,
+            llmVisionExtractor,
+            detExtractor,
+            output,
+            ct);
+    }
+
+    /// <summary>
+    /// Shared per-fixture evaluation loop: for each fixture in <paramref name="goldMap"/>, resolves
+    /// its PDF via <paramref name="resolvePdfPath"/>, runs all three tracks (deterministic, LLM-text,
+    /// LLM-vision), scores them via the pure <see cref="LlmExtractionMetrics"/> engine, and writes
+    /// the JSON + Markdown baseline artifacts. Used by both
+    /// <see cref="Eval_PRP1Fixtures_ComputesFieldMetricsAndEmitsBaseline"/> (client PRP1/ corpus) and
+    /// <see cref="Eval_PRP1Golden_ComputesFieldMetricsAndEmitsBaseline"/> (PRP1-golden corpus).
+    /// </summary>
+    private static async Task RunEvalAsync(
+        string repoRoot,
+        IReadOnlyDictionary<string, GoldFixture> goldMap,
+        Func<string, string?> resolvePdfPath,
+        string artifactJsonRel,
+        string artifactMdRel,
+        bool ollamaReachable,
+        ILlmExpedienteExtractor<TxtSource>? llmText,
+        ILlmExpedienteExtractor<ImageSource>? llmVision,
+        PdfOcrFieldExtractor det,
+        ITestOutputHelper? output,
+        CancellationToken ct)
+    {
         var allFieldResults = new List<FieldEvalResult>();
         var evaluatedFixtures = new List<string>();
-        var pdfDir = Path.Combine(repoRoot, PdfFixtureDir);
 
         foreach (var (fixtureId, gold) in goldMap)
         {
-            var pdfPath = Path.Combine(pdfDir, $"{fixtureId}.pdf");
-            if (!File.Exists(pdfPath))
+            var pdfPath = resolvePdfPath(fixtureId);
+            if (pdfPath is null || !File.Exists(pdfPath))
             {
                 output?.WriteLine($"[{fixtureId}] PDF not found on disk — skipping fixture entirely.");
                 continue;
             }
+
+            // Fixture assets (committed .ocr.txt / page images, if any) live alongside the PDF —
+            // this generalizes correctly for both the flat client PdfFixtureDir (one shared dir) and
+            // the PRP1-golden per-fixture subdirectories.
+            var fixtureDir = Path.GetDirectoryName(pdfPath) ?? repoRoot;
 
             output?.WriteLine($"\n[{fixtureId}] Evaluating…");
             evaluatedFixtures.Add(fixtureId);
@@ -185,7 +330,7 @@ public sealed class LlmExtractionEvalHarness
 
             try
             {
-                var detResult = await detExtractor.ExtractFieldsAsync(new PdfSource(pdfBytes), Array.Empty<FieldDefinition>());
+                var detResult = await det.ExtractFieldsAsync(new PdfSource(pdfBytes), Array.Empty<FieldDefinition>());
                 if (detResult.IsSuccess && detResult.Value is not null)
                 {
                     detExpediente = detResult.Value.Expediente;
@@ -220,7 +365,7 @@ public sealed class LlmExtractionEvalHarness
             }
             else
             {
-                ocrTextForLlmText = TryLoadCommittedOcrText(pdfDir, fixtureId);
+                ocrTextForLlmText = TryLoadCommittedOcrText(fixtureDir, fixtureId);
                 ocrTextSource = ocrTextForLlmText is not null
                     ? "committed-.ocr.txt (fallback: deterministic track produced no OCR text)"
                     : "(none available)";
@@ -229,7 +374,7 @@ public sealed class LlmExtractionEvalHarness
             output?.WriteLine($"  [LlmText] OCR text source: {ocrTextSource}");
 
             string? textTrackSkipReason = null;
-            if (llmTextExtractor is null)
+            if (llmText is null)
             {
                 textTrackSkipReason = "Ollama unreachable";
             }
@@ -252,7 +397,7 @@ public sealed class LlmExtractionEvalHarness
                 try
                 {
                     var txtSource = new TxtSource(ocrTextForLlmText!);
-                    var llmTextResult = await llmTextExtractor!.ExtractExpedienteAsync(txtSource, ct);
+                    var llmTextResult = await llmText!.ExtractExpedienteAsync(txtSource, ct);
                     if (llmTextResult.IsSuccess && llmTextResult.Value is not null)
                     {
                         llmTextExpediente = llmTextResult.Value;
@@ -281,9 +426,9 @@ public sealed class LlmExtractionEvalHarness
             }
 
             // ── Track 3: LLM-vision ─────────────────────────────────────────────────────────
-            var pageImages = LoadFixturePageImages(pdfDir, fixtureId);
+            var pageImages = LoadFixturePageImages(fixtureDir, fixtureId);
             string? visionTrackSkipReason = null;
-            if (llmVisionExtractor is null)
+            if (llmVision is null)
             {
                 visionTrackSkipReason = "Ollama unreachable";
             }
@@ -303,7 +448,7 @@ public sealed class LlmExtractionEvalHarness
                 try
                 {
                     var imageSource = new ImageSource(fixtureId, pageImages);
-                    var llmVisionResult = await llmVisionExtractor!.ExtractExpedienteAsync(imageSource, ct);
+                    var llmVisionResult = await llmVision!.ExtractExpedienteAsync(imageSource, ct);
                     if (llmVisionResult.IsSuccess && llmVisionResult.Value is not null)
                     {
                         llmVisionExpediente = llmVisionResult.Value;
@@ -330,21 +475,21 @@ public sealed class LlmExtractionEvalHarness
             }
         }
 
-        // ── 6. Aggregate metrics via the PURE engine ────────────────────────────
+        // ── Aggregate metrics via the PURE engine ───────────────────────────────
         var accuracy = LlmExtractionMetrics.AggregateAccuracy(allFieldResults);
         var coverage = LlmExtractionMetrics.AggregateCoverage(allFieldResults);
 
-        // ── 7. Emit JSON + Markdown baseline artifacts ──────────────────────────
+        // ── Emit JSON + Markdown baseline artifacts ─────────────────────────────
         var generatedAt = DateTimeOffset.UtcNow;
-        var jsonPath = Path.Combine(repoRoot, ArtifactJsonRelativePath);
-        var mdPath = Path.Combine(repoRoot, ArtifactMarkdownRelativePath);
+        var jsonPath = Path.Combine(repoRoot, artifactJsonRel);
+        var mdPath = Path.Combine(repoRoot, artifactMdRel);
 
         await WriteJsonArtifactAsync(
             jsonPath, generatedAt, ollamaReachable, evaluatedFixtures, allFieldResults, accuracy, coverage, ct);
         await WriteMarkdownArtifactAsync(
             mdPath, generatedAt, ollamaReachable, evaluatedFixtures, allFieldResults, accuracy, coverage, ct);
 
-        // ── 8. Summary ──────────────────────────────────────────────────────────
+        // ── Summary ──────────────────────────────────────────────────────────────
         output?.WriteLine("\n=== SUMMARY ===");
         output?.WriteLine($"Fixtures evaluated : {evaluatedFixtures.Count} ({string.Join(", ", evaluatedFixtures)})");
         output?.WriteLine($"Field evaluations  : {allFieldResults.Count}");
@@ -586,6 +731,76 @@ public sealed class LlmExtractionEvalHarness
     }
 
     /// <summary>
+    /// Builds a dictionary from fixture ID (docId, e.g. <c>"CNBV-2025-605483_20260704_050221"</c>) to
+    /// <see cref="GoldFixture"/> by reading the generator-stamped <c>ground_truth.json</c> committed
+    /// alongside each fixture under <c>Prisma/Fixtures/PRP1-golden/&lt;docDir&gt;/</c> (see the
+    /// corpus README for the generation recipe and the source-containment gate).
+    /// </summary>
+    private static Dictionary<string, GoldFixture> BuildGoldMapFromGoldenDir(string goldenRoot, ITestOutputHelper? output)
+    {
+        var result = new Dictionary<string, GoldFixture>(StringComparer.OrdinalIgnoreCase);
+
+        var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+        {
+            PropertyNameCaseInsensitive = true,
+        };
+
+        foreach (var dir in Directory.GetDirectories(goldenRoot).OrderBy(d => d, StringComparer.Ordinal))
+        {
+            var dirName = Path.GetFileName(dir);
+            var groundTruthPath = Path.Combine(dir, "ground_truth.json");
+            if (!File.Exists(groundTruthPath))
+            {
+                output?.WriteLine($"[{dirName}] no ground_truth.json found — skipping.");
+                continue;
+            }
+
+            var pdfPath = Directory.GetFiles(dir, "*.pdf")
+                .OrderBy(f => f, StringComparer.Ordinal)
+                .FirstOrDefault();
+            if (pdfPath is null)
+            {
+                output?.WriteLine($"[{dirName}] no *.pdf found — skipping.");
+                continue;
+            }
+
+            GroundTruthDocument? truth;
+            try
+            {
+                truth = JsonSerializer.Deserialize<GroundTruthDocument>(File.ReadAllText(groundTruthPath), jsonOptions);
+            }
+            catch (Exception ex)
+            {
+                output?.WriteLine($"WARNING: could not parse {groundTruthPath}: {ex.Message}");
+                continue;
+            }
+
+            if (truth is null)
+            {
+                output?.WriteLine($"WARNING: {groundTruthPath} parsed to null — skipping.");
+                continue;
+            }
+
+            var fixtureId = truth.DocId.NullIfEmpty() ?? dirName;
+            var parteCount = truth.SolicitudPartes.ValueKind == JsonValueKind.Array
+                ? truth.SolicitudPartes.GetArrayLength()
+                : 0;
+
+            result[fixtureId] = new GoldFixture
+            {
+                NumeroExpediente = truth.NumeroExpediente,
+                NumeroOficio = truth.NumeroOficio,
+                AutoridadNombre = truth.AutoridadNombre,
+                ParteCount = parteCount,
+                PdfPath = pdfPath,
+            };
+        }
+
+        output?.WriteLine($"Golden gold fixtures loaded: {result.Count}");
+        return result;
+    }
+
+    /// <summary>
     /// Extracts key expected field values from a CNBV XML companion document.
     /// </summary>
     private static GoldFixture ParseGoldFromXml(string xmlContent)
@@ -818,7 +1033,20 @@ public sealed class LlmExtractionEvalHarness
         public string? NumeroOficio { get; init; }
         public string? AutoridadNombre { get; init; }
         public int ParteCount { get; init; }
+
+        /// <summary>Full path to the fixture's PDF — only populated by <see cref="BuildGoldMapFromGoldenDir"/>
+        /// (the client PRP1/ loader resolves its PDF path separately via a flat, shared directory).</summary>
+        public string? PdfPath { get; init; }
     }
+
+    /// <summary>Deserialization shape of a PRP1-golden <c>ground_truth.json</c> — only the fields this
+    /// harness measures are modeled (solicitante/rfc/monto etc. are deliberately out of scope for now).</summary>
+    private sealed record GroundTruthDocument(
+        string? DocId,
+        string? NumeroExpediente,
+        string? NumeroOficio,
+        string? AutoridadNombre,
+        JsonElement SolicitudPartes);
 
     /// <summary>Serialized shape of the committed baseline artifact (D3).</summary>
     private sealed record EvalArtifact(
