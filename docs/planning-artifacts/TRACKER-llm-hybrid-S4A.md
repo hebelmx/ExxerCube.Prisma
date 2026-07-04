@@ -18,6 +18,20 @@ Orchestrated 2026-07-03. Owner ruling: S4 = Option A (measure before graduating)
 | S4A-4 | Graduation-criteria ADR-024 (D4) | TODO | ADR committed + cross-linked | |
 | S4A-5 | (optional) Live-provider smoke test, skip-gated (D5) | TODO | test present + skips clean | |
 
+## DONE this session (2026-07-03, all pushed to Liv): 79b0da91 (S4-A harness+metrics+17 tests),
+## c4522def (eval bug-fixes C3/C4/M1/M2/M3, metrics 20), 9496c1c3 (S4-B extractor extension + prompt
+## honesty fix), 24efd638 (S4-B spec + ADR-024 D7 + tracker). Two adversarial gates run + acted on.
+
+## REMAINING (clean handoff — next unit = the live measure):
+## 1. S4A-3: un-skip `LlmExtractionEvalHarness.Eval_PRP1Fixtures_…` [Fact(Skip=...)] (remove the Skip arg),
+##    ensure Ollama up + `TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata`, set model overrides
+##    text=llama3.1:8b / vision=gemma3:12b (spec defaults llama3.2/minicpm-v NOT installed). Run:
+##    `dotnet test <Tests.Infrastructure.Extraction.csproj> --filter-query "/*/*/LlmExtractionEvalHarness/*"`
+##    (do NOT pass --nologo). It writes docs/evaluation/llm-hybrid-extraction-baseline-2026-07.{json,md}.
+##    RE-ADD the Skip afterwards. Commit the artifact.
+## 2. Refresh ADR-024's `[FILL FROM D3]` table with the real numbers; assess "did S4-B work" per D1/D2.
+## 3. Optional S4A-5 smoke. 4. Gemini track = SkippedNoKey (no key on box).
+
 ## Notes / carried facts
 - Models: text=`llama3.1:8b`, vision=`gemma3:12b` (spec defaults llama3.2/minicpm-v NOT installed → override).
 - Only `222AAA` has committed `.ocr.txt`; harness OCRs `333BBB`/`333ccc` at run time (Tesseract 5.5 + spa).
