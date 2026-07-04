@@ -1,6 +1,7 @@
 """Main orchestrator for CNBV E2E Fixture Generation."""
 
 import argparse
+import json
 import random
 from datetime import datetime
 from pathlib import Path
@@ -12,6 +13,7 @@ from core.legal_catalog import LegalArticleCatalog
 from core.chaos_simulator import RealisticChaosSimulator
 from core.llm_client import OllamaClient, LegalTextGenerator, LLMConfig
 from core.variation_engine import VariationEngine, DocumentPersona, NarrativeStyle
+from core.text_substitution import substitute_placeholders, find_placeholders, MOTIVACION_PLACEHOLDER_MAP
 
 # Import exporters
 from exporters.html_exporter import HTMLExporter
@@ -23,6 +25,45 @@ from exporters.xml_exporter import XMLExporter
 
 class CNBVFixtureGenerator:
     """Main orchestrator for generating CNBV requirement fixtures."""
+
+    # --- Ground-truth / source-containment gate configuration ------------
+    #
+    # Gold fields that MUST be recoverable from the plain-text (Markdown)
+    # body for EVERY requirement type, independent of the Motivación-template
+    # substitution -- proven present today by other, pre-existing exporter
+    # code paths (ID box / recipient block / Servidor Público table /
+    # signature / Personas table / Origen section). Maps
+    # `ground_truth field name` -> `data dict key`.
+    ALWAYS_BODY_INTENDED_FIELDS: Dict[str, str] = {
+        'numeroOficio': 'Cnbv_NumeroOficio',
+        'autoridadNombre': 'AutoridadNombre',
+        'nombreSolicitante': 'NombreSolicitante',
+        'personaNombre': 'Persona_Nombre',
+        'personaRfc': 'Persona_Rfc',
+        'monto': 'MontoCredito',
+    }
+
+    # Gold fields whose ONLY path into the plain-text body is the Motivación
+    # template substitution (core/text_substitution.py) -- so they are
+    # body-intended ONLY for the requirement type(s) whose template actually
+    # embeds the matching `{{Placeholder}}` token (see
+    # core/legal_catalog.py:generate_motivacion_template). Maps
+    # `ground_truth field name` -> (`data dict key`, `{{Placeholder}}` name).
+    CONDITIONAL_BODY_INTENDED_FIELDS: Dict[str, tuple] = {
+        'numeroExpediente': ('Cnbv_NumeroExpediente', 'NumeroExpediente'),
+        'fechaDiligencia': ('FechaDiligencia', 'FechaDiligencia'),
+        'juzgadoNombre': ('JuzgadoNombre', 'JuzgadoNombre'),
+        'ejercicio': ('Ejercicio', 'Ejercicio'),
+    }
+
+    # Recorded as gold but NOT gated against the Markdown body: today
+    # `SolicitudPartes_*` is only ever rendered into the XML/HTML/PDF
+    # companions -- markdown_exporter and docx_exporter have no "Partes"
+    # section at all. This is a pre-existing, separate gap from the
+    # `{{...}}` leak this task fixes (out of this task's 3-item scope);
+    # flagged honestly here and in the task report rather than silently
+    # gated as if it were body-contained.
+    NOT_BODY_GATED_FIELDS: tuple = ('solicitudPartes',)
 
     def __init__(self,
                  output_base: Path,
@@ -46,6 +87,7 @@ class CNBVFixtureGenerator:
         self.output_base = Path(output_base)
         self.chaos_level = chaos_level
         self.use_llm = use_llm
+        self.seed = seed
 
         # Initialize generators
         self.data_gen = MexicanDataGenerator(seed=seed)
@@ -230,7 +272,133 @@ class CNBVFixtureGenerator:
         if 'docx' in formats:
             self.docx_exporter.export(data, output_dir / f"{base_filename}.docx")
 
+        # Step 5: Emit the god's-eye ground-truth manifest + containment gate.
+        #
+        # Dumped from `data` AFTER chaos/phrase-variation, so the recorded
+        # gold values byte-match whatever was actually rendered into the
+        # exported files -- the manifest is the only thing downstream eval
+        # harnesses should trust; the exported PDF/DOCX/XML/MD are all just
+        # noisy OBSERVATIONS of it.
+        ground_truth = self._build_ground_truth(data, req_type=req_type, output_dir=output_dir)
+
+        md_path = output_dir / f"{base_filename}.md"
+        if md_path.exists():
+            body_text = md_path.read_text(encoding='utf-8')
+            failures = self._check_body_containment(ground_truth, data, body_text)
+        else:
+            failures = []
+            print(f"   ⚠️  'md' not in requested formats for {output_dir.name}; "
+                  f"body-containment gate skipped (no plain-text source to check against).")
+
+        gt_path = output_dir / "ground_truth.json"
+        with open(gt_path, 'w', encoding='utf-8') as f:
+            json.dump(ground_truth, f, ensure_ascii=False, indent=2)
+
+        # Strict fail-loud gate: only enforced on the clean set (chaos ==
+        # 'none'). Chaos deliberately corrupts rendered text at higher
+        # levels, so a mismatch there is expected degradation, not a defect
+        # -- bodyContained is still recorded honestly for those runs, it
+        # just doesn't raise. The manifest is already persisted above (with
+        # the failing bodyContained map) before we raise, so it's available
+        # for debugging.
+        if failures and self.chaos_level == 'none':
+            raise ValueError(
+                f"Source-containment gate FAILED for {output_dir.name}: gold field(s) "
+                f"not found in rendered Markdown body: {'; '.join(failures)}. "
+                f"See {gt_path} for the full bodyContained map."
+            )
+
         return output_dir
+
+    def _build_ground_truth(self, data: Dict, req_type: str, output_dir: Path) -> Dict:
+        """Assemble the god's-eye gold manifest for one generated document.
+
+        Values come straight from the generator's own `data` dict (post-
+        chaos) -- never by re-parsing an exported file. See the module-level
+        rationale: the delivered PDF/DOCX/JSON/XML are all just noisy
+        OBSERVATIONS; this manifest is what the generator itself stamped.
+
+        Args:
+            data: Fully-assembled document data (post narrative/LLM/chaos).
+            req_type: Requirement type used for this document.
+            output_dir: The per-document output directory (used for docId).
+
+        Returns:
+            Ground-truth dict, ready for JSON serialization. `bodyContained`
+            starts empty; `_check_body_containment` fills it in.
+        """
+        solicitud_partes = []
+        if data.get('SolicitudPartes_Nombre'):
+            solicitud_partes.append({
+                'nombre': data.get('SolicitudPartes_Nombre', ''),
+                'caracter': data.get('SolicitudPartes_Caracter', ''),
+            })
+
+        return {
+            'docId': output_dir.name,
+            'seed': self.seed,
+            'chaosLevel': self.chaos_level,
+            'requirementType': req_type,
+            'folioSiara': data.get('Cnbv_SolicitudSiara', ''),
+            'numeroOficio': data.get('Cnbv_NumeroOficio', ''),
+            'numeroExpediente': data.get('Cnbv_NumeroExpediente', ''),
+            'autoridadNombre': data.get('AutoridadNombre', ''),
+            'nombreSolicitante': data.get('NombreSolicitante', ''),
+            'personaNombre': data.get('Persona_Nombre', ''),
+            'personaRfc': data.get('Persona_Rfc', ''),
+            'solicitudPartes': solicitud_partes,
+            'monto': data.get('MontoCredito', ''),
+            'fechaDiligencia': data.get('FechaDiligencia', ''),
+            'juzgadoNombre': data.get('JuzgadoNombre', ''),
+            'ejercicio': data.get('Ejercicio', ''),
+            'bodyContained': {},  # filled in by _check_body_containment
+        }
+
+    def _check_body_containment(self, ground_truth: Dict, data: Dict, body_text: str) -> List[str]:
+        """Verify every body-intended gold field's value literally appears in `body_text`.
+
+        Populates `ground_truth['bodyContained']` in place with, per field:
+        True (found), False (body-intended but missing -- a real defect),
+        or None (not body-intended for this document -- recorded as gold but
+        deliberately not gated; see NOT_BODY_GATED_FIELDS /
+        CONDITIONAL_BODY_INTENDED_FIELDS).
+
+        Args:
+            ground_truth: Dict from `_build_ground_truth` (mutated in place).
+            data: The document data dict (source of truth for field values
+                and of `_motivacion_placeholders_used`).
+            body_text: The rendered Markdown body to check containment against.
+
+        Returns:
+            List of human-readable failure descriptions for body-intended
+            fields whose value was NOT found (empty if all found).
+        """
+        placeholders_used = set(data.get('_motivacion_placeholders_used', []))
+        failures: List[str] = []
+        contained: Dict[str, Optional[bool]] = {}
+
+        for gold_field, data_key in self.ALWAYS_BODY_INTENDED_FIELDS.items():
+            value = str(data.get(data_key, ''))
+            found = bool(value) and value in body_text
+            contained[gold_field] = found
+            if not found:
+                failures.append(f"{gold_field}='{value}'")
+
+        for gold_field, (data_key, placeholder_name) in self.CONDITIONAL_BODY_INTENDED_FIELDS.items():
+            if placeholder_name not in placeholders_used:
+                contained[gold_field] = None  # not body-intended for this document
+                continue
+            value = str(data.get(data_key, ''))
+            found = bool(value) and value in body_text
+            contained[gold_field] = found
+            if not found:
+                failures.append(f"{gold_field}='{value}'")
+
+        for gold_field in self.NOT_BODY_GATED_FIELDS:
+            contained[gold_field] = None
+
+        ground_truth['bodyContained'] = contained
+        return failures
 
     def _generate_requirement_data(self, req_type: str, authority: Optional[str] = None) -> Dict:
         """Generate complete requirement data.
@@ -271,6 +439,12 @@ class CNBVFixtureGenerator:
         motivacion_template = self.legal_catalog.generate_motivacion_template(req_type)
         motivacion = f"{motivacion_template['intro']} {motivacion_template['accion']} {motivacion_template['objetivo']}"
 
+        # Which `{{Placeholder}}` tokens this req_type's raw template actually
+        # embeds (captured BEFORE substitution) -- drives which conditional
+        # gold fields are body-intended for THIS document (see
+        # CONDITIONAL_BODY_INTENDED_FIELDS / _check_body_containment).
+        motivacion_placeholders_used = find_placeholders(motivacion)
+
         # Get instructions
         instrucciones = self.legal_catalog.generate_instrucciones_cuentas(req_type)
 
@@ -303,6 +477,19 @@ class CNBVFixtureGenerator:
             'NombreSolicitante': f"{servidor['nombre_completo']}",
             'authority': authority_data,  # Include full authority data for LLM
             'tipo': req_type,  # Include requirement type for LLM
+
+            # Synthetic fields that exist ONLY to give the Motivación
+            # template's `{{JuzgadoNombre}}` / `{{Ejercicio}}` placeholders a
+            # real, non-empty value to substitute (see
+            # core/text_substitution.py:MOTIVACION_PLACEHOLDER_MAP).
+            # JuzgadoNombre reuses the REQUESTING authority's own official
+            # name (not `AutoridadNombre`, which is hardcoded to the CNBV --
+            # see the comment above); this is an inherited naming
+            # imprecision for non-judicial authorities, flagged as a caveat.
+            # Ejercicio reuses the current year (no separate "ejercicio
+            # fiscal" concept is modeled by this generator).
+            'JuzgadoNombre': authority_data['nombre'],
+            'Ejercicio': str(datetime.now().year),
 
             # References
             'Referencia': f"REF-{random.randint(1000, 9999)}",
@@ -358,6 +545,21 @@ class CNBVFixtureGenerator:
             'Persona_Domicilio': persona['direccion'],
             'Persona_Complementarios': f"Tel: {persona['telefono']}, Email: {persona['correo']}",
         }
+
+        # Substitute the leaking `{{Placeholder}}` tokens in MotivacionTexto
+        # with their real values from `data` -- this is what makes fields
+        # like Cnbv_NumeroExpediente recoverable from the rendered document
+        # body (md/html/docx) instead of being XML-only. Raises loudly
+        # (KeyError) if a placeholder can't be mapped/resolved, rather than
+        # ever leaving a literal `{{...}}` token in the generated document.
+        data['MotivacionTexto'] = substitute_placeholders(
+            data['MotivacionTexto'], data, MOTIVACION_PLACEHOLDER_MAP
+        )
+
+        # Record which placeholders THIS document's template actually used
+        # (pre-substitution) so the ground-truth/containment gate knows which
+        # conditional gold fields are body-intended for this specific doc.
+        data['_motivacion_placeholders_used'] = motivacion_placeholders_used
 
         return data
 
