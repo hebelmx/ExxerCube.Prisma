@@ -76,8 +76,11 @@ Orchestrated 2026-07-03. Owner ruling: S4 = Option A (measure before graduating)
 ##    Owner steer 2026-07-04: return a FAILED Result<Expediente> that still carries the partial T + metadata +
 ##    error list (per-field abstention reasons). Being settled by a BMAD design party → decision doc / ADR-024 addendum.
 ## 3. [SEPARATE EPIC — S4-C] un-dark the PIPELINE: the Athena worker never calls HybridExtractionService today
-##    (flags gate only the /hybrid-extraction demo page). Safe first slice = flag-gated wiring (still DARK, zero
-##    runtime impact); production flag-flip is owner-gated + ADR-024 Gate-B honesty preconditions (D7).
+##    (flags gate only the /hybrid-extraction demo page). DESIGN SPEC WRITTEN 2026-07-04:
+##    `docs/implementation-artifacts/spec-llm-hybrid-extractor-S4C.md` (resolved design fork = replace-when-enabled;
+##    OCR-seam sub-decision; ManualReview threading; Gate-B checklist). BUILD is BLOCKED/owner-gated: ADR-024 D6
+##    corpus (N≥30) + D7.1 source-containment guard (not yet built) + explicit sign-off. Touches the production
+##    worker composition root — do NOT start the build without clearing the spec's "Open decisions".
 ## 4. [OPTIONAL] S4A-5 live-provider smoke test. 5. Gemini track = SkippedNoKey (no key on box).
 
 ## Notes / carried facts
