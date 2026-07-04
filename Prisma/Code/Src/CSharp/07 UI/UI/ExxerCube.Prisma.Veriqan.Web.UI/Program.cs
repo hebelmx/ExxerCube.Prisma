@@ -45,6 +45,9 @@ builder.Services.AddVeriqan(builder.Configuration);
 // ── Demo data service (singleton: data is static, no DB required) — kept as the fallback ──
 builder.Services.AddSingleton<DemoDataService>();
 
+// ── Marked-page PDF→PNG rasterizer (VLD-S3): stateless, singleton is fine ──
+builder.Services.AddSingleton<IMarkedPageRenderer, MarkedPageRenderer>();
+
 // ── Health (minimal, no DB dependency needed for demo) ──
 builder.Services.AddHealthChecks();
 
