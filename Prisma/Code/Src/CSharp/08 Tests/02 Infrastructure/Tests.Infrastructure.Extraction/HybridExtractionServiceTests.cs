@@ -125,7 +125,7 @@ public sealed class HybridExtractionServiceTests
     public async Task ExtractAsync_NullBytes_ReturnsFailure()
     {
         var sut = Build();
-        var result = await sut.ExtractAsync(null!, DocId, TestContext.Current.CancellationToken);
+        var result = await sut.ExtractAsync(null!, DocId, visionModelOverride: null, TestContext.Current.CancellationToken);
         result.IsSuccess.ShouldBeFalse();
     }
 
@@ -133,7 +133,7 @@ public sealed class HybridExtractionServiceTests
     public async Task ExtractAsync_EmptyBytes_ReturnsFailure()
     {
         var sut = Build();
-        var result = await sut.ExtractAsync([], DocId, TestContext.Current.CancellationToken);
+        var result = await sut.ExtractAsync([], DocId, visionModelOverride: null, TestContext.Current.CancellationToken);
         result.IsSuccess.ShouldBeFalse();
     }
 
@@ -141,7 +141,7 @@ public sealed class HybridExtractionServiceTests
     public async Task ExtractAsync_EmptyDocumentId_ReturnsFailure()
     {
         var sut = Build();
-        var result = await sut.ExtractAsync(FakePdfBytes, string.Empty, TestContext.Current.CancellationToken);
+        var result = await sut.ExtractAsync(FakePdfBytes, string.Empty, visionModelOverride: null, TestContext.Current.CancellationToken);
         result.IsSuccess.ShouldBeFalse();
     }
 
@@ -163,7 +163,7 @@ public sealed class HybridExtractionServiceTests
         var sut = Build(det: det, reconciler: reconciler, options: MakeOptions(false, false));
 
         // Act
-        var result = await sut.ExtractAsync(FakePdfBytes, DocId, ct);
+        var result = await sut.ExtractAsync(FakePdfBytes, DocId, visionModelOverride: null, ct);
 
         // Assert — exactly 1 candidate (deterministic only)
         result.IsSuccess.ShouldBeTrue();
@@ -189,7 +189,7 @@ public sealed class HybridExtractionServiceTests
                 FakeReconciliation((IReadOnlyList<LabelledExtraction>)ci[0]))));
 
         var sut = Build(det: det, reconciler: reconciler, options: MakeOptions(false, false));
-        await sut.ExtractAsync(FakePdfBytes, DocId, ct);
+        await sut.ExtractAsync(FakePdfBytes, DocId, visionModelOverride: null, ct);
 
         captured.ShouldNotBeNull();
         captured!.Count.ShouldBe(1);
@@ -211,14 +211,14 @@ public sealed class HybridExtractionServiceTests
             .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeDetFields())));
 
         var llmText = Substitute.For<ILlmExpedienteExtractor<TxtSource>>();
-        llmText.ExtractExpedienteAsync(Arg.Any<TxtSource>(), Arg.Any<CancellationToken>())
+        llmText.ExtractExpedienteAsync(Arg.Any<TxtSource>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<Expediente>.WithSuccess(MakeLlmExpediente())));
 
         var reconciler = MakeReconciler();
         var sut = Build(det: det, llmText: llmText, reconciler: reconciler,
             options: MakeOptions(textEnabled: true, visionEnabled: false));
 
-        await sut.ExtractAsync(FakePdfBytes, DocId, ct);
+        await sut.ExtractAsync(FakePdfBytes, DocId, visionModelOverride: null, ct);
 
         await reconciler.Received(1).ReconcileAsync(
             Arg.Is<IReadOnlyList<LabelledExtraction>>(c => c.Count == 2),
@@ -239,18 +239,18 @@ public sealed class HybridExtractionServiceTests
             .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeDetFields())));
 
         var llmText = Substitute.For<ILlmExpedienteExtractor<TxtSource>>();
-        llmText.ExtractExpedienteAsync(Arg.Any<TxtSource>(), Arg.Any<CancellationToken>())
+        llmText.ExtractExpedienteAsync(Arg.Any<TxtSource>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<Expediente>.WithSuccess(MakeLlmExpediente())));
 
         var llmVision = Substitute.For<ILlmExpedienteExtractor<ImageSource>>();
-        llmVision.ExtractExpedienteAsync(Arg.Any<ImageSource>(), Arg.Any<CancellationToken>())
+        llmVision.ExtractExpedienteAsync(Arg.Any<ImageSource>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<Expediente>.WithSuccess(MakeVisionExpediente())));
 
         var reconciler = MakeReconciler();
         var sut = Build(det: det, llmText: llmText, llmVision: llmVision,
             reconciler: reconciler, options: MakeOptions(textEnabled: true, visionEnabled: true));
 
-        await sut.ExtractAsync(FakePdfBytes, DocId, ct);
+        await sut.ExtractAsync(FakePdfBytes, DocId, visionModelOverride: null, ct);
 
         await reconciler.Received(1).ReconcileAsync(
             Arg.Is<IReadOnlyList<LabelledExtraction>>(c => c.Count == 3),
@@ -267,11 +267,11 @@ public sealed class HybridExtractionServiceTests
             .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeDetFields())));
 
         var llmText = Substitute.For<ILlmExpedienteExtractor<TxtSource>>();
-        llmText.ExtractExpedienteAsync(Arg.Any<TxtSource>(), Arg.Any<CancellationToken>())
+        llmText.ExtractExpedienteAsync(Arg.Any<TxtSource>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<Expediente>.WithSuccess(MakeLlmExpediente())));
 
         var llmVision = Substitute.For<ILlmExpedienteExtractor<ImageSource>>();
-        llmVision.ExtractExpedienteAsync(Arg.Any<ImageSource>(), Arg.Any<CancellationToken>())
+        llmVision.ExtractExpedienteAsync(Arg.Any<ImageSource>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<Expediente>.WithSuccess(MakeVisionExpediente())));
 
         IReadOnlyList<LabelledExtraction>? captured = null;
@@ -284,7 +284,7 @@ public sealed class HybridExtractionServiceTests
         var sut = Build(det: det, llmText: llmText, llmVision: llmVision,
             reconciler: reconciler, options: MakeOptions(textEnabled: true, visionEnabled: true));
 
-        await sut.ExtractAsync(FakePdfBytes, DocId, ct);
+        await sut.ExtractAsync(FakePdfBytes, DocId, visionModelOverride: null, ct);
 
         captured.ShouldNotBeNull();
         captured!.Select(c => c.Source).ShouldBe(["deterministic", "llm-text", "llm-vision"], ignoreOrder: false);
@@ -304,7 +304,7 @@ public sealed class HybridExtractionServiceTests
             .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeDetFields())));
 
         var llmText = Substitute.For<ILlmExpedienteExtractor<TxtSource>>();
-        llmText.ExtractExpedienteAsync(Arg.Any<TxtSource>(), Arg.Any<CancellationToken>())
+        llmText.ExtractExpedienteAsync(Arg.Any<TxtSource>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<Expediente>.WithFailure("LLM timeout")));
 
         IReadOnlyList<LabelledExtraction>? captured = null;
@@ -317,7 +317,7 @@ public sealed class HybridExtractionServiceTests
         var sut = Build(det: det, llmText: llmText, reconciler: reconciler,
             options: MakeOptions(textEnabled: true, visionEnabled: false));
 
-        await sut.ExtractAsync(FakePdfBytes, DocId, ct);
+        await sut.ExtractAsync(FakePdfBytes, DocId, visionModelOverride: null, ct);
 
         // Reconciler must still receive 2 candidates (det + failed llm-text)
         await reconciler.Received(1).ReconcileAsync(
@@ -353,7 +353,7 @@ public sealed class HybridExtractionServiceTests
 
         var sut = Build(det: det, reconciler: reconciler, options: MakeOptions(false, false));
 
-        var result = await sut.ExtractAsync(FakePdfBytes, DocId, ct);
+        var result = await sut.ExtractAsync(FakePdfBytes, DocId, visionModelOverride: null, ct);
 
         // Overall orchestration succeeds (reconciler decided); deterministic candidate is Failed
         result.IsSuccess.ShouldBeTrue();
@@ -381,13 +381,13 @@ public sealed class HybridExtractionServiceTests
 
         TxtSource? capturedSource = null;
         var llmText = Substitute.For<ILlmExpedienteExtractor<TxtSource>>();
-        llmText.ExtractExpedienteAsync(Arg.Do<TxtSource>(s => capturedSource = s), Arg.Any<CancellationToken>())
+        llmText.ExtractExpedienteAsync(Arg.Do<TxtSource>(s => capturedSource = s), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<Expediente>.WithSuccess(new Expediente())));
 
         var sut = Build(det: det, llmText: llmText,
             options: MakeOptions(textEnabled: true, visionEnabled: false));
 
-        await sut.ExtractAsync(FakePdfBytes, DocId, ct);
+        await sut.ExtractAsync(FakePdfBytes, DocId, visionModelOverride: null, ct);
 
         capturedSource.ShouldNotBeNull();
         capturedSource!.TextContent.ShouldBe(expectedOcrText);
@@ -408,16 +408,55 @@ public sealed class HybridExtractionServiceTests
 
         ImageSource? capturedSource = null;
         var llmVision = Substitute.For<ILlmExpedienteExtractor<ImageSource>>();
-        llmVision.ExtractExpedienteAsync(Arg.Do<ImageSource>(s => capturedSource = s), Arg.Any<CancellationToken>())
+        llmVision.ExtractExpedienteAsync(Arg.Do<ImageSource>(s => capturedSource = s), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<Expediente>.WithSuccess(new Expediente())));
 
         var sut = Build(det: det, llmVision: llmVision,
             options: MakeOptions(textEnabled: false, visionEnabled: true));
 
-        await sut.ExtractAsync(FakePdfBytes, DocId, ct);
+        await sut.ExtractAsync(FakePdfBytes, DocId, visionModelOverride: null, ct);
 
         capturedSource.ShouldNotBeNull();
         capturedSource!.DocumentId.ShouldBe(DocId);
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    // Runtime vision-model override is threaded to the vision track ONLY
+    // ───────────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task ExtractAsync_VisionModelOverride_IsThreadedToVisionTrackOnly()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        var det = Substitute.For<IFieldExtractor<PdfSource>>();
+        det.ExtractFieldsAsync(Arg.Any<PdfSource>(), Arg.Any<FieldDefinition[]>())
+            .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeDetFields())));
+
+        // Sentinel start values distinguish "received null" from "never called".
+        string? capturedVisionModel = "SENTINEL";
+        var llmVision = Substitute.For<ILlmExpedienteExtractor<ImageSource>>();
+        llmVision.ExtractExpedienteAsync(
+                Arg.Any<ImageSource>(),
+                Arg.Do<string?>(m => capturedVisionModel = m),
+                Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<Expediente>.WithSuccess(new Expediente())));
+
+        string? capturedTextModel = "SENTINEL";
+        var llmText = Substitute.For<ILlmExpedienteExtractor<TxtSource>>();
+        llmText.ExtractExpedienteAsync(
+                Arg.Any<TxtSource>(),
+                Arg.Do<string?>(m => capturedTextModel = m),
+                Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<Expediente>.WithSuccess(new Expediente())));
+
+        var sut = Build(det: det, llmText: llmText, llmVision: llmVision,
+            options: MakeOptions(textEnabled: true, visionEnabled: true));
+
+        await sut.ExtractAsync(FakePdfBytes, DocId, visionModelOverride: "granite3.2-vision", ct);
+
+        capturedVisionModel.ShouldBe("granite3.2-vision");   // vision track gets the override
+        capturedTextModel.ShouldBeNull();                    // text track must NOT (stays configured default)
     }
 
     // ───────────────────────────────────────────────────────────────────────
@@ -434,7 +473,7 @@ public sealed class HybridExtractionServiceTests
             .Returns(Task.FromResult(Result<ExtractedFields>.WithSuccess(MakeDetFields())));
 
         var llmVision = Substitute.For<ILlmExpedienteExtractor<ImageSource>>();
-        llmVision.ExtractExpedienteAsync(Arg.Any<ImageSource>(), Arg.Any<CancellationToken>())
+        llmVision.ExtractExpedienteAsync(Arg.Any<ImageSource>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<Expediente>.WithFailure(
                 "Active provider 'Ollama' does not support vision (VisionGenerate capability is required)")));
 
@@ -448,7 +487,7 @@ public sealed class HybridExtractionServiceTests
         var sut = Build(det: det, llmVision: llmVision,
             reconciler: reconciler, options: MakeOptions(textEnabled: false, visionEnabled: true));
 
-        await sut.ExtractAsync(FakePdfBytes, DocId, ct);
+        await sut.ExtractAsync(FakePdfBytes, DocId, visionModelOverride: null, ct);
 
         captured.ShouldNotBeNull();
         var visCand = captured!.FirstOrDefault(c => c.Source == "llm-vision");
@@ -485,7 +524,7 @@ public sealed class HybridExtractionServiceTests
                 FakeReconciliation((IReadOnlyList<LabelledExtraction>)ci[0]))));
 
         var sut = Build(det: det, reconciler: reconciler, options: MakeOptions(false, false));
-        await sut.ExtractAsync(FakePdfBytes, DocId, ct);
+        await sut.ExtractAsync(FakePdfBytes, DocId, visionModelOverride: null, ct);
 
         captured.ShouldNotBeNull();
         var detExpediente = captured![0].Fields;
@@ -529,7 +568,7 @@ public sealed class HybridExtractionServiceTests
         });
 
         var llmText = Substitute.For<ILlmExpedienteExtractor<TxtSource>>();
-        llmText.ExtractExpedienteAsync(Arg.Any<TxtSource>(), Arg.Any<CancellationToken>())
+        llmText.ExtractExpedienteAsync(Arg.Any<TxtSource>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<Expediente>.WithSuccess(expedienteWithPartes)));
 
         IReadOnlyList<LabelledExtraction>? captured = null;
@@ -543,7 +582,7 @@ public sealed class HybridExtractionServiceTests
             options: MakeOptions(textEnabled: true, visionEnabled: false));
 
         // Act
-        await sut.ExtractAsync(FakePdfBytes, DocId, ct);
+        await sut.ExtractAsync(FakePdfBytes, DocId, visionModelOverride: null, ct);
 
         // Assert — 2 partes survive into the llm-text candidate without being dropped
         captured.ShouldNotBeNull();

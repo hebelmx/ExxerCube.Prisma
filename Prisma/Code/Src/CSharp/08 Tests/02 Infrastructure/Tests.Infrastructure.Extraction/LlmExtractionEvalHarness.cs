@@ -413,7 +413,7 @@ public sealed class LlmExtractionEvalHarness
                 try
                 {
                     var txtSource = new TxtSource(ocrTextForLlmText!);
-                    var llmTextResult = await llmText!.ExtractExpedienteAsync(txtSource, ct);
+                    var llmTextResult = await llmText!.ExtractExpedienteAsync(txtSource, modelOverride: null, ct);
                     if (llmTextResult.IsSuccess && llmTextResult.Value is not null)
                     {
                         llmTextExpediente = llmTextResult.Value;
@@ -489,7 +489,7 @@ public sealed class LlmExtractionEvalHarness
                 try
                 {
                     var imageSource = new ImageSource(fixtureId, pageImages);
-                    var llmVisionResult = await llmVision!.ExtractExpedienteAsync(imageSource, ct);
+                    var llmVisionResult = await llmVision!.ExtractExpedienteAsync(imageSource, modelOverride: null, ct);
                     if (llmVisionResult.IsSuccess && llmVisionResult.Value is not null)
                     {
                         llmVisionExpediente = llmVisionResult.Value;

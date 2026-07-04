@@ -21,6 +21,12 @@ public interface IHybridExtractionService
     /// Logical identifier for the document (e.g. a storage key) used for logging and as
     /// the <see cref="Domain.Sources.ImageSource.DocumentId"/> when converting pages to images.
     /// </param>
+    /// <param name="visionModelOverride">
+    /// Optional Ollama vision-model tag (e.g. <c>granite3.2-vision</c>) that overrides the
+    /// configured <c>LlmProviders:Ollama:VisionModel</c> for the LLM-vision track of THIS run only.
+    /// Lets the demo swap the vision model at runtime without a restart. <see langword="null"/>
+    /// keeps the configured default. The text track is unaffected.
+    /// </param>
     /// <param name="cancellationToken">Propagated to all downstream async calls.</param>
     /// <returns>
     /// A successful <see cref="ReconciliationResult"/> on the happy path, or a failure result
@@ -29,5 +35,6 @@ public interface IHybridExtractionService
     Task<Result<ReconciliationResult>> ExtractAsync(
         byte[] pdfBytes,
         string documentId,
+        string? visionModelOverride = null,
         CancellationToken cancellationToken = default);
 }

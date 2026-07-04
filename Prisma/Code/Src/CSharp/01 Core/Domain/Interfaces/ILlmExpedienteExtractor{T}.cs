@@ -19,6 +19,12 @@ public interface ILlmExpedienteExtractor<T>
     /// <see cref="Expediente.SolicitudPartes"/>) from the given source using an LLM provider.
     /// </summary>
     /// <param name="source">The document source to process.</param>
+    /// <param name="modelOverride">
+    /// Optional provider-model tag that overrides the provider's configured default for this
+    /// request only (threaded to <see cref="Domain.Llm.LlmRequest.ModelOverride"/>). Used by the
+    /// demo to swap the vision/text model at runtime without a restart. <see langword="null"/>
+    /// keeps the configured default.
+    /// </param>
     /// <param name="cancellationToken">Optional cancellation token.</param>
     /// <returns>
     /// A result containing the populated <see cref="Expediente"/> or a failure description;
@@ -26,5 +32,6 @@ public interface ILlmExpedienteExtractor<T>
     /// </returns>
     Task<Result<Expediente>> ExtractExpedienteAsync(
         T source,
+        string? modelOverride = null,
         CancellationToken cancellationToken = default);
 }

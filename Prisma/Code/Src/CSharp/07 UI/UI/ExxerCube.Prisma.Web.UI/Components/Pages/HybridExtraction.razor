@@ -45,7 +45,23 @@
                     }
                 </MudSelect>
             </MudItem>
-            <MudItem xs="12" sm="8">
+            <MudItem xs="12" sm="4">
+                <MudSelect T="string"
+                           @bind-Value="_selectedVisionModel"
+                           Label="Vision Model (swap live — no restart)"
+                           Variant="Variant.Outlined"
+                           Dense="true"
+                           Disabled="@(_busyRunning || _visionModels.Count <= 1)">
+                    @foreach (var vm in _visionModels)
+                    {
+                        <MudSelectItem T="string" Value="@vm">@vm</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+                    Applies to the <strong>LLM — Vision</strong> track on the next run.
+                </MudText>
+            </MudItem>
+            <MudItem xs="12" sm="4">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Wrap="Wrap.Wrap">
                     <MudText Typo="Typo.caption" Class="mr-2">Capabilities:</MudText>
                     <MudChip T="string"
@@ -245,6 +261,13 @@
                                                 <MudText Typo="Typo.subtitle2" Style="font-weight: 700;">
                                                     @SourceDisplayName(candidate.Source)
                                                 </MudText>
+                                                @if (candidate.Source == "llm-vision")
+                                                {
+                                                    <MudChip T="string" Size="Size.Small" Color="Color.Secondary"
+                                                             Variant="Variant.Outlined" Style="font-size: 0.62rem;">
+                                                        @VisionModelLabel(candidate)
+                                                    </MudChip>
+                                                }
                                                 <MudChip T="string"
                                                          Size="Size.Small"
                                                          Color="@TrackStatusColor(candidate.Status)"
@@ -409,6 +432,11 @@
     private LlmCapabilities _capabilities = LlmCapabilities.None;
     private IReadOnlyList<string> _registeredNames = Array.Empty<string>();
 
+    // Runtime vision-model selector (swap gemma3:12b ↔ granite3.2-vision ↔ … without restart).
+    private List<string> _visionModels = new();
+    private string _selectedVisionModel = string.Empty;
+    private string _lastRunVisionModel = string.Empty;
+
     private byte[]? _pdfBytes;
     private string? _fixtureName;
     private bool _busyLoading;
@@ -433,6 +461,33 @@
     {
         _registeredNames = ProviderFactory.RegisteredNames;
         RefreshActiveProvider();
+        InitVisionModels();
+    }
+
+    /// <summary>
+    /// Builds the vision-model selector list from configured <c>LlmProviders:Ollama:VisionModels</c>,
+    /// falling back to the single configured <c>VisionModel</c> when the allow-list is empty. The
+    /// configured default is preselected (or promoted to the front when present in the list).
+    /// </summary>
+    private void InitVisionModels()
+    {
+        var ollama = LlmOptions.CurrentValue.Ollama;
+        var configured = ollama.VisionModel;
+
+        var list = ollama.VisionModels is { Count: > 0 }
+            ? ollama.VisionModels.Where(m => !string.IsNullOrWhiteSpace(m)).Distinct().ToList()
+            : new List<string>();
+
+        if (list.Count == 0 && !string.IsNullOrWhiteSpace(configured))
+        {
+            list.Add(configured);
+        }
+
+        // Preselect the configured default when it is one of the offered candidates.
+        _visionModels = list;
+        _selectedVisionModel = list.Contains(configured, StringComparer.OrdinalIgnoreCase)
+            ? list.First(m => string.Equals(m, configured, StringComparison.OrdinalIgnoreCase))
+            : (list.FirstOrDefault() ?? configured);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -548,12 +603,17 @@
         try
         {
             Logger.LogInformation(
-                "HybridExtraction page: starting extraction for '{Fixture}'.", _fixtureName);
+                "HybridExtraction page: starting extraction for '{Fixture}' (visionModel={VisionModel}).",
+                _fixtureName, _selectedVisionModel);
+
+            // Capture the model used for THIS run so the vision column can be labelled even when
+            // the track fails (a failed candidate carries no _VisionModel stamp).
+            _lastRunVisionModel = _selectedVisionModel;
 
             // No ConfigureAwait(false): stay on the Blazor Dispatcher so the finally's
             // StateHasChanged() is valid (see LoadFixture note above).
             var extractResult = await HybridService
-                .ExtractAsync(_pdfBytes, _fixtureName, _cts.Token);
+                .ExtractAsync(_pdfBytes, _fixtureName, _selectedVisionModel, _cts.Token);
 
             if (extractResult.IsSuccess && extractResult.Value is not null)
             {
@@ -594,6 +654,23 @@
         "llm-vision"    => "LLM — Vision",
         _               => source
     };
+
+    /// <summary>
+    /// The vision model that produced this candidate — read from the stamp the service writes on
+    /// success (<c>_VisionModel</c>), falling back to the model selected for the last run (so a
+    /// FAILED vision candidate, which carries no stamp, is still labelled correctly).
+    /// </summary>
+    private string VisionModelLabel(LabelledExtraction candidate)
+    {
+        if (candidate.Fields?.AdditionalFields is { } af
+            && af.TryGetValue("_VisionModel", out var stamped)
+            && !string.IsNullOrWhiteSpace(stamped))
+        {
+            return stamped;
+        }
+
+        return string.IsNullOrWhiteSpace(_lastRunVisionModel) ? "vision model" : _lastRunVisionModel;
+    }
 
     /// <summary>
     /// Extracts a scalar field value from an <see cref="Expediente"/> by logical key.

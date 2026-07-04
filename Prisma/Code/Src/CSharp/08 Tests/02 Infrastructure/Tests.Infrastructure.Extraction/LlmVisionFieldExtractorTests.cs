@@ -136,6 +136,39 @@ public sealed class LlmVisionFieldExtractorTests
         capturedRequest.Images!.Count.ShouldBe(2);
     }
 
+    [Fact]
+    public async Task ExtractExpedienteAsync_ModelOverride_FlowsToLlmRequest()
+    {
+        // Arrange — a runtime vision-model override should reach LlmRequest.ModelOverride,
+        // which OllamaProvider honours (swap the vision model live, no restart).
+        var ct = TestContext.Current.CancellationToken;
+        LlmRequest? capturedRequest = null;
+        var provider = Substitute.For<ILlmProvider>();
+        provider.Name.Returns("MockVision");
+        provider.Capabilities.Returns(LlmCapabilities.TextGenerate | LlmCapabilities.VisionGenerate);
+        provider.GenerateAsync(Arg.Do<LlmRequest>(r => capturedRequest = r), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<string>.WithSuccess(
+                """{"expediente":"H/IN1-2222-333333-BBB","solicitante":"Test","monto":null,"cuenta":null,"rfc":null,"curp":null,"partes":[]}""")));
+
+        var factory = Substitute.For<ILlmProviderFactory>();
+        factory.GetActive().Returns(provider);
+
+        var extractor = BuildExtractor(factory);
+
+        // Act — pass an explicit model override
+        await extractor.ExtractExpedienteAsync(OnePageSource, modelOverride: "granite3.2-vision", ct);
+
+        // Assert — it reached the request verbatim
+        capturedRequest.ShouldNotBeNull();
+        capturedRequest!.ModelOverride.ShouldBe("granite3.2-vision");
+
+        // And a null/blank override leaves the request on the provider default (null).
+        capturedRequest = null;
+        await extractor.ExtractExpedienteAsync(OnePageSource, modelOverride: "  ", ct);
+        capturedRequest.ShouldNotBeNull();
+        capturedRequest!.ModelOverride.ShouldBeNull();
+    }
+
     // -----------------------------------------------------------------------
     // Gate rejection
     // -----------------------------------------------------------------------
@@ -273,7 +306,7 @@ public sealed class LlmVisionFieldExtractorTests
         var extractor = BuildExtractor(MakeVisionFactory(json));
 
         // Act — call the new port directly
-        var result = await extractor.ExtractExpedienteAsync(OnePageSource, ct);
+        var result = await extractor.ExtractExpedienteAsync(OnePageSource, modelOverride: null, ct);
 
         // Assert — full Expediente with SolicitudPartes populated
         result.IsSuccess.ShouldBeTrue();

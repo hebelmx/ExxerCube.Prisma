@@ -300,7 +300,7 @@ public sealed class LlmTxtFieldExtractorTests
         var ct = TestContext.Current.CancellationToken;
 
         // Act — call the new port directly
-        var result = await extractor.ExtractExpedienteAsync(source, ct);
+        var result = await extractor.ExtractExpedienteAsync(source, modelOverride: null, ct);
 
         // Assert — full Expediente with SolicitudPartes populated
         result.IsSuccess.ShouldBeTrue();
@@ -352,7 +352,7 @@ public sealed class LlmTxtFieldExtractorTests
         var ct = TestContext.Current.CancellationToken;
 
         // Act
-        var result = await extractor.ExtractExpedienteAsync(source, ct);
+        var result = await extractor.ExtractExpedienteAsync(source, modelOverride: null, ct);
 
         // Assert — the DTO's numeroOficio/autoridadNombre survive into the Expediente.
         result.IsSuccess.ShouldBeTrue();

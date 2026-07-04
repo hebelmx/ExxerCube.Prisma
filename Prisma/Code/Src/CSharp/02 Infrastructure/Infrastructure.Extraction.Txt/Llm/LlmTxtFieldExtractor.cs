@@ -62,6 +62,7 @@ public sealed class LlmTxtFieldExtractor : IFieldExtractor<TxtSource>, ILlmExped
     /// </remarks>
     public async Task<Result<Expediente>> ExtractExpedienteAsync(
         TxtSource source,
+        string? modelOverride = null,
         CancellationToken cancellationToken = default)
     {
         if (source is null)
@@ -71,7 +72,10 @@ public sealed class LlmTxtFieldExtractor : IFieldExtractor<TxtSource>, ILlmExped
             return Result<Expediente>.WithFailure("TxtSource.TextContent cannot be null or empty.");
 
         var systemPrompt = BuildSystemPrompt();
-        var request = new LlmRequest(systemPrompt, source.TextContent);
+        var request = new LlmRequest(
+            systemPrompt,
+            source.TextContent,
+            ModelOverride: string.IsNullOrWhiteSpace(modelOverride) ? null : modelOverride);
 
         // Resolve the provider INSIDE the try: GetActive() throws on a misconfigured
         // LlmProviders:Active, and this method must never throw — convert to WithFailure.
@@ -145,7 +149,7 @@ public sealed class LlmTxtFieldExtractor : IFieldExtractor<TxtSource>, ILlmExped
         TxtSource source,
         FieldDefinition[] fieldDefinitions)
     {
-        var expResult = await ExtractExpedienteAsync(source, CancellationToken.None)
+        var expResult = await ExtractExpedienteAsync(source, modelOverride: null, CancellationToken.None)
             .ConfigureAwait(false);
 
         if (!expResult.IsSuccess)

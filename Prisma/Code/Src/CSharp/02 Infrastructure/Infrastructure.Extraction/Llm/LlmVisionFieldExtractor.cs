@@ -63,6 +63,7 @@ public sealed class LlmVisionFieldExtractor : IFieldExtractor<ImageSource>, ILlm
     /// </remarks>
     public async Task<Result<Expediente>> ExtractExpedienteAsync(
         ImageSource source,
+        string? modelOverride = null,
         CancellationToken cancellationToken = default)
     {
         if (source is null)
@@ -94,12 +95,14 @@ public sealed class LlmVisionFieldExtractor : IFieldExtractor<ImageSource>, ILlm
         var request = new LlmRequest(
             BuildSystemPrompt(),
             "Extrae los campos de este documento.",
-            Images: source.PagePngs);
+            Images: source.PagePngs,
+            ModelOverride: string.IsNullOrWhiteSpace(modelOverride) ? null : modelOverride);
 
         _logger.LogDebug(
             "LlmVisionFieldExtractor: calling provider '{Provider}' with {PageCount} page(s) " +
-            "for document '{DocumentId}'.",
-            provider.Name, source.PagePngs.Count, source.DocumentId);
+            "for document '{DocumentId}' (modelOverride={ModelOverride}).",
+            provider.Name, source.PagePngs.Count, source.DocumentId,
+            modelOverride ?? "(provider default)");
 
         Result<string> llmResult;
         try
@@ -168,7 +171,7 @@ public sealed class LlmVisionFieldExtractor : IFieldExtractor<ImageSource>, ILlm
         ImageSource source,
         FieldDefinition[] fieldDefinitions)
     {
-        var expResult = await ExtractExpedienteAsync(source, CancellationToken.None)
+        var expResult = await ExtractExpedienteAsync(source, modelOverride: null, CancellationToken.None)
             .ConfigureAwait(false);
 
         if (!expResult.IsSuccess)

@@ -77,6 +77,7 @@ public sealed class HybridExtractionService : IHybridExtractionService
     public async Task<Result<ReconciliationResult>> ExtractAsync(
         byte[] pdfBytes,
         string documentId,
+        string? visionModelOverride = null,
         CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)
@@ -153,7 +154,7 @@ public sealed class HybridExtractionService : IHybridExtractionService
                 try
                 {
                     txtExpResult = await _llmText
-                        .ExtractExpedienteAsync(txtSource, cancellationToken)
+                        .ExtractExpedienteAsync(txtSource, modelOverride: null, cancellationToken)
                         .ConfigureAwait(false);
                 }
                 catch (Exception ex)
@@ -184,9 +185,12 @@ public sealed class HybridExtractionService : IHybridExtractionService
         // ─── Track 3: LLM-vision (gated by VisionExtractorEnabled) ─────────────
         if (opts.VisionExtractorEnabled)
         {
+            var visionModel = string.IsNullOrWhiteSpace(visionModelOverride)
+                ? opts.Ollama.VisionModel
+                : visionModelOverride;
             _logger.LogDebug(
-                "HybridExtractionService: rasterising PDF for llm-vision track ('{DocumentId}').",
-                documentId);
+                "HybridExtractionService: rasterising PDF for llm-vision track ('{DocumentId}', visionModel={VisionModel}).",
+                documentId, visionModel);
 
             Result<IReadOnlyList<byte[]>> convResult;
             try
@@ -218,7 +222,7 @@ public sealed class HybridExtractionService : IHybridExtractionService
                 try
                 {
                     visExpResult = await _llmVision
-                        .ExtractExpedienteAsync(imageSource, cancellationToken)
+                        .ExtractExpedienteAsync(imageSource, visionModelOverride, cancellationToken)
                         .ConfigureAwait(false);
                 }
                 catch (Exception ex)
@@ -230,6 +234,9 @@ public sealed class HybridExtractionService : IHybridExtractionService
 
                 if (visExpResult.IsSuccess && visExpResult.Value is not null)
                 {
+                    // Stamp the model that produced this candidate so the demo can label the
+                    // vision column and A/B runs stay distinguishable in the reconciled result.
+                    visExpResult.Value.AdditionalFields["_VisionModel"] = visionModel;
                     candidates.Add(new LabelledExtraction(
                         "llm-vision",
                         visExpResult.Value,

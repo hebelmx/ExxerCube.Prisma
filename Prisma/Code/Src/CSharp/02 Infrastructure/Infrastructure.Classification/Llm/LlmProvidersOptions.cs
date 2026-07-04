@@ -50,6 +50,15 @@ public sealed class OllamaProviderOptions
     /// <summary>Vision model tag (used when <see cref="Domain.Llm.LlmRequest.Images"/> is non-empty).</summary>
     public string VisionModel { get; set; } = "minicpm-v";
 
+    /// <summary>
+    /// Candidate vision-model tags offered by the demo's runtime "Vision Model" selector
+    /// (e.g. <c>["gemma3:12b","granite3.2-vision"]</c>). Purely a UI allow-list — the pipeline
+    /// still defaults to <see cref="VisionModel"/> when no override is supplied. Empty by default
+    /// (repo ships dark); populate demo-local (appsettings / env). The first entry, or
+    /// <see cref="VisionModel"/> when this is empty, is the selector's default.
+    /// </summary>
+    public List<string> VisionModels { get; set; } = [];
+
     /// <summary>HTTP request timeout in seconds for a single generate call.</summary>
     public int TimeoutSeconds { get; set; } = 120;
 }
