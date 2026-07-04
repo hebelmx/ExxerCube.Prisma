@@ -82,8 +82,17 @@ class CNBVFixtureGenerator:
     # -- NOT the constant CNBV recipient. The CNBV name is still rendered
     # (Destinatario_Institucion / `AutoridadNombre`) but is no longer gold;
     # it is recorded separately as the non-gated `recipientInstitucion`.
+    # `numeroExpediente` was moved here (2026-07-04, owner re-verification):
+    # it is now ALSO rendered as its own dedicated "Número de expediente:"
+    # body line (markdown_exporter/html template/docx_exporter), in ADDITION
+    # to the pre-existing Motivación-prose mention that only judicial-type
+    # templates embed. Real requerimientos label expediente as a field, and
+    # a dedicated non-wrapping line is what an OCR-based harness needs to
+    # read it cleanly (see EXPEDIENTE CONTIGUITY note on the gate below) --
+    # so it's unconditionally body-intended now, for every requirement type.
     ALWAYS_BODY_INTENDED_FIELDS: Dict[str, str] = {
         'numeroOficio': 'Cnbv_NumeroOficio',
+        'numeroExpediente': 'Cnbv_NumeroExpediente',
         'autoridadNombre': 'AutoridadSolicitanteNombre',
         'nombreSolicitante': 'NombreSolicitante',
         'personaNombre': 'Persona_Nombre',
@@ -104,7 +113,6 @@ class CNBVFixtureGenerator:
     # document's Motivación template embedded the `{{JuzgadoNombre}}` token
     # (judicial-type only), which is orthogonal to the always-gated line.
     CONDITIONAL_BODY_INTENDED_FIELDS: Dict[str, tuple] = {
-        'numeroExpediente': ('Cnbv_NumeroExpediente', 'NumeroExpediente'),
         'fechaDiligencia': ('FechaDiligencia', 'FechaDiligencia'),
         'juzgadoNombre': ('AutoridadSolicitanteNombre', 'JuzgadoNombre'),
         'ejercicio': ('Ejercicio', 'Ejercicio'),
@@ -341,27 +349,35 @@ class CNBVFixtureGenerator:
         if md_path.exists():
             body_text = md_path.read_text(encoding='utf-8')
 
-            # PDF-text containment (DEFECT B, owner re-verification
-            # 2026-07-04): the .md check alone is a false-assurance hole --
-            # a value can be clean in the .md yet fragmented by pdftotext/OCR
-            # (e.g. split across lines by a two-column table cell), so a
-            # downstream harness reading the PDF could still fail to recover
-            # it. Only meaningful on the clean set (chaos == 'none'); chaos
-            # already isn't PDF-gated at any level, same as the .md check.
+            # PDF-text cross-check is ADVISORY ONLY (owner re-verification
+            # 2026-07-04, reversing the prior "hard-gate on pdftotext too"
+            # design): ground-truth OCR of the rendered PIXELS (pdftoppm +
+            # tesseract) recovered a hyphen that Chrome's `pdftotext` TEXT
+            # LAYER silently drops in some digit-hyphen-digit runs -- the
+            # eval harness reads the PDF via OCR of the image, not the text
+            # layer, so a pdftotext-only mismatch is a false positive for
+            # "not recoverable" and must NOT block generation. The .md body
+            # check remains the HARD, authoritative gate: it's the
+            # ground-truth proof that the value is genuinely IN the
+            # document body at all (the exact defect that made client
+            # fixtures untrustworthy) -- independent of which rendering path
+            # (pdftotext vs OCR) a downstream harness happens to use.
             pdf_text = None
             if pdf_path.exists():
                 pdf_text = _extract_pdf_text(pdf_path)
                 if pdf_text is None:
                     print(f"   ⚠️  'pdftotext' unavailable/failed for {output_dir.name}; "
-                          f"containment gate falling back to Markdown-only "
-                          f"(no PDF-text cross-check for this doc).")
+                          f"pdfContained will be recorded as unchecked (advisory only, "
+                          f"does not affect the hard .md-based gate).")
             else:
                 print(f"   ⚠️  'pdf' not in requested formats for {output_dir.name}; "
-                      f"containment gate falling back to Markdown-only.")
+                      f"pdfContained will be recorded as unchecked (advisory only).")
 
-            failures = self._check_body_containment(ground_truth, data, body_text, pdf_text)
+            hard_failures, advisory_failures = self._check_body_containment(
+                ground_truth, data, body_text, pdf_text
+            )
         else:
-            failures = []
+            hard_failures, advisory_failures = [], []
             print(f"   ⚠️  'md' not in requested formats for {output_dir.name}; "
                   f"body-containment gate skipped (no plain-text source to check against).")
 
@@ -369,17 +385,28 @@ class CNBVFixtureGenerator:
         with open(gt_path, 'w', encoding='utf-8') as f:
             json.dump(ground_truth, f, ensure_ascii=False, indent=2)
 
-        # Strict fail-loud gate: only enforced on the clean set (chaos ==
-        # 'none'). Chaos deliberately corrupts rendered text at higher
-        # levels, so a mismatch there is expected degradation, not a defect
-        # -- bodyContained/pdfContained are still recorded honestly for
-        # those runs, they just don't raise. The manifest is already
-        # persisted above (with the failing maps) before we raise, so it's
-        # available for debugging.
-        if failures and self.chaos_level == 'none':
+        # Advisory: printed for visibility, never blocks generation --
+        # pdftotext is a lossy proxy for what an OCR-based harness actually
+        # sees (see rationale above). The doc IS still written.
+        if advisory_failures:
+            print(f"   ⚠️  ADVISORY (non-fatal) for {output_dir.name}: gold field(s) present "
+                  f"in the .md body but NOT contiguously recoverable from pdftotext: "
+                  f"{'; '.join(advisory_failures)}. Recorded in pdfContained; doc still written "
+                  f"-- an OCR-based harness reading pixels is not expected to be affected.")
+
+        # Hard, fail-loud gate: only enforced on the clean set (chaos ==
+        # 'none'). This is the AUTHORITATIVE "is the gold genuinely in the
+        # document body" guarantee -- it checks the .md text only. Chaos
+        # deliberately corrupts rendered text at higher levels, so a
+        # mismatch there is expected degradation, not a defect --
+        # bodyContained/pdfContained are still recorded honestly for those
+        # runs, they just don't raise. The manifest is already persisted
+        # above (with the failing maps) before we raise, so it's available
+        # for debugging.
+        if hard_failures and self.chaos_level == 'none':
             raise ValueError(
                 f"Source-containment gate FAILED for {output_dir.name}: gold field(s) "
-                f"not recoverable: {'; '.join(failures)}. "
+                f"not found in the rendered Markdown body: {'; '.join(hard_failures)}. "
                 f"See {gt_path} for the full bodyContained/pdfContained maps."
             )
 
@@ -438,32 +465,34 @@ class CNBVFixtureGenerator:
         }
 
     def _check_body_containment(self, ground_truth: Dict, data: Dict, body_text: str,
-                                 pdf_text: Optional[str] = None) -> List[str]:
+                                 pdf_text: Optional[str] = None) -> tuple:
         """Verify every body-intended gold field's value is recoverable from the rendered document.
 
-        Checks TWO independent sources per field:
-          1. `body_text` (the rendered Markdown) -- exact substring match, as before.
+        Checks TWO independent sources per field, with DIFFERENT weight
+        (owner re-verification 2026-07-04, reversing the prior "pdftotext is
+        also a hard gate" design after an empirical ground-truth OCR test):
+
+          1. `body_text` (the rendered Markdown) -- exact substring match.
+             This is the HARD, authoritative "is the gold genuinely IN the
+             document body" guarantee -- the exact invariant this whole
+             manifest/gate exists to prove (the client-fixture defect was
+             values that were NEVER in the body at all, XML-only).
           2. `pdf_text` (pdftotext output of the rendered PDF), if provided --
-             whitespace-NORMALIZED substring match, since pdftotext/OCR can
-             fragment a contiguous phrase across lines (DEFECT B, owner
-             re-verification 2026-07-04: a two-column table cell splits
-             "Servicio de Administración Tributaria" across 3 lines, so the
-             .md check alone was a false-assurance hole -- a value clean in
-             the .md is not necessarily recoverable from what a real
-             PDF/OCR-reading harness sees).
+             whitespace-NORMALIZED substring match. ADVISORY ONLY: an actual
+             pixel-OCR test (pdftoppm + tesseract) on a doc where Chrome's
+             `pdftotext` TEXT LAYER silently dropped a hyphen inside a
+             digit-hyphen-digit run showed the OCR of the rendered IMAGE
+             recovered the hyphen fine (just soft-wrapped across a line) --
+             the eval harness reads the PDF via OCR of pixels, not the
+             pdftotext text layer, so a pdftotext-only mismatch is a false
+             positive for "not recoverable" and must NOT block generation.
 
-        A field only counts as contained if it passes the Markdown check AND
-        (when `pdf_text` is available) the normalized PDF check. When
+        A field's `bodyContained` entry reflects ONLY the Markdown check
+        (the hard gate). `pdfContained` reflects ONLY the normalized PDF
+        check (advisory) and is recorded but never causes a raise. When
         `pdf_text` is None (pdf not generated, or `pdftotext` unavailable),
-        the PDF check is skipped for that field -- recorded as `None` in
-        `pdfContained`, degrading to Markdown-only per the caller's warning.
-
-        Populates `ground_truth['bodyContained']` (Markdown-only result) and
-        `ground_truth['pdfContained']` (normalized PDF-text result) in
-        place. Each value is True (found), False (body-intended but missing
-        -- a real defect), or None (not body-intended for this document, or
-        not checked -- see NOT_BODY_GATED_FIELDS /
-        CONDITIONAL_BODY_INTENDED_FIELDS / pdf-unavailable).
+        `pdfContained` is `None` for every checked field (unchecked, not a
+        failure).
 
         Args:
             ground_truth: Dict from `_build_ground_truth` (mutated in place).
@@ -474,12 +503,17 @@ class CNBVFixtureGenerator:
                 unavailable (pdf not requested, or `pdftotext` missing/failed).
 
         Returns:
-            List of human-readable failure descriptions (naming which
-            check(s) failed) for body-intended fields NOT fully recoverable
-            (empty if all found in every available source).
+            `(hard_failures, advisory_failures)` -- both lists of
+            human-readable descriptions. `hard_failures` (body-intended
+            fields absent from the Markdown body) are what the caller
+            raises on at `chaos == 'none'`. `advisory_failures`
+            (body-intended fields present in the Markdown body but NOT
+            contiguously recoverable from normalized pdftotext) are
+            printed as a warning by the caller but never raised.
         """
         placeholders_used = set(data.get('_motivacion_placeholders_used', []))
-        failures: List[str] = []
+        hard_failures: List[str] = []
+        advisory_failures: List[str] = []
         body_contained: Dict[str, Optional[bool]] = {}
         pdf_contained: Dict[str, Optional[bool]] = {}
 
@@ -488,21 +522,20 @@ class CNBVFixtureGenerator:
         def _check_one(gold_field: str, value: str) -> None:
             md_found = bool(value) and value in body_text
             body_contained[gold_field] = md_found
+            if not md_found:
+                hard_failures.append(f"{gold_field}='{value}' (missing from: md)")
 
             if normalized_pdf_text is None:
                 pdf_contained[gold_field] = None
-                pdf_found = True  # not checked -- don't gate on it
-            else:
-                pdf_found = bool(value) and _normalize_whitespace(value) in normalized_pdf_text
-                pdf_contained[gold_field] = pdf_found
+                return
 
-            if not md_found or not pdf_found:
-                sources = []
-                if not md_found:
-                    sources.append('md')
-                if not pdf_found:
-                    sources.append('pdf')
-                failures.append(f"{gold_field}='{value}' (missing from: {', '.join(sources)})")
+            pdf_found = bool(value) and _normalize_whitespace(value) in normalized_pdf_text
+            pdf_contained[gold_field] = pdf_found
+            # Advisory only: a pdf-only miss is NOT added to hard_failures,
+            # and is only worth flagging when the .md check itself passed
+            # (otherwise it's already covered by the hard failure above).
+            if md_found and not pdf_found:
+                advisory_failures.append(f"{gold_field}='{value}' (not contiguous in pdftotext)")
 
         for gold_field, data_key in self.ALWAYS_BODY_INTENDED_FIELDS.items():
             _check_one(gold_field, str(data.get(data_key, '')))
@@ -520,7 +553,7 @@ class CNBVFixtureGenerator:
 
         ground_truth['bodyContained'] = body_contained
         ground_truth['pdfContained'] = pdf_contained
-        return failures
+        return hard_failures, advisory_failures
 
     def _generate_requirement_data(self, req_type: str, authority: Optional[str] = None) -> Dict:
         """Generate complete requirement data.

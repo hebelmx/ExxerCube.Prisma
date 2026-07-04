@@ -215,6 +215,12 @@
 
     <div class="section-header">Origen del requerimiento</div>
 
+    <!-- Own dedicated labeled line (EXPEDIENTE CONTIGUITY fix, owner
+         re-verification 2026-07-04): a short, non-wrapping line so an
+         OCR-based harness can read the value contiguously, in addition to
+         the Motivación prose mention some requirement types embed. -->
+    <p><strong>Número de expediente:</strong> {{ data.Cnbv_NumeroExpediente }}</p>
+
     <p><strong>¿Esta solicitud contiene requerimientos de aseguramiento desbloqueo de cuentas o transferencias de saldo?</strong> {{ data.TieneAseguramiento }}</p>
 
     <p><strong>No de oficio de requerimiento /tipo y número de orden de revisión/ auditoría:</strong> {{ data.NoOficioRevision }}</p>

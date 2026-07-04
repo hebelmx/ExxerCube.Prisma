@@ -280,6 +280,12 @@ Correo: {data.get('ServidorPublico_Correo', '')}"""
             data: Document data
         """
         fields = [
+            # Own dedicated labeled line (EXPEDIENTE CONTIGUITY fix, owner
+            # re-verification 2026-07-04): a short, non-wrapping paragraph
+            # so an OCR-based harness can read the value contiguously, in
+            # addition to the Motivación prose mention some requirement
+            # types embed.
+            ("Número de expediente", data.get('Cnbv_NumeroExpediente', 'N/A')),
             ("¿Esta solicitud contiene requerimientos de aseguramiento?", data.get('TieneAseguramiento', 'No')),
             ("No de oficio de requerimiento", data.get('NoOficioRevision', 'N/A')),
             ("Monto a crédito", data.get('MontoCredito', 'N/A')),

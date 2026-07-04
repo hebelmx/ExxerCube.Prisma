@@ -133,6 +133,12 @@ class MarkdownExporter:
         # Origen
         md_lines.append("## Origen del requerimiento")
         md_lines.append("")
+        # Own dedicated labeled line (not just the Motivación prose mention
+        # some requirement types embed): real requerimientos label expediente
+        # as its own field, and a short, non-wrapping line is what an
+        # OCR-based harness needs to read the value contiguously (2026-07-04
+        # EXPEDIENTE CONTIGUITY fix, owner re-verification).
+        md_lines.append(f"**Número de expediente:** {data.get('Cnbv_NumeroExpediente', 'N/A')}")
         md_lines.append(f"**¿Contiene aseguramiento?** {data.get('TieneAseguramiento', 'No')}")
         md_lines.append(f"**No de oficio:** {data.get('NoOficioRevision', 'N/A')}")
         md_lines.append(f"**Monto:** {data.get('MontoCredito', 'N/A')}")
