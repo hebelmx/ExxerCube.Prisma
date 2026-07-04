@@ -87,7 +87,7 @@ public static partial class LlmExtractionGate
         // Monto must parse to a positive decimal within a plausible range.
         if (!string.IsNullOrWhiteSpace(dto.Monto))
         {
-            if (!decimal.TryParse(dto.Monto, NumberStyles.Number, CultureInfo.InvariantCulture, out var amount))
+            if (!TryParseMonto(dto.Monto, out var amount))
             {
                 return $"Monto '{dto.Monto}' is not a valid decimal number.";
             }
@@ -99,6 +99,38 @@ public static partial class LlmExtractionGate
         }
 
         return null; // valid
+    }
+
+    /// <summary>
+    /// Parses a currency-formatted or plain Monto string into a decimal, preserving cents
+    /// (no rounding — unlike <c>FieldSanitizer.SanitizeMonto</c> in the deterministic Domain
+    /// path, which rounds to whole pesos). Strips a leading currency symbol (<c>$</c>), currency
+    /// codes (<c>MXN</c>/<c>USD</c>/<c>EUR</c>, case-insensitive), thousands separators
+    /// (<c>,</c>), and surrounding whitespace before parsing. The single shared implementation —
+    /// both <see cref="Validate"/> and <c>LlmExpedienteMapper</c> call this so the accepted and
+    /// stored values never drift.
+    /// </summary>
+    /// <param name="raw">The raw Monto string from the LLM DTO. May be <see langword="null"/> or whitespace.</param>
+    /// <param name="amount">The parsed decimal amount, or <c>0m</c> when parsing fails.</param>
+    /// <returns><see langword="true"/> when <paramref name="raw"/> parses to a valid decimal.</returns>
+    public static bool TryParseMonto(string? raw, out decimal amount)
+    {
+        amount = 0m;
+
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return false;
+        }
+
+        var cleaned = raw
+            .Replace("$", string.Empty, StringComparison.Ordinal)
+            .Replace(",", string.Empty, StringComparison.Ordinal)
+            .Replace("MXN", string.Empty, StringComparison.OrdinalIgnoreCase)
+            .Replace("USD", string.Empty, StringComparison.OrdinalIgnoreCase)
+            .Replace("EUR", string.Empty, StringComparison.OrdinalIgnoreCase)
+            .Trim();
+
+        return decimal.TryParse(cleaned, NumberStyles.Number, CultureInfo.InvariantCulture, out amount);
     }
 
     /// <summary>

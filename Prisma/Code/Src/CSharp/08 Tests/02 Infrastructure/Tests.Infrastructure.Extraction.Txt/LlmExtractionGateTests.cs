@@ -1,3 +1,4 @@
+using System.Globalization;
 using ExxerCube.Prisma.Infrastructure.Extraction.Txt.Llm;
 
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.Txt;
@@ -213,7 +214,7 @@ public sealed class LlmExtractionGateTests
 
     [Theory]
     [InlineData("abc")]
-    [InlineData("$1,234")]
+    [InlineData("INVALID")]
     [InlineData("mil pesos")]
     public void IsValid_MontoNonNumeric_ReturnsFalse(string monto)
     {
@@ -289,5 +290,87 @@ public sealed class LlmExtractionGateTests
 
         reason.ShouldNotBeNull();
         reason!.ShouldContain("CURP");
+    }
+
+    // -----------------------------------------------------------------------
+    // TryParseMonto — currency-formatted Monto (bug fix: LLM emits "$9,976,691.72"-style
+    // strings; the gate must accept them instead of rejecting the whole DTO).
+    // -----------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("$9,976,691.72", 9976691.72)]
+    [InlineData("9976691.72", 9976691.72)]
+    [InlineData("$236,569.68", 236569.68)]
+    [InlineData("1234.56 MXN", 1234.56)]
+    [InlineData("236570 MXN", 236570)]
+    public void TryParseMonto_CurrencyFormattedValues_AcceptedAndCentsPreserved(string raw, decimal expected)
+    {
+        var accepted = LlmExtractionGate.TryParseMonto(raw, out var amount);
+
+        accepted.ShouldBeTrue();
+        amount.ShouldBe(expected);
+    }
+
+    [Theory]
+    [InlineData("-100")]
+    [InlineData("0")]
+    [InlineData("100000000")]
+    public void TryParseMonto_OutOfRangeValues_ParsesButGateRejectsRange(string raw)
+    {
+        // TryParseMonto itself only parses — the (0, 100,000,000) exclusive range guard
+        // lives in LlmExtractionGate.Validate, not in the parse helper.
+        var parsed = LlmExtractionGate.TryParseMonto(raw, out var amount);
+
+        parsed.ShouldBeTrue();
+
+        var dto = new LlmExpedienteDto(null, "Solicitante", raw, null, null, null, null);
+        var reason = LlmExtractionGate.Validate(dto);
+        reason.ShouldNotBeNull();
+        reason!.ShouldContain("outside the allowed range");
+        amount.ShouldBe(decimal.Parse(raw, CultureInfo.InvariantCulture));
+    }
+
+    [Fact]
+    public void TryParseMonto_Invalid_ReturnsFalseAndGateReportsNotValidDecimalReason()
+    {
+        LlmExtractionGate.TryParseMonto("INVALID", out var amount).ShouldBeFalse();
+        amount.ShouldBe(0m);
+
+        var dto = new LlmExpedienteDto(null, "Solicitante", "INVALID", null, null, null, null);
+        var reason = LlmExtractionGate.Validate(dto);
+
+        reason.ShouldNotBeNull();
+        reason!.ShouldContain("is not a valid decimal number");
+    }
+
+    [Fact]
+    public void TryParseMonto_NullOrWhitespace_ReturnsFalse()
+    {
+        LlmExtractionGate.TryParseMonto(null, out var amount1).ShouldBeFalse();
+        amount1.ShouldBe(0m);
+
+        LlmExtractionGate.TryParseMonto("   ", out var amount2).ShouldBeFalse();
+        amount2.ShouldBe(0m);
+    }
+
+    [Fact]
+    public void Validate_FullDtoWithCurrencyFormattedMonto_PreviouslyRejected_NowAccepted()
+    {
+        // Regression: this exact shape ("$9,976,691.72") was silently discarding 17/20
+        // golden-corpus documents before the TryParseMonto fix — decimal.TryParse with
+        // NumberStyles.Number rejects a leading "$".
+        var dto = new LlmExpedienteDto(
+            Expediente: "A/AS1-1111-222222-AAA",
+            Solicitante: "Juan Pérez",
+            Monto: "$9,976,691.72",
+            Cuenta: null,
+            Rfc: null,
+            Curp: null,
+            Partes: null);
+
+        var valid = LlmExtractionGate.IsValid(dto, out var reason);
+
+        valid.ShouldBeTrue();
+        reason.ShouldBeNull();
     }
 }

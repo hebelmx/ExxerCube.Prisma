@@ -47,8 +47,7 @@ public static class LlmExpedienteMapper
             expediente.AdditionalFields["Cuenta"] = dto.Cuenta.Trim();
         }
 
-        if (!string.IsNullOrWhiteSpace(dto.Monto)
-            && decimal.TryParse(dto.Monto, NumberStyles.Number, CultureInfo.InvariantCulture, out var monto))
+        if (LlmExtractionGate.TryParseMonto(dto.Monto, out var monto))
         {
             expediente.AdditionalFields["Monto"] = monto.ToString(CultureInfo.InvariantCulture);
         }
