@@ -63,6 +63,14 @@ class DOCXExporter:
 
         # Add sections
         self._add_section_header(doc, "Datos generales del solicitante")
+        # Own full-width paragraph (NOT inside the two-column table below):
+        # pdftotext/OCR fragment multi-column table cells onto separate
+        # lines, which breaks contiguous substring matching for the
+        # PDF-based containment gate (DEFECT B, owner re-verification
+        # 2026-07-04).
+        self._add_paragraph_text(
+            doc, f"Autoridad solicitante: {data.get('AutoridadSolicitanteNombre', '')}"
+        )
         self._add_two_column_table(doc, data)
 
         self._add_section_header(doc, "Facultades de la Autoridad")

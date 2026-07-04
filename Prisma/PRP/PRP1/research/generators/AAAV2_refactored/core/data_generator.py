@@ -12,6 +12,35 @@ from faker import Faker
 class MexicanDataGenerator:
     """Generate realistic Mexican banking data for CNBV fixtures."""
 
+    # Maps an authority's `siglas` (from catalogs/authorities.json, or the
+    # hardcoded fallback list below) to the SIARA folio prefix(es) that
+    # belong to THAT authority. `generate_folio_siara` uses this so the
+    # folio/oficio prefix and the gold requesting-authority name always
+    # refer to the same entity -- previously they were drawn from two
+    # independent random choices, so a document could get e.g. a SAT folio
+    # prefix (AGAFADAFSON2) together with an unrelated gold authority like
+    # IMSS, contradicting itself (DEFECT A, owner re-verification
+    # 2026-07-04).
+    #
+    # NOTE: every prefix still has >=4 uppercase letters, preserving the
+    # existing regex-compatibility constraint documented on
+    # `generate_folio_siara` (`[A-Z]{4,}[A-Z0-9]{0,10}/\d{4}/\d{6}`) --
+    # UIF/FGR/PJF are only 3 letters, so their prefixes here are extended
+    # synthetic forms (e.g. `UIFMX`), not the bare siglas.
+    AUTHORITY_FOLIO_PREFIXES: Dict[str, List[str]] = {
+        'SAT': ['AGAFADAFSON2', 'AGAFF'],
+        'IMSS': ['IMSS'],
+        'SHCP': ['SHCP'],
+        'INFONAVIT': ['INFONAVIT'],
+        'SEIDO': ['SEIDO'],
+        'CNBV': ['CNBV'],
+        'UIF': ['UIFMX'],
+        'FGR': ['FGRMX'],
+        'PJF': ['PJFMX'],
+        'CONDUSEF': ['CONDUSEF'],
+        'PGR_VISITADURIA': ['PGRVIS'],
+    }
+
     def __init__(self, locale: str = 'es_MX', seed: Optional[int] = None,
                  catalogs_dir: Optional[Path] = None):
         """Initialize Mexican data generator.
@@ -301,7 +330,7 @@ class MexicanDataGenerator:
         """
         return list(self.authorities_catalog.keys())
 
-    def generate_folio_siara(self) -> str:
+    def generate_folio_siara(self, authority_siglas: Optional[str] = None) -> str:
         """Generate realistic SIARA folio number.
 
         Format: AUTHORITY/YYYY/######
@@ -314,16 +343,37 @@ class MexicanDataGenerator:
         conflict between the XML source (which has the folio verbatim) and the
         DOCX/PDF sources (which cannot find it via pattern), causing fusion to
         trigger ManualReviewRequired and block the §2 export gate.
+
+        Args:
+            authority_siglas: The SAME authority that was chosen for this
+                document's `generate_authority()` call (e.g. `authority_data
+                ['siglas']` in `main_generator._generate_requirement_data`).
+                When given and recognized, the folio prefix is drawn ONLY
+                from that authority's own prefix pool
+                (`AUTHORITY_FOLIO_PREFIXES`), so the folio/oficio and the
+                gold requesting authority always name the same entity. When
+                `None` or unrecognized, falls back to the legacy flat pool
+                below (kept for backward compatibility with any other
+                caller) -- callers that care about authority/folio
+                consistency MUST pass this.
+
+        Returns:
+            Folio string, e.g. "AGAFADAFSON2/2025/000084".
         """
-        prefixes = [
-            'AGAFADAFSON2',  # SAT Auditoría Fiscal Sonora 2
-            'AGAFF',         # SAT Administración General Auditoría Fiscal Federal
-            'SEIDO',         # Subprocuraduría Especializada Investigación Delincuencia Organizada
-            'IMSS',          # Instituto Mexicano del Seguro Social
-            'SHCP',          # Secretaría de Hacienda y Crédito Público
-            'CNBV',          # Comisión Nacional Bancaria y de Valores
-            'INFONAVIT',     # Instituto del Fondo Nacional de la Vivienda
-        ]
+        if authority_siglas and authority_siglas in self.AUTHORITY_FOLIO_PREFIXES:
+            prefixes = self.AUTHORITY_FOLIO_PREFIXES[authority_siglas]
+        else:
+            # Legacy fallback pool (pre-DEFECT-A behavior): used only when no
+            # authority is supplied, or it's not in AUTHORITY_FOLIO_PREFIXES.
+            prefixes = [
+                'AGAFADAFSON2',  # SAT Auditoría Fiscal Sonora 2
+                'AGAFF',         # SAT Administración General Auditoría Fiscal Federal
+                'SEIDO',         # Subprocuraduría Especializada Investigación Delincuencia Organizada
+                'IMSS',          # Instituto Mexicano del Seguro Social
+                'SHCP',          # Secretaría de Hacienda y Crédito Público
+                'CNBV',          # Comisión Nacional Bancaria y de Valores
+                'INFONAVIT',     # Instituto del Fondo Nacional de la Vivienda
+            ]
 
         prefix = random.choice(prefixes)
         year = random.randint(2023, 2025)

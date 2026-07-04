@@ -24,24 +24,28 @@ _PLACEHOLDER_RE = re.compile(r'\{\{(\w+)\}\}')
 # already-computed value inside the `data` dict assembled by
 # `main_generator.CNBVFixtureGenerator._generate_requirement_data`.
 #
-# NOTE: `JuzgadoNombre` and `Ejercicio` have no other field in `data` --
-# `_generate_requirement_data` synthesizes them specifically so this map
-# never has to fall back to leaving the literal placeholder in place:
-#   - JuzgadoNombre <- the REQUESTING authority's own official name
-#     (`authority_data['nombre']`). NOTE this is a different concept from
-#     `AutoridadNombre`, which is hardcoded to the CNBV (the *receiving*
-#     regulator) by deliberate design elsewhere in this file -- see the
-#     comment on `AutoridadNombre` in `_generate_requirement_data`. Using
-#     "Juzgado" for a non-judicial requesting authority is a naming
-#     imprecision inherited from the original template wording; flagged as
-#     a known caveat, not silently hidden.
+# NOTE: `JuzgadoNombre` and `Ejercicio` map to fields with no OTHER template
+# use in `data` -- `_generate_requirement_data` synthesizes/labels them
+# specifically so this map never has to fall back to leaving the literal
+# placeholder in place:
+#   - JuzgadoNombre -> `AutoridadSolicitanteNombre`, the REQUESTING
+#     authority's own official name (`authority_data['nombre']`, e.g.
+#     SAT/IMSS/FGR). Per owner ruling 2026-07-04 this is the gold
+#     `autoridadNombre` field (the meaningful, discriminative extraction
+#     target) -- a different concept from `AutoridadNombre`, which is
+#     hardcoded to the CNBV (the *receiving*, pass-through regulator) by
+#     deliberate design elsewhere in this file -- see the comment on
+#     `AutoridadNombre` in `_generate_requirement_data`. Using "Juzgado"
+#     wording for a non-judicial requesting authority is a naming
+#     imprecision inherited from the original template text; flagged as a
+#     known caveat, not silently hidden.
 #   - Ejercicio <- reuses `Cnbv_OficioYear` (current year) as a stand-in for
 #     "ejercicio fiscal" (fiscal year); the generator does not model a
 #     distinct fiscal-year concept.
 MOTIVACION_PLACEHOLDER_MAP: Dict[str, str] = {
     'NumeroExpediente': 'Cnbv_NumeroExpediente',
     'FechaDiligencia': 'FechaDiligencia',
-    'JuzgadoNombre': 'JuzgadoNombre',
+    'JuzgadoNombre': 'AutoridadSolicitanteNombre',
     'AutoridadNombre': 'AutoridadNombre',
     'MontoCredito': 'MontoCredito',
     'PersonaNombre': 'Persona_Nombre',

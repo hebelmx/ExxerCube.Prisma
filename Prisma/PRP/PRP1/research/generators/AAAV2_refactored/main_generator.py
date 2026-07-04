@@ -3,6 +3,9 @@
 import argparse
 import json
 import random
+import re
+import shutil
+import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Optional
@@ -23,6 +26,41 @@ from exporters.markdown_exporter import MarkdownExporter
 from exporters.xml_exporter import XMLExporter
 
 
+def _normalize_whitespace(text: str) -> str:
+    """Collapse every run of whitespace (incl. newlines) to a single space.
+
+    `pdftotext` line-wraps and fragments multi-column layouts, so a phrase
+    that's contiguous in the source can come out with embedded newlines
+    (e.g. "Servicio de\\nAdministración Tributaria"). Normalizing both the
+    gold value and the extracted text before comparing makes the match
+    whitespace-insensitive without weakening it in any other way (still a
+    literal, ordered substring match).
+    """
+    return re.sub(r'\s+', ' ', text).strip()
+
+
+def _extract_pdf_text(pdf_path: Path) -> Optional[str]:
+    """Extract plain text from a PDF via the `pdftotext` CLI (poppler-utils).
+
+    Returns None (never raises) if `pdftotext` isn't installed or extraction
+    fails for any reason -- callers must degrade to a Markdown-only
+    containment check with a printed warning rather than crash generation.
+    """
+    if shutil.which('pdftotext') is None:
+        return None
+
+    try:
+        result = subprocess.run(
+            ['pdftotext', str(pdf_path), '-'],
+            capture_output=True, text=True, timeout=30,
+        )
+        if result.returncode != 0:
+            return None
+        return result.stdout
+    except Exception:
+        return None
+
+
 class CNBVFixtureGenerator:
     """Main orchestrator for generating CNBV requirement fixtures."""
 
@@ -32,11 +70,21 @@ class CNBVFixtureGenerator:
     # body for EVERY requirement type, independent of the Motivación-template
     # substitution -- proven present today by other, pre-existing exporter
     # code paths (ID box / recipient block / Servidor Público table /
-    # signature / Personas table / Origen section). Maps
+    # signature / Personas table / Origen section), PLUS the explicit
+    # "Autoridad solicitante" line added to markdown_exporter/html
+    # template/docx_exporter specifically so `autoridadNombre` is always
+    # rendered regardless of requirement type. Maps
     # `ground_truth field name` -> `data dict key`.
+    #
+    # NOTE (owner ruling, 2026-07-04): `autoridadNombre` is the REQUESTING
+    # authority (`AutoridadSolicitanteNombre` = `authority_data['nombre']`,
+    # e.g. SAT/IMSS/FGR) -- the meaningful, discriminative extraction target
+    # -- NOT the constant CNBV recipient. The CNBV name is still rendered
+    # (Destinatario_Institucion / `AutoridadNombre`) but is no longer gold;
+    # it is recorded separately as the non-gated `recipientInstitucion`.
     ALWAYS_BODY_INTENDED_FIELDS: Dict[str, str] = {
         'numeroOficio': 'Cnbv_NumeroOficio',
-        'autoridadNombre': 'AutoridadNombre',
+        'autoridadNombre': 'AutoridadSolicitanteNombre',
         'nombreSolicitante': 'NombreSolicitante',
         'personaNombre': 'Persona_Nombre',
         'personaRfc': 'Persona_Rfc',
@@ -49,10 +97,16 @@ class CNBVFixtureGenerator:
     # embeds the matching `{{Placeholder}}` token (see
     # core/legal_catalog.py:generate_motivacion_template). Maps
     # `ground_truth field name` -> (`data dict key`, `{{Placeholder}}` name).
+    #
+    # `juzgadoNombre` here is the SAME underlying value as `autoridadNombre`
+    # above (`AutoridadSolicitanteNombre`) -- it stays as a separate,
+    # conditionally-gated entry because it also tracks whether THIS specific
+    # document's Motivación template embedded the `{{JuzgadoNombre}}` token
+    # (judicial-type only), which is orthogonal to the always-gated line.
     CONDITIONAL_BODY_INTENDED_FIELDS: Dict[str, tuple] = {
         'numeroExpediente': ('Cnbv_NumeroExpediente', 'NumeroExpediente'),
         'fechaDiligencia': ('FechaDiligencia', 'FechaDiligencia'),
-        'juzgadoNombre': ('JuzgadoNombre', 'JuzgadoNombre'),
+        'juzgadoNombre': ('AutoridadSolicitanteNombre', 'JuzgadoNombre'),
         'ejercicio': ('Ejercicio', 'Ejercicio'),
     }
 
@@ -282,9 +336,30 @@ class CNBVFixtureGenerator:
         ground_truth = self._build_ground_truth(data, req_type=req_type, output_dir=output_dir)
 
         md_path = output_dir / f"{base_filename}.md"
+        pdf_path = output_dir / f"{base_filename}.pdf"
+
         if md_path.exists():
             body_text = md_path.read_text(encoding='utf-8')
-            failures = self._check_body_containment(ground_truth, data, body_text)
+
+            # PDF-text containment (DEFECT B, owner re-verification
+            # 2026-07-04): the .md check alone is a false-assurance hole --
+            # a value can be clean in the .md yet fragmented by pdftotext/OCR
+            # (e.g. split across lines by a two-column table cell), so a
+            # downstream harness reading the PDF could still fail to recover
+            # it. Only meaningful on the clean set (chaos == 'none'); chaos
+            # already isn't PDF-gated at any level, same as the .md check.
+            pdf_text = None
+            if pdf_path.exists():
+                pdf_text = _extract_pdf_text(pdf_path)
+                if pdf_text is None:
+                    print(f"   ⚠️  'pdftotext' unavailable/failed for {output_dir.name}; "
+                          f"containment gate falling back to Markdown-only "
+                          f"(no PDF-text cross-check for this doc).")
+            else:
+                print(f"   ⚠️  'pdf' not in requested formats for {output_dir.name}; "
+                      f"containment gate falling back to Markdown-only.")
+
+            failures = self._check_body_containment(ground_truth, data, body_text, pdf_text)
         else:
             failures = []
             print(f"   ⚠️  'md' not in requested formats for {output_dir.name}; "
@@ -297,15 +372,15 @@ class CNBVFixtureGenerator:
         # Strict fail-loud gate: only enforced on the clean set (chaos ==
         # 'none'). Chaos deliberately corrupts rendered text at higher
         # levels, so a mismatch there is expected degradation, not a defect
-        # -- bodyContained is still recorded honestly for those runs, it
-        # just doesn't raise. The manifest is already persisted above (with
-        # the failing bodyContained map) before we raise, so it's available
-        # for debugging.
+        # -- bodyContained/pdfContained are still recorded honestly for
+        # those runs, they just don't raise. The manifest is already
+        # persisted above (with the failing maps) before we raise, so it's
+        # available for debugging.
         if failures and self.chaos_level == 'none':
             raise ValueError(
                 f"Source-containment gate FAILED for {output_dir.name}: gold field(s) "
-                f"not found in rendered Markdown body: {'; '.join(failures)}. "
-                f"See {gt_path} for the full bodyContained map."
+                f"not recoverable: {'; '.join(failures)}. "
+                f"See {gt_path} for the full bodyContained/pdfContained maps."
             )
 
         return output_dir
@@ -342,62 +417,109 @@ class CNBVFixtureGenerator:
             'folioSiara': data.get('Cnbv_SolicitudSiara', ''),
             'numeroOficio': data.get('Cnbv_NumeroOficio', ''),
             'numeroExpediente': data.get('Cnbv_NumeroExpediente', ''),
-            'autoridadNombre': data.get('AutoridadNombre', ''),
+            # Requesting authority (SAT/IMSS/FGR/etc.) -- the meaningful,
+            # discriminative gold field per owner ruling 2026-07-04.
+            'autoridadNombre': data.get('AutoridadSolicitanteNombre', ''),
+            # Non-gold, informational only: the constant CNBV recipient
+            # institution (always "Comisión Nacional Bancaria y de Valores").
+            # Kept for traceability but deliberately NOT named
+            # `autoridadNombre` and NOT part of any body-intended field set.
+            'recipientInstitucion': data.get('AutoridadNombre', ''),
             'nombreSolicitante': data.get('NombreSolicitante', ''),
             'personaNombre': data.get('Persona_Nombre', ''),
             'personaRfc': data.get('Persona_Rfc', ''),
             'solicitudPartes': solicitud_partes,
             'monto': data.get('MontoCredito', ''),
             'fechaDiligencia': data.get('FechaDiligencia', ''),
-            'juzgadoNombre': data.get('JuzgadoNombre', ''),
+            'juzgadoNombre': data.get('AutoridadSolicitanteNombre', ''),
             'ejercicio': data.get('Ejercicio', ''),
-            'bodyContained': {},  # filled in by _check_body_containment
+            'bodyContained': {},  # filled in by _check_body_containment (Markdown check)
+            'pdfContained': {},   # filled in by _check_body_containment (normalized PDF-text check)
         }
 
-    def _check_body_containment(self, ground_truth: Dict, data: Dict, body_text: str) -> List[str]:
-        """Verify every body-intended gold field's value literally appears in `body_text`.
+    def _check_body_containment(self, ground_truth: Dict, data: Dict, body_text: str,
+                                 pdf_text: Optional[str] = None) -> List[str]:
+        """Verify every body-intended gold field's value is recoverable from the rendered document.
 
-        Populates `ground_truth['bodyContained']` in place with, per field:
-        True (found), False (body-intended but missing -- a real defect),
-        or None (not body-intended for this document -- recorded as gold but
-        deliberately not gated; see NOT_BODY_GATED_FIELDS /
-        CONDITIONAL_BODY_INTENDED_FIELDS).
+        Checks TWO independent sources per field:
+          1. `body_text` (the rendered Markdown) -- exact substring match, as before.
+          2. `pdf_text` (pdftotext output of the rendered PDF), if provided --
+             whitespace-NORMALIZED substring match, since pdftotext/OCR can
+             fragment a contiguous phrase across lines (DEFECT B, owner
+             re-verification 2026-07-04: a two-column table cell splits
+             "Servicio de Administración Tributaria" across 3 lines, so the
+             .md check alone was a false-assurance hole -- a value clean in
+             the .md is not necessarily recoverable from what a real
+             PDF/OCR-reading harness sees).
+
+        A field only counts as contained if it passes the Markdown check AND
+        (when `pdf_text` is available) the normalized PDF check. When
+        `pdf_text` is None (pdf not generated, or `pdftotext` unavailable),
+        the PDF check is skipped for that field -- recorded as `None` in
+        `pdfContained`, degrading to Markdown-only per the caller's warning.
+
+        Populates `ground_truth['bodyContained']` (Markdown-only result) and
+        `ground_truth['pdfContained']` (normalized PDF-text result) in
+        place. Each value is True (found), False (body-intended but missing
+        -- a real defect), or None (not body-intended for this document, or
+        not checked -- see NOT_BODY_GATED_FIELDS /
+        CONDITIONAL_BODY_INTENDED_FIELDS / pdf-unavailable).
 
         Args:
             ground_truth: Dict from `_build_ground_truth` (mutated in place).
             data: The document data dict (source of truth for field values
                 and of `_motivacion_placeholders_used`).
             body_text: The rendered Markdown body to check containment against.
+            pdf_text: Raw `pdftotext` output for the rendered PDF, or None if
+                unavailable (pdf not requested, or `pdftotext` missing/failed).
 
         Returns:
-            List of human-readable failure descriptions for body-intended
-            fields whose value was NOT found (empty if all found).
+            List of human-readable failure descriptions (naming which
+            check(s) failed) for body-intended fields NOT fully recoverable
+            (empty if all found in every available source).
         """
         placeholders_used = set(data.get('_motivacion_placeholders_used', []))
         failures: List[str] = []
-        contained: Dict[str, Optional[bool]] = {}
+        body_contained: Dict[str, Optional[bool]] = {}
+        pdf_contained: Dict[str, Optional[bool]] = {}
+
+        normalized_pdf_text = _normalize_whitespace(pdf_text) if pdf_text is not None else None
+
+        def _check_one(gold_field: str, value: str) -> None:
+            md_found = bool(value) and value in body_text
+            body_contained[gold_field] = md_found
+
+            if normalized_pdf_text is None:
+                pdf_contained[gold_field] = None
+                pdf_found = True  # not checked -- don't gate on it
+            else:
+                pdf_found = bool(value) and _normalize_whitespace(value) in normalized_pdf_text
+                pdf_contained[gold_field] = pdf_found
+
+            if not md_found or not pdf_found:
+                sources = []
+                if not md_found:
+                    sources.append('md')
+                if not pdf_found:
+                    sources.append('pdf')
+                failures.append(f"{gold_field}='{value}' (missing from: {', '.join(sources)})")
 
         for gold_field, data_key in self.ALWAYS_BODY_INTENDED_FIELDS.items():
-            value = str(data.get(data_key, ''))
-            found = bool(value) and value in body_text
-            contained[gold_field] = found
-            if not found:
-                failures.append(f"{gold_field}='{value}'")
+            _check_one(gold_field, str(data.get(data_key, '')))
 
         for gold_field, (data_key, placeholder_name) in self.CONDITIONAL_BODY_INTENDED_FIELDS.items():
             if placeholder_name not in placeholders_used:
-                contained[gold_field] = None  # not body-intended for this document
+                body_contained[gold_field] = None  # not body-intended for this document
+                pdf_contained[gold_field] = None
                 continue
-            value = str(data.get(data_key, ''))
-            found = bool(value) and value in body_text
-            contained[gold_field] = found
-            if not found:
-                failures.append(f"{gold_field}='{value}'")
+            _check_one(gold_field, str(data.get(data_key, '')))
 
         for gold_field in self.NOT_BODY_GATED_FIELDS:
-            contained[gold_field] = None
+            body_contained[gold_field] = None
+            pdf_contained[gold_field] = None
 
-        ground_truth['bodyContained'] = contained
+        ground_truth['bodyContained'] = body_contained
+        ground_truth['pdfContained'] = pdf_contained
         return failures
 
     def _generate_requirement_data(self, req_type: str, authority: Optional[str] = None) -> Dict:
@@ -422,8 +544,14 @@ class CNBVFixtureGenerator:
         # Generate recipient (bank official)
         destinatario = self.data_gen.generate_person(include_curp=False)
 
-        # Generate folio and reference numbers
-        folio_siara = self.data_gen.generate_folio_siara()
+        # Generate folio and reference numbers. `authority_data['siglas']` is
+        # passed through so the folio/oficio prefix is drawn from the SAME
+        # authority as the gold `AutoridadSolicitanteNombre` below -- fixes
+        # DEFECT A (owner re-verification 2026-07-04): previously the folio
+        # prefix and the gold authority were two independent random draws,
+        # so a document could self-contradict (e.g. a SAT folio prefix next
+        # to an IMSS gold authority).
+        folio_siara = self.data_gen.generate_folio_siara(authority_siglas=authority_data['siglas'])
         expediente = self.data_gen.generate_numero_expediente()
 
         # Generate amounts
@@ -478,17 +606,25 @@ class CNBVFixtureGenerator:
             'authority': authority_data,  # Include full authority data for LLM
             'tipo': req_type,  # Include requirement type for LLM
 
-            # Synthetic fields that exist ONLY to give the Motivación
-            # template's `{{JuzgadoNombre}}` / `{{Ejercicio}}` placeholders a
-            # real, non-empty value to substitute (see
-            # core/text_substitution.py:MOTIVACION_PLACEHOLDER_MAP).
-            # JuzgadoNombre reuses the REQUESTING authority's own official
-            # name (not `AutoridadNombre`, which is hardcoded to the CNBV --
-            # see the comment above); this is an inherited naming
-            # imprecision for non-judicial authorities, flagged as a caveat.
-            # Ejercicio reuses the current year (no separate "ejercicio
-            # fiscal" concept is modeled by this generator).
-            'JuzgadoNombre': authority_data['nombre'],
+            # The REQUESTING authority's own official name (SAT/IMSS/FGR/etc,
+            # from `generate_authority()` -- catalog `nombre`, VARIES per
+            # doc). This is the gold `autoridadNombre` field (owner ruling
+            # 2026-07-04): the meaningful, discriminative extraction target,
+            # as opposed to `AutoridadNombre` above which is hardcoded to the
+            # constant CNBV recipient. It also supplies the Motivación
+            # template's `{{JuzgadoNombre}}` placeholder for judicial-type
+            # docs (see core/text_substitution.py:MOTIVACION_PLACEHOLDER_MAP)
+            # -- using "Juzgado" wording for a non-judicial requesting
+            # authority (e.g. SAT) is an inherited naming imprecision from
+            # the original template text, flagged as a caveat, not hidden.
+            # It is ALSO rendered explicitly as an "Autoridad solicitante"
+            # line in markdown_exporter/html template/docx_exporter for
+            # EVERY requirement type, independent of that placeholder.
+            'AutoridadSolicitanteNombre': authority_data['nombre'],
+            # Ejercicio exists ONLY to give the Motivación template's
+            # `{{Ejercicio}}` placeholder (informacion-type only) a real,
+            # non-empty value; reuses the current year (no separate
+            # "ejercicio fiscal" concept is modeled by this generator).
             'Ejercicio': str(datetime.now().year),
 
             # References

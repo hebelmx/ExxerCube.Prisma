@@ -91,6 +91,15 @@ class MarkdownExporter:
         # Datos generales del solicitante
         md_lines.append("## Datos generales del solicitante")
         md_lines.append("")
+        # Own full-width paragraph (NOT a table cell/row): pdftotext/OCR
+        # fragment multi-column table cells onto separate lines, which
+        # breaks contiguous substring matching for the PDF-based
+        # containment gate (DEFECT B, owner re-verification 2026-07-04).
+        # Expediente/oficio already survive PDF extraction because they're
+        # on their own line elsewhere; this gives AutoridadSolicitanteNombre
+        # the same treatment.
+        md_lines.append(f"**Autoridad solicitante:** {data.get('AutoridadSolicitanteNombre', '')}")
+        md_lines.append("")
         md_lines.append("| Solicitante | Detalles |")
         md_lines.append("|-------------|----------|")
         md_lines.append(f"| Unidad | {data.get('UnidadSolicitante', '')} |")

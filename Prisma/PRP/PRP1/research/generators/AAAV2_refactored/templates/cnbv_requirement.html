@@ -171,6 +171,12 @@
 
     <div class="section-header">Datos generales del solicitante</div>
 
+    <!-- Own full-width paragraph (NOT a two-column table cell): pdftotext/OCR
+         fragment multi-column table cells onto separate lines, which breaks
+         contiguous substring matching for the PDF-based containment gate
+         (DEFECT B, owner re-verification 2026-07-04). -->
+    <p>Autoridad solicitante: <strong>{{ data.AutoridadSolicitanteNombre }}</strong></p>
+
     <table class="two-column-table">
         <tr>
             <td class="left-column">
