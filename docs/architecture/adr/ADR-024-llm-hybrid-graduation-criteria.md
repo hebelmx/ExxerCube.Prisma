@@ -199,32 +199,53 @@ run ~10m49s — vision inference over rasterized pages dominates). Both LLM trac
 | ParteCount | — (architectural skip) | 38% (6/16) | 100% (8/8) |
 
 Coverage: Deterministic 57/80 (71%, unchanged — path untouched, so no regression), **LLM-text 48/80
-(60%, up from 11%)**, **LLM-vision 26/80 (33%, up from 0%)**.
+(60%, up from 11%)** (~12 of the 13 unlocked docs attributable to the monto fix; 1 flipped due to
+Ollama run-to-run variance), **LLM-vision 26/80 (33%, up from 0%)**.
 
-**Did S4-B work? Now decidable — YES for its target fields:**
-- **AutoridadNombre: LLM-text 81% (13/16) vs deterministic 0%.** S4-B's central claim, now proven at
-  real N: the LLM recovers the *requesting* authority the deterministic path structurally cannot. Clears
-  D1's ≥80% bar for this field on the text track.
-- **NumeroExpediente: LLM-text 94% (15/16) > deterministic 85%.** The LLM is competitive-to-better on the
-  bar-to-beat field.
+> ⚠️ **Denominator caveat (adversarial-review finding, 2026-07-04).** The LLM-track accuracy columns
+> above are **per-attempt** — their denominator is the *gate-conditioned* Evaluable count (docs the LLM's
+> own gate did **not** self-reject), whereas the Deterministic column counts its extraction misses as
+> `Missing` in a full-20 denominator. So the two are **not** directly comparable. On a **denominator-matched
+> full-20 basis** (abstentions counted as failures — the fair basis for a track intended to *replace* the
+> deterministic path in production): LLM-text NumeroExpediente = **15/20 = 75%** and AutoridadNombre =
+> **13/20 = 65%**. Note D1's bar (line ~240) is currently written on the gate-conditioned number; a future
+> revision should add an explicit full-N column and decide which denominator the bar uses.
+
+**Did S4-B work? Now decidable — YES for its central claim:**
+- **AutoridadNombre: LLM-text 81% per-attempt (13/16) / 65% full-N (13/20) vs deterministic 0%.** This is
+  S4-B's central claim and it **survives even the strict full-N accounting** — the LLM recovers the
+  *requesting* authority the deterministic path structurally cannot (it returns the constant CNBV
+  recipient). Clears D1's bar on the text track under either denominator.
+- **NumeroExpediente: LLM-text 94% per-attempt (15/16) but 75% full-N (15/20) vs deterministic 85%.**
+  Once abstentions count as failures, **deterministic still wins** the bar-to-beat field. The LLM is
+  strong *when it commits*, but its self-abstention rate keeps it below deterministic on full-corpus
+  expediente. Do **not** read this as "LLM beats deterministic on expediente."
 
 **Two real gaps surfaced by the now-trustworthy N (were hidden at N=3):**
-4. **LLM-text NumeroOficio = 0% (0/16) — a specific S4-B text-path defect.** Every text candidate is
-   empty, yet the vision path emits oficio (2/8) and the deterministic path nails it (100%) — so the
-   field *is* extractable; the LLM-text DTO→`Expediente` path (or its prompt) is not populating
-   `NumeroOficio`. → next lever: trace `LlmTxtFieldExtractor` prompt/mapper for the dropped oficio.
+4. **LLM-text NumeroOficio = 0% (0/16) — a specific S4-B text-path gap.** Every text candidate is empty,
+   yet the vision path emits oficio (2/8) via the *identical* metric/DTO/gate/mapper code and the
+   deterministic path nails it (100%) — so the field *is* extractable and the metric is not at fault. What
+   the artifact **cannot** yet distinguish (it records only the post-gate mapped candidate, never the raw
+   LLM JSON): whether the text model (a) never emits `numeroOficio`, or (b) emits it in a shape that fails
+   `IsPlausibleNumeroOficio`'s regex every single time and is silently abstained. These need different
+   fixes (prompt vs. gate calibration). → next lever: log the raw pre-gate LLM JSON for the text track to
+   disambiguate, then fix accordingly.
 5. **LLM-vision ~60% still gated by multi-dot monto** (`58665.271.89`, `4.526.265.05`). The vision model
    emits ambiguous dot-as-thousands numbers; the gate **correctly refuses to guess** (honesty invariant —
    a misread digit must not become a plausible-wrong value). This caps vision coverage but is *correct*
    behavior, not a bug to force-parse away. Improving it means **prompt-constraining the vision monto
    format**, not loosening the gate.
 
-**Verdict:** S4-B is **validated for authority + expediente** on the trustworthy corpus — the N=3 masking
-is removed. Deterministic remains the bar on oficio (100%) and is competitive on expediente (85%).
-Remaining LLM work is now precisely scoped: LLM-text oficio (gap 4) and vision monto-format prompting
-(gap 5). The deterministic `AutoridadNombre` production bug (finding 1) is unchanged and still needs a
-ticket. **D1/D2 for `llm-text` are now decidable** (authority + expediente pass; oficio is a fixable
-gap, not a model-quality failure); `llm-vision` remains below bar and gated.
+**Verdict:** S4-B is **validated for its central claim — AutoridadNombre** — on the trustworthy corpus
+(65% full-N / 81% per-attempt vs deterministic 0%; survives strict accounting); the N=3 masking is removed.
+On **NumeroExpediente, deterministic remains the bar** (85% full-N vs LLM-text 75% full-N) — the LLM is
+strong when it commits but abstains too often. Deterministic also remains the clear bar on oficio (100%).
+Remaining LLM work is now precisely scoped: LLM-text oficio (gap 4 — disambiguate emit-vs-gate first),
+vision monto-format prompting (gap 5), and reducing the text track's expediente self-abstention rate. The
+deterministic `AutoridadNombre` production bug (finding 1) is unchanged and still needs a ticket. **D1/D2
+for `llm-text`:** authority passes under either denominator; expediente passes per-attempt but **not**
+full-N — so the graduation decision hinges on which denominator D1 adopts (see the caveat above).
+`llm-vision` remains below bar and gated.
 
 ---
 
