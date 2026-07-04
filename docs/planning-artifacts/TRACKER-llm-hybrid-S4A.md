@@ -3,6 +3,30 @@
 Branch `Liv`. Spec: `docs/implementation-artifacts/spec-llm-hybrid-extractor-S4A.md`.
 Orchestrated 2026-07-03. Owner ruling: S4 = Option A (measure before graduating).
 
+## ✅✅ S4-B EPIC CLOSED 2026-07-04 — verified DONE from ground truth (fresh orchestrator re-verification).
+## The extractor extension is landed, VALIDATED on a source-contained corpus, and its lone residual gap is a
+## deliberate WONTFIX. Nothing un-gated remains under S4-B. Evidence (code + eval, not commit prose):
+## - Code present: `LlmExpedienteDto.cs:17-18` (numeroOficio/autoridadNombre fields); `LlmExpedienteMapper.cs:55-65`
+##   (field-level abstention via `LlmExtractionGate.IsPlausibleNumeroOficio/IsPlausibleAutoridadNombre`).
+## - Source-contained-gold BLOCKER (the old "top lever") is CLOSED: P1 generator commits `d6b7dfb7`→`313d2210`
+##   emit a source-contained gold manifest + the `Prisma/Fixtures/PRP1-golden` 20-doc corpus; `69ce5c71` added the
+##   trustworthy gold loader. So accuracy numbers from the harness ARE now meaningful.
+## - VALIDATED (`97b77be7`, ~11m live Ollama llama3.1:8b/gemma3:12b on the 20-doc golden set): AutoridadNombre
+##   LLM-text 81% (13/16) vs deterministic 0% — S4-B's CENTRAL claim proven; NumeroExpediente LLM-text 94% > 85%.
+## - Deterministic-authority production bug (deterministic returned the constant CNBV *recipient*, not the
+##   *requesting* authority) FIXED `5a4d0b86` — 0/20→~20/20 via the `Autoridad solicitante:` label rule.
+## - Lone residual gap LLM-text NumeroOficio 0/16 → DIAGNOSED + prompt fix REJECTED as net-negative (`149756f4`,
+##   ADR-024 D3-golden-v3): a controlled temp-0 paired run showed the fix (0/16→14/15) REGRESSES expediente
+##   (15→12) and authority (13→9) to patch a REDUNDANT field — deterministic oficio is 100% and the reconciler
+##   is deterministic-wins, so the LLM oficio value never reaches the output. Correct call: do not ship.
+## - Vision FROZEN for the demo by owner (`2c93d06c` gate vision UI on VisionExtractorEnabled, `37c2d4d1` dynamic
+##   N-Way label) — no visible vision failure in the shareholder demo.
+##
+## SUCCESSORS (open, NOT part of S4-B): (design) gate-coupling — all-or-nothing DTO rejection vs per-field
+## abstention; owner steer 2026-07-04 = return a FAILED Result<Expediente> carrying the partial T + metadata +
+## error list. (S4-C, separate epic) un-dark the PIPELINE — the Athena worker never calls HybridExtractionService;
+## the flags gate only the /hybrid-extraction demo page. Both tracked separately from this closed tracker.
+
 ## PIVOT 2026-07-03 (owner ruled B after adversarial gate): the measure-only S4-A surfaced that the DARK
 ## LLM extractor only attempts partes(+wrong-format expediente) — it never produces NumeroOficio/AutoridadNombre
 ## (C1/C2, confirmed from code + gold). Owner chose to EXTEND the extractor (functional, S4-B) THEN measure,
@@ -44,13 +68,17 @@ Orchestrated 2026-07-03. Owner ruling: S4 = Option A (measure before graduating)
 ## Secondary finding logged (not fixed): gate rejects the WHOLE DTO on a present-but-invalid expediente,
 ##   discarding usable oficio/authority/partes → Gate-B design question (per-field abstention?).
 
-## REMAINING / next units (all OWNER-GATED or optional — NOT autonomous orchestrator work):
-## 1. [OWNER/CORPUS] Rebuild/validate the eval gold so every gold field is source-contained in its fixture's
-##    OCR text (D7.1). Until then NO accuracy number from this harness is meaningful. This is the top lever.
-## 2. [DESIGN] Decide gate coupling: keep all-or-nothing DTO rejection vs per-field abstention (Gate-B question).
-## 3. Optional S4A-5 live-provider smoke test. 4. Gemini track = SkippedNoKey (no key on box).
-## 5. S4-C (separate future): un-dark the PIPELINE (Athena worker never calls HybridExtractionService today —
-##    flags gate only the /hybrid-extraction demo page).
+## REMAINING / next units — UPDATED 2026-07-04 (S4-B itself is CLOSED; see the top banner):
+## 1. [CLOSED ✅] Rebuild the eval gold source-contained (D7.1) — DONE by P1 generator commits `d6b7dfb7`→`313d2210`
+##    + gold loader `69ce5c71`; the 20-doc `PRP1-golden` corpus is source-contained and the harness numbers are
+##    now meaningful. (This was the old "top lever"; no longer open.)
+## 2. [DESIGN — IN PROGRESS] Gate coupling: all-or-nothing DTO rejection vs per-field abstention (Gate-B question).
+##    Owner steer 2026-07-04: return a FAILED Result<Expediente> that still carries the partial T + metadata +
+##    error list (per-field abstention reasons). Being settled by a BMAD design party → decision doc / ADR-024 addendum.
+## 3. [SEPARATE EPIC — S4-C] un-dark the PIPELINE: the Athena worker never calls HybridExtractionService today
+##    (flags gate only the /hybrid-extraction demo page). Safe first slice = flag-gated wiring (still DARK, zero
+##    runtime impact); production flag-flip is owner-gated + ADR-024 Gate-B honesty preconditions (D7).
+## 4. [OPTIONAL] S4A-5 live-provider smoke test. 5. Gemini track = SkippedNoKey (no key on box).
 
 ## Notes / carried facts
 - Models: text=`llama3.1:8b`, vision=`gemma3:12b` (spec defaults llama3.2/minicpm-v NOT installed → override).
