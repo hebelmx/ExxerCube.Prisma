@@ -20,5 +20,12 @@
     -->
     <ProjectReference Include="..\..\..\01 Core\Veriqan.Domain\ExxerCube.Prisma.Veriqan.Domain.csproj" />
     <ProjectReference Include="..\..\..\01 Core\Veriqan.Application\ExxerCube.Prisma.Veriqan.Application.csproj" />
+    <!--
+      VLD-S1: wires the real Veriqan VEC pipeline into this host. A single reference to
+      Orchestration transitively pulls in the full Infrastructure.{Extraction,Persistence,
+      ReferenceData,Reporting,Validation,Visual} graph (each is already referenced by
+      Orchestration itself) — do not add those individually.
+    -->
+    <ProjectReference Include="..\..\..\03 Orchestration\Veriqan.Orchestration\ExxerCube.Prisma.Veriqan.Orchestration.csproj" />
   </ItemGroup>
 </Project>

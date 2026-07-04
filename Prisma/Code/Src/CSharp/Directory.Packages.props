@@ -78,6 +78,9 @@
 		<PackageVersion Include="Microsoft.ML.Tokenizers" Version="2.0.0" />
 		<!-- Microsoft configuration packages -->
 		<PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.8" />
+		<!-- Microsoft.Extensions.Configuration: ConfigurationBuilder/AddInMemoryCollection concrete
+		     implementation (VLD-S1 proof test builds an in-memory IConfiguration for AddVeriqan). -->
+		<PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.8" />
 		<PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.8" />
 		<PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.8" />
 		<!-- Microsoft Dependency Injection packages -->

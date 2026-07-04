@@ -374,6 +374,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests.Infrastructure.Identi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Tests.Infrastructure.Identity", "08 Tests\02 Infrastructure\Tests.Infrastructure.Identity\ExxerCube.Prisma.Tests.Infrastructure.Identity.csproj", "{F408C857-0459-402C-9E5C-A86F84C9D0DF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Veriqan.Web.UI.Tests", "Veriqan.Web.UI.Tests", "{62EB2A05-A88B-9D6B-9D17-8F644B19E100}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Veriqan.Web.UI.Tests", "08 Tests\07 UI\Veriqan.Web.UI.Tests\ExxerCube.Prisma.Veriqan.Web.UI.Tests.csproj", "{43A1F7BB-F0DB-45DA-8895-F0571922239E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1644,6 +1648,18 @@ Global
 		{F408C857-0459-402C-9E5C-A86F84C9D0DF}.Release|x64.Build.0 = Release|Any CPU
 		{F408C857-0459-402C-9E5C-A86F84C9D0DF}.Release|x86.ActiveCfg = Release|Any CPU
 		{F408C857-0459-402C-9E5C-A86F84C9D0DF}.Release|x86.Build.0 = Release|Any CPU
+		{43A1F7BB-F0DB-45DA-8895-F0571922239E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43A1F7BB-F0DB-45DA-8895-F0571922239E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43A1F7BB-F0DB-45DA-8895-F0571922239E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{43A1F7BB-F0DB-45DA-8895-F0571922239E}.Debug|x64.Build.0 = Debug|Any CPU
+		{43A1F7BB-F0DB-45DA-8895-F0571922239E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{43A1F7BB-F0DB-45DA-8895-F0571922239E}.Debug|x86.Build.0 = Debug|Any CPU
+		{43A1F7BB-F0DB-45DA-8895-F0571922239E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43A1F7BB-F0DB-45DA-8895-F0571922239E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43A1F7BB-F0DB-45DA-8895-F0571922239E}.Release|x64.ActiveCfg = Release|Any CPU
+		{43A1F7BB-F0DB-45DA-8895-F0571922239E}.Release|x64.Build.0 = Release|Any CPU
+		{43A1F7BB-F0DB-45DA-8895-F0571922239E}.Release|x86.ActiveCfg = Release|Any CPU
+		{43A1F7BB-F0DB-45DA-8895-F0571922239E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1824,6 +1840,8 @@ Global
 		{2A0F99CF-CED7-4D3F-A1FA-1565D6B73105} = {1B7A5EAA-044A-43C0-DC04-CA84AD4BE866}
 		{E636D7E7-8E1E-9931-20EC-9EA75BB78CA4} = {56E66B46-BE15-4AD1-B371-252E84EDB669}
 		{F408C857-0459-402C-9E5C-A86F84C9D0DF} = {E636D7E7-8E1E-9931-20EC-9EA75BB78CA4}
+		{62EB2A05-A88B-9D6B-9D17-8F644B19E100} = {9A57EED0-B8D9-44FD-BEF3-5F5E28A9A361}
+		{43A1F7BB-F0DB-45DA-8895-F0571922239E} = {62EB2A05-A88B-9D6B-9D17-8F644B19E100}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9F4D9C48-36D8-465A-9065-D491D435A0F6}

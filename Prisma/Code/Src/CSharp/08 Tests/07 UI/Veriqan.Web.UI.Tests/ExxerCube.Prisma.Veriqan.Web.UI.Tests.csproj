@@ -1,0 +1,94 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup Label="Core Properties">
+    <!-- Target framework centrally managed, do not add another here -->
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <OutputType>Exe</OutputType>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- NU1902: OpenTelemetry.Api vulnerability (transitive dependency, documented in SECURITY_SUPPRESSIONS.md) -->
+    <WarningsNotAsErrors>NU1903;NU1902;IQR002</WarningsNotAsErrors>
+    <WarningsAsErrors />
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTestingPlatformEntryPoint>false</GenerateTestingPlatformEntryPoint>
+  </PropertyGroup>
+  <PropertyGroup Label="Testing Platform">
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <TestingPlatformServer>true</TestingPlatformServer>
+  </PropertyGroup>
+  <ItemGroup Label="Testing Utilities">
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="NSubstitute.Analyzers.CSharp" />
+  </ItemGroup>
+  <ItemGroup Label="Logging">
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Meziantou.Extensions.Logging.Xunit.v3" />
+  </ItemGroup>
+  <ItemGroup Label="DI and Config">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+  </ItemGroup>
+  <ItemGroup Label="PDF rasterization proof (VLD-S1)">
+    <!-- PDFtoImage: proves MarkedPdfGenerator's marked PDF rasterizes to a real SKBitmap
+         (pinned centrally in Directory.Packages.props; no local version here). -->
+    <PackageReference Include="PDFtoImage" />
+  </ItemGroup>
+  <ItemGroup Label="Microsoft Testing Platform">
+    <PackageReference Include="Microsoft.Testing.Platform" />
+    <PackageReference Include="Microsoft.Testing.Platform.MSBuild" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+    <PackageReference Include="Microsoft.Testing.Extensions.VSTestBridge" />
+    <PackageReference Include="Microsoft.Testing.Extensions.HangDump" />
+  </ItemGroup>
+  <ItemGroup Label="xUnit v3">
+    <PackageReference Include="xunit.v3.mtp-v2" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.v3.runner.inproc.console" />
+    <PackageReference Include="xunit.v3.runner.msbuild">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+  </ItemGroup>
+  <ItemGroup Label="Code Coverage">
+    <PackageReference Include="coverlet.collector">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <!--
+      Single reference to the Web.UI host itself (Sdk.Web project) — transitively pulls in
+      Veriqan.Orchestration (and, through it, the full Infrastructure.{Extraction,Persistence,
+      ReferenceData,Reporting,Validation,Visual} graph) plus DemoCorpusPathResolver, exactly
+      mirroring what Program.cs composes.
+    -->
+    <ProjectReference Include="..\..\..\07 UI\UI\ExxerCube.Prisma.Veriqan.Web.UI\ExxerCube.Prisma.Veriqan.Web.UI.csproj" />
+  </ItemGroup>
+  <ItemGroup Label="Testing Platform Capabilities">
+    <ProjectCapability Include="DiagnoseCapabilities" />
+    <ProjectCapability Include="TestingPlatformServer" />
+    <ProjectCapability Include="TestContainer" />
+  </ItemGroup>
+  <ItemGroup Label="Global Usings">
+    <Using Include="Xunit" />
+    <Using Include="Shouldly" />
+    <Using Include="System" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Linq" />
+    <Using Include="System.Threading" />
+    <Using Include="System.Threading.Tasks" />
+  </ItemGroup>
+</Project>
