@@ -23,8 +23,13 @@ Epics C/D (VLD-S4..S7) are OUT of this run — stop + hand off at the Epic B bou
 | Story | Title | Status | Verified (build/test/git) |
 |-------|-------|--------|---------------------------|
 | VLD-S1 | Wire real pipeline into Web.UI + proof test | ✅ DONE | build 0/0; proof test 1/1 via dotnet exec; good.pdf→Red→marked PDF→SKBitmap 1275×1649; Veriqan suites green (Orch 122, Reporting 75, App 151) |
-| VLD-S3 | IMarkedPageRenderer PDF→PNG service | PENDING | — |
-| VLD-S2 | IDemoRunner live/canned fallback + DemoOptions + warm-up + NEW test project | PENDING | — |
+| VLD-S3 | IMarkedPageRenderer PDF→PNG service | ✅ DONE | build 0/0; 8/8; commit 361dd68f |
+| VLD-S2 | IDemoRunner live/canned fallback + DemoOptions + warm-up + test project | ✅ DONE | build 0/0; 15/15; commit c78e2ffd |
+| Epic B review remediation | readiness-truthfulness + never-throws | ✅ DONE | build 0/0; 19/19; commit 4d4c86cd |
+
+**EPIC B COMPLETE** (commits c3457903→4d4c86cd, pushed). Adversarially reviewed (2 reviewers):
+Epic B genuinely done, tests not hollow, host boots + /health 200. 2 confirmed defects fixed
+(readiness lie, never-throws gap). Web.UI.Tests: 19/19.
 | VLD-P1 | Locator bbox audit per visual rule (parallel) | ✅ DONE | audit → veriqan-locator-bbox-audit-2026-07.md; 7/11 tight bbox |
 | VLD-P2 | LAW-vs-BRAND citation ledger (parallel) | ✅ DONE | ledger .md + .json; 10 LAW / 1 BRAND of 11 visual rules |
 
@@ -34,8 +39,33 @@ Epics C/D (VLD-S4..S7) are OUT of this run — stop + hand off at the Epic B bou
 - **VLD-P2 IsVisual fix:** the epic's `CL-37`=contrast premise is FALSE (CL-37 = points-to-pesos exchange rate). Drop CL-37 from IsVisual. `IsVisual` classification lives in the P2 JSON ledger (`isVisual` field), not the fictional ChecklistIds.cs.
 - **VERIFY-later (P2):** exact Annex clause for CL-28/CL-29; tiers for LAW-§23-ABONO-LINK / LAW-DUC-ART27-GAT / CL-41/42/43 (absent from checklist-tiers.csv).
 
+## CARRIED RISKS from Epic B adversarial review (address in the named later story — NOT Epic B defects)
+- **[VLD-S5/S7] Shared circuit-breaker blackout.** The resolved `IVerificationPipeline` is actually
+  `ResilientVerificationPipeline` wrapping a PROCESS-WIDE Polly breaker (FailureRatio 0.8, MinThroughput 5,
+  Break 30s — `GateResilienceOptions.cs`). ≥5 live failures in 60s (e.g. an auditor uploading garbage, or the
+  path bug below) trips it OPEN for 30s → EVERY fixture card silently falls to canned `DEMO DATA` with only a
+  log line. Graceful but invisible. Options for VLD-S5/S7: (a) surface the LIVE/DEMO badge prominently (already
+  planned) + a presenter-visible "live degraded" indicator; (b) give the demo host a breaker-disabled / relaxed
+  pipeline config. Decide in VLD-S5. Caller-timeout cancellation does NOT trip the breaker (verified — fine).
+- **[VLD-S7] Container path resolution WILL break.** `DemoCorpusPathResolver` walks up to `CLAUDE.md`; the
+  published container (worker Dockerfile = `COPY --from=build /app/publish .`, no source, no CLAUDE.md) →
+  `FindRepoRoot` returns null → reference-data path unresolved → EVERY live submission fails from the first
+  click (and, pre-fix, readiness lied — now fixed to stay false). VLD-S7 MUST set an explicit env-var config
+  path (`Veriqan__CsvReferenceData__RootDirectory`) + bake the reference bundle into the image; do NOT rely on
+  the walk-up in-container. Reviewer reproduced the null-resolution empirically. (Proof test silently SKIPS on
+  a non-standard build layout — acceptable, but note it.)
+- **[VLD-S5/S7] Warm-up is narrow.** `PipelineWarmupHostedService` only loads the reference CSV; it does NOT
+  touch `ProcessAsync`/PDFium/`PDFtoImage`/the Extraction+Visual+Reporting JIT. First live click still pays
+  native-load + cold-JIT. Also `DemoOptions.LiveTimeout`=20s < Gate `TimeoutPerRequest`=30s, so DemoRunner's
+  timeout always wins with no cold-start slack. VLD-S5: extend warm-up to a real throwaway ProcessAsync at
+  startup, and/or raise LiveTimeout above the Gate timeout.
+- **[VLD-S4] VerificationOutcomeMapper is MINIMAL** — hardcodes `Tier = ChecklistTier.Condusef` + `Label =
+  CheckId` for every finding. VLD-S4 must enrich from the LAW-vs-BRAND ledger JSON (veriqan-real-check-ledger-2026-07.json)
+  + real per-finding tier + bbox rail data. Nothing renders it yet, so not a live bug — but it's the S4 landmine.
+
 ## Adversarial review checkpoints
-- After Epic B stories land (or every 3 tasks): fan out skeptics against the intended-solution doc.
+- ✅ Epic B boundary (2026-07-04): plan-completion-reviewer + qa. Epic B confirmed done; 2 defects fixed; risks above carried.
+- Next: after VLD-S4/S5 land.
 
 ## Log
 - 2026-07-04: Orchestration started; tracker created.
