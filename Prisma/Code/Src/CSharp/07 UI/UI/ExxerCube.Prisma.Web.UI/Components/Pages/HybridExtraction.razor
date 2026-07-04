@@ -25,7 +25,7 @@
         Hybrid Extractor Demo
     </MudText>
     <MudText Typo="Typo.body2" Class="mb-4" Color="Color.Secondary">
-        Deterministic + optional LLM tracks (text / vision). 3-way comparison.
+        Deterministic + optional LLM tracks. Side-by-side comparison.
         Ships <strong>dark</strong> — LLM tracks off by default.
     </MudText>
 
@@ -257,7 +257,7 @@
                 <MudPaper Class="pa-3" Elevation="2">
                     <MudText Typo="Typo.h6" Class="mb-3">
                         <MudIcon Icon="@Icons.Material.Filled.CompareArrows" Class="mr-2" />
-                        3-Way Comparison — @_result.Candidates.Count candidate(s)
+                        @(_result.Candidates.Count)-Way Comparison — @_result.Candidates.Count candidate(s)
                     </MudText>
 
                     <div style="overflow-x: auto;">
