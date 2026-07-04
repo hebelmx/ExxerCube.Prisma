@@ -34,6 +34,13 @@ public sealed class PipelineWarmupHostedService : IHostedService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    /// <summary>
+    /// The in-flight (or completed) background warm-up task, exposed <c>internal</c> purely so
+    /// tests can deterministically await it instead of polling/sleeping. Never awaited by
+    /// production code — <see cref="StartAsync"/> remains fire-and-forget.
+    /// </summary>
+    internal Task? WarmupTask { get; private set; }
+
     /// <inheritdoc />
     /// <remarks>
     /// Returns immediately — the warm-up itself runs on a detached background task so a slow
@@ -41,7 +48,7 @@ public sealed class PipelineWarmupHostedService : IHostedService
     /// </remarks>
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _ = WarmUpAsync(cancellationToken);
+        WarmupTask = WarmUpAsync(cancellationToken);
         return Task.CompletedTask;
     }
 
@@ -63,10 +70,14 @@ public sealed class PipelineWarmupHostedService : IHostedService
 
             if (bundleResult.IsFailure)
             {
+                // Do NOT mark ready: a failed reference-data load means live submissions are
+                // doomed, so /health/ready must keep reporting not-ready (the canned fallback
+                // still serves demo traffic in the meantime).
                 _logger.LogWarning(
-                    "Pipeline warm-up: reference-data bundle load failed (non-fatal, demo will " +
-                    "still work, just cold on first request): {Error}",
+                    "Pipeline warm-up: reference-data bundle load failed — live mode is NOT " +
+                    "ready (canned fallback will serve until this recovers): {Error}",
                     bundleResult.Error ?? "<none>");
+                return;
             }
 
             _readiness.MarkReady();
@@ -75,8 +86,8 @@ public sealed class PipelineWarmupHostedService : IHostedService
         catch (Exception ex)
         {
             // Never throw out of a hosted service background task — log and move on. The demo
-            // still functions; it will simply be cold on the first real request.
-            _logger.LogWarning(ex, "Pipeline warm-up failed (non-fatal).");
+            // still functions in canned mode; live mode stays not-ready until warm-up recovers.
+            _logger.LogWarning(ex, "Pipeline warm-up failed (non-fatal); live mode NOT ready.");
         }
     }
 }

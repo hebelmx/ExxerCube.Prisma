@@ -99,8 +99,20 @@ public sealed class DemoRunner : IDemoRunner
         {
             liveResult = await RunLiveAsync(pdf, fileName, demoOptions.LiveTimeout, cancellationToken);
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
+            // The CALLER's own token was cancelled — surface as a Cancelled Result, never a
+            // thrown exception, even if it escaped from a path other than the explicitly-handled
+            // pipeline.ProcessAsync await inside RunLiveAsync (e.g. the mapper or the async scope
+            // disposal via `await using`).
+            return ResultExtensions.Cancelled<DemoRunOutcome>();
+        }
+        catch (Exception ex)
+        {
+            // Catches everything else, INCLUDING any OperationCanceledException that is not the
+            // caller's own cancellation (e.g. one that escapes from the mapper or the scope
+            // disposal rather than the pipeline call). The "never throws out of RunAsync" contract
+            // must hold for the whole live path, not just the single awaited pipeline call.
             _logger.LogWarning(
                 ex, "Live verification pipeline threw for {FileName}.", fileName);
             liveResult = Result<DemoRunOutcome>.WithFailure(

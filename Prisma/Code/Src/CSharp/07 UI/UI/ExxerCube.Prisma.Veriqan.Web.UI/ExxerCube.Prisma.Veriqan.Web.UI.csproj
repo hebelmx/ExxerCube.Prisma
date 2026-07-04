@@ -28,4 +28,11 @@
     -->
     <ProjectReference Include="..\..\..\03 Orchestration\Veriqan.Orchestration\ExxerCube.Prisma.Veriqan.Orchestration.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- Grants the test project visibility into internal test hooks (e.g. PipelineWarmupHostedService.WarmupTask). -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>ExxerCube.Prisma.Veriqan.Web.UI.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
 </Project>
