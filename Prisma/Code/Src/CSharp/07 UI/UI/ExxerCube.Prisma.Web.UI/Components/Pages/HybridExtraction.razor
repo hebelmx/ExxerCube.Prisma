@@ -45,23 +45,29 @@
                     }
                 </MudSelect>
             </MudItem>
-            <MudItem xs="12" sm="4">
-                <MudSelect T="string"
-                           @bind-Value="_selectedVisionModel"
-                           Label="Vision Model (swap live — no restart)"
-                           Variant="Variant.Outlined"
-                           Dense="true"
-                           Disabled="@(_busyRunning || _visionModels.Count <= 1)">
-                    @foreach (var vm in _visionModels)
-                    {
-                        <MudSelectItem T="string" Value="@vm">@vm</MudSelectItem>
-                    }
-                </MudSelect>
-                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
-                    Applies to the <strong>LLM — Vision</strong> track on the next run.
-                </MudText>
-            </MudItem>
-            <MudItem xs="12" sm="4">
+            @* Vision-model selector is shown ONLY when the LLM-vision track is enabled.
+               Frozen deployments (VisionExtractorEnabled=false) hide the whole vision surface so
+               the demo presents a clean Deterministic + LLM-text comparison with no dangling control. *@
+            @if (LlmOptions.CurrentValue.VisionExtractorEnabled)
+            {
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="string"
+                               @bind-Value="_selectedVisionModel"
+                               Label="Vision Model (swap live — no restart)"
+                               Variant="Variant.Outlined"
+                               Dense="true"
+                               Disabled="@(_busyRunning || _visionModels.Count <= 1)">
+                        @foreach (var vm in _visionModels)
+                        {
+                            <MudSelectItem T="string" Value="@vm">@vm</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+                        Applies to the <strong>LLM — Vision</strong> track on the next run.
+                    </MudText>
+                </MudItem>
+            }
+            <MudItem xs="12" sm="@(LlmOptions.CurrentValue.VisionExtractorEnabled ? 4 : 8)">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Wrap="Wrap.Wrap">
                     <MudText Typo="Typo.caption" Class="mr-2">Capabilities:</MudText>
                     <MudChip T="string"
@@ -83,12 +89,17 @@
                              Icon="@(LlmOptions.CurrentValue.TextExtractorEnabled ? Icons.Material.Filled.Check : Icons.Material.Filled.Block)">
                         Text track @(LlmOptions.CurrentValue.TextExtractorEnabled ? "ON" : "OFF")
                     </MudChip>
-                    <MudChip T="string"
-                             Color="@(LlmOptions.CurrentValue.VisionExtractorEnabled ? Color.Success : Color.Warning)"
-                             Size="Size.Small"
-                             Icon="@(LlmOptions.CurrentValue.VisionExtractorEnabled ? Icons.Material.Filled.Check : Icons.Material.Filled.Block)">
-                        Vision track @(LlmOptions.CurrentValue.VisionExtractorEnabled ? "ON" : "OFF")
-                    </MudChip>
+                    @* Hidden when the vision track is frozen (VisionExtractorEnabled=false) so the
+                       demo shows no vision surface at all — see the Vision Model selector guard above. *@
+                    @if (LlmOptions.CurrentValue.VisionExtractorEnabled)
+                    {
+                        <MudChip T="string"
+                                 Color="Color.Success"
+                                 Size="Size.Small"
+                                 Icon="@Icons.Material.Filled.Check">
+                            Vision track ON
+                        </MudChip>
+                    }
                 </MudStack>
                 <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
                     Set <code>LlmProviders:TextExtractorEnabled</code> / <code>VisionExtractorEnabled</code> to
