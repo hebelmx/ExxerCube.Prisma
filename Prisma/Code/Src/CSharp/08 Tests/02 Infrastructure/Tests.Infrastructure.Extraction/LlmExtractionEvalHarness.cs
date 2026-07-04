@@ -84,7 +84,7 @@ public sealed class LlmExtractionEvalHarness
     /// computes per-field metrics via the pure <see cref="LlmExtractionMetrics"/> engine, and writes
     /// the JSON + Markdown baseline artifacts. Skip attribute prevents CI execution.
     /// </summary>
-    [Fact(Skip = "eval-only: run manually — remove Skip to execute")]
+    [Fact(Skip = "eval-only: run manually — remove Skip to execute (live Ollama + ~2min)")]
     public async Task Eval_PRP1Fixtures_ComputesFieldMetricsAndEmitsBaseline()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -93,21 +93,24 @@ public sealed class LlmExtractionEvalHarness
 
         // ── 1. Locate repo root ────────────────────────────────────────────────
         var repoRoot = LocateRepoRoot();
+        // Fail LOUDLY (not a silent green pass) when the harness is deliberately un-skipped
+        // but can't find the repo root — a no-op pass that writes no artifact is exactly the
+        // trap this harness exists to avoid. The only legitimate degradation is Ollama being
+        // down (LLM tracks → TrackSkipped; deterministic still runs and an artifact is written).
+        // Explicit throw (not ShouldNotBeNull) so nullable flow analysis narrows repoRoot below.
         if (repoRoot is null)
         {
-            output?.WriteLine("SKIP: could not locate repo root (no 'Prisma' directory found).");
-            return;
+            throw new ShouldAssertException(
+                "could not locate repo root (no directory containing " + ParsedDocumentsFile +
+                " found from " + AppContext.BaseDirectory + ").");
         }
 
         // ── 2. Load gold data ──────────────────────────────────────────────────
         var parsedDocsPath = Path.Combine(repoRoot, ParsedDocumentsFile);
         var summaryPath = Path.Combine(repoRoot, PrpSummaryFile);
 
-        if (!File.Exists(parsedDocsPath) || !File.Exists(summaryPath))
-        {
-            output?.WriteLine($"SKIP: gold JSON not found at expected paths.\n  {parsedDocsPath}\n  {summaryPath}");
-            return;
-        }
+        File.Exists(parsedDocsPath).ShouldBeTrue($"gold JSON not found: {parsedDocsPath}");
+        File.Exists(summaryPath).ShouldBeTrue($"gold JSON not found: {summaryPath}");
 
         var goldMap = BuildGoldMap(parsedDocsPath, summaryPath, output);
 
@@ -492,17 +495,37 @@ public sealed class LlmExtractionEvalHarness
     // ───────────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Locates the repository root by walking up from the executing assembly until
-    /// a directory containing a <c>Prisma</c> subdirectory is found.
+    /// Locates the repository root: the directory that actually contains the gold fixture
+    /// <see cref="ParsedDocumentsFile"/>.
     /// </summary>
-    private static string? LocateRepoRoot()
+    /// <remarks>
+    /// Runtime paths are useless here: the build output goes to a SEPARATE tree
+    /// (<c>.../BuildArtifacts/Prisma/bin/...</c>) that is NOT under the repo root, so walking up
+    /// from <c>AppContext.BaseDirectory</c> or the CWD can never reach the repo — and worse, that
+    /// BuildArtifacts tree also contains a "Prisma" directory, so a bare directory-name check
+    /// resolves to the wrong root and the harness silently passes green having written no artifact.
+    /// We therefore anchor first on the COMPILE-TIME source location of this file
+    /// (<paramref name="sourceFilePath"/> via <see cref="CallerFilePathAttribute"/>), which lives in
+    /// the real repo tree, and require the gold file to actually exist under the candidate root.
+    /// CWD and BaseDirectory are kept as fallbacks. Valid because this manual harness is run on the
+    /// same box it was built on.
+    /// </remarks>
+    private static string? LocateRepoRoot([System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "")
     {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir is not null)
+        foreach (var start in new[] { sourceFilePath, Directory.GetCurrentDirectory(), AppContext.BaseDirectory })
         {
-            if (Directory.Exists(Path.Combine(dir.FullName, "Prisma")))
-                return dir.FullName;
-            dir = dir.Parent;
+            if (string.IsNullOrEmpty(start))
+                continue;
+
+            // For a file path, start walking from its containing directory.
+            var startDir = File.Exists(start) ? Path.GetDirectoryName(start) : start;
+            var dir = startDir is null ? null : new DirectoryInfo(startDir);
+            while (dir is not null)
+            {
+                if (File.Exists(Path.Combine(dir.FullName, ParsedDocumentsFile)))
+                    return dir.FullName;
+                dir = dir.Parent;
+            }
         }
 
         return null;
