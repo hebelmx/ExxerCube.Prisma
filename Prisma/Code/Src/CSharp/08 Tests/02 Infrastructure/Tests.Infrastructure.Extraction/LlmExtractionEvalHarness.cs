@@ -87,6 +87,15 @@ public sealed class LlmExtractionEvalHarness
         "SMALL-N / DIRECTIONAL (N=3) — this is a baseline, not a statistical claim. " +
         "3 fixtures is enough to catch gross regressions, not to certify accuracy.";
 
+    // ── Vision-track on-the-fly PDF rasterization fallback ──────────────────────────────────
+    // Some fixture sets (e.g. PRP1-golden) ship only *.pdf + ground_truth.json with no
+    // pre-rendered page-image files on disk, which structurally skips the vision track. When
+    // LoadFixturePageImages finds nothing, we rasterize the fixture PDF via the SAME converter
+    // the deterministic OCR track uses (PdfToImageConverter). Lower DPI than the OCR default
+    // (300) to bound the base64 vision payload / Ollama latency — golden docs are short.
+    private const int VisionRasterDpi = 150;
+    private const int VisionRasterMaxPages = 5;
+
     // ───────────────────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -181,6 +190,7 @@ public sealed class LlmExtractionEvalHarness
             llmTextExtractor,
             llmVisionExtractor,
             detExtractor,
+            pdfToImageConverter,
             output,
             ct);
     }
@@ -275,6 +285,7 @@ public sealed class LlmExtractionEvalHarness
             llmTextExtractor,
             llmVisionExtractor,
             detExtractor,
+            pdfToImageConverter,
             output,
             ct);
     }
@@ -285,7 +296,10 @@ public sealed class LlmExtractionEvalHarness
     /// LLM-vision), scores them via the pure <see cref="LlmExtractionMetrics"/> engine, and writes
     /// the JSON + Markdown baseline artifacts. Used by both
     /// <see cref="Eval_PRP1Fixtures_ComputesFieldMetricsAndEmitsBaseline"/> (client PRP1/ corpus) and
-    /// <see cref="Eval_PRP1Golden_ComputesFieldMetricsAndEmitsBaseline"/> (PRP1-golden corpus).
+    /// <see cref="Eval_PRP1Golden_ComputesFieldMetricsAndEmitsBaseline"/> (PRP1-golden corpus). When a
+    /// fixture has no committed page images on disk, the LLM-vision track rasterizes the fixture PDF
+    /// on the fly via <paramref name="pdfToImageConverter"/> (the same converter the deterministic
+    /// OCR track uses) instead of structurally skipping.
     /// </summary>
     private static async Task RunEvalAsync(
         string repoRoot,
@@ -297,6 +311,7 @@ public sealed class LlmExtractionEvalHarness
         ILlmExpedienteExtractor<TxtSource>? llmText,
         ILlmExpedienteExtractor<ImageSource>? llmVision,
         PdfOcrFieldExtractor det,
+        PdfToImageConverter pdfToImageConverter,
         ITestOutputHelper? output,
         CancellationToken ct)
     {
@@ -434,7 +449,32 @@ public sealed class LlmExtractionEvalHarness
             }
             else if (pageImages.Count == 0)
             {
-                visionTrackSkipReason = "no page images found on disk for fixture";
+                // No pre-rendered page images committed for this fixture (e.g. PRP1-golden ships
+                // only *.pdf + ground_truth.json, no page images) — rasterize the fixture PDF on
+                // the fly via the SAME converter the deterministic OCR track used above, so the
+                // vision track can actually run instead of structurally skipping.
+                var rasterResult = await pdfToImageConverter.ConvertToImagesAsync(pdfBytes, VisionRasterDpi, ct);
+                if (rasterResult.IsSuccess && rasterResult.Value is { Count: > 0 } rasterized)
+                {
+                    if (rasterized.Count > VisionRasterMaxPages)
+                    {
+                        output?.WriteLine(
+                            $"  [LlmVision] rasterized {rasterized.Count} page(s) — truncating to first {VisionRasterMaxPages} to bound payload.");
+                        pageImages = rasterized.Take(VisionRasterMaxPages).ToList();
+                    }
+                    else
+                    {
+                        pageImages = rasterized;
+                    }
+
+                    output?.WriteLine(
+                        $"  [LlmVision] no on-disk page images — rasterized {pageImages.Count} page(s) from PDF at {VisionRasterDpi} DPI (fallback).");
+                }
+                else
+                {
+                    visionTrackSkipReason =
+                        $"no on-disk images; pdf rasterization failed: {rasterResult.Error ?? "empty result"}";
+                }
             }
 
             if (visionTrackSkipReason is not null)
