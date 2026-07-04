@@ -399,15 +399,40 @@ public sealed class AdaptiveTxtFieldExtractor : IFieldExtractor<TxtSource>
     /// </summary>
     /// <remarks>
     /// Priority rules:
+    /// 0. The explicit "Autoridad solicitante:" label names the REQUESTING authority — the
+    ///    sender of the SIARA requirement — and wins over everything else. This is the
+    ///    labeled ground-truth line present in the document body; whatever follows the label
+    ///    on that line (trimmed) is the authority name.
     /// 1. SAT wins when explicitly self-identified as "SAT - Servicio de Administración Tributaria"
     ///    (a composite label that unambiguously names the authority as SAT).
-    /// 2. CNBV wins over AGAFF: in CNBV/SIARA documents the CNBV is the recipient authority
-    ///    while AGAFF may appear as the sender; CNBV is the governing regulator in this system.
-    /// 3. Acronyms (SAT bare, CNBV, AGAFF) are checked last using word-boundary guards to
+    /// 2. CNBV full name — fallback only. In CNBV/SIARA documents "Comisión Nacional Bancaria y
+    ///    de Valores" names the RECIPIENT (every SIARA letter is addressed TO CNBV), not the
+    ///    requester. This rule only fires when no "Autoridad solicitante" label is present, and
+    ///    exists to preserve legacy behavior for documents lacking the label.
+    /// 3. AGAFF full name — also fallback only, same rationale as CNBV above.
+    /// 4. Acronyms (SAT bare, CNBV, AGAFF) are checked last using word-boundary guards to
     ///    avoid false matches inside email addresses (@sat.gob.mx) or URLs.
     /// </remarks>
     private static string? ExtractAutoridadNombre(string text)
     {
+        // Priority 0: explicit "Autoridad solicitante:" label — this names the requesting
+        // authority (the sender), which is the ground truth for AutoridadNombre. It must be
+        // checked before the CNBV/AGAFF fallbacks below because CNBV is merely the recipient
+        // (addressee) of every SIARA letter, never the requester. Tolerant of: missing
+        // markdown (plain OCR text has no "**"), an optional ":"/dash separator, extra
+        // whitespace, and a single stray OCR artifact character between the label and value.
+        var autoridadSolicitantePattern = @"Autoridad\s+solicitante\s*[:\-–—]?\s*[^\w\r\n]?\s*([^\r\n]+)";
+        var solicitanteMatch = Regex.Match(text, autoridadSolicitantePattern, RegexOptions.IgnoreCase);
+        if (solicitanteMatch.Success && solicitanteMatch.Groups.Count > 1)
+        {
+            var captured = solicitanteMatch.Groups[1].Value.Trim();
+            captured = captured.Trim('*').Trim();
+            if (!string.IsNullOrWhiteSpace(captured))
+            {
+                return captured;
+            }
+        }
+
         // Priority 1: SAT explicitly self-identified with its full description.
         // "SAT - Servicio de Administración Tributaria" is an unambiguous SAT label;
         // return the canonical acronym used across the system.
@@ -417,7 +442,8 @@ public sealed class AdaptiveTxtFieldExtractor : IFieldExtractor<TxtSource>
             return "SAT";
         }
 
-        // Priority 2: CNBV full name — the primary regulatory authority for SIARA documents.
+        // Priority 2: CNBV full name (fallback — CNBV is the recipient, not the requester;
+        // used only when no "Autoridad solicitante" label is present).
         // Check before AGAFF because CNBV is the recipient in CNBV-issued letters even when
         // AGAFF appears as the sending body.
         if (text.Contains("Comisión Nacional Bancaria y de Valores", StringComparison.OrdinalIgnoreCase))
@@ -425,7 +451,7 @@ public sealed class AdaptiveTxtFieldExtractor : IFieldExtractor<TxtSource>
             return "Comisión Nacional Bancaria y de Valores";
         }
 
-        // Priority 3: AGAFF full name.
+        // Priority 3: AGAFF full name (fallback — same rationale as Priority 2).
         if (text.Contains("Administración General de Auditoría Fiscal Federal", StringComparison.OrdinalIgnoreCase))
         {
             return "Administración General de Auditoría Fiscal Federal";
