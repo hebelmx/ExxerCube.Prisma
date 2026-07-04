@@ -14,23 +14,43 @@ Orchestrated 2026-07-03. Owner ruling: S4 = Option A (measure before graduating)
 |---|-------|--------|-------------|--------|
 | S4A-1 | Harness build-out: invoke 3 tracks + compute per-field metrics + emit JSON/MD artifact (D1) | TODO | build 0/0 + diff | |
 | S4A-2 | Deterministic metric-computation unit test, mocked ILlmProvider (D2) — the verification anchor | TODO | test green | |
-| S4A-3 | Live run on box → commit baseline artifact `docs/evaluation/llm-hybrid-extraction-baseline-2026-07.md` (+JSON) (D3) | TODO | artifact has real numbers + model tags | |
-| S4A-4 | Graduation-criteria ADR-024 (D4) | TODO | ADR committed + cross-linked | |
+| S4A-3 | Live run on box → commit baseline artifact `docs/evaluation/llm-hybrid-extraction-baseline-2026-07.md` (+JSON) (D3) | ✅ DONE | 2m06s live run, artifact written w/ real numbers + model tags; surfaced silent-green-pass bug + gold-not-source-contained finding | (pending) |
+| S4A-4 | Graduation-criteria ADR-024 (D4) | ✅ DONE | D3 table filled + measurement-validity finding added | (pending) |
 | S4A-5 | (optional) Live-provider smoke test, skip-gated (D5) | TODO | test present + skips clean | |
 
 ## DONE this session (2026-07-03, all pushed to Liv): 79b0da91 (S4-A harness+metrics+17 tests),
 ## c4522def (eval bug-fixes C3/C4/M1/M2/M3, metrics 20), 9496c1c3 (S4-B extractor extension + prompt
 ## honesty fix), 24efd638 (S4-B spec + ADR-024 D7 + tracker). Two adversarial gates run + acted on.
 
-## REMAINING (clean handoff — next unit = the live measure):
-## 1. S4A-3: un-skip `LlmExtractionEvalHarness.Eval_PRP1Fixtures_…` [Fact(Skip=...)] (remove the Skip arg),
-##    ensure Ollama up + `TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata`, set model overrides
-##    text=llama3.1:8b / vision=gemma3:12b (spec defaults llama3.2/minicpm-v NOT installed). Run:
-##    `dotnet test <Tests.Infrastructure.Extraction.csproj> --filter-query "/*/*/LlmExtractionEvalHarness/*"`
-##    (do NOT pass --nologo). It writes docs/evaluation/llm-hybrid-extraction-baseline-2026-07.{json,md}.
-##    RE-ADD the Skip afterwards. Commit the artifact.
-## 2. Refresh ADR-024's `[FILL FROM D3]` table with the real numbers; assess "did S4-B work" per D1/D2.
-## 3. Optional S4A-5 smoke. 4. Gemini track = SkippedNoKey (no key on box).
+## ✅ S4A-3 DONE 2026-07-04 (live baseline run + committed). The run itself surfaced TWO real bugs:
+## (BUG-1) SILENT-GREEN-PASS: the first un-skipped run "passed" in 329ms writing NO artifact — LocateRepoRoot
+##   resolved to `.../BuildArtifacts` (a sibling tree that ALSO contains a "Prisma" dir) because the test
+##   binary runs out of BuildArtifacts, which is NOT under the repo root, so walking up from
+##   AppContext.BaseDirectory never reaches the real repo. FIX: anchor on [CallerFilePath] (compile-time
+##   source location, in the real tree) + require the gold file to exist under the candidate root; AND
+##   convert the early-return preconditions to LOUD failures (throw/ShouldBeTrue) so a no-op can never
+##   pass green again. (BUG-2 was the pre-existing name-only check.) 3rd run = real work, 2m06s, artifact written.
+## (FINDING — the big one) BOTH deterministic AND LLM tracks score ~0% accuracy → the MEASUREMENT failed,
+##   not the extractor. grep of the committed 222AAA .ocr.txt proves the eval GOLD is NOT source-contained:
+##   gold expediente `A/AS1-1111-222222-AAA` (0 matches), gold oficio `222/AAA/...` (0 matches), gold
+##   authority `SUBDELEGACION 8 SAN ANGEL` (0 matches) — all synthetic filename/XML-derived IDs never
+##   rendered into the PDF body. The extractors correctly read the REAL strings that ARE present
+##   (oficio `AGAFADAFSON2/2025/000084`, authority `Comisión Nacional Bancaria y de Valores`). So the
+##   baseline certifies ONLY: (a) harness runs end-to-end, (b) honesty gate holds (5/6 LLM cases correctly
+##   abstained rather than emit a wrong expediente). It does NOT yet certify/refute either LLM track.
+##   This is the empirical proof of ADR-024 D7.1 (source-text containment) — now OBSERVED, not hypothesized.
+## Artifacts: docs/evaluation/llm-hybrid-extraction-baseline-2026-07.{json,md} (md has a manual interpretation
+##   banner — machine tables overwrite on re-run). ADR-024 D3 table filled + "D3 measurement-validity finding" added.
+## Secondary finding logged (not fixed): gate rejects the WHOLE DTO on a present-but-invalid expediente,
+##   discarding usable oficio/authority/partes → Gate-B design question (per-field abstention?).
+
+## REMAINING / next units (all OWNER-GATED or optional — NOT autonomous orchestrator work):
+## 1. [OWNER/CORPUS] Rebuild/validate the eval gold so every gold field is source-contained in its fixture's
+##    OCR text (D7.1). Until then NO accuracy number from this harness is meaningful. This is the top lever.
+## 2. [DESIGN] Decide gate coupling: keep all-or-nothing DTO rejection vs per-field abstention (Gate-B question).
+## 3. Optional S4A-5 live-provider smoke test. 4. Gemini track = SkippedNoKey (no key on box).
+## 5. S4-C (separate future): un-dark the PIPELINE (Athena worker never calls HybridExtractionService today —
+##    flags gate only the /hybrid-extraction demo page).
 
 ## Notes / carried facts
 - Models: text=`llama3.1:8b`, vision=`gemma3:12b` (spec defaults llama3.2/minicpm-v NOT installed → override).

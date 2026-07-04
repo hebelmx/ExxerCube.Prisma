@@ -85,18 +85,51 @@ This baseline is honestly limited:
 - Matching is normalized-exact (trim, collapse whitespace, case-insensitive for authority;
   digit/format-normalized for expediente/oficio); it does not credit "close" answers.
 
-**Baseline numbers placeholder** (fill from `llm-hybrid-extraction-baseline-2026-07.md` once the live
-run — running in parallel with this ADR — completes; do not hand-edit these without the artifact):
+**Baseline numbers** (from `llm-hybrid-extraction-baseline-2026-07.md`, live run 2026-07-04 04:24Z).
+Per-field accuracy = matches / fixtures-with-gold; coverage = non-null candidates / total evaluations.
 
 | Field | Deterministic accuracy | LLM-text accuracy | LLM-vision accuracy | Deterministic coverage | LLM-text coverage | LLM-vision coverage |
 |---|---|---|---|---|---|---|
-| NumeroExpediente | `[FILL FROM D3]` | `[FILL FROM D3]` | `[FILL FROM D3]` | `[FILL]` | `[FILL]` | `[FILL]` |
-| NumeroOficio | `[FILL FROM D3]` | `[FILL FROM D3]` | `[FILL FROM D3]` | `[FILL]` | `[FILL]` | `[FILL]` |
-| AutoridadNombre | `[FILL FROM D3]` | `[FILL FROM D3]` | `[FILL FROM D3]` | `[FILL]` | `[FILL]` | `[FILL]` |
-| ParteCount (SolicitudPartes) | `[FILL FROM D3]` | `[FILL FROM D3]` | `[FILL FROM D3]` | `[FILL]` | `[FILL]` | `[FILL]` |
+| NumeroExpediente | 0% (0/3) | — (0 evaluable) | 0% (0/1) | (track) 50% | (track) 0% | (track) 25% |
+| NumeroOficio | 0% (0/3) | — (0 evaluable) | 0% (0/1) | 6/12 | 0/12 | 3/12 |
+| AutoridadNombre | 0% (0/3) | — (0 evaluable) | 0% (0/1) | | | |
+| ParteCount (SolicitudPartes) | — (track-skipped, architectural) | — (0 evaluable) | 0% (0/1) | | | |
 
 N = 3 (`222AAA-…`, `333BBB-…`, `333ccc-…`); models `llama3.1:8b` (text) / `gemma3:12b` (vision); run
-date/commit: `[FILL FROM D3]`.
+date 2026-07-04 04:24Z. Coverage is per-track (12 evaluations = 3 fixtures × 4 fields): Deterministic
+6/12, LLM-text 0/12, LLM-vision 3/12.
+
+> ### ⚠️ D3 measurement-validity finding — THIS BASELINE DOES NOT YET CERTIFY OR REFUTE ANY TRACK
+>
+> **Both** the deterministic oracle **and** the LLM tracks score ~0% accuracy — and when the
+> designated bar-to-beat also scores zero, the measurement, not the extractor, is what failed. Direct
+> inspection of the committed OCR text (`222AAA-…_page-0001.ocr.txt`) confirms the root cause: **the
+> eval gold values are not present in the document's OCR-able text.**
+>
+> | Gold value (from XML/filename) | Appears in OCR text? | What the extractors actually read (present in text) |
+> |---|---|---|
+> | expediente `A/AS1-1111-222222-AAA` | **No (0 matches)** | (deterministic returns Missing; LLM emits the oficio-shaped string) |
+> | oficio `222/AAA/-4444444444/2025` | **No (0 matches)** | `AGAFADAFSON2/2025/000084` (real oficio in the body) |
+> | authority `SUBDELEGACION 8 SAN ANGEL` | **No (0 matches)** | `Comisión Nacional Bancaria y de Valores` (the addressee/intermediary) |
+>
+> The gold is synthetic, filename/XML-derived identifiers that were **never rendered into the PDF
+> body**; the extractors are correctly reading the real strings that *are* in the document. The 0%
+> is therefore an **eval-gold artifact**, not extractor quality. This is the empirical confirmation of
+> precondition **D7.1 (source-text containment guard)** below — it is now observed, not hypothesized.
+>
+> **Consequence:** D1/D2 accuracy comparisons are **not yet evaluable**. Before this harness can gate
+> anything (Gate A or B), the gold set must be rebuilt/validated so every gold field is source-contained
+> in the OCR text of the fixture it is keyed to (owner-gated corpus work — see D7.1). Until then this
+> artifact certifies only that **(a) the harness runs correctly end-to-end and (b) the honesty gate
+> holds**: in 5 of 6 LLM track-fixtures the gate correctly refused to emit a wrong expediente rather
+> than pass a plausible-but-wrong value (upholding the "a wrong value is worse than an abstention"
+> invariant). The one non-rejected case (333ccc vision) abstained on expediente (null) and surfaced
+> oficio + authority candidates, proving S4-B's new fields *are* wired and reachable.
+>
+> **Secondary finding (gate coupling):** the gate rejects the *entire* DTO when `expediente` is
+> present-but-invalid, discarding otherwise-usable oficio/authority/partes on the same document. This
+> is correct for honesty but throttles coverage; whether to loosen it to per-field abstention (keep the
+> valid fields, null only the bad expediente) is a Gate-B design question, logged here, not changed in S4.
 
 ---
 
