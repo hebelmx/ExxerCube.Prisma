@@ -1,5 +1,5 @@
 {
-  "GeneratedAtUtc": "2026-07-04T11:51:13.6135547\u002B00:00",
+  "GeneratedAtUtc": "2026-07-04T13:01:25.9018384\u002B00:00",
   "TextModel": "llama3.1:8b",
   "VisionModel": "gemma3:12b",
   "OllamaBaseUrl": "http://localhost:11434",
@@ -125,7 +125,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u002758665.271.89\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "AGAFADAFSON2-2023-900824_20260704_050223",
@@ -136,7 +136,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u002758665.271.89\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "AGAFADAFSON2-2023-900824_20260704_050223",
@@ -147,7 +147,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u002758665.271.89\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "AGAFADAFSON2-2023-900824_20260704_050223",
@@ -158,7 +158,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u002758665.271.89\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "AGAFADAFSON2-2025-763109_20260704_050226",
@@ -210,10 +210,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "H/IN2-4034-376793-AAA",
       "GoldNormalized": "H-IN2-4034-376793-AAA",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$7,462,119.26\u0027 is not a valid decimal number."
+      "CandidateRaw": "H/IN2-4034-376793-AAA",
+      "CandidateNormalized": "H-IN2-4034-376793-AAA",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "AGAFADAFSON2-2025-763109_20260704_050226",
@@ -221,10 +221,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "AGAFADAFSON2/2025/763109",
       "GoldNormalized": "AGAFADAFSON2-2025-763109",
-      "CandidateRaw": null,
+      "CandidateRaw": "",
       "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$7,462,119.26\u0027 is not a valid decimal number."
+      "Status": "Missing",
+      "SkipReason": null
     },
     {
       "FixtureId": "AGAFADAFSON2-2025-763109_20260704_050226",
@@ -232,10 +232,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Servicio de Administraci\u00F3n Tributaria",
       "GoldNormalized": "SERVICIO DE ADMINISTRACION TRIBUTARIA",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$7,462,119.26\u0027 is not a valid decimal number."
+      "CandidateRaw": "Servicio de Administraci\u00F3n Tributaria",
+      "CandidateNormalized": "SERVICIO DE ADMINISTRACION TRIBUTARIA",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "AGAFADAFSON2-2025-763109_20260704_050226",
@@ -243,10 +243,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$7,462,119.26\u0027 is not a valid decimal number."
+      "CandidateRaw": "2",
+      "CandidateNormalized": "2",
+      "Status": "Mismatch",
+      "SkipReason": null
     },
     {
       "FixtureId": "AGAFADAFSON2-2025-763109_20260704_050226",
@@ -257,7 +257,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u002757462.119.26\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "AGAFADAFSON2-2025-763109_20260704_050226",
@@ -268,7 +268,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u002757462.119.26\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "AGAFADAFSON2-2025-763109_20260704_050226",
@@ -279,7 +279,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u002757462.119.26\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "AGAFADAFSON2-2025-763109_20260704_050226",
@@ -290,7 +290,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u002757462.119.26\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "AGAFF-2023-027961_20260704_050222",
@@ -389,7 +389,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027BJU1-1075-509447-SAT\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
     },
     {
       "FixtureId": "AGAFF-2023-027961_20260704_050222",
@@ -400,7 +400,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027BJU1-1075-509447-SAT\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
     },
     {
       "FixtureId": "AGAFF-2023-027961_20260704_050222",
@@ -411,7 +411,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027BJU1-1075-509447-SAT\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
     },
     {
       "FixtureId": "AGAFF-2023-027961_20260704_050222",
@@ -422,7 +422,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027BJU1-1075-509447-SAT\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
     },
     {
       "FixtureId": "CNBV-2025-605483_20260704_050221",
@@ -521,7 +521,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027CNBV/2025/605483\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
     },
     {
       "FixtureId": "CNBV-2025-605483_20260704_050221",
@@ -532,7 +532,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027CNBV/2025/605483\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
     },
     {
       "FixtureId": "CNBV-2025-605483_20260704_050221",
@@ -543,7 +543,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027CNBV/2025/605483\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
     },
     {
       "FixtureId": "CNBV-2025-605483_20260704_050221",
@@ -554,7 +554,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027CNBV/2025/605483\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
     },
     {
       "FixtureId": "CONDUSEF-2023-386930_20260704_050230",
@@ -606,10 +606,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "H/JU1-2541-741274-BBB",
       "GoldNormalized": "H-JU1-2541-741274-BBB",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$8,205,969.61\u0027 is not a valid decimal number."
+      "CandidateRaw": "H/JU1-2541-741274-BBB",
+      "CandidateNormalized": "H-JU1-2541-741274-BBB",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "CONDUSEF-2023-386930_20260704_050230",
@@ -617,10 +617,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "CONDUSEF/2023/386930",
       "GoldNormalized": "CONDUSEF-2023-386930",
-      "CandidateRaw": null,
+      "CandidateRaw": "",
       "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$8,205,969.61\u0027 is not a valid decimal number."
+      "Status": "Missing",
+      "SkipReason": null
     },
     {
       "FixtureId": "CONDUSEF-2023-386930_20260704_050230",
@@ -628,10 +628,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Comisi\u00F3n Nacional para la Protecci\u00F3n y Defensa de los Usuarios de Servicios Financieros",
       "GoldNormalized": "COMISION NACIONAL PARA LA PROTECCION Y DEFENSA DE LOS USUARIOS DE SERVICIOS FINANCIEROS",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$8,205,969.61\u0027 is not a valid decimal number."
+      "CandidateRaw": "Comisi\u00F3n Nacional para la Protecci\u00F3n y Defensa de los Usuarios de Servicios Financieros",
+      "CandidateNormalized": "COMISION NACIONAL PARA LA PROTECCION Y DEFENSA DE LOS USUARIOS DE SERVICIOS FINANCIEROS",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "CONDUSEF-2023-386930_20260704_050230",
@@ -639,10 +639,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$8,205,969.61\u0027 is not a valid decimal number."
+      "CandidateRaw": "2",
+      "CandidateNormalized": "2",
+      "Status": "Mismatch",
+      "SkipReason": null
     },
     {
       "FixtureId": "CONDUSEF-2023-386930_20260704_050230",
@@ -650,10 +650,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "H/JU1-2541-741274-BBB",
       "GoldNormalized": "H-JU1-2541-741274-BBB",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "H/JU1-2541-741274-BBB",
+      "CandidateNormalized": "H-JU1-2541-741274-BBB",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "CONDUSEF-2023-386930_20260704_050230",
@@ -661,10 +661,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "CONDUSEF/2023/386930",
       "GoldNormalized": "CONDUSEF-2023-386930",
-      "CandidateRaw": null,
+      "CandidateRaw": "",
       "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "Status": "Missing",
+      "SkipReason": null
     },
     {
       "FixtureId": "CONDUSEF-2023-386930_20260704_050230",
@@ -672,10 +672,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Comisi\u00F3n Nacional para la Protecci\u00F3n y Defensa de los Usuarios de Servicios Financieros",
       "GoldNormalized": "COMISION NACIONAL PARA LA PROTECCION Y DEFENSA DE LOS USUARIOS DE SERVICIOS FINANCIEROS",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "Administraci\u00F3n General de Auditor\u00EDa Fiscal Federal Direcci\u00F3n de Orientaci\u00F3n Legal",
+      "CandidateNormalized": "ADMINISTRACION GENERAL DE AUDITORIA FISCAL FEDERAL DIRECCION DE ORIENTACION LEGAL",
+      "Status": "Mismatch",
+      "SkipReason": null
     },
     {
       "FixtureId": "CONDUSEF-2023-386930_20260704_050230",
@@ -683,10 +683,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "1",
+      "CandidateNormalized": "1",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "CONDUSEF-2024-419892_20260704_050224",
@@ -738,10 +738,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "A/IN2-2882-986327-BBB",
       "GoldNormalized": "A-IN2-2882-986327-BBB",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Expediente \u0027CONDUSEF/2024/419892\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+      "CandidateRaw": "A/IN2-2882-986327-BBB",
+      "CandidateNormalized": "A-IN2-2882-986327-BBB",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "CONDUSEF-2024-419892_20260704_050224",
@@ -749,10 +749,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "CONDUSEF/2024/419892",
       "GoldNormalized": "CONDUSEF-2024-419892",
-      "CandidateRaw": null,
+      "CandidateRaw": "",
       "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Expediente \u0027CONDUSEF/2024/419892\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+      "Status": "Missing",
+      "SkipReason": null
     },
     {
       "FixtureId": "CONDUSEF-2024-419892_20260704_050224",
@@ -760,10 +760,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Comisi\u00F3n Nacional para la Protecci\u00F3n y Defensa de los Usuarios de Servicios Financieros",
       "GoldNormalized": "COMISION NACIONAL PARA LA PROTECCION Y DEFENSA DE LOS USUARIOS DE SERVICIOS FINANCIEROS",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Expediente \u0027CONDUSEF/2024/419892\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+      "CandidateRaw": "Comisi\u00F3n Nacional para la Protecci\u00F3n y Defensa de los Usuarios de Servicios Financieros",
+      "CandidateNormalized": "COMISION NACIONAL PARA LA PROTECCION Y DEFENSA DE LOS USUARIOS DE SERVICIOS FINANCIEROS",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "CONDUSEF-2024-419892_20260704_050224",
@@ -771,10 +771,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Expediente \u0027CONDUSEF/2024/419892\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+      "CandidateRaw": "3",
+      "CandidateNormalized": "3",
+      "Status": "Mismatch",
+      "SkipReason": null
     },
     {
       "FixtureId": "CONDUSEF-2024-419892_20260704_050224",
@@ -785,7 +785,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00274.526.265.05\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "CONDUSEF-2024-419892_20260704_050224",
@@ -796,7 +796,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00274.526.265.05\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "CONDUSEF-2024-419892_20260704_050224",
@@ -807,7 +807,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00274.526.265.05\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "CONDUSEF-2024-419892_20260704_050224",
@@ -818,7 +818,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00274.526.265.05\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "FGRMX-2023-571625_20260704_050220",
@@ -914,10 +914,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "B/FI1-3465-780088-FGR",
       "GoldNormalized": "B-FI1-3465-780088-FGR",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "B/F11-3465-780088-FGR",
+      "CandidateNormalized": "B-F11-3465-780088-FGR",
+      "Status": "Mismatch",
+      "SkipReason": null
     },
     {
       "FixtureId": "FGRMX-2023-571625_20260704_050220",
@@ -925,10 +925,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "FGRMX/2023/571625",
       "GoldNormalized": "FGRMX-2023-571625",
-      "CandidateRaw": null,
+      "CandidateRaw": "",
       "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "Status": "Missing",
+      "SkipReason": null
     },
     {
       "FixtureId": "FGRMX-2023-571625_20260704_050220",
@@ -936,10 +936,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Fiscal\u00EDa General de la Rep\u00FAblica",
       "GoldNormalized": "FISCALIA GENERAL DE LA REPUBLICA",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "Fiscal\u00EDa General de la Rep\u00FAblica",
+      "CandidateNormalized": "FISCALIA GENERAL DE LA REPUBLICA",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "FGRMX-2023-571625_20260704_050220",
@@ -947,10 +947,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "1",
+      "CandidateNormalized": "1",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "FGRMX-2023-956122_20260704_050221",
@@ -1049,7 +1049,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AJ/S2-7278-537605-BBB\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
     },
     {
       "FixtureId": "FGRMX-2023-956122_20260704_050221",
@@ -1060,7 +1060,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AJ/S2-7278-537605-BBB\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
     },
     {
       "FixtureId": "FGRMX-2023-956122_20260704_050221",
@@ -1071,7 +1071,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AJ/S2-7278-537605-BBB\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
     },
     {
       "FixtureId": "FGRMX-2023-956122_20260704_050221",
@@ -1082,7 +1082,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AJ/S2-7278-537605-BBB\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
     },
     {
       "FixtureId": "IMSS-2023-555020_20260704_050223",
@@ -1134,10 +1134,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "H/AS2-9295-655574-FGR",
       "GoldNormalized": "H-AS2-9295-655574-FGR",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$5,549,063.51\u0027 is not a valid decimal number."
+      "CandidateRaw": "H/AS2-9295-655574-FGR",
+      "CandidateNormalized": "H-AS2-9295-655574-FGR",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "IMSS-2023-555020_20260704_050223",
@@ -1145,10 +1145,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "IMSS/2023/555020",
       "GoldNormalized": "IMSS-2023-555020",
-      "CandidateRaw": null,
+      "CandidateRaw": "",
       "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$5,549,063.51\u0027 is not a valid decimal number."
+      "Status": "Missing",
+      "SkipReason": null
     },
     {
       "FixtureId": "IMSS-2023-555020_20260704_050223",
@@ -1156,10 +1156,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Instituto Mexicano del Seguro Social",
       "GoldNormalized": "INSTITUTO MEXICANO DEL SEGURO SOCIAL",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$5,549,063.51\u0027 is not a valid decimal number."
+      "CandidateRaw": "Instituto Mexicano del Seguro Social",
+      "CandidateNormalized": "INSTITUTO MEXICANO DEL SEGURO SOCIAL",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "IMSS-2023-555020_20260704_050223",
@@ -1167,10 +1167,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$5,549,063.51\u0027 is not a valid decimal number."
+      "CandidateRaw": "1",
+      "CandidateNormalized": "1",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "IMSS-2023-555020_20260704_050223",
@@ -1178,10 +1178,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "H/AS2-9295-655574-FGR",
       "GoldNormalized": "H-AS2-9295-655574-FGR",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "H/AS2-9295-655574-FGR",
+      "CandidateNormalized": "H-AS2-9295-655574-FGR",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "IMSS-2023-555020_20260704_050223",
@@ -1189,10 +1189,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "IMSS/2023/555020",
       "GoldNormalized": "IMSS-2023-555020",
-      "CandidateRaw": null,
+      "CandidateRaw": "",
       "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "Status": "Missing",
+      "SkipReason": null
     },
     {
       "FixtureId": "IMSS-2023-555020_20260704_050223",
@@ -1200,10 +1200,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Instituto Mexicano del Seguro Social",
       "GoldNormalized": "INSTITUTO MEXICANO DEL SEGURO SOCIAL",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "Administraci\u00F3n General de Auditor\u00EDa Fiscal Federal",
+      "CandidateNormalized": "ADMINISTRACION GENERAL DE AUDITORIA FISCAL FEDERAL",
+      "Status": "Mismatch",
+      "SkipReason": null
     },
     {
       "FixtureId": "IMSS-2023-555020_20260704_050223",
@@ -1211,10 +1211,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "1",
+      "CandidateNormalized": "1",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "IMSS-2025-691903_20260704_050229",
@@ -1266,10 +1266,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "B/IN2-2741-142971-AAA",
       "GoldNormalized": "B-IN2-2741-142971-AAA",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$601,394.37\u0027 is not a valid decimal number."
+      "CandidateRaw": "B/IN2-2741-142971-AAA",
+      "CandidateNormalized": "B-IN2-2741-142971-AAA",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "IMSS-2025-691903_20260704_050229",
@@ -1277,10 +1277,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "IMSS/2025/691903",
       "GoldNormalized": "IMSS-2025-691903",
-      "CandidateRaw": null,
+      "CandidateRaw": "",
       "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$601,394.37\u0027 is not a valid decimal number."
+      "Status": "Missing",
+      "SkipReason": null
     },
     {
       "FixtureId": "IMSS-2025-691903_20260704_050229",
@@ -1288,10 +1288,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Procuradur\u00EDa General de la Rep\u00FAblica - Visitadur\u00EDa General",
       "GoldNormalized": "PROCURADURIA GENERAL DE LA REPUBLICA - VISITADURIA GENERAL",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$601,394.37\u0027 is not a valid decimal number."
+      "CandidateRaw": "Administraci\u00F3n General de Auditor\u00EDa Fiscal Federal",
+      "CandidateNormalized": "ADMINISTRACION GENERAL DE AUDITORIA FISCAL FEDERAL",
+      "Status": "Mismatch",
+      "SkipReason": null
     },
     {
       "FixtureId": "IMSS-2025-691903_20260704_050229",
@@ -1299,10 +1299,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$601,394.37\u0027 is not a valid decimal number."
+      "CandidateRaw": "2",
+      "CandidateNormalized": "2",
+      "Status": "Mismatch",
+      "SkipReason": null
     },
     {
       "FixtureId": "IMSS-2025-691903_20260704_050229",
@@ -1313,7 +1313,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u0027601.394.37\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "IMSS-2025-691903_20260704_050229",
@@ -1324,7 +1324,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u0027601.394.37\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "IMSS-2025-691903_20260704_050229",
@@ -1335,7 +1335,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u0027601.394.37\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "IMSS-2025-691903_20260704_050229",
@@ -1346,7 +1346,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u0027601.394.37\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "INFONAVIT-2024-234964_20260704_050225",
@@ -1398,10 +1398,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "H/JU1-6622-466959-AAA",
       "GoldNormalized": "H-JU1-6622-466959-AAA",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$2,153,875.07\u0027 is not a valid decimal number."
+      "CandidateRaw": "H/IJU1-6622-466959-AAA",
+      "CandidateNormalized": "H-IJU1-6622-466959-AAA",
+      "Status": "Mismatch",
+      "SkipReason": null
     },
     {
       "FixtureId": "INFONAVIT-2024-234964_20260704_050225",
@@ -1409,10 +1409,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "INFONAVIT/2024/234964",
       "GoldNormalized": "INFONAVIT-2024-234964",
-      "CandidateRaw": null,
+      "CandidateRaw": "",
       "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$2,153,875.07\u0027 is not a valid decimal number."
+      "Status": "Missing",
+      "SkipReason": null
     },
     {
       "FixtureId": "INFONAVIT-2024-234964_20260704_050225",
@@ -1420,10 +1420,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
       "GoldNormalized": "INSTITUTO DEL FONDO NACIONAL DE LA VIVIENDA PARA LOS TRABAJADORES",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$2,153,875.07\u0027 is not a valid decimal number."
+      "CandidateRaw": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+      "CandidateNormalized": "INSTITUTO DEL FONDO NACIONAL DE LA VIVIENDA PARA LOS TRABAJADORES",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "INFONAVIT-2024-234964_20260704_050225",
@@ -1431,10 +1431,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$2,153,875.07\u0027 is not a valid decimal number."
+      "CandidateRaw": "2",
+      "CandidateNormalized": "2",
+      "Status": "Mismatch",
+      "SkipReason": null
     },
     {
       "FixtureId": "INFONAVIT-2024-234964_20260704_050225",
@@ -1445,7 +1445,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00272.153.875.07\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "INFONAVIT-2024-234964_20260704_050225",
@@ -1456,7 +1456,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00272.153.875.07\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "INFONAVIT-2024-234964_20260704_050225",
@@ -1467,7 +1467,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00272.153.875.07\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "INFONAVIT-2024-234964_20260704_050225",
@@ -1478,7 +1478,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00272.153.875.07\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "INFONAVIT-2024-994568_20260704_050226",
@@ -1530,10 +1530,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "B/PL1-8038-704672-UIF",
       "GoldNormalized": "B-PL1-8038-704672-UIF",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$7,488,097.16\u0027 is not a valid decimal number."
+      "CandidateRaw": "B/PL1-8038-704672-UIF",
+      "CandidateNormalized": "B-PL1-8038-704672-UIF",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "INFONAVIT-2024-994568_20260704_050226",
@@ -1541,10 +1541,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "INFONAVIT/2024/994568",
       "GoldNormalized": "INFONAVIT-2024-994568",
-      "CandidateRaw": null,
+      "CandidateRaw": "",
       "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$7,488,097.16\u0027 is not a valid decimal number."
+      "Status": "Missing",
+      "SkipReason": null
     },
     {
       "FixtureId": "INFONAVIT-2024-994568_20260704_050226",
@@ -1552,10 +1552,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
       "GoldNormalized": "INSTITUTO DEL FONDO NACIONAL DE LA VIVIENDA PARA LOS TRABAJADORES",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$7,488,097.16\u0027 is not a valid decimal number."
+      "CandidateRaw": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+      "CandidateNormalized": "INSTITUTO DEL FONDO NACIONAL DE LA VIVIENDA PARA LOS TRABAJADORES",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "INFONAVIT-2024-994568_20260704_050226",
@@ -1563,10 +1563,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$7,488,097.16\u0027 is not a valid decimal number."
+      "CandidateRaw": "1",
+      "CandidateNormalized": "1",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "INFONAVIT-2024-994568_20260704_050226",
@@ -1577,7 +1577,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00277488.097.16\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "INFONAVIT-2024-994568_20260704_050226",
@@ -1588,7 +1588,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00277488.097.16\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "INFONAVIT-2024-994568_20260704_050226",
@@ -1599,7 +1599,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00277488.097.16\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "INFONAVIT-2024-994568_20260704_050226",
@@ -1610,7 +1610,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00277488.097.16\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "PJFMX-2023-234626_20260704_050224",
@@ -1662,10 +1662,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "B/IN1-6602-894350-BBB",
       "GoldNormalized": "B-IN1-6602-894350-BBB",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$9,976,691.72\u0027 is not a valid decimal number."
+      "CandidateRaw": "B/IN1-6602-894350-BBB",
+      "CandidateNormalized": "B-IN1-6602-894350-BBB",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2023-234626_20260704_050224",
@@ -1673,10 +1673,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "PJFMX/2023/234626",
       "GoldNormalized": "PJFMX-2023-234626",
-      "CandidateRaw": null,
+      "CandidateRaw": "",
       "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$9,976,691.72\u0027 is not a valid decimal number."
+      "Status": "Missing",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2023-234626_20260704_050224",
@@ -1684,10 +1684,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Poder Judicial de la Federaci\u00F3n",
       "GoldNormalized": "PODER JUDICIAL DE LA FEDERACION",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$9,976,691.72\u0027 is not a valid decimal number."
+      "CandidateRaw": "Poder Judicial de la Federaci\u00F3n",
+      "CandidateNormalized": "PODER JUDICIAL DE LA FEDERACION",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2023-234626_20260704_050224",
@@ -1695,10 +1695,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$9,976,691.72\u0027 is not a valid decimal number."
+      "CandidateRaw": "2",
+      "CandidateNormalized": "2",
+      "Status": "Mismatch",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2023-234626_20260704_050224",
@@ -1706,10 +1706,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "B/IN1-6602-894350-BBB",
       "GoldNormalized": "B-IN1-6602-894350-BBB",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "B/I1-6602-894350-BBB",
+      "CandidateNormalized": "B-I1-6602-894350-BBB",
+      "Status": "Mismatch",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2023-234626_20260704_050224",
@@ -1717,10 +1717,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "PJFMX/2023/234626",
       "GoldNormalized": "PJFMX-2023-234626",
-      "CandidateRaw": null,
+      "CandidateRaw": "",
       "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "Status": "Missing",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2023-234626_20260704_050224",
@@ -1728,10 +1728,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Poder Judicial de la Federaci\u00F3n",
       "GoldNormalized": "PODER JUDICIAL DE LA FEDERACION",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "Administraci\u00F3n General de Auditor\u00EDa Fiscal Federal Tribunal Colegiado en Materia Penal del Primer Circuito",
+      "CandidateNormalized": "ADMINISTRACION GENERAL DE AUDITORIA FISCAL FEDERAL TRIBUNAL COLEGIADO EN MATERIA PENAL DEL PRIMER CIRCUITO",
+      "Status": "Mismatch",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2023-234626_20260704_050224",
@@ -1739,10 +1739,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "1",
+      "CandidateNormalized": "1",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2024-415897_20260704_050219",
@@ -1794,10 +1794,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "H/AS1-5886-149949-AAA",
       "GoldNormalized": "H-AS1-5886-149949-AAA",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$8,617,721.53\u0027 is not a valid decimal number."
+      "CandidateRaw": "H/AS1-5886-149949-AAA",
+      "CandidateNormalized": "H-AS1-5886-149949-AAA",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2024-415897_20260704_050219",
@@ -1805,10 +1805,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "PJFMX/2024/415897",
       "GoldNormalized": "PJFMX-2024-415897",
-      "CandidateRaw": null,
+      "CandidateRaw": "",
       "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$8,617,721.53\u0027 is not a valid decimal number."
+      "Status": "Missing",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2024-415897_20260704_050219",
@@ -1816,10 +1816,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Poder Judicial de la Federaci\u00F3n",
       "GoldNormalized": "PODER JUDICIAL DE LA FEDERACION",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$8,617,721.53\u0027 is not a valid decimal number."
+      "CandidateRaw": "Poder Judicial de la Federaci\u00F3n",
+      "CandidateNormalized": "PODER JUDICIAL DE LA FEDERACION",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2024-415897_20260704_050219",
@@ -1827,10 +1827,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$8,617,721.53\u0027 is not a valid decimal number."
+      "CandidateRaw": "1",
+      "CandidateNormalized": "1",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2024-415897_20260704_050219",
@@ -1838,10 +1838,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "H/AS1-5886-149949-AAA",
       "GoldNormalized": "H-AS1-5886-149949-AAA",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "H/AS1-5886-149949-AAA",
+      "CandidateNormalized": "H-AS1-5886-149949-AAA",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2024-415897_20260704_050219",
@@ -1849,10 +1849,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "PJFMX/2024/415897",
       "GoldNormalized": "PJFMX-2024-415897",
-      "CandidateRaw": null,
+      "CandidateRaw": "",
       "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "Status": "Missing",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2024-415897_20260704_050219",
@@ -1860,10 +1860,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Poder Judicial de la Federaci\u00F3n",
       "GoldNormalized": "PODER JUDICIAL DE LA FEDERACION",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "Poder Judicial de la Federaci\u00F3n",
+      "CandidateNormalized": "PODER JUDICIAL DE LA FEDERACION",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2024-415897_20260704_050219",
@@ -1871,10 +1871,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "1",
+      "CandidateNormalized": "1",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-242889_20260704_050229",
@@ -1926,10 +1926,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "B/AS2-8342-272672-BBB",
       "GoldNormalized": "B-AS2-8342-272672-BBB",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$8,466,617.18\u0027 is not a valid decimal number."
+      "CandidateRaw": "B/AS2-8342-272672-BBB",
+      "CandidateNormalized": "B-AS2-8342-272672-BBB",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-242889_20260704_050229",
@@ -1937,10 +1937,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "PJFMX/2025/242889",
       "GoldNormalized": "PJFMX-2025-242889",
-      "CandidateRaw": null,
+      "CandidateRaw": "",
       "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$8,466,617.18\u0027 is not a valid decimal number."
+      "Status": "Missing",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-242889_20260704_050229",
@@ -1948,10 +1948,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Poder Judicial de la Federaci\u00F3n",
       "GoldNormalized": "PODER JUDICIAL DE LA FEDERACION",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$8,466,617.18\u0027 is not a valid decimal number."
+      "CandidateRaw": "Administraci\u00F3n General de Auditor\u00EDa Fiscal Federal",
+      "CandidateNormalized": "ADMINISTRACION GENERAL DE AUDITORIA FISCAL FEDERAL",
+      "Status": "Mismatch",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-242889_20260704_050229",
@@ -1959,10 +1959,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$8,466,617.18\u0027 is not a valid decimal number."
+      "CandidateRaw": "1",
+      "CandidateNormalized": "1",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-242889_20260704_050229",
@@ -1970,10 +1970,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "B/AS2-8342-272672-BBB",
       "GoldNormalized": "B-AS2-8342-272672-BBB",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "B/AS2-8342-272672-BBB",
+      "CandidateNormalized": "B-AS2-8342-272672-BBB",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-242889_20260704_050229",
@@ -1981,10 +1981,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "PJFMX/2025/242889",
       "GoldNormalized": "PJFMX-2025-242889",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "PJFMX/2025/242889",
+      "CandidateNormalized": "PJFMX-2025-242889",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-242889_20260704_050229",
@@ -1992,10 +1992,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Poder Judicial de la Federaci\u00F3n",
       "GoldNormalized": "PODER JUDICIAL DE LA FEDERACION",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "Administraci\u00F3n General de Auditor\u00EDa Fiscal Federal",
+      "CandidateNormalized": "ADMINISTRACION GENERAL DE AUDITORIA FISCAL FEDERAL",
+      "Status": "Mismatch",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-242889_20260704_050229",
@@ -2003,10 +2003,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "1",
+      "CandidateNormalized": "1",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-698406_20260704_050220",
@@ -2058,10 +2058,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "H/FI1-8555-830095-AAA",
       "GoldNormalized": "H-FI1-8555-830095-AAA",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$7,437,492.51\u0027 is not a valid decimal number."
+      "CandidateRaw": "H/FI1-8555-830095-AAA",
+      "CandidateNormalized": "H-FI1-8555-830095-AAA",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-698406_20260704_050220",
@@ -2069,10 +2069,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "PJFMX/2025/698406",
       "GoldNormalized": "PJFMX-2025-698406",
-      "CandidateRaw": null,
+      "CandidateRaw": "",
       "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$7,437,492.51\u0027 is not a valid decimal number."
+      "Status": "Missing",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-698406_20260704_050220",
@@ -2080,10 +2080,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Poder Judicial de la Federaci\u00F3n",
       "GoldNormalized": "PODER JUDICIAL DE LA FEDERACION",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$7,437,492.51\u0027 is not a valid decimal number."
+      "CandidateRaw": "Poder Judicial de la Federaci\u00F3n",
+      "CandidateNormalized": "PODER JUDICIAL DE LA FEDERACION",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-698406_20260704_050220",
@@ -2091,10 +2091,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$7,437,492.51\u0027 is not a valid decimal number."
+      "CandidateRaw": "2",
+      "CandidateNormalized": "2",
+      "Status": "Mismatch",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-698406_20260704_050220",
@@ -2105,7 +2105,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00277437.492.51\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "PJFMX-2025-698406_20260704_050220",
@@ -2116,7 +2116,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00277437.492.51\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "PJFMX-2025-698406_20260704_050220",
@@ -2127,7 +2127,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00277437.492.51\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "PJFMX-2025-698406_20260704_050220",
@@ -2138,7 +2138,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00277437.492.51\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "PJFMX-2025-738666_20260704_050218",
@@ -2190,10 +2190,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "A/PL1-3625-399842-AAA",
       "GoldNormalized": "A-PL1-3625-399842-AAA",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$110,274.01\u0027 is not a valid decimal number."
+      "CandidateRaw": "A/PL1-3625-399842-AAA",
+      "CandidateNormalized": "A-PL1-3625-399842-AAA",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-738666_20260704_050218",
@@ -2201,10 +2201,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "PJFMX/2025/738666",
       "GoldNormalized": "PJFMX-2025-738666",
-      "CandidateRaw": null,
+      "CandidateRaw": "",
       "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$110,274.01\u0027 is not a valid decimal number."
+      "Status": "Missing",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-738666_20260704_050218",
@@ -2212,10 +2212,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Poder Judicial de la Federaci\u00F3n",
       "GoldNormalized": "PODER JUDICIAL DE LA FEDERACION",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$110,274.01\u0027 is not a valid decimal number."
+      "CandidateRaw": "Poder Judicial de la Federaci\u00F3n",
+      "CandidateNormalized": "PODER JUDICIAL DE LA FEDERACION",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-738666_20260704_050218",
@@ -2223,10 +2223,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$110,274.01\u0027 is not a valid decimal number."
+      "CandidateRaw": "1",
+      "CandidateNormalized": "1",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-738666_20260704_050218",
@@ -2234,10 +2234,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "A/PL1-3625-399842-AAA",
       "GoldNormalized": "A-PL1-3625-399842-AAA",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "A/PL1-3625-399842-AAA",
+      "CandidateNormalized": "A-PL1-3625-399842-AAA",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-738666_20260704_050218",
@@ -2245,10 +2245,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "PJFMX/2025/738666",
       "GoldNormalized": "PJFMX-2025-738666",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "PJFMX/2025/738666",
+      "CandidateNormalized": "PJFMX-2025-738666",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-738666_20260704_050218",
@@ -2256,10 +2256,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Poder Judicial de la Federaci\u00F3n",
       "GoldNormalized": "PODER JUDICIAL DE LA FEDERACION",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "Poder Judicial de la Federaci\u00F3n",
+      "CandidateNormalized": "PODER JUDICIAL DE LA FEDERACION",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "PJFMX-2025-738666_20260704_050218",
@@ -2267,10 +2267,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "1",
+      "CandidateNormalized": "1",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "SEIDO-2025-110624_20260704_050227",
@@ -2322,10 +2322,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "B/AS1-5134-143257-IMX",
       "GoldNormalized": "B-AS1-5134-143257-IMX",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$2,505,608.91\u0027 is not a valid decimal number."
+      "CandidateRaw": "B/AS1-5134-143257-IMX",
+      "CandidateNormalized": "B-AS1-5134-143257-IMX",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "SEIDO-2025-110624_20260704_050227",
@@ -2333,10 +2333,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "SEIDO/2025/110624",
       "GoldNormalized": "SEIDO-2025-110624",
-      "CandidateRaw": null,
+      "CandidateRaw": "",
       "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$2,505,608.91\u0027 is not a valid decimal number."
+      "Status": "Missing",
+      "SkipReason": null
     },
     {
       "FixtureId": "SEIDO-2025-110624_20260704_050227",
@@ -2344,10 +2344,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Subprocuradur\u00EDa Especializada en Investigaci\u00F3n de Delincuencia Organizada",
       "GoldNormalized": "SUBPROCURADURIA ESPECIALIZADA EN INVESTIGACION DE DELINCUENCIA ORGANIZADA",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$2,505,608.91\u0027 is not a valid decimal number."
+      "CandidateRaw": "Subprocuradur\u00EDa Especializada en Investigaci\u00F3n de Delincuencia Organizada",
+      "CandidateNormalized": "SUBPROCURADURIA ESPECIALIZADA EN INVESTIGACION DE DELINCUENCIA ORGANIZADA",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "SEIDO-2025-110624_20260704_050227",
@@ -2355,10 +2355,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "Gate rejected LLM output: Monto \u0027$2,505,608.91\u0027 is not a valid decimal number."
+      "CandidateRaw": "3",
+      "CandidateNormalized": "3",
+      "Status": "Mismatch",
+      "SkipReason": null
     },
     {
       "FixtureId": "SEIDO-2025-110624_20260704_050227",
@@ -2369,7 +2369,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u002752505.608.91\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "SEIDO-2025-110624_20260704_050227",
@@ -2380,7 +2380,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u002752505.608.91\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "SEIDO-2025-110624_20260704_050227",
@@ -2391,7 +2391,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u002752505.608.91\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "SEIDO-2025-110624_20260704_050227",
@@ -2402,7 +2402,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u002752505.608.91\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "SEIDO-2025-128577_20260704_050228",
@@ -2501,7 +2501,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00275.170.621.41\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "SEIDO-2025-128577_20260704_050228",
@@ -2512,7 +2512,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00275.170.621.41\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "SEIDO-2025-128577_20260704_050228",
@@ -2523,7 +2523,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00275.170.621.41\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "SEIDO-2025-128577_20260704_050228",
@@ -2534,7 +2534,7 @@
       "CandidateRaw": null,
       "CandidateNormalized": null,
       "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "SkipReason": "Gate rejected LLM output: Monto \u00275.170.621.41\u0027 is not a valid decimal number."
     },
     {
       "FixtureId": "SHCP-2023-631352_20260704_050228",
@@ -2630,10 +2630,10 @@
       "Field": "NumeroExpediente",
       "GoldRaw": "A/JU1-6129-778206-FGR",
       "GoldNormalized": "A-JU1-6129-778206-FGR",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "A/JU1-6129-778206-FGR",
+      "CandidateNormalized": "A-JU1-6129-778206-FGR",
+      "Status": "Matched",
+      "SkipReason": null
     },
     {
       "FixtureId": "SHCP-2023-631352_20260704_050228",
@@ -2641,10 +2641,10 @@
       "Field": "NumeroOficio",
       "GoldRaw": "SHCP/2023/631352",
       "GoldNormalized": "SHCP-2023-631352",
-      "CandidateRaw": null,
+      "CandidateRaw": "",
       "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "Status": "Missing",
+      "SkipReason": null
     },
     {
       "FixtureId": "SHCP-2023-631352_20260704_050228",
@@ -2652,10 +2652,10 @@
       "Field": "AutoridadNombre",
       "GoldRaw": "Secretar\u00EDa de Hacienda y Cr\u00E9dito P\u00FAblico",
       "GoldNormalized": "SECRETARIA DE HACIENDA Y CREDITO PUBLICO",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "Administraci\u00F3n General de Auditor\u00EDa Fiscal Federal Direcci\u00F3n General de An\u00E1lisis Econ\u00F3mico",
+      "CandidateNormalized": "ADMINISTRACION GENERAL DE AUDITORIA FISCAL FEDERAL DIRECCION GENERAL DE ANALISIS ECONOMICO",
+      "Status": "Mismatch",
+      "SkipReason": null
     },
     {
       "FixtureId": "SHCP-2023-631352_20260704_050228",
@@ -2663,10 +2663,10 @@
       "Field": "ParteCount",
       "GoldRaw": "1",
       "GoldNormalized": "1",
-      "CandidateRaw": null,
-      "CandidateNormalized": null,
-      "Status": "TrackSkipped",
-      "SkipReason": "no page images found on disk for fixture"
+      "CandidateRaw": "1",
+      "CandidateNormalized": "1",
+      "Status": "Matched",
+      "SkipReason": null
     }
   ],
   "Accuracy": [
@@ -2694,30 +2694,58 @@
     {
       "Field": "NumeroExpediente",
       "Track": "LlmText",
-      "Matches": 3,
-      "Evaluable": 3,
-      "Accuracy": 1
+      "Matches": 15,
+      "Evaluable": 16,
+      "Accuracy": 0.9375
     },
     {
       "Field": "NumeroOficio",
       "Track": "LlmText",
       "Matches": 0,
-      "Evaluable": 3,
+      "Evaluable": 16,
       "Accuracy": 0
     },
     {
       "Field": "AutoridadNombre",
       "Track": "LlmText",
-      "Matches": 2,
-      "Evaluable": 3,
-      "Accuracy": 0.6666666666666666
+      "Matches": 13,
+      "Evaluable": 16,
+      "Accuracy": 0.8125
     },
     {
       "Field": "ParteCount",
       "Track": "LlmText",
-      "Matches": 1,
-      "Evaluable": 3,
-      "Accuracy": 0.3333333333333333
+      "Matches": 6,
+      "Evaluable": 16,
+      "Accuracy": 0.375
+    },
+    {
+      "Field": "NumeroExpediente",
+      "Track": "LlmVision",
+      "Matches": 6,
+      "Evaluable": 8,
+      "Accuracy": 0.75
+    },
+    {
+      "Field": "NumeroOficio",
+      "Track": "LlmVision",
+      "Matches": 2,
+      "Evaluable": 8,
+      "Accuracy": 0.25
+    },
+    {
+      "Field": "AutoridadNombre",
+      "Track": "LlmVision",
+      "Matches": 3,
+      "Evaluable": 8,
+      "Accuracy": 0.375
+    },
+    {
+      "Field": "ParteCount",
+      "Track": "LlmVision",
+      "Matches": 8,
+      "Evaluable": 8,
+      "Accuracy": 1
     }
   ],
   "Coverage": [
@@ -2729,15 +2757,15 @@
     },
     {
       "Track": "LlmText",
-      "NonNullCandidates": 9,
+      "NonNullCandidates": 48,
       "TotalEvaluations": 80,
-      "Coverage": 0.1125
+      "Coverage": 0.6
     },
     {
       "Track": "LlmVision",
-      "NonNullCandidates": 0,
+      "NonNullCandidates": 26,
       "TotalEvaluations": 80,
-      "Coverage": 0
+      "Coverage": 0.325
     }
   ]
 }

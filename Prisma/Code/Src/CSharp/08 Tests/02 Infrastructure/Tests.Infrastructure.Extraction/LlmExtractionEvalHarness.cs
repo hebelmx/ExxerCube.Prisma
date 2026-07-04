@@ -84,8 +84,9 @@ public sealed class LlmExtractionEvalHarness
     private const string GoldenArtifactMarkdownRelativePath = "docs/evaluation/llm-hybrid-extraction-baseline-golden-2026-07.md";
 
     private const string SmallNCaveat =
-        "SMALL-N / DIRECTIONAL (N=3) — this is a baseline, not a statistical claim. " +
-        "3 fixtures is enough to catch gross regressions, not to certify accuracy.";
+        "SMALL-N / DIRECTIONAL — this is a baseline, not a statistical claim. Per-field evaluable N " +
+        "varies by track (see the 'Evaluable' column below; a track is skipped when its gate rejects " +
+        "or its provider is unreachable). Enough to catch gross regressions and rank tracks, not to certify accuracy.";
 
     // ── Vision-track on-the-fly PDF rasterization fallback ──────────────────────────────────
     // Some fixture sets (e.g. PRP1-golden) ship only *.pdf + ground_truth.json with no

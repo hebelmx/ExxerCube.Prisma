@@ -180,6 +180,52 @@ real product is not a pass/fail — it's the precise identification of the **two
 (monto gate coupling; vision page-image rendering) plus a **confirmed production bug** (deterministic
 authority). Deterministic remains the bar to beat on expediente (85%) and oficio (100%).
 
+### ✅ D3-golden-v2 — post-fix re-baseline: monto gate fixed + vision track live (2026-07-04 13:01Z)
+
+Findings (2) and (3) above are now **fixed**, and the harness was re-run on the same 20-doc golden
+corpus (artifact regenerated at the same path, 2026-07-04 13:01Z; models `llama3.1:8b`/`gemma3:12b`;
+run ~10m49s — vision inference over rasterized pages dominates). Both LLM tracks now report together.
+
+- Fix for (2): `LlmExtractionGate.TryParseMonto` strips `$`/`MXN`/`USD`/`EUR`/thousands before parsing,
+  cents preserved (commit `10312e51`) — the monto check no longer discards currency-formatted DTOs.
+- Fix for (3): the harness rasterizes each golden PDF on the fly at 150 DPI via `PdfToImageConverter`
+  when no page images are on disk (commit `e68753dd`) — the vision track now runs.
+
+| Field | Deterministic acc | LLM-text acc | LLM-vision acc |
+|---|---|---|---|
+| NumeroExpediente | **85% (17/20)** | **94% (15/16)** | 75% (6/8) |
+| NumeroOficio | **100% (20/20)** | **0% (0/16)** | 25% (2/8) |
+| AutoridadNombre | **0% (0/20)** | **81% (13/16)** | 38% (3/8) |
+| ParteCount | — (architectural skip) | 38% (6/16) | 100% (8/8) |
+
+Coverage: Deterministic 57/80 (71%, unchanged — path untouched, so no regression), **LLM-text 48/80
+(60%, up from 11%)**, **LLM-vision 26/80 (33%, up from 0%)**.
+
+**Did S4-B work? Now decidable — YES for its target fields:**
+- **AutoridadNombre: LLM-text 81% (13/16) vs deterministic 0%.** S4-B's central claim, now proven at
+  real N: the LLM recovers the *requesting* authority the deterministic path structurally cannot. Clears
+  D1's ≥80% bar for this field on the text track.
+- **NumeroExpediente: LLM-text 94% (15/16) > deterministic 85%.** The LLM is competitive-to-better on the
+  bar-to-beat field.
+
+**Two real gaps surfaced by the now-trustworthy N (were hidden at N=3):**
+4. **LLM-text NumeroOficio = 0% (0/16) — a specific S4-B text-path defect.** Every text candidate is
+   empty, yet the vision path emits oficio (2/8) and the deterministic path nails it (100%) — so the
+   field *is* extractable; the LLM-text DTO→`Expediente` path (or its prompt) is not populating
+   `NumeroOficio`. → next lever: trace `LlmTxtFieldExtractor` prompt/mapper for the dropped oficio.
+5. **LLM-vision ~60% still gated by multi-dot monto** (`58665.271.89`, `4.526.265.05`). The vision model
+   emits ambiguous dot-as-thousands numbers; the gate **correctly refuses to guess** (honesty invariant —
+   a misread digit must not become a plausible-wrong value). This caps vision coverage but is *correct*
+   behavior, not a bug to force-parse away. Improving it means **prompt-constraining the vision monto
+   format**, not loosening the gate.
+
+**Verdict:** S4-B is **validated for authority + expediente** on the trustworthy corpus — the N=3 masking
+is removed. Deterministic remains the bar on oficio (100%) and is competitive on expediente (85%).
+Remaining LLM work is now precisely scoped: LLM-text oficio (gap 4) and vision monto-format prompting
+(gap 5). The deterministic `AutoridadNombre` production bug (finding 1) is unchanged and still needs a
+ticket. **D1/D2 for `llm-text` are now decidable** (authority + expediente pass; oficio is a fixable
+gap, not a model-quality failure); `llm-vision` remains below bar and gated.
+
 ---
 
 ## Decision
