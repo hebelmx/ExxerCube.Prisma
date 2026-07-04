@@ -93,7 +93,7 @@ public sealed class LlmVisionFieldExtractorTests
     {
         // Arrange
         const string json =
-            """{"expediente":"456/2024","solicitante":"María López","monto":null,"cuenta":null,"rfc":null,"curp":null,"partes":[]}""";
+            """{"expediente":"A/AS1-1111-222222-AAA","solicitante":"María López","monto":null,"cuenta":null,"rfc":null,"curp":null,"partes":[]}""";
         var ct = TestContext.Current.CancellationToken;
         var extractor = BuildExtractor(MakeVisionFactory(json));
 
@@ -103,7 +103,7 @@ public sealed class LlmVisionFieldExtractorTests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value!.Expediente.ShouldBe("456/2024");
+        result.Value!.Expediente.ShouldBe("A/AS1-1111-222222-AAA");
         result.Value.AdditionalFields["NombreSolicitante"].ShouldBe("María López");
         result.Value.AdditionalFields["_ExtractionSource"].ShouldBe("llm-vision");
     }
@@ -119,7 +119,7 @@ public sealed class LlmVisionFieldExtractorTests
         provider.Capabilities.Returns(LlmCapabilities.TextGenerate | LlmCapabilities.VisionGenerate);
         provider.GenerateAsync(Arg.Do<LlmRequest>(r => capturedRequest = r), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<string>.WithSuccess(
-                """{"expediente":"789/2023","solicitante":"Test","monto":null,"cuenta":null,"rfc":null,"curp":null,"partes":[]}""")));
+                """{"expediente":"H/IN1-2222-333333-BBB","solicitante":"Test","monto":null,"cuenta":null,"rfc":null,"curp":null,"partes":[]}""")));
 
         var factory = Substitute.For<ILlmProviderFactory>();
         factory.GetActive().Returns(provider);
@@ -244,7 +244,7 @@ public sealed class LlmVisionFieldExtractorTests
         // Arrange — canned JSON with two partes
         const string json = """
             {
-              "expediente": "456/2025",
+              "expediente": "E/DE-3333-4444444-AAA",
               "solicitante": "Claudia Reyes",
               "monto": null,
               "cuenta": null,
@@ -280,7 +280,7 @@ public sealed class LlmVisionFieldExtractorTests
         result.Value.ShouldNotBeNull();
 
         var expediente = result.Value!;
-        expediente.NumeroExpediente.ShouldBe("456/2025");
+        expediente.NumeroExpediente.ShouldBe("E/DE-3333-4444444-AAA");
         expediente.NombreSolicitante.ShouldBe("Claudia Reyes");
         // Provenance marker for vision track
         expediente.AdditionalFields["_ExtractionSource"].ShouldBe("llm-vision");

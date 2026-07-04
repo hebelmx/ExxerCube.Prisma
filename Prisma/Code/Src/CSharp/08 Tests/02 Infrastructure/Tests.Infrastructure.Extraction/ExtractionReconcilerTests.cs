@@ -383,4 +383,116 @@ public sealed class ExtractionReconcilerTests
         result.IsSuccess.ShouldBeTrue();
         result.Value!.Best.AdditionalFields["_ReconciliationSource"].ShouldBe("ExtractionReconciler");
     }
+
+    // -----------------------------------------------------------------------
+    // S4-B — NumeroOficio per-field merge
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public async Task Reconcile_DeterministicOficioPresent_DeterministicWins()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var det = new Domain.Entities.Expediente { NumeroExpediente = "1/2024", NumeroOficio = "AGAFADAFSON2/2025/000084" };
+        var llm = new Domain.Entities.Expediente { NumeroExpediente = "1/2024", NumeroOficio = "OTHERAUTH1/2025/000099" };
+
+        var candidates = new[] { Det(det), Llm("llm-text", llm) };
+        var reconciler = BuildReconciler();
+
+        var result = await reconciler.ReconcileAsync(candidates, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Best.NumeroOficio.ShouldBe("AGAFADAFSON2/2025/000084");
+        result.Value.ReviewFlags.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task Reconcile_DeterministicOficioAbsent_LlmFills()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var det = new Domain.Entities.Expediente { NumeroExpediente = "1/2024" }; // NumeroOficio absent (default empty)
+        var llm = new Domain.Entities.Expediente { NumeroExpediente = "1/2024", NumeroOficio = "AGAFADAFSON2/2025/000084" };
+
+        var candidates = new[] { Det(det), Llm("llm-text", llm) };
+        var reconciler = BuildReconciler();
+
+        var result = await reconciler.ReconcileAsync(candidates, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Best.NumeroOficio.ShouldBe("AGAFADAFSON2/2025/000084");
+        result.Value.ReviewFlags.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task Reconcile_TwoLlmOficioConflict_NullAndReviewFlag()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var det = new Domain.Entities.Expediente { NumeroExpediente = "1/2024" };
+        var llmText = new Domain.Entities.Expediente { NumeroExpediente = "1/2024", NumeroOficio = "AGAFADAFSON2/2025/000084" };
+        var llmVision = new Domain.Entities.Expediente { NumeroExpediente = "1/2024", NumeroOficio = "OTHERAUTH1/2025/000099" };
+
+        var candidates = new[] { Det(det), Llm("llm-text", llmText), Llm("llm-vision", llmVision) };
+        var reconciler = BuildReconciler();
+
+        var result = await reconciler.ReconcileAsync(candidates, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Best.NumeroOficio.ShouldBe(string.Empty); // never coin-flip
+        result.Value.ReviewFlags.ShouldContain(f => f.Contains("NumeroOficio") && f.Contains("disagree"));
+    }
+
+    // -----------------------------------------------------------------------
+    // S4-B — AutoridadNombre per-field merge (analogues)
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public async Task Reconcile_DeterministicAutoridadPresent_DeterministicWins()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var det = new Domain.Entities.Expediente { NumeroExpediente = "1/2024", AutoridadNombre = "Comisión Nacional Bancaria y de Valores" };
+        var llm = new Domain.Entities.Expediente { NumeroExpediente = "1/2024", AutoridadNombre = "Otra Autoridad Distinta" };
+
+        var candidates = new[] { Det(det), Llm("llm-text", llm) };
+        var reconciler = BuildReconciler();
+
+        var result = await reconciler.ReconcileAsync(candidates, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Best.AutoridadNombre.ShouldBe("Comisión Nacional Bancaria y de Valores");
+        result.Value.ReviewFlags.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task Reconcile_DeterministicAutoridadAbsent_LlmFills()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var det = new Domain.Entities.Expediente { NumeroExpediente = "1/2024" }; // AutoridadNombre absent (default empty)
+        var llm = new Domain.Entities.Expediente { NumeroExpediente = "1/2024", AutoridadNombre = "Comisión Nacional Bancaria y de Valores" };
+
+        var candidates = new[] { Det(det), Llm("llm-text", llm) };
+        var reconciler = BuildReconciler();
+
+        var result = await reconciler.ReconcileAsync(candidates, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Best.AutoridadNombre.ShouldBe("Comisión Nacional Bancaria y de Valores");
+        result.Value.ReviewFlags.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task Reconcile_TwoLlmAutoridadConflict_NullAndReviewFlag()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var det = new Domain.Entities.Expediente { NumeroExpediente = "1/2024" };
+        var llmText = new Domain.Entities.Expediente { NumeroExpediente = "1/2024", AutoridadNombre = "Comisión Nacional Bancaria y de Valores" };
+        var llmVision = new Domain.Entities.Expediente { NumeroExpediente = "1/2024", AutoridadNombre = "Otra Autoridad Distinta" };
+
+        var candidates = new[] { Det(det), Llm("llm-text", llmText), Llm("llm-vision", llmVision) };
+        var reconciler = BuildReconciler();
+
+        var result = await reconciler.ReconcileAsync(candidates, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Best.AutoridadNombre.ShouldBe(string.Empty); // never coin-flip
+        result.Value.ReviewFlags.ShouldContain(f => f.Contains("AutoridadNombre") && f.Contains("disagree"));
+    }
 }

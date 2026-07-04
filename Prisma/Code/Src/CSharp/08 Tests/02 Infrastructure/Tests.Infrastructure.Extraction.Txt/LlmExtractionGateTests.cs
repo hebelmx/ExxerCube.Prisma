@@ -16,7 +16,7 @@ public sealed class LlmExtractionGateTests
     public void IsValid_ValidDto_ReturnsTrue()
     {
         var dto = new LlmExpedienteDto(
-            Expediente: "123/2024",
+            Expediente: "A/AS1-1111-222222-AAA",
             Solicitante: "Juan Pérez",
             Monto: "5000.00",
             Cuenta: null,
@@ -31,7 +31,7 @@ public sealed class LlmExtractionGateTests
     public void Validate_ValidDto_ReturnsNull()
     {
         var dto = new LlmExpedienteDto(
-            Expediente: "1234/2025",
+            Expediente: "H/IN1-2222-333333-BBB",
             Solicitante: null,
             Monto: null,
             Cuenta: null,
@@ -103,7 +103,7 @@ public sealed class LlmExtractionGateTests
     public void IsValid_BadExpedienteFormat_ReturnsFalse()
     {
         var dto = new LlmExpedienteDto(
-            Expediente: "A/AS1-2505-088637",  // old-format, not ddd/yyyy
+            Expediente: "A/AS1-2505-088637",  // malformed CNBV format (missing final letter segment)
             Solicitante: "Test",
             Monto: null,
             Cuenta: null,
@@ -115,7 +115,7 @@ public sealed class LlmExtractionGateTests
     }
 
     [Theory]
-    [InlineData("123/24")]       // year too short
+    [InlineData("123/24")]       // year too short (legacy ddd/yyyy shape — never valid CNBV either)
     [InlineData("1234567/2024")] // too many digits
     [InlineData("abc/2024")]     // letters instead of digits
     [InlineData("2024/123")]     // reversed
@@ -125,14 +125,42 @@ public sealed class LlmExtractionGateTests
         LlmExtractionGate.IsValid(dto).ShouldBeFalse();
     }
 
+    // -----------------------------------------------------------------------
+    // CNBV expediente format (S4-B) — anchored parity with the deterministic extractor
+    // -----------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("A/AS1-1111-222222-AAA")]
+    [InlineData("H/IN1-2222-333333-BBB")]
+    [InlineData("E/DE-3333-4444444-AAA")]
+    [InlineData("A/AS1-4444-5555555-HHHH")]
+    public void Validate_CnbvExpediente_Accepted(string expediente)
+    {
+        var dto = new LlmExpedienteDto(expediente, "Solicitante", null, null, null, null, null);
+        LlmExtractionGate.Validate(dto).ShouldBeNull();
+    }
+
     [Theory]
     [InlineData("123/2024")]
     [InlineData("123456/2025")]
     [InlineData("001/1999")]
-    public void IsValid_ValidExpedienteFormats_ReturnsTrue(string expediente)
+    public void Validate_LegacyDddYyyyExpediente_Rejected(string expediente)
     {
-        var dto = new LlmExpedienteDto(expediente, null, null, null, null, null, null);
-        LlmExtractionGate.IsValid(dto).ShouldBeTrue();
+        // The old ddd/yyyy shape never appears in the CNBV corpus and must now be rejected —
+        // a plausible-but-wrong format is worse than an abstention.
+        var dto = new LlmExpedienteDto(expediente, "Solicitante", null, null, null, null, null);
+        LlmExtractionGate.Validate(dto).ShouldNotBeNull();
+    }
+
+    [Fact]
+    public void Validate_BoundaryShiftedExpediente_Rejected()
+    {
+        // Two letters before the slash shifts the group boundary — must NOT be accepted.
+        // Parity with the deterministic extractor's single-letter-prefix anchor (no drift).
+        var dto = new LlmExpedienteDto(
+            "AB/AS1-1111-222222-AAA", "Solicitante", null, null, null, null, null);
+
+        LlmExtractionGate.Validate(dto).ShouldNotBeNull();
     }
 
     // -----------------------------------------------------------------------
@@ -244,7 +272,7 @@ public sealed class LlmExtractionGateTests
     [Fact]
     public void IsValid_WellFormedCurp_ReturnsTrue()
     {
-        var dto = new LlmExpedienteDto("804/2025", null, null, null, null, "MAHJ920101HDFRLM09", null);
+        var dto = new LlmExpedienteDto("A/AS1-1111-222222-AAA", null, null, null, null, "MAHJ920101HDFRLM09", null);
 
         LlmExtractionGate.IsValid(dto).ShouldBeTrue();
     }
@@ -255,7 +283,7 @@ public sealed class LlmExtractionGateTests
     [InlineData("MAHJ920101XDFRLM09")]   // invalid sex char (X)
     public void Validate_MalformedCurp_ReportsReason(string badCurp)
     {
-        var dto = new LlmExpedienteDto("804/2025", null, null, null, null, badCurp, null);
+        var dto = new LlmExpedienteDto("A/AS1-1111-222222-AAA", null, null, null, null, badCurp, null);
 
         var reason = LlmExtractionGate.Validate(dto);
 

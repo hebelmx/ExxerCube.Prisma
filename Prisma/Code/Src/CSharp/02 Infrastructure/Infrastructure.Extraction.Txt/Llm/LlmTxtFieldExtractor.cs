@@ -214,12 +214,14 @@ public sealed class LlmTxtFieldExtractor : IFieldExtractor<TxtSource>, ILlmExped
         que no puedas identificar en el texto):
 
         {
-          "expediente": "<número de expediente en formato ddd/yyyy o similar, o null>",
+          "expediente": "<número de expediente en formato CNBV: Letra/Letras-dígitos-dígitos-Letras (formato ilustrativo X/XX0-0000-000000-XXX). Copia el valor EXACTO del documento; o null si no aparece. No inventes ni copies el ejemplo.>",
           "solicitante": "<nombre completo del solicitante o null>",
           "monto": "<monto en formato numérico decimal invariante, por ejemplo 1234.56, o null>",
           "cuenta": "<número de cuenta bancaria o null>",
           "rfc": "<RFC en formato estándar mexicano o null>",
           "curp": "<CURP o null>",
+          "numeroOficio": "<número de oficio en formato LETRAS/AAAA/NNNNNN (formato ilustrativo XXXX/0000/000000). Copia el valor EXACTO del documento; o null si no aparece. No inventes ni copies el ejemplo.>",
+          "autoridadNombre": "<nombre completo de la autoridad emisora tal como aparece en el documento, o null si no aparece. No inventes valores.>",
           "partes": [
             {
               "nombre": "<nombre completo de la parte o null>",

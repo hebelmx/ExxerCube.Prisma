@@ -13,8 +13,19 @@ public static partial class LlmExtractionGate
     // Compiled regexes (GeneratedRegex — zero-overhead at call time)
     // -----------------------------------------------------------------------
 
-    [GeneratedRegex(@"^\d{3,6}/\d{4}$", RegexOptions.CultureInvariant)]
+    // CNBV expediente format — anchored PARITY with the deterministic extractor
+    // (AdaptiveTxtFieldExtractor.ExtractExpediente:316, unanchored search pattern
+    // `[A-Z]/[A-Z]{1,4}\d*[-–]\d+[-–]\d+[-–][A-Z]+`). A value the deterministic
+    // extractor would accept is exactly a value this gate accepts — no second source
+    // of truth. Do NOT broaden this to bare alphanumeric (boundary-shift false-match risk).
+    [GeneratedRegex(@"^[A-Z]/[A-Z]{1,4}\d*[-–]\d+[-–]\d+[-–][A-Z]+$", RegexOptions.CultureInvariant)]
     private static partial Regex ExpedienteRegex();
+
+    // NumeroOficio shape — anchored parity with AdaptiveTxtFieldExtractor.ExtractNumeroOficio:377.
+    // Used as a FIELD-LEVEL guard (see IsPlausibleNumeroOficio) — a malformed oficio abstains
+    // (mapper leaves the field unset) rather than rejecting the whole DTO.
+    [GeneratedRegex(@"^[A-Z]{4,}[A-Z0-9]{0,10}/\d{4}/\d{6}$", RegexOptions.CultureInvariant)]
+    private static partial Regex OficioRegex();
 
     [GeneratedRegex(@"^[A-Z&Ñ]{3,4}\d{6}[A-Z0-9]{3}$", RegexOptions.CultureInvariant)]
     private static partial Regex RfcRegex();
@@ -51,11 +62,12 @@ public static partial class LlmExtractionGate
             return "DTO contains no usable fields (all-null).";
         }
 
-        // Expediente format: nnn/yyyy  (3-6 digits, slash, 4-digit year)
+        // Expediente format: CNBV case-file shape, e.g. A/AS1-1111-222222-AAA
+        // (anchored parity with AdaptiveTxtFieldExtractor.ExtractExpediente).
         if (!string.IsNullOrWhiteSpace(dto.Expediente)
             && !ExpedienteRegex().IsMatch(dto.Expediente))
         {
-            return $"Expediente '{dto.Expediente}' does not match required format ddd/yyyy.";
+            return $"Expediente '{dto.Expediente}' does not match required CNBV format (e.g. A/AS1-1111-222222-AAA).";
         }
 
         // RFC format — 3-4 letters/symbols + 6 digits + 3 alphanumeric
@@ -107,4 +119,34 @@ public static partial class LlmExtractionGate
     /// Convenience overload without an out-param reason (for callers that only need the boolean).
     /// </summary>
     public static bool IsValid(LlmExpedienteDto? dto) => Validate(dto) is null;
+
+    // -----------------------------------------------------------------------
+    // Field-level abstention guards (S4-B)
+    // -----------------------------------------------------------------------
+    // A plausible WRONG value is worse than an abstention (CNBV legal principle). These guards
+    // do NOT reject the whole DTO — they let LlmExpedienteMapper decide, per field, whether to
+    // set the value on Expediente or leave it at its default (abstain).
+
+    /// <summary>
+    /// Returns <see langword="true"/> only when <paramref name="value"/> matches the anchored
+    /// deterministic oficio shape (mirrors <c>AdaptiveTxtFieldExtractor.ExtractNumeroOficio</c>,
+    /// e.g. <c>AGAFADAFSON2/2025/000084</c>). Used by the mapper to decide whether to set
+    /// <c>Expediente.NumeroOficio</c> or abstain (leave unset).
+    /// </summary>
+    public static bool IsPlausibleNumeroOficio(string? value) =>
+        !string.IsNullOrWhiteSpace(value) && OficioRegex().IsMatch(value.Trim());
+
+    /// <summary>
+    /// Minimum honesty guard for a free-text authority name: non-empty after trim, at least 5
+    /// characters, and containing at least one space (rejects single-token garbage like "XZ").
+    /// Used by the mapper to decide whether to set <c>Expediente.AutoridadNombre</c> or abstain.
+    /// </summary>
+    public static bool IsPlausibleAutoridadNombre(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return false;
+
+        var trimmed = value.Trim();
+        return trimmed.Length >= 5 && trimmed.Contains(' ');
+    }
 }

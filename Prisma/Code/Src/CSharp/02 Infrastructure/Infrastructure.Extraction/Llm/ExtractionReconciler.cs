@@ -16,8 +16,10 @@ namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Llm;
 ///   <item>If two LLM candidates disagree on a field and deterministic is absent, the field is
 ///         left unresolved and a <see cref="ReconciliationResult.ReviewFlags"/> entry is emitted.</item>
 /// </list>
-/// <para>Header fields (NumeroOficio, AreaDescripcion, etc.) are copied wholesale from the
-/// deterministic candidate — they are rarely extracted by LLMs.</para>
+/// <para>NumeroOficio and AutoridadNombre (S4-B) now have an LLM fallback like NumeroExpediente/
+/// NombreSolicitante — filled only when the deterministic candidate is absent; deterministic still
+/// wins whenever present. Other header fields (AreaDescripcion, Folio, etc.) remain copied wholesale
+/// from the deterministic candidate only — they are not attempted by the LLM extractors.</para>
 /// </remarks>
 public sealed class ExtractionReconciler : IExtractionReconciler
 {
@@ -89,6 +91,27 @@ public sealed class ExtractionReconciler : IExtractionReconciler
             reviewFlags);
         if (mergedSolicitante is not null)
             best.NombreSolicitante = mergedSolicitante;
+
+        // NumeroOficio (S4-B) — fill only when deterministic is absent; two LLM candidates
+        // disagree → leave null + review flag (never coin-flip).
+        var mergedOficio = MergeString(
+            "NumeroOficio",
+            det?.Fields?.NumeroOficio,
+            llms,
+            c => c.Fields!.NumeroOficio,
+            reviewFlags);
+        if (mergedOficio is not null)
+            best.NumeroOficio = mergedOficio;
+
+        // AutoridadNombre (S4-B) — same policy as NumeroOficio.
+        var mergedAutoridad = MergeString(
+            "AutoridadNombre",
+            det?.Fields?.AutoridadNombre,
+            llms,
+            c => c.Fields!.AutoridadNombre,
+            reviewFlags);
+        if (mergedAutoridad is not null)
+            best.AutoridadNombre = mergedAutoridad;
 
         // SolicitudPartes — deterministic wins (already in best via CopyExpediente).
         // If deterministic had none, pick the first LLM track that extracted partes.

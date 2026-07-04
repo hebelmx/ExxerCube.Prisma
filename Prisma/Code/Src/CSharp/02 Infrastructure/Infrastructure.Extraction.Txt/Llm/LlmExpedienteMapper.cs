@@ -53,6 +53,19 @@ public static class LlmExpedienteMapper
             expediente.AdditionalFields["Monto"] = monto.ToString(CultureInfo.InvariantCulture);
         }
 
+        // NumeroOficio / AutoridadNombre — field-level abstention (S4-B). A plausible WRONG
+        // value is worse than an abstention: only set the field when it passes the shared
+        // pure guard in LlmExtractionGate; otherwise leave the Expediente default untouched.
+        if (LlmExtractionGate.IsPlausibleNumeroOficio(dto.NumeroOficio))
+        {
+            expediente.NumeroOficio = dto.NumeroOficio!.Trim();
+        }
+
+        if (LlmExtractionGate.IsPlausibleAutoridadNombre(dto.AutoridadNombre))
+        {
+            expediente.AutoridadNombre = dto.AutoridadNombre!.Trim();
+        }
+
         // Map partes → SolicitudPartes.
         if (dto.Partes is { Length: > 0 })
         {

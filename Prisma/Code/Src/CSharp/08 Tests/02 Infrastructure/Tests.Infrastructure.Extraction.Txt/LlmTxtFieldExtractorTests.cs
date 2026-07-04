@@ -63,7 +63,7 @@ public sealed class LlmTxtFieldExtractorTests
         // Arrange — canned JSON with all main fields
         const string json = """
             {
-              "expediente": "123/2024",
+              "expediente": "A/AS1-1111-222222-AAA",
               "solicitante": "Juan Pérez García",
               "monto": "5000.00",
               "cuenta": "1234567890",
@@ -86,7 +86,7 @@ public sealed class LlmTxtFieldExtractorTests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value!.Expediente.ShouldBe("123/2024");
+        result.Value!.Expediente.ShouldBe("A/AS1-1111-222222-AAA");
         result.Value.AdditionalFields["NombreSolicitante"].ShouldBe("Juan Pérez García");
         result.Value.AdditionalFields["_ExtractionSource"].ShouldBe("llm-text");
         result.Value.AdditionalFields.ContainsKey("_OcrConfidence").ShouldBeTrue();
@@ -98,7 +98,7 @@ public sealed class LlmTxtFieldExtractorTests
     {
         const string json = """
             {
-              "expediente": "456/2023",
+              "expediente": "H/IN1-2222-333333-BBB",
               "solicitante": null,
               "monto": null,
               "cuenta": null,
@@ -117,7 +117,7 @@ public sealed class LlmTxtFieldExtractorTests
         var result = await extractor.ExtractFieldsAsync(source, []);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value!.Expediente.ShouldBe("456/2023");
+        result.Value!.Expediente.ShouldBe("H/IN1-2222-333333-BBB");
     }
 
     // -----------------------------------------------------------------------
@@ -144,10 +144,10 @@ public sealed class LlmTxtFieldExtractorTests
     [Fact]
     public async Task ExtractFieldsAsync_GateRejectsBadExpediente_ReturnsFailure()
     {
-        // Expediente in old format (not ddd/yyyy) — gate should reject
+        // Expediente in the legacy ddd/yyyy shape (not CNBV format) — gate should reject
         const string json = """
             {
-              "expediente": "A/AS1-2505-088637-PHM",
+              "expediente": "123/2024",
               "solicitante": "Test",
               "monto": null,
               "cuenta": null,
@@ -269,7 +269,7 @@ public sealed class LlmTxtFieldExtractorTests
         // Arrange — canned JSON with two partes
         const string json = """
             {
-              "expediente": "789/2025",
+              "expediente": "E/DE-3333-4444444-AAA",
               "solicitante": "Pedro Alvarado",
               "monto": null,
               "cuenta": null,
@@ -307,7 +307,7 @@ public sealed class LlmTxtFieldExtractorTests
         result.Value.ShouldNotBeNull();
 
         var expediente = result.Value!;
-        expediente.NumeroExpediente.ShouldBe("789/2025");
+        expediente.NumeroExpediente.ShouldBe("E/DE-3333-4444444-AAA");
         expediente.NombreSolicitante.ShouldBe("Pedro Alvarado");
 
         expediente.SolicitudPartes.Count.ShouldBe(2);
@@ -322,5 +322,42 @@ public sealed class LlmTxtFieldExtractorTests
         parte1.Nombre.ShouldBe("Luis Torres");
         parte1.Rfc.ShouldBeNull();
         parte1.Caracter.ShouldBe("Patrón");
+    }
+
+    // -----------------------------------------------------------------------
+    // S4-B — NumeroOficio / AutoridadNombre round-trip through the canned LLM JSON
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public async Task ExtractExpedienteAsync_NumeroOficioAndAutoridadPresent_RoundTripsIntoExpediente()
+    {
+        // Arrange — canned JSON including the two S4-B fields.
+        const string json = """
+            {
+              "expediente": "A/AS1-1111-222222-AAA",
+              "solicitante": "Pedro Alvarado",
+              "monto": null,
+              "cuenta": null,
+              "rfc": null,
+              "curp": null,
+              "numeroOficio": "AGAFADAFSON2/2025/000084",
+              "autoridadNombre": "Comisión Nacional Bancaria y de Valores",
+              "partes": []
+            }
+            """;
+
+        var factory = MakeFactory(json);
+        var extractor = new LlmTxtFieldExtractor(factory, _defaultOptions, _logger);
+        var source = new TxtSource("Texto de oficio con numeroOficio y autoridad.", ocrConfidence: 0.85f);
+        var ct = TestContext.Current.CancellationToken;
+
+        // Act
+        var result = await extractor.ExtractExpedienteAsync(source, ct);
+
+        // Assert — the DTO's numeroOficio/autoridadNombre survive into the Expediente.
+        result.IsSuccess.ShouldBeTrue();
+        var expediente = result.Value!;
+        expediente.NumeroOficio.ShouldBe("AGAFADAFSON2/2025/000084");
+        expediente.AutoridadNombre.ShouldBe("Comisión Nacional Bancaria y de Valores");
     }
 }

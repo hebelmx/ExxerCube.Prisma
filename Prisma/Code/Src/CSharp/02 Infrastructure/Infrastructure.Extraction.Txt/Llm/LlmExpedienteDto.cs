@@ -13,4 +13,6 @@ public sealed record LlmExpedienteDto(
     [property: JsonPropertyName("cuenta")] string? Cuenta,
     [property: JsonPropertyName("rfc")] string? Rfc,
     [property: JsonPropertyName("curp")] string? Curp,
-    [property: JsonPropertyName("partes")] LlmParteDto[]? Partes);
+    [property: JsonPropertyName("partes")] LlmParteDto[]? Partes,
+    [property: JsonPropertyName("numeroOficio")] string? NumeroOficio = null,
+    [property: JsonPropertyName("autoridadNombre")] string? AutoridadNombre = null);
