@@ -20,10 +20,19 @@ public static class LlmExpedienteMapper
         ArgumentNullException.ThrowIfNull(dto);
 
         var expediente = new Expediente();
+        var abstained = new List<string>();
 
-        if (!string.IsNullOrWhiteSpace(dto.Expediente))
+        // NumeroExpediente — field-level abstention. A plausible WRONG value is worse than an
+        // abstention: only set the field when it passes the shared pure guard in
+        // LlmExtractionGate; otherwise leave the Expediente default untouched and record the
+        // abstention (never surface the malformed raw value anywhere).
+        if (LlmExtractionGate.IsPlausibleExpediente(dto.Expediente))
         {
-            expediente.NumeroExpediente = dto.Expediente.Trim();
+            expediente.NumeroExpediente = dto.Expediente!.Trim();
+        }
+        else if (!string.IsNullOrWhiteSpace(dto.Expediente))
+        {
+            abstained.Add("NumeroExpediente");
         }
 
         if (!string.IsNullOrWhiteSpace(dto.Solicitante))
@@ -32,14 +41,22 @@ public static class LlmExpedienteMapper
         }
 
         // Map primary RFC from the top-level field (may also appear inside a parte).
-        if (!string.IsNullOrWhiteSpace(dto.Rfc))
+        if (LlmExtractionGate.IsPlausibleRfc(dto.Rfc))
         {
-            expediente.AdditionalFields["Rfc"] = dto.Rfc.Trim();
+            expediente.AdditionalFields["Rfc"] = dto.Rfc!.Trim();
+        }
+        else if (!string.IsNullOrWhiteSpace(dto.Rfc))
+        {
+            abstained.Add("Rfc");
         }
 
-        if (!string.IsNullOrWhiteSpace(dto.Curp))
+        if (LlmExtractionGate.IsPlausibleCurp(dto.Curp))
         {
-            expediente.AdditionalFields["Curp"] = dto.Curp.Trim();
+            expediente.AdditionalFields["Curp"] = dto.Curp!.Trim();
+        }
+        else if (!string.IsNullOrWhiteSpace(dto.Curp))
+        {
+            abstained.Add("Curp");
         }
 
         if (!string.IsNullOrWhiteSpace(dto.Cuenta))
@@ -47,9 +64,14 @@ public static class LlmExpedienteMapper
             expediente.AdditionalFields["Cuenta"] = dto.Cuenta.Trim();
         }
 
-        if (LlmExtractionGate.TryParseMonto(dto.Monto, out var monto))
+        if (LlmExtractionGate.IsPlausibleMonto(dto.Monto))
         {
+            LlmExtractionGate.TryParseMonto(dto.Monto, out var monto);
             expediente.AdditionalFields["Monto"] = monto.ToString(CultureInfo.InvariantCulture);
+        }
+        else if (!string.IsNullOrWhiteSpace(dto.Monto))
+        {
+            abstained.Add("Monto");
         }
 
         // NumeroOficio / AutoridadNombre — field-level abstention (S4-B). A plausible WRONG
@@ -59,10 +81,18 @@ public static class LlmExpedienteMapper
         {
             expediente.NumeroOficio = dto.NumeroOficio!.Trim();
         }
+        else if (!string.IsNullOrWhiteSpace(dto.NumeroOficio))
+        {
+            abstained.Add("NumeroOficio");
+        }
 
         if (LlmExtractionGate.IsPlausibleAutoridadNombre(dto.AutoridadNombre))
         {
             expediente.AutoridadNombre = dto.AutoridadNombre!.Trim();
+        }
+        else if (!string.IsNullOrWhiteSpace(dto.AutoridadNombre))
+        {
+            abstained.Add("AutoridadNombre");
         }
 
         // Map partes → SolicitudPartes.
@@ -89,6 +119,13 @@ public static class LlmExpedienteMapper
 
                 expediente.SolicitudPartes.Add(parte);
             }
+        }
+
+        // Abstention provenance (consumed by ExtractionReconciler to flag unrecovered fields for
+        // manual review). Never contains the malformed raw value — only the canonical field name.
+        if (abstained.Count > 0)
+        {
+            expediente.AdditionalFields["_AbstainedFields"] = string.Join(",", abstained);
         }
 
         // Provenance marker (consumed by the reconciliator in S2 to know this came from LLM text extraction).

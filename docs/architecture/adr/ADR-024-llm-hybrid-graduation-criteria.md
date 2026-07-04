@@ -420,6 +420,52 @@ non-corpus placeholders. But each is a **production-honesty** risk and therefore
 
 ---
 
+### D8 — Partial-payload handling: per-field abstention, not all-or-nothing DTO rejection (design-party ruling, 2026-07-04)
+
+**Problem.** `LlmExtractionGate.Validate` rejected the WHOLE DTO when any of Expediente/RFC/CURP/Monto was
+malformed, and the extractors returned a value-less `Result<Expediente>.WithFailure(reason)` — so a single
+bad expediente discarded the otherwise-usable oficio / authority / partes / monto in the same DTO. (This was
+the "secondary finding" logged during the S4-A live baseline.)
+
+**Decision — Option B (per-field abstention), hardened.** Extend the field-level abstention pattern S4-B
+already shipped for `NumeroOficio`/`AutoridadNombre` to Expediente/RFC/CURP/Monto:
+- `LlmExtractionGate.Validate` narrows to a hard reject ONLY when the DTO is null or **nothing usable
+  survives plausibility** (no plausible core field AND no partes/solicitante/cuenta). A DTO with ≥1 usable
+  signal is valid even if some fields are malformed.
+- `LlmExpedienteMapper` sets each core field only when it passes the shared `IsPlausible*` guard, otherwise
+  **abstains** (leaves it unset — the malformed raw value is never written anywhere) and records the field
+  name in `AdditionalFields["_AbstainedFields"]`.
+- `ExtractionReconciler` turns any **unrecovered** abstention (a core field no track supplied a valid value
+  for) into a `ReviewFlags` entry, and exposes a first-class `ReconciliationResult.RequiresManualReview`
+  (mirroring `FusionExpedienteService.ManualReviewRequired`). An abstention that another track (e.g.
+  deterministic) filled is NOT flagged.
+- Genuine-failure path preserved: all core fields malformed **and** no partes → `IsSuccess == false` (the
+  track is Failed, exactly as before), never a fake empty "success".
+
+**Why not Option A (owner's initial steer: a *failed* `Result<Expediente>` that still carries the partial T
++ metadata + error list).** The design party (architect + qa + dev, all grounded in the code) found A and B
+put **byte-identical field values** into the reconciler — the reconciler merges per-field, so a
+"partial-but-flagged failure" and a "success-with-abstained-field" are indistinguishable by merge time; A
+only changes where the *reason* travels. A's cost is real: it inverts the `IsFailure ⇒ do not read .Value`
+contract that three existing consumers already hard-code (`HybridExtractionService.cs` gate at lines ~166 and
+~235, and `LlmExtractionEvalHarness.cs` at ~417 and ~493, all branching on `IsSuccess && Value is not null`),
+and would require a new `TrackStatus.Partial` + edits to two shared bridge files + a compiler-unenforced
+"failure-may-carry-a-usable-value" convention. B reuses the merge mechanism already load-bearing for
+oficio/authority, needs **zero** reconciler-filter or bridge changes, and delivers the owner's actual intent
+(stop discarding usable fields; carry the "why" for audit via `_AbstainedFields` + `ReviewFlags` +
+`RequiresManualReview`). Owner ratified B + implement, 2026-07-04.
+
+**Relation to D7.1.** This establishes the field-level abstention *mechanism*; the D7.1 source-text
+containment guard (a Gate-B precondition) plugs into the same path — a value that is shape-valid but absent
+from the source text simply becomes another abstention, flowing through `_AbstainedFields` →
+`RequiresManualReview` like any other.
+
+**Status.** Implemented on branch `Liv`, 2026-07-04 (DARK path — extractor flags default false, zero
+production runtime impact). Blast radius: `LlmExtractionGate`, `LlmExpedienteMapper`, `ReconciliationResult`,
+`ExtractionReconciler` + tests; the two extractors are unchanged. This is no longer an open decision.
+
+---
+
 ## Flip procedure
 
 **Gate A (demo-visible) — reversible, single-page blast radius**

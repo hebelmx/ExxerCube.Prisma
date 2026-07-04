@@ -140,8 +140,47 @@ public sealed class ExtractionReconciler : IExtractionReconciler
         // AdditionalFields scalar keys (Monto, Rfc, Curp, Cuenta) — per-field merge.
         MergeAdditionalFields(det, llms, best, reviewFlags);
 
+        // ------------------------------------------------------------------
+        // Per-field abstention reconciliation. A candidate abstains (rather than sets a
+        // plausible-wrong value) by recording its field name in AdditionalFields["_AbstainedFields"]
+        // (comma-separated; see LlmExpedienteMapper). If NO track ultimately resolves an abstained
+        // field, flag it for manual review; if another track filled it, no flag is needed.
+        // ------------------------------------------------------------------
+        var abstainedFieldNames = new List<(string Source, string FieldName)>();
+        foreach (var c in candidates)
+        {
+            if (c.Fields?.AdditionalFields is { } fields
+                && fields.TryGetValue("_AbstainedFields", out var raw)
+                && !string.IsNullOrWhiteSpace(raw))
+            {
+                foreach (var name in raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    abstainedFieldNames.Add((c.Source, name));
+                }
+            }
+        }
+
+        // Defensive: _AbstainedFields is not part of the merge key set and must never leak into
+        // Best — it is per-candidate provenance only, not a resolved field value.
+        best.AdditionalFields.Remove("_AbstainedFields");
+
+        var flaggedFieldNames = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var (source, fieldName) in abstainedFieldNames)
+        {
+            if (!flaggedFieldNames.Add(fieldName))
+                continue; // one flag per field name, even if multiple candidates abstained it.
+
+            if (BestHasValue(best, fieldName))
+                continue; // another track supplied a valid value — no false flag.
+
+            reviewFlags.Add(
+                $"{fieldName}: abstained by '{source}' (implausible value) and no track supplied a valid value — manual review required.");
+        }
+
         // Provenance.
         best.AdditionalFields["_ReconciliationSource"] = "ExtractionReconciler";
+
+        var requiresManualReview = reviewFlags.Count > 0;
 
         if (reviewFlags.Count > 0)
         {
@@ -151,10 +190,10 @@ public sealed class ExtractionReconciler : IExtractionReconciler
         }
 
         _logger.LogInformation(
-            "ExtractionReconciler: merged {CandidateCount} candidate(s); {FlagCount} review flag(s).",
-            candidates.Count, reviewFlags.Count);
+            "ExtractionReconciler: merged {CandidateCount} candidate(s); {FlagCount} review flag(s); RequiresManualReview={RequiresManualReview}.",
+            candidates.Count, reviewFlags.Count, requiresManualReview);
 
-        var result = new ReconciliationResult(best, candidates, reviewFlags.AsReadOnly());
+        var result = new ReconciliationResult(best, candidates, reviewFlags.AsReadOnly(), requiresManualReview);
         return Task.FromResult(Result<ReconciliationResult>.WithSuccess(result));
     }
 
@@ -255,6 +294,22 @@ public sealed class ExtractionReconciler : IExtractionReconciler
             }
         }
     }
+
+    /// <summary>
+    /// Determines whether <paramref name="best"/> has an ultimately-resolved value for the
+    /// abstained field named <paramref name="fieldName"/>, i.e. whether some track (possibly a
+    /// different one than the one that abstained) supplied a valid value that survived merging.
+    /// An unrecognized field name is treated as not-resolved (fail safe toward flagging).
+    /// </summary>
+    private static bool BestHasValue(Expediente best, string fieldName) => fieldName switch
+    {
+        "NumeroExpediente" => !string.IsNullOrWhiteSpace(best.NumeroExpediente),
+        "NumeroOficio" => !string.IsNullOrWhiteSpace(best.NumeroOficio),
+        "AutoridadNombre" => !string.IsNullOrWhiteSpace(best.AutoridadNombre),
+        "Rfc" or "Curp" or "Monto" =>
+            best.AdditionalFields.TryGetValue(fieldName, out var v) && !string.IsNullOrWhiteSpace(v),
+        _ => false,
+    };
 
     /// <summary>
     /// Shallow copies all scalar and list properties from <paramref name="source"/> into a

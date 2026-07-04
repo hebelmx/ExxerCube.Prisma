@@ -41,7 +41,12 @@ public static partial class LlmExtractionGate
 
     /// <summary>
     /// Returns <see langword="null"/> when the DTO is valid; otherwise returns a human-readable
-    /// rejection reason.
+    /// rejection reason. This gate now only hard-rejects when the DTO is <see langword="null"/>
+    /// or when NOTHING usable survives plausibility gating across all core fields, partes,
+    /// solicitante and cuenta. A DTO with some malformed fields but at least one usable/plausible
+    /// signal is considered valid — <c>LlmExpedienteMapper</c> performs the per-field abstention
+    /// (setting only plausible fields and recording the rest as abstained) so that one malformed
+    /// field never discards an otherwise-usable record.
     /// </summary>
     /// <param name="dto">The DTO to validate. May be <see langword="null"/>.</param>
     public static string? Validate(LlmExpedienteDto? dto)
@@ -51,51 +56,21 @@ public static partial class LlmExtractionGate
             return "DTO is null.";
         }
 
-        // Reject if ALL identifying fields are absent / empty.
-        var hasAnyCore = !string.IsNullOrWhiteSpace(dto.Expediente)
+        // Reject only when NOTHING usable survives plausibility gating anywhere in the DTO.
+        var hasAnyUsable =
+            IsPlausibleExpediente(dto.Expediente)
+            || IsPlausibleRfc(dto.Rfc)
+            || IsPlausibleCurp(dto.Curp)
+            || IsPlausibleMonto(dto.Monto)
+            || IsPlausibleNumeroOficio(dto.NumeroOficio)
+            || IsPlausibleAutoridadNombre(dto.AutoridadNombre)
             || !string.IsNullOrWhiteSpace(dto.Solicitante)
-            || !string.IsNullOrWhiteSpace(dto.Monto)
+            || !string.IsNullOrWhiteSpace(dto.Cuenta)
             || (dto.Partes is { Length: > 0 });
 
-        if (!hasAnyCore)
+        if (!hasAnyUsable)
         {
-            return "DTO contains no usable fields (all-null).";
-        }
-
-        // Expediente format: CNBV case-file shape, e.g. A/AS1-1111-222222-AAA
-        // (anchored parity with AdaptiveTxtFieldExtractor.ExtractExpediente).
-        if (!string.IsNullOrWhiteSpace(dto.Expediente)
-            && !ExpedienteRegex().IsMatch(dto.Expediente))
-        {
-            return $"Expediente '{dto.Expediente}' does not match required CNBV format (e.g. A/AS1-1111-222222-AAA).";
-        }
-
-        // RFC format — 3-4 letters/symbols + 6 digits + 3 alphanumeric
-        if (!string.IsNullOrWhiteSpace(dto.Rfc)
-            && !RfcRegex().IsMatch(dto.Rfc))
-        {
-            return $"RFC '{dto.Rfc}' does not match required format.";
-        }
-
-        // CURP format — reject malformed / OCR-mangled / hallucinated CURP (spec: gate rejects RFC/CURP/...)
-        if (!string.IsNullOrWhiteSpace(dto.Curp)
-            && !CurpRegex().IsMatch(dto.Curp))
-        {
-            return $"CURP '{dto.Curp}' does not match required format.";
-        }
-
-        // Monto must parse to a positive decimal within a plausible range.
-        if (!string.IsNullOrWhiteSpace(dto.Monto))
-        {
-            if (!TryParseMonto(dto.Monto, out var amount))
-            {
-                return $"Monto '{dto.Monto}' is not a valid decimal number.";
-            }
-
-            if (amount <= 0m || amount >= 100_000_000m)
-            {
-                return $"Monto {amount} is outside the allowed range (0, 100,000,000).";
-            }
+            return "DTO contains no usable fields after plausibility gating (all core fields absent or malformed, and no partes/solicitante/cuenta).";
         }
 
         return null; // valid
@@ -181,4 +156,36 @@ public static partial class LlmExtractionGate
         var trimmed = value.Trim();
         return trimmed.Length >= 5 && trimmed.Contains(' ');
     }
+
+    /// <summary>
+    /// Returns <see langword="true"/> only when <paramref name="value"/> matches the anchored
+    /// CNBV expediente shape (e.g. <c>A/AS1-1111-222222-AAA</c>). Used by the mapper to decide
+    /// whether to set <c>Expediente.NumeroExpediente</c> or abstain (leave unset).
+    /// </summary>
+    public static bool IsPlausibleExpediente(string? value) =>
+        !string.IsNullOrWhiteSpace(value) && ExpedienteRegex().IsMatch(value.Trim());
+
+    /// <summary>
+    /// Returns <see langword="true"/> only when <paramref name="value"/> matches the anchored
+    /// RFC shape. Used by the mapper to decide whether to set <c>AdditionalFields["Rfc"]</c>
+    /// or abstain (leave unset).
+    /// </summary>
+    public static bool IsPlausibleRfc(string? value) =>
+        !string.IsNullOrWhiteSpace(value) && RfcRegex().IsMatch(value.Trim());
+
+    /// <summary>
+    /// Returns <see langword="true"/> only when <paramref name="value"/> matches the anchored
+    /// CURP shape. Used by the mapper to decide whether to set <c>AdditionalFields["Curp"]</c>
+    /// or abstain (leave unset).
+    /// </summary>
+    public static bool IsPlausibleCurp(string? value) =>
+        !string.IsNullOrWhiteSpace(value) && CurpRegex().IsMatch(value.Trim());
+
+    /// <summary>
+    /// Returns <see langword="true"/> only when <paramref name="value"/> parses to a positive
+    /// decimal within the allowed range (0, 100,000,000). Used by the mapper to decide whether
+    /// to set <c>AdditionalFields["Monto"]</c> or abstain (leave unset).
+    /// </summary>
+    public static bool IsPlausibleMonto(string? value) =>
+        TryParseMonto(value, out var amount) && amount > 0m && amount < 100_000_000m;
 }

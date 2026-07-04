@@ -495,4 +495,122 @@ public sealed class ExtractionReconcilerTests
         result.Value!.Best.AutoridadNombre.ShouldBe(string.Empty); // never coin-flip
         result.Value.ReviewFlags.ShouldContain(f => f.Contains("AutoridadNombre") && f.Contains("disagree"));
     }
+
+    // -----------------------------------------------------------------------
+    // Per-field abstention → RequiresManualReview (design-change contract)
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public async Task ReconcileAsync_SoleCandidateAbstainedUnrecoveredField_SetsRequiresManualReviewTrue()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var llmExp = new Domain.Entities.Expediente { NumeroExpediente = string.Empty };
+        llmExp.AdditionalFields["_AbstainedFields"] = "NumeroExpediente";
+
+        var candidates = new[] { Llm("llm-text", llmExp) };
+        var reconciler = BuildReconciler();
+
+        var result = await reconciler.ReconcileAsync(candidates, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.RequiresManualReview.ShouldBeTrue();
+        result.Value.ReviewFlags.ShouldContain(f => f.Contains("NumeroExpediente") && f.Contains("abstained"));
+    }
+
+    [Fact]
+    public async Task ReconcileAsync_OneCandidatePartialOtherClean_FillsFieldNoFalseConflictAndNoReviewFlag()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        // llm-text abstained NumeroExpediente (implausible value, left unset).
+        var llmText = new Domain.Entities.Expediente { NumeroExpediente = string.Empty };
+        llmText.AdditionalFields["_AbstainedFields"] = "NumeroExpediente";
+
+        // llm-vision extracted a clean, plausible value for the same field.
+        var llmVision = new Domain.Entities.Expediente { NumeroExpediente = "A/AS1-1111-222222-AAA" };
+
+        var candidates = new[] { Llm("llm-text", llmText), Llm("llm-vision", llmVision) };
+        var reconciler = BuildReconciler();
+
+        var result = await reconciler.ReconcileAsync(candidates, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Best.NumeroExpediente.ShouldBe("A/AS1-1111-222222-AAA");
+        result.Value.ReviewFlags.ShouldBeEmpty();
+        result.Value.RequiresManualReview.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task ReconcileAsync_BothCandidatesAbstainSameField_FieldStaysNullAndFlagged()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        var llmText = new Domain.Entities.Expediente { NumeroExpediente = string.Empty };
+        llmText.AdditionalFields["_AbstainedFields"] = "NumeroExpediente";
+
+        var llmVision = new Domain.Entities.Expediente { NumeroExpediente = string.Empty };
+        llmVision.AdditionalFields["_AbstainedFields"] = "NumeroExpediente";
+
+        var candidates = new[] { Llm("llm-text", llmText), Llm("llm-vision", llmVision) };
+        var reconciler = BuildReconciler();
+
+        var result = await reconciler.ReconcileAsync(candidates, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Best.NumeroExpediente.ShouldBe(string.Empty);
+        result.Value.RequiresManualReview.ShouldBeTrue();
+
+        // De-dupe: only one flag for the field, even though both candidates abstained it.
+        result.Value.ReviewFlags.Count(f => f.Contains("NumeroExpediente")).ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task ReconcileAsync_NoAbstentionsNoConflicts_RequiresManualReviewFalse()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var det = new Domain.Entities.Expediente { NumeroExpediente = "1/2024" };
+        var candidates = new[] { Det(det) };
+        var reconciler = BuildReconciler();
+
+        var result = await reconciler.ReconcileAsync(candidates, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.ReviewFlags.ShouldBeEmpty();
+        result.Value.RequiresManualReview.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task ReconcileAsync_AbstainedFieldsMarker_NeverLeaksIntoBestAdditionalFields()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var llmExp = new Domain.Entities.Expediente { NumeroExpediente = string.Empty };
+        llmExp.AdditionalFields["_AbstainedFields"] = "NumeroExpediente";
+
+        var candidates = new[] { Llm("llm-text", llmExp) };
+        var reconciler = BuildReconciler();
+
+        var result = await reconciler.ReconcileAsync(candidates, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Best.AdditionalFields.ContainsKey("_AbstainedFields").ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task ReconcileAsync_AbstainedFieldsMarkerOnDeterministicCandidate_StillStrippedFromBest()
+    {
+        // Defensive case: even if a deterministic candidate somehow carried the
+        // "_AbstainedFields" provenance key (it shouldn't, but CopyExpediente wholesale-copies
+        // AdditionalFields), it must never leak into Best — it is per-candidate provenance only.
+        var ct = TestContext.Current.CancellationToken;
+        var det = new Domain.Entities.Expediente { NumeroExpediente = "1/2024" };
+        det.AdditionalFields["_AbstainedFields"] = "SomeField";
+
+        var candidates = new[] { Det(det) };
+        var reconciler = BuildReconciler();
+
+        var result = await reconciler.ReconcileAsync(candidates, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Best.AdditionalFields.ContainsKey("_AbstainedFields").ShouldBeFalse();
+    }
 }

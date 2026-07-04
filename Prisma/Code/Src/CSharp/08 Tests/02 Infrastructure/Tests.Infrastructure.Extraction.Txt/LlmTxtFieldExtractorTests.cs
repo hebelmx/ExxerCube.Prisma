@@ -144,11 +144,15 @@ public sealed class LlmTxtFieldExtractorTests
     [Fact]
     public async Task ExtractFieldsAsync_GateRejectsBadExpediente_ReturnsFailure()
     {
-        // Expediente in the legacy ddd/yyyy shape (not CNBV format) — gate should reject
+        // Expediente in the legacy ddd/yyyy shape (not CNBV format) and NO other usable
+        // signal (solicitante/monto/cuenta/rfc/curp/partes all absent) — the narrowed gate
+        // still hard-rejects when nothing usable survives plausibility gating. (When a
+        // sibling like solicitante IS present, this now abstains instead of rejecting —
+        // see ExtractExpedienteAsync_OnlyExpedienteMalformed_AbstainsExpedienteKeepsSiblings.)
         const string json = """
             {
               "expediente": "123/2024",
-              "solicitante": "Test",
+              "solicitante": null,
               "monto": null,
               "cuenta": null,
               "rfc": null,
@@ -359,5 +363,72 @@ public sealed class LlmTxtFieldExtractorTests
         var expediente = result.Value!;
         expediente.NumeroOficio.ShouldBe("AGAFADAFSON2/2025/000084");
         expediente.AutoridadNombre.ShouldBe("Comisión Nacional Bancaria y de Valores");
+    }
+
+    // -----------------------------------------------------------------------
+    // Per-field abstention (design-change contract) end-to-end through the extractor
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public async Task ExtractExpedienteAsync_OnlyExpedienteMalformed_ReturnsSuccessWithExpedienteAbstained()
+    {
+        // Malformed Expediente shape, but Solicitante/Monto/Cuenta survive — the narrowed
+        // gate no longer discards the whole DTO; the mapper abstains only NumeroExpediente.
+        const string json = """
+            {
+              "expediente": "A/AS1-2505-088637",
+              "solicitante": "Juan Pérez",
+              "monto": "5000.00",
+              "cuenta": "1234567890",
+              "rfc": null,
+              "curp": null,
+              "partes": null
+            }
+            """;
+
+        var factory = MakeFactory(json);
+        var extractor = new LlmTxtFieldExtractor(factory, _defaultOptions, _logger);
+        var source = new TxtSource("Texto de oficio con expediente malformado.", ocrConfidence: 0.85f);
+        var ct = TestContext.Current.CancellationToken;
+
+        var result = await extractor.ExtractExpedienteAsync(source, modelOverride: null, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        var expediente = result.Value!;
+        expediente.NumeroExpediente.ShouldBe(string.Empty);
+        expediente.NombreSolicitante.ShouldBe("Juan Pérez");
+        expediente.AdditionalFields["Cuenta"].ShouldBe("1234567890");
+        expediente.AdditionalFields["_AbstainedFields"].ShouldBe("NumeroExpediente");
+    }
+
+    [Fact]
+    public async Task ExtractExpedienteAsync_AllCoreFieldsMalformedNoPartes_ReturnsFailure()
+    {
+        // Every core field is malformed and there is no partes/solicitante/cuenta fallback —
+        // nothing usable survives plausibility gating, so the gate still hard-rejects.
+        const string json = """
+            {
+              "expediente": "AB/AS1-1111-222222-AAA",
+              "solicitante": null,
+              "monto": "abc",
+              "cuenta": null,
+              "rfc": "RFC-INVALIDO",
+              "curp": "CURP-HALLUCINATED",
+              "numeroOficio": "BADSHAPE",
+              "autoridadNombre": "XZ",
+              "partes": null
+            }
+            """;
+
+        var factory = MakeFactory(json);
+        var extractor = new LlmTxtFieldExtractor(factory, _defaultOptions, _logger);
+        var source = new TxtSource("Texto de oficio totalmente malformado.");
+        var ct = TestContext.Current.CancellationToken;
+
+        var result = await extractor.ExtractExpedienteAsync(source, modelOverride: null, ct);
+
+        result.IsSuccess.ShouldBeFalse();
+        result.Errors.ShouldNotBeNull();
+        result.Errors.ShouldContain(e => e.Contains("Gate rejected", StringComparison.OrdinalIgnoreCase));
     }
 }

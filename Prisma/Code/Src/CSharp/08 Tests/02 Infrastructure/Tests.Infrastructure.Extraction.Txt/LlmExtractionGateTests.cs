@@ -86,7 +86,30 @@ public sealed class LlmExtractionGateTests
         var dto = new LlmExpedienteDto(null, null, null, null, null, null, null);
         var reason = LlmExtractionGate.Validate(dto);
         reason.ShouldNotBeNull();
-        reason.ShouldContain("all-null");
+        reason.ShouldContain("no usable fields");
+    }
+
+    [Fact]
+    public void Validate_AllCoreMalformedNoPartes_ReturnsRejectReason()
+    {
+        // Every core field is present but malformed, and there is no partes/solicitante/cuenta
+        // to fall back on — nothing usable survives plausibility gating, so the gate still
+        // hard-rejects the whole DTO.
+        var dto = new LlmExpedienteDto(
+            Expediente: "AB/AS1-1111-222222-AAA",   // boundary-shifted, implausible
+            Solicitante: null,
+            Monto: "abc",                            // unparseable
+            Cuenta: null,
+            Rfc: "RFC-INVALIDO",                     // implausible shape
+            Curp: "CURP-HALLUCINATED",                // implausible shape
+            Partes: null,
+            NumeroOficio: "BADSHAPE",                 // implausible
+            AutoridadNombre: "XZ");                   // implausible (too short / no space)
+
+        var reason = LlmExtractionGate.Validate(dto);
+
+        reason.ShouldNotBeNull();
+        reason!.ShouldContain("no usable fields");
     }
 
     [Fact]
@@ -97,11 +120,32 @@ public sealed class LlmExtractionGateTests
     }
 
     // -----------------------------------------------------------------------
-    // Bad Expediente format
+    // Field-level abstention guard — IsPlausibleExpediente
+    // -----------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("A/AS1-2505-088637")]      // missing final letter segment
+    [InlineData("123/24")]                 // year too short (legacy ddd/yyyy shape)
+    [InlineData("1234567/2024")]           // too many digits
+    [InlineData("abc/2024")]               // letters instead of digits
+    [InlineData("2024/123")]               // reversed
+    [InlineData("123/2024")]               // legacy ddd/yyyy shape
+    [InlineData("123456/2025")]            // legacy ddd/yyyy shape
+    [InlineData("001/1999")]               // legacy ddd/yyyy shape
+    [InlineData("AB/AS1-1111-222222-AAA")] // boundary-shifted (two letters before slash)
+    public void IsPlausibleExpediente_MalformedCnbvShape_ReturnsFalse(string expediente)
+    {
+        LlmExtractionGate.IsPlausibleExpediente(expediente).ShouldBeFalse();
+    }
+
+    // -----------------------------------------------------------------------
+    // Per-field abstention (narrowed gate) — a malformed Expediente no longer discards a
+    // DTO that has other usable signals (e.g. Solicitante). The mapper abstains just that
+    // one field; the gate only hard-rejects when NOTHING usable survives.
     // -----------------------------------------------------------------------
 
     [Fact]
-    public void IsValid_BadExpedienteFormat_ReturnsFalse()
+    public void Validate_OnlyExpedienteMalformedSiblingsPresent_ReturnsNull()
     {
         var dto = new LlmExpedienteDto(
             Expediente: "A/AS1-2505-088637",  // malformed CNBV format (missing final letter segment)
@@ -112,18 +156,7 @@ public sealed class LlmExtractionGateTests
             Curp: null,
             Partes: null);
 
-        LlmExtractionGate.IsValid(dto).ShouldBeFalse();
-    }
-
-    [Theory]
-    [InlineData("123/24")]       // year too short (legacy ddd/yyyy shape — never valid CNBV either)
-    [InlineData("1234567/2024")] // too many digits
-    [InlineData("abc/2024")]     // letters instead of digits
-    [InlineData("2024/123")]     // reversed
-    public void IsValid_InvalidExpedienteFormats_ReturnsFalse(string expediente)
-    {
-        var dto = new LlmExpedienteDto(expediente, "Solicitante", null, null, null, null, null);
-        LlmExtractionGate.IsValid(dto).ShouldBeFalse();
+        LlmExtractionGate.Validate(dto).ShouldBeNull();
     }
 
     // -----------------------------------------------------------------------
@@ -141,46 +174,17 @@ public sealed class LlmExtractionGateTests
         LlmExtractionGate.Validate(dto).ShouldBeNull();
     }
 
+    // -----------------------------------------------------------------------
+    // Field-level abstention guard — IsPlausibleRfc
+    // -----------------------------------------------------------------------
+
     [Theory]
-    [InlineData("123/2024")]
-    [InlineData("123456/2025")]
-    [InlineData("001/1999")]
-    public void Validate_LegacyDddYyyyExpediente_Rejected(string expediente)
+    [InlineData("RFC-INVALIDO")]
+    [InlineData("12345")]
+    [InlineData("")]
+    public void IsPlausibleRfc_MalformedShape_ReturnsFalse(string rfc)
     {
-        // The old ddd/yyyy shape never appears in the CNBV corpus and must now be rejected —
-        // a plausible-but-wrong format is worse than an abstention.
-        var dto = new LlmExpedienteDto(expediente, "Solicitante", null, null, null, null, null);
-        LlmExtractionGate.Validate(dto).ShouldNotBeNull();
-    }
-
-    [Fact]
-    public void Validate_BoundaryShiftedExpediente_Rejected()
-    {
-        // Two letters before the slash shifts the group boundary — must NOT be accepted.
-        // Parity with the deterministic extractor's single-letter-prefix anchor (no drift).
-        var dto = new LlmExpedienteDto(
-            "AB/AS1-1111-222222-AAA", "Solicitante", null, null, null, null, null);
-
-        LlmExtractionGate.Validate(dto).ShouldNotBeNull();
-    }
-
-    // -----------------------------------------------------------------------
-    // Bad RFC
-    // -----------------------------------------------------------------------
-
-    [Fact]
-    public void IsValid_BadRfc_ReturnsFalse()
-    {
-        var dto = new LlmExpedienteDto(
-            Expediente: null,
-            Solicitante: "Test",
-            Monto: null,
-            Cuenta: null,
-            Rfc: "RFC-INVALIDO",
-            Curp: null,
-            Partes: null);
-
-        LlmExtractionGate.IsValid(dto).ShouldBeFalse();
+        LlmExtractionGate.IsPlausibleRfc(rfc).ShouldBeFalse();
     }
 
     [Theory]
@@ -194,7 +198,7 @@ public sealed class LlmExtractionGateTests
     }
 
     // -----------------------------------------------------------------------
-    // Monto out of bounds
+    // Field-level abstention guard — IsPlausibleMonto
     // -----------------------------------------------------------------------
 
     [Theory]
@@ -202,24 +206,12 @@ public sealed class LlmExtractionGateTests
     [InlineData("-1000")]
     [InlineData("100000000")]
     [InlineData("999999999.99")]
-    public void IsValid_MontoOutOfBounds_ReturnsFalse(string monto)
-    {
-        var dto = new LlmExpedienteDto(null, "Solicitante", monto, null, null, null, null);
-        LlmExtractionGate.IsValid(dto).ShouldBeFalse();
-    }
-
-    // -----------------------------------------------------------------------
-    // Monto non-numeric
-    // -----------------------------------------------------------------------
-
-    [Theory]
     [InlineData("abc")]
     [InlineData("INVALID")]
     [InlineData("mil pesos")]
-    public void IsValid_MontoNonNumeric_ReturnsFalse(string monto)
+    public void IsPlausibleMonto_OutOfRangeOrUnparseable_ReturnsFalse(string monto)
     {
-        var dto = new LlmExpedienteDto(null, "Solicitante", monto, null, null, null, null);
-        LlmExtractionGate.IsValid(dto).ShouldBeFalse();
+        LlmExtractionGate.IsPlausibleMonto(monto).ShouldBeFalse();
     }
 
     [Theory]
@@ -282,14 +274,19 @@ public sealed class LlmExtractionGateTests
     [InlineData("UCM444444ABCDEF")]      // OCR-mangled fragment (too short)
     [InlineData("CURP-HALLUCINATED")]    // hallucinated garbage
     [InlineData("MAHJ920101XDFRLM09")]   // invalid sex char (X)
-    public void Validate_MalformedCurp_ReportsReason(string badCurp)
+    public void IsPlausibleCurp_MalformedShape_ReturnsFalse(string badCurp)
     {
-        var dto = new LlmExpedienteDto("A/AS1-1111-222222-AAA", null, null, null, null, badCurp, null);
+        LlmExtractionGate.IsPlausibleCurp(badCurp).ShouldBeFalse();
+    }
 
-        var reason = LlmExtractionGate.Validate(dto);
+    [Fact]
+    public void Validate_MalformedCurpButPlausibleExpedienteSibling_ReturnsNull()
+    {
+        // A malformed CURP no longer discards the whole DTO when a plausible Expediente
+        // sibling is present — the mapper abstains only the Curp field.
+        var dto = new LlmExpedienteDto("A/AS1-1111-222222-AAA", null, null, null, null, "CURP-HALLUCINATED", null);
 
-        reason.ShouldNotBeNull();
-        reason!.ShouldContain("CURP");
+        LlmExtractionGate.Validate(dto).ShouldBeNull();
     }
 
     // -----------------------------------------------------------------------
@@ -315,32 +312,24 @@ public sealed class LlmExtractionGateTests
     [InlineData("-100")]
     [InlineData("0")]
     [InlineData("100000000")]
-    public void TryParseMonto_OutOfRangeValues_ParsesButGateRejectsRange(string raw)
+    public void TryParseMonto_OutOfRangeValues_ParsesButIsPlausibleMontoRejectsRange(string raw)
     {
-        // TryParseMonto itself only parses — the (0, 100,000,000) exclusive range guard
-        // lives in LlmExtractionGate.Validate, not in the parse helper.
+        // TryParseMonto itself only parses — the (0, 100,000,000) exclusive range guard now
+        // lives in LlmExtractionGate.IsPlausibleMonto (used by the mapper for per-field
+        // abstention), not in Validate (which only hard-rejects when nothing is usable).
         var parsed = LlmExtractionGate.TryParseMonto(raw, out var amount);
 
         parsed.ShouldBeTrue();
-
-        var dto = new LlmExpedienteDto(null, "Solicitante", raw, null, null, null, null);
-        var reason = LlmExtractionGate.Validate(dto);
-        reason.ShouldNotBeNull();
-        reason!.ShouldContain("outside the allowed range");
+        LlmExtractionGate.IsPlausibleMonto(raw).ShouldBeFalse();
         amount.ShouldBe(decimal.Parse(raw, CultureInfo.InvariantCulture));
     }
 
     [Fact]
-    public void TryParseMonto_Invalid_ReturnsFalseAndGateReportsNotValidDecimalReason()
+    public void TryParseMonto_Invalid_ReturnsFalseAndIsPlausibleMontoRejects()
     {
         LlmExtractionGate.TryParseMonto("INVALID", out var amount).ShouldBeFalse();
         amount.ShouldBe(0m);
-
-        var dto = new LlmExpedienteDto(null, "Solicitante", "INVALID", null, null, null, null);
-        var reason = LlmExtractionGate.Validate(dto);
-
-        reason.ShouldNotBeNull();
-        reason!.ShouldContain("is not a valid decimal number");
+        LlmExtractionGate.IsPlausibleMonto("INVALID").ShouldBeFalse();
     }
 
     [Fact]
