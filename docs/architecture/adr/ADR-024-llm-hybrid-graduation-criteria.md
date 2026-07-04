@@ -247,6 +247,55 @@ for `llm-text`:** authority passes under either denominator; expediente passes p
 full-N — so the graduation decision hinges on which denominator D1 adopts (see the caveat above).
 `llm-vision` remains below bar and gated.
 
+### ✅ D3-golden-v3 — gap-4 (LLM-text NumeroOficio 0/16) diagnosed; prompt fix REJECTED as net-negative (2026-07-04)
+
+Gap 4 from D3-golden-v2 ("LLM-text NumeroOficio = 0/16 — emit-side vs gate-side unknown") is now
+**diagnosed to root cause**, and a candidate fix was **built, measured against the golden corpus in a
+controlled paired run, and deliberately NOT shipped** because it reproducibly regresses two
+more-valuable fields to fix a redundant one.
+
+**Root cause (emit-side, semantic — confirmed by probing `llama3.1:8b` directly on the golden OCR text):**
+the text model emits the value literally labelled *"No de oficio de requerimiento / orden de revisión /
+auditoría"* (e.g. `OF-REV-749-2026`) instead of the **SIARA folio** (`SHCP/2023/631352`, labelled *"No.
+De Identificación del Requerimiento"*) that the gold — and the XML schema `<Cnbv_NumeroOficio>` — treat
+as `numeroOficio`. That `OF-REV-…` value then fails the anchored folio regex
+(`^[A-Z]{4,}[A-Z0-9]{0,10}/\d{4}/\d{6}$`) in `LlmExtractionGate.IsPlausibleNumeroOficio`, so the mapper
+silently abstains → **0/16, surfaced as empty (honest), not wrong.** So it is *both* an emit-side
+semantic miss *and* a (correctly-strict) gate abstention — the regex is not the bug; relaxing it would
+only convert "empty" into "confidently wrong".
+
+**Candidate fix:** a terse prompt disambiguation on the `numeroOficio` line — *"folio del requerimiento
+… con diagonales; no uses códigos con guiones"* (a slash-vs-hyphen structural discriminator). Applied
+identically to the text and vision prompts.
+
+**Controlled paired-run result (golden corpus, same session, `llama3.1:8b`/`gemma3:12b`; the old-prompt
+control reproduced the committed baseline *exactly*, confirming temp-0 determinism → the deltas below are
+CAUSAL, not run-to-run noise):**
+
+| LLM-text field | Old prompt | New prompt | Δ |
+|---|---|---|---|
+| NumeroOficio | 0/16 (0%) | **14/15 (93%)** | ✅ fixed |
+| NumeroExpediente | 15/16 (94%) | 12/15 (80%) | ❌ **regressed** |
+| AutoridadNombre | 13/16 (81%) | 9/15 (60%) | ❌ **regressed** |
+
+**Decision: do NOT ship the prompt change (text track).** Three reasons: (1) it reproducibly steals the
+8B model's attention from **NumeroExpediente** (the bar-to-beat field, D1) and **AutoridadNombre**
+(S4-B's validated central win) to fix (2) a **redundant** field — the deterministic path already extracts
+NumeroOficio at **100% (20/20)** and the reconciler is deterministic-wins, so the LLM's oficio value
+never reaches the reconciled output; (3) fixing a field that costs two better ones and changes no product
+output is a bad trade. The durable value of this epic is the **diagnosis**, not a code change.
+
+**Nuance (possible vision-only follow-up, owner-gated — it breaks the text/vision prompt-parity
+invariant):** the *same* change **helped the vision track** (`gemma3:12b`): NumeroOficio 2/8 → 8/8,
+NumeroExpediente 6/8 → 7/8, AutoridadNombre 3/8 → 2/8. The larger vision model absorbs the extra
+instruction without losing other fields; the 8B text model cannot. Applying the fix to the vision prompt
+only is a defensible future option but was deferred (redundant field + parity-invariant change → not
+worth an autonomous divergence).
+
+**Bonus, independently confirmed by these runs:** the deterministic `AutoridadNombre` production fix
+(commit `5a4d0b86`, finding 1) is verified end-to-end on the real harness — Deterministic AutoridadNombre
+**0/20 → 18/20 (90%)** on the golden corpus.
+
 ---
 
 ## Decision
