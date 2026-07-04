@@ -1,9 +1,12 @@
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Xml.Linq;
 using ExxerCube.Prisma.Infrastructure.Classification.Llm;
 using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Llm;
 using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
+using ExxerCube.Prisma.Infrastructure.Extraction.Txt;
 using ExxerCube.Prisma.Infrastructure.Extraction.Txt.Llm;
 using Meziantou.Extensions.Logging.Xunit.v3;
 using Microsoft.Extensions.Options;
@@ -11,21 +14,33 @@ using Microsoft.Extensions.Options;
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction;
 
 /// <summary>
-/// Manual-only evaluation harness that measures field-extraction precision/recall
-/// across PRP1 gold fixtures for the deterministic, LLM-text, and LLM-vision tracks.
+/// Manual-only evaluation harness that measures field-extraction accuracy/coverage across PRP1 gold
+/// fixtures for the deterministic, LLM-text, and LLM-vision tracks, and emits a committed baseline
+/// artifact (JSON + Markdown). This is S4-A (see
+/// <c>docs/implementation-artifacts/spec-llm-hybrid-extractor-S4A.md</c>).
 /// </summary>
 /// <remarks>
 /// <para>
-/// This is NOT a CI gate — it is a MEASUREMENT harness that emits a human-readable
-/// per-field comparison report via <see cref="ITestOutputHelper"/>.
-/// The test is always skipped in automated runs.
+/// This is NOT a CI gate — it is a MEASUREMENT harness. The test is always skipped in automated runs
+/// (<c>[Fact(Skip=...)]</c>); the metric-computation logic itself (<see cref="LlmExtractionMetrics"/>)
+/// is unit-tested independently, deterministically, and IS a CI gate (see
+/// <c>LlmExtractionMetricsTests</c>).
 /// </para>
 /// <para>
-/// <strong>To run manually:</strong>
+/// <strong>To run manually</strong> (requires a real local Ollama at <c>localhost:11434</c> with the
+/// <see cref="TextModelTag"/> / <see cref="VisionModelTag"/> models pulled, and a real Tesseract
+/// install with <c>spa.traineddata</c>):
 /// <code>
-/// dotnet test --filter "LlmExtractionEvalHarness" -p:ArtifactsBaseDir=/tmp/build/
+/// dotnet test --filter "LlmExtractionEvalHarness"
 /// </code>
 /// Then edit the <c>[Fact(Skip=...)]</c> attribute to remove the Skip argument.
+/// </para>
+/// <para>
+/// <strong>Tracks</strong> (per fixture): Deterministic = <see cref="PdfOcrFieldExtractor"/> (real
+/// Tesseract OCR → <see cref="AdaptiveTxtFieldExtractor"/>, the bar to beat); LLM-text =
+/// <see cref="LlmTxtFieldExtractor"/> over the same OCR text (prefers the committed
+/// <c>*.ocr.txt</c> companion where present); LLM-vision = <see cref="LlmVisionFieldExtractor"/> over
+/// the committed page images. All three are constructed by hand (no DI container).
 /// </para>
 /// <para>
 /// <strong>Gold data sources:</strong>
@@ -35,7 +50,6 @@ namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction;
 /// </list>
 /// Ground-truth values are extracted from the XML companion files embedded in
 /// <c>parsed_documents.json</c> (keys like <c>222AAA-44444444442025.xml</c>).
-/// PDF pages are empty in the JSON (image-only PDFs); the actual bytes live on disk.
 /// </para>
 /// </remarks>
 public sealed class LlmExtractionEvalHarness
@@ -47,18 +61,34 @@ public sealed class LlmExtractionEvalHarness
 
     // ── Ollama endpoint probed before running LLM tracks ──────────────────────
     private const string OllamaHealthUrl = "http://localhost:11434/api/tags";
+    private const string OllamaBaseUrl = "http://localhost:11434";
+
+    // ── Model overrides (MANDATORY on this build box — llama3.2 / minicpm-v, the spec defaults,
+    // are NOT installed; see spec-llm-hybrid-extractor-S4A.md "Environment"). ─────────────────────
+    private const string TextModelTag = "llama3.1:8b";
+    private const string VisionModelTag = "gemma3:12b";
+
+    // ── Committed baseline artifact paths (relative to repo root) — D3 in the S4-A spec ─────────
+    private const string ArtifactJsonRelativePath = "docs/evaluation/llm-hybrid-extraction-baseline-2026-07.json";
+    private const string ArtifactMarkdownRelativePath = "docs/evaluation/llm-hybrid-extraction-baseline-2026-07.md";
+
+    private const string SmallNCaveat =
+        "SMALL-N / DIRECTIONAL (N=3) — this is a baseline, not a statistical claim. " +
+        "3 fixtures is enough to catch gross regressions, not to certify accuracy.";
 
     // ───────────────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Runs the full eval harness.  Skip attribute prevents CI execution.
+    /// Runs the full eval harness: invokes all three extraction tracks over the PRP1 gold fixtures,
+    /// computes per-field metrics via the pure <see cref="LlmExtractionMetrics"/> engine, and writes
+    /// the JSON + Markdown baseline artifacts. Skip attribute prevents CI execution.
     /// </summary>
     [Fact(Skip = "eval-only: run manually — remove Skip to execute")]
-    public async Task Eval_PRP1Fixtures_PrintFieldPrecisionReport()
+    public async Task Eval_PRP1Fixtures_ComputesFieldMetricsAndEmitsBaseline()
     {
         var ct = TestContext.Current.CancellationToken;
         var output = TestContext.Current.TestOutputHelper;
-        output?.WriteLine("=== PRP1 Field-Extraction Eval Harness (S3a) ===");
+        output?.WriteLine("=== PRP1 Field-Extraction Eval Harness (S4-A) ===");
 
         // ── 1. Locate repo root ────────────────────────────────────────────────
         var repoRoot = LocateRepoRoot();
@@ -82,73 +112,354 @@ public sealed class LlmExtractionEvalHarness
 
         // ── 3. Check Ollama availability ────────────────────────────────────────
         var ollamaReachable = await IsOllamaReachableAsync(ct);
-        output?.WriteLine($"Ollama reachable at localhost:11434: {ollamaReachable}");
+        output?.WriteLine($"Ollama reachable at localhost:11434: {ollamaReachable} (text={TextModelTag}, vision={VisionModelTag})");
         if (!ollamaReachable)
         {
-            output?.WriteLine("  → LLM tracks will be SKIPPED (deterministic only).");
+            output?.WriteLine("  → LLM tracks will be TrackSkipped for every fixture (deterministic still runs).");
         }
 
-        // ── 4. Build services (minimal, no DI container) ───────────────────────
-        var detLogger = XUnitLogger.CreateLogger<PdfOcrFieldExtractor>(output!);
-        var txtLogger = XUnitLogger.CreateLogger<LlmTxtFieldExtractor>(output!);
+        // ── 4. Build real services by hand (no DI container) ───────────────────
+        using var ocrExecutor = new TesseractOcrExecutor(XUnitLogger.CreateLogger<TesseractOcrExecutor>(output!));
+        var imagePreprocessor = new PassthroughImagePreprocessor();
+        var pdfToImageConverter = new PdfToImageConverter(XUnitLogger.CreateLogger<PdfToImageConverter>(output!));
+        var adaptiveTxtExtractor = new AdaptiveTxtFieldExtractor(XUnitLogger.CreateLogger<AdaptiveTxtFieldExtractor>(output!));
+        var detExtractor = new PdfOcrFieldExtractor(
+            ocrExecutor, imagePreprocessor, pdfToImageConverter, adaptiveTxtExtractor,
+            XUnitLogger.CreateLogger<PdfOcrFieldExtractor>(output!));
 
-        // Deterministic extractors (real Tesseract not available in this env — harness is manual)
-        // We instantiate only the parts that do not require native libs during construction.
-        // For the actual run, the caller must have Tesseract tessdata configured.
+        ILlmExpedienteExtractor<TxtSource>? llmTextExtractor = null;
+        ILlmExpedienteExtractor<ImageSource>? llmVisionExtractor = null;
 
-        // ── 5. Run per-fixture evaluation ──────────────────────────────────────
-        var allResults = new List<FixtureEvalResult>();
+        if (ollamaReachable)
+        {
+            var llmOptions = new LlmProvidersOptions
+            {
+                Active = "Ollama",
+                Ollama = new OllamaProviderOptions
+                {
+                    BaseUrl = OllamaBaseUrl,
+                    Model = TextModelTag,
+                    VisionModel = VisionModelTag,
+                    TimeoutSeconds = 120,
+                },
+            };
+            var optionsMonitor = new StaticOptionsMonitor<LlmProvidersOptions>(llmOptions);
+            var ollamaProvider = new OllamaProvider(
+                new DirectHttpClientFactory(), optionsMonitor, XUnitLogger.CreateLogger<OllamaProvider>(output!));
+            var providerFactory = new LlmProviderFactory([ollamaProvider], optionsMonitor);
 
+            llmTextExtractor = new LlmTxtFieldExtractor(
+                providerFactory, Options.Create(llmOptions), XUnitLogger.CreateLogger<LlmTxtFieldExtractor>(output!));
+            llmVisionExtractor = new LlmVisionFieldExtractor(
+                providerFactory, XUnitLogger.CreateLogger<LlmVisionFieldExtractor>(output!));
+        }
+
+        // ── 5. Run per-fixture evaluation across all three tracks ──────────────
+        var allFieldResults = new List<FieldEvalResult>();
+        var evaluatedFixtures = new List<string>();
         var pdfDir = Path.Combine(repoRoot, PdfFixtureDir);
+
         foreach (var (fixtureId, gold) in goldMap)
         {
             var pdfPath = Path.Combine(pdfDir, $"{fixtureId}.pdf");
             if (!File.Exists(pdfPath))
             {
-                output?.WriteLine($"[{fixtureId}] PDF not found on disk — skipping.");
+                output?.WriteLine($"[{fixtureId}] PDF not found on disk — skipping fixture entirely.");
                 continue;
             }
 
             output?.WriteLine($"\n[{fixtureId}] Evaluating…");
+            evaluatedFixtures.Add(fixtureId);
             var pdfBytes = await File.ReadAllBytesAsync(pdfPath, ct);
 
-            var evalResult = new FixtureEvalResult { FixtureId = fixtureId };
+            // ── Track 1: Deterministic (real Tesseract OCR → AdaptiveTxtFieldExtractor) ─────
+            string? detExpediente = null;
+            string? detOficio = null;
+            string? detAuthority = null;
+            string? detOcrText = null;
+            string? detFailureReason = null;
 
-            // Deterministic track: report gold vs. what is in gold (we cannot run real OCR
-            // without Tesseract tessdata, so we simply confirm gold values are non-empty).
-            evalResult.GoldNumeroExpediente = gold.NumeroExpediente;
-            evalResult.GoldNumeroOficio = gold.NumeroOficio;
-            evalResult.GoldAutoridad = gold.AutoridadNombre;
-            evalResult.GoldParteCount = gold.ParteCount;
+            try
+            {
+                var detResult = await detExtractor.ExtractFieldsAsync(new PdfSource(pdfBytes), Array.Empty<FieldDefinition>());
+                if (detResult.IsSuccess && detResult.Value is not null)
+                {
+                    detExpediente = detResult.Value.Expediente;
+                    detResult.Value.AdditionalFields.TryGetValue("NumeroOficio", out detOficio);
+                    detResult.Value.AdditionalFields.TryGetValue("AutoridadNombre", out detAuthority);
+                    detResult.Value.AdditionalFields.TryGetValue("_OcrText", out detOcrText);
+                }
+                else
+                {
+                    detFailureReason = detResult.Error ?? "deterministic extraction returned no value";
+                }
+            }
+            catch (Exception ex)
+            {
+                // Never let a native OCR failure throw out of the harness.
+                detFailureReason = $"exception: {ex.Message}";
+            }
 
-            output?.WriteLine($"  Gold NumeroExpediente : {gold.NumeroExpediente ?? "(null)"}");
-            output?.WriteLine($"  Gold NumeroOficio     : {gold.NumeroOficio ?? "(null)"}");
-            output?.WriteLine($"  Gold AutoridadNombre  : {gold.AutoridadNombre ?? "(null)"}");
-            output?.WriteLine($"  Gold partes count     : {gold.ParteCount}");
-            output?.WriteLine($"  PDF bytes             : {pdfBytes.Length:N0}");
+            AddDeterministicFieldResults(fixtureId, gold, detExpediente, detOficio, detAuthority, detFailureReason, allFieldResults, output);
 
-            allResults.Add(evalResult);
+            // ── Resolve OCR text feed for the LLM-text track ───────────────────────────────
+            var committedOcrText = TryLoadCommittedOcrText(pdfDir, fixtureId);
+            var ocrTextForLlmText = committedOcrText ?? detOcrText;
+
+            string? textTrackSkipReason = null;
+            if (llmTextExtractor is null)
+            {
+                textTrackSkipReason = "Ollama unreachable";
+            }
+            else if (string.IsNullOrWhiteSpace(ocrTextForLlmText))
+            {
+                textTrackSkipReason = detFailureReason is not null
+                    ? $"deterministic OCR failed ({detFailureReason}) and no committed .ocr.txt available"
+                    : "no OCR text available and no committed .ocr.txt";
+            }
+
+            // ── Track 2: LLM-text ───────────────────────────────────────────────────────────
+            if (textTrackSkipReason is not null)
+            {
+                AddExpedienteFieldResults(fixtureId, EvalTrack.LlmText, gold, null, textTrackSkipReason, allFieldResults, output);
+            }
+            else
+            {
+                Expediente? llmTextExpediente = null;
+                string? llmTextFailureReason = null;
+                try
+                {
+                    var txtSource = new TxtSource(ocrTextForLlmText!);
+                    var llmTextResult = await llmTextExtractor!.ExtractExpedienteAsync(txtSource, ct);
+                    if (llmTextResult.IsSuccess && llmTextResult.Value is not null)
+                    {
+                        llmTextExpediente = llmTextResult.Value;
+                    }
+                    else
+                    {
+                        llmTextFailureReason = llmTextResult.Error ?? "llm-text extraction returned no value";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    llmTextFailureReason = $"exception: {ex.Message}";
+                }
+
+                if (llmTextExpediente is null && llmTextFailureReason is not null)
+                {
+                    output?.WriteLine($"  [LlmText] attempted but failed: {llmTextFailureReason}");
+                }
+
+                AddExpedienteFieldResults(fixtureId, EvalTrack.LlmText, gold, llmTextExpediente, null, allFieldResults, output);
+            }
+
+            // ── Track 3: LLM-vision ─────────────────────────────────────────────────────────
+            var pageImages = LoadFixturePageImages(pdfDir, fixtureId);
+            string? visionTrackSkipReason = null;
+            if (llmVisionExtractor is null)
+            {
+                visionTrackSkipReason = "Ollama unreachable";
+            }
+            else if (pageImages.Count == 0)
+            {
+                visionTrackSkipReason = "no page images found on disk for fixture";
+            }
+
+            if (visionTrackSkipReason is not null)
+            {
+                AddExpedienteFieldResults(fixtureId, EvalTrack.LlmVision, gold, null, visionTrackSkipReason, allFieldResults, output);
+            }
+            else
+            {
+                Expediente? llmVisionExpediente = null;
+                string? llmVisionFailureReason = null;
+                try
+                {
+                    var imageSource = new ImageSource(fixtureId, pageImages);
+                    var llmVisionResult = await llmVisionExtractor!.ExtractExpedienteAsync(imageSource, ct);
+                    if (llmVisionResult.IsSuccess && llmVisionResult.Value is not null)
+                    {
+                        llmVisionExpediente = llmVisionResult.Value;
+                    }
+                    else
+                    {
+                        llmVisionFailureReason = llmVisionResult.Error ?? "llm-vision extraction returned no value";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    llmVisionFailureReason = $"exception: {ex.Message}";
+                }
+
+                if (llmVisionExpediente is null && llmVisionFailureReason is not null)
+                {
+                    output?.WriteLine($"  [LlmVision] attempted but failed: {llmVisionFailureReason}");
+                }
+
+                AddExpedienteFieldResults(fixtureId, EvalTrack.LlmVision, gold, llmVisionExpediente, null, allFieldResults, output);
+            }
         }
 
-        // ── 6. Summary ──────────────────────────────────────────────────────────
-        output?.WriteLine("\n=== SUMMARY ===");
-        output?.WriteLine($"Fixtures evaluated : {allResults.Count}");
-        output?.WriteLine($"Gold data shape    : NumeroExpediente / NumeroOficio / AutoridadNombre / ParteCount");
-        output?.WriteLine(
-            "Deterministic track: requires real Tesseract runtime — run on a dev box with tessdata installed.");
-        output?.WriteLine(
-            "LLM tracks         : require Ollama running locally with llama3.2 / minicpm-v models pulled.");
-        output?.WriteLine(
-            "\nNote: this harness measures extraction COVERAGE and CORRECTNESS — it is not a pass/fail gate.");
-        output?.WriteLine(
-            "To evaluate extraction fidelity, run the harness on a dev box, capture the output, and compare.");
+        // ── 6. Aggregate metrics via the PURE engine ────────────────────────────
+        var accuracy = LlmExtractionMetrics.AggregateAccuracy(allFieldResults);
+        var coverage = LlmExtractionMetrics.AggregateCoverage(allFieldResults);
 
-        // The harness always passes (it is a measurement, not a gate).
-        allResults.ShouldNotBeNull();
+        // ── 7. Emit JSON + Markdown baseline artifacts ──────────────────────────
+        var generatedAt = DateTimeOffset.UtcNow;
+        var jsonPath = Path.Combine(repoRoot, ArtifactJsonRelativePath);
+        var mdPath = Path.Combine(repoRoot, ArtifactMarkdownRelativePath);
+
+        await WriteJsonArtifactAsync(
+            jsonPath, generatedAt, ollamaReachable, evaluatedFixtures, allFieldResults, accuracy, coverage, ct);
+        await WriteMarkdownArtifactAsync(
+            mdPath, generatedAt, ollamaReachable, evaluatedFixtures, allFieldResults, accuracy, coverage, ct);
+
+        // ── 8. Summary ──────────────────────────────────────────────────────────
+        output?.WriteLine("\n=== SUMMARY ===");
+        output?.WriteLine($"Fixtures evaluated : {evaluatedFixtures.Count} ({string.Join(", ", evaluatedFixtures)})");
+        output?.WriteLine($"Field evaluations  : {allFieldResults.Count}");
+        foreach (var a in accuracy.OrderBy(a => a.Field).ThenBy(a => a.Track))
+        {
+            output?.WriteLine($"  Accuracy  [{a.Field,-17} / {a.Track,-13}] {a.Matches}/{a.Evaluable} = {a.Accuracy:P0}");
+        }
+
+        foreach (var c in coverage.OrderBy(c => c.Track))
+        {
+            output?.WriteLine($"  Coverage  [{c.Track,-13}] {c.NonNullCandidates}/{c.TotalEvaluations} = {c.Coverage:P0}");
+        }
+
+        output?.WriteLine($"\n{SmallNCaveat}");
+        output?.WriteLine($"\nArtifact (JSON): {jsonPath}");
+        output?.WriteLine($"Artifact (Markdown): {mdPath}");
+
+        // The harness always passes (it is a measurement, not a gate) — sanity check only.
+        allFieldResults.ShouldNotBeEmpty();
     }
 
     // ───────────────────────────────────────────────────────────────────────
-    // Private helpers
+    // Track result → FieldEvalResult wiring
+    // ───────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Adds the four field evaluations for the deterministic track. Deterministic never extracts
+    /// <c>SolicitudPartes</c> today (architecturally out of scope), so <see cref="EvalField.ParteCount"/>
+    /// is always <see cref="EvalMatchStatus.TrackSkipped"/> for this track regardless of OCR success.
+    /// </summary>
+    private static void AddDeterministicFieldResults(
+        string fixtureId,
+        GoldFixture gold,
+        string? numeroExpediente,
+        string? numeroOficio,
+        string? autoridadNombre,
+        string? skipReason,
+        List<FieldEvalResult> sink,
+        ITestOutputHelper? output)
+    {
+        const EvalTrack track = EvalTrack.Deterministic;
+
+        if (skipReason is not null)
+        {
+            sink.Add(LlmExtractionMetrics.Evaluate(fixtureId, track, EvalField.NumeroExpediente, gold.NumeroExpediente, null, skipReason));
+            sink.Add(LlmExtractionMetrics.Evaluate(fixtureId, track, EvalField.NumeroOficio, gold.NumeroOficio, null, skipReason));
+            sink.Add(LlmExtractionMetrics.Evaluate(fixtureId, track, EvalField.AutoridadNombre, gold.AutoridadNombre, null, skipReason));
+            output?.WriteLine($"  [Deterministic] SKIPPED — {skipReason}");
+        }
+        else
+        {
+            sink.Add(LlmExtractionMetrics.Evaluate(fixtureId, track, EvalField.NumeroExpediente, gold.NumeroExpediente, numeroExpediente));
+            sink.Add(LlmExtractionMetrics.Evaluate(fixtureId, track, EvalField.NumeroOficio, gold.NumeroOficio, numeroOficio));
+            sink.Add(LlmExtractionMetrics.Evaluate(fixtureId, track, EvalField.AutoridadNombre, gold.AutoridadNombre, autoridadNombre));
+            output?.WriteLine(
+                $"  [Deterministic] Expediente={numeroExpediente ?? "(null)"} Oficio={numeroOficio ?? "(null)"} Autoridad={autoridadNombre ?? "(null)"}");
+        }
+
+        // Structural skip — deterministic never attempts SolicitudPartes extraction at all.
+        sink.Add(LlmExtractionMetrics.EvaluateParteCount(
+            fixtureId, track, gold.ParteCount, null,
+            "deterministic track does not extract SolicitudPartes (architecturally out of scope)"));
+    }
+
+    /// <summary>
+    /// Adds the four field evaluations for an LLM track (text or vision) from a full
+    /// <see cref="Expediente"/> candidate (or a skip reason when the track was not attempted).
+    /// </summary>
+    private static void AddExpedienteFieldResults(
+        string fixtureId,
+        EvalTrack track,
+        GoldFixture gold,
+        Expediente? candidate,
+        string? skipReason,
+        List<FieldEvalResult> sink,
+        ITestOutputHelper? output)
+    {
+        if (skipReason is not null)
+        {
+            sink.Add(LlmExtractionMetrics.Evaluate(fixtureId, track, EvalField.NumeroExpediente, gold.NumeroExpediente, null, skipReason));
+            sink.Add(LlmExtractionMetrics.Evaluate(fixtureId, track, EvalField.NumeroOficio, gold.NumeroOficio, null, skipReason));
+            sink.Add(LlmExtractionMetrics.Evaluate(fixtureId, track, EvalField.AutoridadNombre, gold.AutoridadNombre, null, skipReason));
+            sink.Add(LlmExtractionMetrics.EvaluateParteCount(fixtureId, track, gold.ParteCount, null, skipReason));
+            output?.WriteLine($"  [{track}] SKIPPED — {skipReason}");
+            return;
+        }
+
+        sink.Add(LlmExtractionMetrics.Evaluate(fixtureId, track, EvalField.NumeroExpediente, gold.NumeroExpediente, candidate?.NumeroExpediente));
+        sink.Add(LlmExtractionMetrics.Evaluate(fixtureId, track, EvalField.NumeroOficio, gold.NumeroOficio, candidate?.NumeroOficio));
+        sink.Add(LlmExtractionMetrics.Evaluate(fixtureId, track, EvalField.AutoridadNombre, gold.AutoridadNombre, candidate?.AutoridadNombre));
+        sink.Add(LlmExtractionMetrics.EvaluateParteCount(fixtureId, track, gold.ParteCount, candidate?.SolicitudPartes.Count));
+
+        output?.WriteLine(
+            $"  [{track}] Expediente={candidate?.NumeroExpediente ?? "(null)"} Oficio={candidate?.NumeroOficio ?? "(null)"} " +
+            $"Autoridad={candidate?.AutoridadNombre ?? "(null)"} Partes={(candidate is null ? "(null)" : candidate.SolicitudPartes.Count.ToString(System.Globalization.CultureInfo.InvariantCulture))}");
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    // Fixture asset loading (page images / committed OCR text)
+    // ───────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Loads a committed <c>*.ocr.txt</c> companion for a fixture, if any exists on disk (only
+    /// <c>222AAA</c> has one today). Preferring the committed text over a fresh live-Tesseract run
+    /// reduces OCR variance in the LLM-text track's input.
+    /// </summary>
+    private static string? TryLoadCommittedOcrText(string fixtureDir, string fixtureId)
+    {
+        var files = Directory.GetFiles(fixtureDir, $"{fixtureId}_page*.ocr.txt")
+            .OrderBy(f => f, StringComparer.Ordinal)
+            .ToList();
+
+        if (files.Count == 0)
+        {
+            return null;
+        }
+
+        var combined = string.Join("\n\n", files.Select(File.ReadAllText));
+        return string.IsNullOrWhiteSpace(combined) ? null : combined;
+    }
+
+    /// <summary>
+    /// Loads committed page-image bytes for a fixture. Prefers the zero-padded, dash-numbered jpg
+    /// sequence (genuine multi-page rendering, e.g. <c>_page-0001.jpg</c>); falls back to any
+    /// single/unpadded page image (e.g. <c>_page1.png</c>).
+    /// </summary>
+    private static IReadOnlyList<byte[]> LoadFixturePageImages(string fixtureDir, string fixtureId)
+    {
+        var padded = Directory.GetFiles(fixtureDir, $"{fixtureId}_page-????.jpg")
+            .Concat(Directory.GetFiles(fixtureDir, $"{fixtureId}_page-????.jpeg"))
+            .OrderBy(f => f, StringComparer.Ordinal)
+            .ToList();
+
+        var chosen = padded.Count > 0
+            ? padded
+            : Directory.GetFiles(fixtureDir, $"{fixtureId}_page*.png")
+                .Concat(Directory.GetFiles(fixtureDir, $"{fixtureId}_page*.jpg"))
+                .OrderBy(f => f, StringComparer.Ordinal)
+                .ToList();
+
+        return chosen.Select(File.ReadAllBytes).ToList();
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    // Repo root / gold loading (unchanged helpers, reused from the earlier stub)
     // ───────────────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -267,6 +578,185 @@ public sealed class LlmExtractionEvalHarness
     }
 
     // ───────────────────────────────────────────────────────────────────────
+    // Artifact emission (JSON + Markdown)
+    // ───────────────────────────────────────────────────────────────────────
+
+    private static async Task WriteJsonArtifactAsync(
+        string jsonPath,
+        DateTimeOffset generatedAtUtc,
+        bool ollamaReachable,
+        IReadOnlyList<string> fixtures,
+        IReadOnlyList<FieldEvalResult> results,
+        IReadOnlyList<FieldAccuracy> accuracy,
+        IReadOnlyList<TrackCoverage> coverage,
+        CancellationToken ct)
+    {
+        var artifact = new EvalArtifact(
+            generatedAtUtc.ToString("O"),
+            TextModelTag,
+            VisionModelTag,
+            OllamaBaseUrl,
+            ollamaReachable,
+            SmallNCaveat,
+            fixtures,
+            results,
+            accuracy,
+            coverage);
+
+        var jsonOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Converters = { new JsonStringEnumConverter() },
+        };
+
+        var json = JsonSerializer.Serialize(artifact, jsonOptions);
+        var dir = Path.GetDirectoryName(jsonPath);
+        if (!string.IsNullOrEmpty(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+
+        await File.WriteAllTextAsync(jsonPath, json, ct).ConfigureAwait(false);
+    }
+
+    private static async Task WriteMarkdownArtifactAsync(
+        string mdPath,
+        DateTimeOffset generatedAtUtc,
+        bool ollamaReachable,
+        IReadOnlyList<string> fixtures,
+        IReadOnlyList<FieldEvalResult> results,
+        IReadOnlyList<FieldAccuracy> accuracy,
+        IReadOnlyList<TrackCoverage> coverage,
+        CancellationToken ct)
+    {
+        var markdown = BuildMarkdownReport(generatedAtUtc, ollamaReachable, fixtures, results, accuracy, coverage);
+        var dir = Path.GetDirectoryName(mdPath);
+        if (!string.IsNullOrEmpty(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+
+        await File.WriteAllTextAsync(mdPath, markdown, ct).ConfigureAwait(false);
+    }
+
+    private static string BuildMarkdownReport(
+        DateTimeOffset generatedAtUtc,
+        bool ollamaReachable,
+        IReadOnlyList<string> fixtures,
+        IReadOnlyList<FieldEvalResult> results,
+        IReadOnlyList<FieldAccuracy> accuracy,
+        IReadOnlyList<TrackCoverage> coverage)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("# LLM/Hybrid Extraction Baseline — PRP1 Gold Fixtures");
+        sb.AppendLine();
+        sb.AppendLine($"Generated: {generatedAtUtc:u}");
+        sb.AppendLine();
+        sb.AppendLine($"> **{SmallNCaveat}**");
+        sb.AppendLine();
+        sb.AppendLine("## Run configuration");
+        sb.AppendLine();
+        sb.AppendLine($"- Ollama base URL: `{OllamaBaseUrl}`");
+        sb.AppendLine($"- Ollama reachable: **{ollamaReachable}**");
+        sb.AppendLine($"- Text model: `{TextModelTag}`");
+        sb.AppendLine($"- Vision model: `{VisionModelTag}`");
+        sb.AppendLine($"- Fixtures evaluated: {fixtures.Count} ({string.Join(", ", fixtures)})");
+        sb.AppendLine();
+        sb.AppendLine("## Per-fixture, per-track, per-field results");
+        sb.AppendLine();
+        sb.AppendLine("| Fixture | Track | Field | Gold | Candidate | Status | Note |");
+        sb.AppendLine("|---|---|---|---|---|---|---|");
+        foreach (var r in results
+                     .OrderBy(r => r.FixtureId, StringComparer.Ordinal)
+                     .ThenBy(r => r.Track)
+                     .ThenBy(r => r.Field))
+        {
+            sb.AppendLine(
+                $"| {r.FixtureId} | {r.Track} | {r.Field} | {Escape(r.GoldRaw)} | {Escape(r.CandidateRaw)} | {r.Status} | {Escape(r.SkipReason)} |");
+        }
+
+        sb.AppendLine();
+        sb.AppendLine("## Per-field, per-track accuracy (matches / fixtures-with-gold)");
+        sb.AppendLine();
+        sb.AppendLine("| Field | Track | Matches | Evaluable | Accuracy |");
+        sb.AppendLine("|---|---|---|---|---|");
+        foreach (var a in accuracy.OrderBy(a => a.Field).ThenBy(a => a.Track))
+        {
+            sb.AppendLine($"| {a.Field} | {a.Track} | {a.Matches} | {a.Evaluable} | {a.Accuracy:P0} |");
+        }
+
+        sb.AppendLine();
+        sb.AppendLine("## Per-track coverage (non-null candidates / total evaluations)");
+        sb.AppendLine();
+        sb.AppendLine("| Track | Non-null | Total | Coverage |");
+        sb.AppendLine("|---|---|---|---|");
+        foreach (var c in coverage.OrderBy(c => c.Track))
+        {
+            sb.AppendLine($"| {c.Track} | {c.NonNullCandidates} | {c.TotalEvaluations} | {c.Coverage:P0} |");
+        }
+
+        sb.AppendLine();
+        sb.AppendLine(
+            "_Generated by `LlmExtractionEvalHarness` (S4-A, manual-only — not a CI gate). See " +
+            "`docs/implementation-artifacts/spec-llm-hybrid-extractor-S4A.md`._");
+
+        return sb.ToString();
+    }
+
+    private static string Escape(string? s) =>
+        string.IsNullOrEmpty(s) ? string.Empty : s.Replace("|", "\\|", StringComparison.Ordinal).Replace('\n', ' ');
+
+    // ───────────────────────────────────────────────────────────────────────
+    // Hand-built real (non-mocked) service seams — no DI container in this harness
+    // ───────────────────────────────────────────────────────────────────────
+
+    /// <summary>Real, no-op <see cref="IImagePreprocessor"/> — modern OCR engines (Tesseract) handle
+    /// preprocessing internally, so this is the same pairing production uses for PDF-sourced OCR.</summary>
+    private sealed class PassthroughImagePreprocessor : IImagePreprocessor
+    {
+        public Task<Result<ImageData>> PreprocessAsync(ImageData imageData, ProcessingConfig config) =>
+            Task.FromResult(Result<ImageData>.WithSuccess(imageData));
+
+        public Task<Result<ImageData>> RemoveWatermarkAsync(ImageData imageData) =>
+            Task.FromResult(Result<ImageData>.WithSuccess(imageData));
+
+        public Task<Result<ImageData>> DeskewAsync(ImageData imageData) =>
+            Task.FromResult(Result<ImageData>.WithSuccess(imageData));
+
+        public Task<Result<ImageData>> BinarizeAsync(ImageData imageData) =>
+            Task.FromResult(Result<ImageData>.WithSuccess(imageData));
+    }
+
+    /// <summary>Real (not mocked) <see cref="IHttpClientFactory"/> that hands back a genuine
+    /// <see cref="HttpClient"/> making real network calls — there is no DI container here to
+    /// provide the ASP.NET Core factory, and <see cref="OllamaProvider"/> requires the interface.</summary>
+    private sealed class DirectHttpClientFactory : IHttpClientFactory
+    {
+        public HttpClient CreateClient(string name) => new() { Timeout = TimeSpan.FromMinutes(5) };
+    }
+
+    /// <summary>Minimal, real (not mocked) <see cref="IOptionsMonitor{T}"/> over a fixed value —
+    /// no DI container / configuration reload is needed for a one-shot manual harness run.</summary>
+    private sealed class StaticOptionsMonitor<T>(T value) : IOptionsMonitor<T>
+        where T : class
+    {
+        public T CurrentValue { get; } = value;
+
+        public T Get(string? name) => CurrentValue;
+
+        public IDisposable OnChange(Action<T, string?> listener) => NoopDisposable.Instance;
+
+        private sealed class NoopDisposable : IDisposable
+        {
+            public static readonly NoopDisposable Instance = new();
+
+            public void Dispose()
+            {
+            }
+        }
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
     // Data transfer types
     // ───────────────────────────────────────────────────────────────────────
 
@@ -278,17 +768,18 @@ public sealed class LlmExtractionEvalHarness
         public int ParteCount { get; init; }
     }
 
-    private sealed record FixtureEvalResult
-    {
-        public required string FixtureId { get; init; }
-        public string? GoldNumeroExpediente { get; set; }
-        public string? GoldNumeroOficio { get; set; }
-        public string? GoldAutoridad { get; set; }
-        public int GoldParteCount { get; set; }
-        public string? DetNumeroExpediente { get; set; }
-        public string? LlmTextNumeroExpediente { get; set; }
-        public string? LlmVisionNumeroExpediente { get; set; }
-    }
+    /// <summary>Serialized shape of the committed baseline artifact (D3).</summary>
+    private sealed record EvalArtifact(
+        string GeneratedAtUtc,
+        string TextModel,
+        string VisionModel,
+        string OllamaBaseUrl,
+        bool OllamaReachable,
+        string Caveat,
+        IReadOnlyList<string> FixturesEvaluated,
+        IReadOnlyList<FieldEvalResult> Results,
+        IReadOnlyList<FieldAccuracy> Accuracy,
+        IReadOnlyList<TrackCoverage> Coverage);
 }
 
 file static class StringExtensions
