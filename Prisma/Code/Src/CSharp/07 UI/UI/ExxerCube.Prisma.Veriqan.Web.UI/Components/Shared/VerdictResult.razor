@@ -58,7 +58,12 @@
 <!-- The rail: Fail (in finding order) -> InsufficientData -> collapsed Pass summary -->
 <MudText Typo="Typo.h6" Class="mb-2">Hallazgos</MudText>
 <MudPaper Elevation="1" Class="mb-4">
-    @if (_railFailFindings.Count == 0 && _railInsufficientFindings.Count == 0)
+    @* The "no violations" state must reflect the TRUE aggregate compliance state (upstream
+       Case counts), NOT the rendered rail — the rail lists exclude uncatalogued engineering-gap
+       findings (VUX-S4a). Gating on the filtered lists here would let a RED case whose only
+       finding is an uncatalogued gap show "Sin incumplimientos" under a RED banner (contradiction).
+       Mirror the ribbon above, which is already gated on the unfiltered aggregate. *@
+    @if (Case.FailCount == 0 && Case.InsufficientDataCount == 0)
     {
         <MudAlert Severity="Severity.Success" Dense="true" Class="ma-2">Sin incumplimientos.</MudAlert>
     }

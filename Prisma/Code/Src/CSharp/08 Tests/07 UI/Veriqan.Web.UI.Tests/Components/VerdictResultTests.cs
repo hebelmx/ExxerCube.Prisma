@@ -257,4 +257,36 @@ public sealed class VerdictResultTests
         cut.Markup.ShouldNotContain("Falla ley CONDUSEF — mejora sugerida al checklist del banco");
         cut.Markup.ShouldNotContain("Art. 99");
     }
+
+    /// <summary>
+    /// VUX-S4a regression (found by adversarial review): filtering uncatalogued findings out of the
+    /// rendered rail must NOT let the "Sin incumplimientos" (no-violations) success message appear on
+    /// a case that actually has failures. A RED case whose ONLY finding is an uncatalogued
+    /// engineering gap has an empty rendered rail but a non-zero aggregate FailCount — the
+    /// no-violations state is gated on the aggregate Case counts (mirroring the ribbon), so it must
+    /// stay hidden. Without the aggregate gate, "Sin incumplimientos" rendered directly under a RED
+    /// banner — the exact contradiction this hardening pass exists to prevent for a legal audience.
+    /// </summary>
+    [Fact]
+    public async Task VerdictResult_RedCaseWithOnlyUncataloguedFinding_DoesNotClaimNoViolations()
+    {
+        await using var ctx = CreateContext();
+        var findings = new List<DemoFinding>
+        {
+            Fail(
+                "CL-UNKNOWN",
+                isVisual: false,
+                tier: ChecklistTier.Condusef,
+                label: RealCheckLedger.UncataloguedLabel,
+                dofNumeral: "Art. 99"),
+        };
+        var demoCase = BuildCase(VerdictSignal.Red, findings);
+
+        var cut = ctx.Render<VerdictResult>(builder =>
+            builder.Add(c => c.Case, demoCase));
+
+        cut.Markup.ShouldContain("RED");
+        cut.Markup.ShouldNotContain("Sin incumplimientos");
+        cut.Markup.ShouldNotContain("CL-UNKNOWN"); // still hidden from the rail
+    }
 }

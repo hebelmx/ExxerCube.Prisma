@@ -52,9 +52,14 @@ parity, vs (b) leave canned pages as-is (they are static screenshots of a narrat
   FULL finding set; the rail is filtered. With the eng-gap finding hidden, the accordion count matches the
   banner (35=35) in the demo corpus, but in principle a hidden uncatalogued finding could make a banner
   read 1 higher than the visible rail. Acceptable (display vs aggregate) — not fixed upstream.
-- Edge case: a case whose ONLY findings are uncatalogued would leave both rails empty → "Sin incumplimientos"
-  success alert despite a Red signal. Does not occur with the real corpus (real cases have many real
-  findings); theoretical only.
+- ~~Edge case: a case whose ONLY findings are uncatalogued would leave both rails empty → "Sin
+  incumplimientos" success alert despite a Red signal. Theoretical only.~~ **FIXED (adversarial-review
+  finding #1, commit after 788390f0):** this was NOT theoretical — the reviewer reproduced it against
+  the built assembly, and the real corpus DID hit `NotificationFailure` (it was masked by co-occurring
+  real fails). The Hallazgos empty-state now gates on the upstream aggregate `Case.FailCount == 0 &&
+  Case.InsufficientDataCount == 0` (mirroring the ribbon) instead of the filtered rail lists, so
+  "Sin incumplimientos" can never appear under a RED banner. Regression test added:
+  `VerdictResult_RedCaseWithOnlyUncataloguedFinding_DoesNotClaimNoViolations`. Web.UI.Tests 51/51.
 - Theme choice does not persist across a FULL page reload (URL navigation restarts the Blazor circuit →
   MainLayout `_isDarkMode` resets to dark default). SPA nav-link clicks preserve it. Out of scope; noted.
 
@@ -88,3 +93,13 @@ Web.UI.Tests baseline was 50/50 (Epic C/D) — keep green.
 ## Log
 - 2026-07-05: Epic opened. Tested running container, cataloged 6 issues, owner scoped all four
   stories. Tracker created.
+- 2026-07-05: S1–S4a delegated to 2 parallel dev subagents (disjoint files), verified from ground
+  truth (git diff + build 0/0 + local `dotnet run` browser smoke). Fixed 1 test that encoded the
+  superseded S5c neutral-chip behavior → Web.UI.Tests 50/50. Committed 788390f0, pushed to Liv.
+- 2026-07-05: `veriqan-web-ui` image rebuilt + container recreated (host :18091). Deployed-container
+  smoke PASSED: theme toggle → light mode (was dead); "SQL Server (esquema veriqan.*)" copy; /live
+  real pipeline RED 8/15/35 @3.80s with bounded 70vh hero. BONUS: theme PERSISTS across SPA nav
+  (nav-link), only full URL reloads reset it. Adversarial review (plan-completion-reviewer) launched.
+- STATUS: 4 scoped stories DONE + deployed-verified. VUX-S5 (canned-page parity refactor) is a
+  surfaced owner design fork — NOT started (see VUX-S4b audit block). Awaiting adversarial-review
+  verdict, then epic boundary → hand off.
