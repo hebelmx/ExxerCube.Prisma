@@ -109,7 +109,16 @@ Both FIXED (commit after dd1c86e0):
   clarification on all pages).
 - Minor #3 (/yellow lost "estado conforme a nivel regulatorio" wording) LEFT — redundant, the Narrative
   slot still states it.
-Build 0/0; Web.UI.Tests 57/57 (strengthened regression test). **EPIC COMPLETE pending container reverify.**
+Build 0/0; Web.UI.Tests 57/57 (strengthened regression test). Commit 7d45296e, pushed.
+**VUX-S5 COMPLETE + container-reverified 2026-07-05:** image rebuilt, container recreated (:18091);
+deployed HTML serves the "Requisito del banco — no es mandato CONDUSEF" disclaimer on /red + /yellow;
+/red renders CONDUSEF-RED table (CL-21, 3-color chip, 94%) + YELLOW table + accordion. Honesty fix
+covered by bUnit 57/57 (the only-uncatalogued-RED degenerate case isn't triggerable via the scripted
+demo cases, so the component test is the ground truth).
+
+**== FULL EPIC COMPLETE ==** Commits on Liv: 788390f0 (S1–S4a) · 43ce570e (S4a review fix) · 7be5fa45
+(tracker) · dd1c86e0 (S5 shared component) · 7d45296e (S5 review fix). 5 stories + 2 adversarial reviews
+(both findings fixed). All deployed-verified on :18091. Web.UI.Tests 57/57, build 0/0.
 
 ## Known-acceptable limitations (logged for adversarial review)
 - Aggregate banner counts (Pass/Fail/InsufficientData, VISUAL/DATA ribbon) are computed upstream on the
