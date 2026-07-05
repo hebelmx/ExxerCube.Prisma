@@ -30,11 +30,36 @@ CREDIBLE candidates count as disagreeing peers. Three forward items tracked (see
 - **E5 (task #7):** `FieldCandidate` carries no LLM model/hash → orchestrator can't stamp full LLM
   provenance yet; extend it when building the LLM stage.
 
-**NEXT = E2** (fuzzy/Levenshtein), with **E3-stub validators alongside** (design: E3 grows WITH E2)
-and **E6.S6.2** startable in parallel. ⚠️ E2 is the heaviest epic: it changes real extraction output,
-needs **PdfPig-coordinate** calibration (NOT pdftotext — P1.4 lesson) and the throwaway coord-dump
-diagnostic rebuilt, and MUST be verified against the **full verdict pipeline** (§4 below), not just
-extractor units. Tracker tasks #4 (E2), #5 (E3-stub), #6 (E6.S6.2), #7 (E5 fwd) carry the detail.
+**E2.1 + E2.2 DONE** (commits `3f600633`, `19bf3071`, on `Liv`, pushed):
+- **E2.1** = neutral plumbing: FuzzySharp pkgref (pinned 2.0.2 in `Prisma/Code/Src/CSharp/Directory.Packages.props`);
+  extracted the Spanish-date parser family out of the 5654-line `PdfPigStatementFieldExtractor` into
+  `internal static StatementValueParsers` (one parse-truth for stages to reuse); `IFieldStageProvider`
+  seam injected into the orchestrator (consulted only when `higherStages`==null → tests still inject
+  directly). Behavior-neutral, E1.D harness 0-divergence held.
+- **E2.2** = first BEHAVIOR-CHANGING slice: `FuzzyLabelStage<DateOnly>` recovers **PaymentDueDate** when
+  positional misses it (StatusGate trigger = only when positional NotExtracted). Stage SELF-ABSTAINS on
+  no-match/unparseable/implausible (honesty; doesn't rely on the open exhaustion policy). `DefaultFieldStageProvider`
+  now registered. **Verdict-preservation held: 0/5 demo verdicts changed** — the real Banamex layout never
+  prints this field on p1 (fuzzy abstains on all 4), and PaymentDueDate has 0 validation-rule consumers.
+  Rebuild-path facet test added (a non-empty ladder now always activates the decorator's StatementModel
+  rebuild — verified facet-preserving). Baselines now: **Extraction 262/262**, Validation 531/531,
+  Orchestration 122/122 (demo 5/5), full solution 0/0.
+
+⚠️ **KEY GOTCHAS for the next pass:**
+- FuzzySharp `Fuzz.PartialRatio` (0–100), threshold 80 in `FuzzyLabelStage.DefaultScoreThreshold`.
+  Accent-fold via `AccentFolding` (FormD + strip NonSpacingMark).
+- A non-empty ladder makes the orchestrator ALWAYS reconstruct that field (value-identical when not
+  escalating) → the decorator's rebuild path is now live on every doc with a PeriodSummary. Verified safe,
+  but any new init-only `StatementModel` facet MUST be added to the rebuild in `EscalatingStatementFieldExtractor`.
+- **Ladder-exhaustion honesty is still OPEN (task #5):** a final validator-failing candidate is emitted as
+  `Extracted`. E2.2 dodged it via stage-level self-abstention; E2.3's Tasa/CAT/amounts MUST do the same
+  (they have real verdict consumers — CL-10/21/22/24/44 — so a false-confident recovery CAN flip a verdict).
+
+**NEXT (tracker):** #10 = **adversarial review of E2.1/E2.2 FIRST** (behavior-changing, not yet reviewed) →
+then #8 (**E2.3** TASA/CAT + amounts — the hard fields: CAT homonym collision, footer token-fragmentation,
+real verdict consumers) → #9 (**E2.4** movements table-shape, separate seam) → #5 (E3 validators grow) →
+#6 (**E6.S6.2** greenfield estado-de-cuenta generator, its own session) → #7 (E5 FieldCandidate LLM hashes).
+Verify EVERY chunk against the full verdict pipeline (§4); calibrate from PdfPig coords not pdftotext.
 
 ---
 
