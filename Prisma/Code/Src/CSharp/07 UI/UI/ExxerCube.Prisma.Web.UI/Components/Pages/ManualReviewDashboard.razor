@@ -118,20 +118,20 @@
                     </MudItem>
                     <MudItem xs="12" sm="6" md="3">
                         <MudSelect T="int?" Label="Min Confidence" Variant="Variant.Outlined" @bind-Value="filters.MinConfidenceLevel">
-                            <MudSelectItem Value="@((int?)null)">All</MudSelectItem>
-                            <MudSelectItem Value="0">0%</MudSelectItem>
-                            <MudSelectItem Value="50">50%</MudSelectItem>
-                            <MudSelectItem Value="70">70%</MudSelectItem>
-                            <MudSelectItem Value="80">80%</MudSelectItem>
+                            <MudSelectItem T="int?" Value="@((int?)null)">All</MudSelectItem>
+                            <MudSelectItem T="int?" Value="@((int?)0)">0%</MudSelectItem>
+                            <MudSelectItem T="int?" Value="@((int?)50)">50%</MudSelectItem>
+                            <MudSelectItem T="int?" Value="@((int?)70)">70%</MudSelectItem>
+                            <MudSelectItem T="int?" Value="@((int?)80)">80%</MudSelectItem>
                         </MudSelect>
                     </MudItem>
                     <MudItem xs="12" sm="6" md="3">
                         <MudSelect T="int?" Label="Max Confidence" Variant="Variant.Outlined" @bind-Value="filters.MaxConfidenceLevel">
-                            <MudSelectItem Value="@((int?)null)">All</MudSelectItem>
-                            <MudSelectItem Value="70">70%</MudSelectItem>
-                            <MudSelectItem Value="80">80%</MudSelectItem>
-                            <MudSelectItem Value="90">90%</MudSelectItem>
-                            <MudSelectItem Value="100">100%</MudSelectItem>
+                            <MudSelectItem T="int?" Value="@((int?)null)">All</MudSelectItem>
+                            <MudSelectItem T="int?" Value="@((int?)70)">70%</MudSelectItem>
+                            <MudSelectItem T="int?" Value="@((int?)80)">80%</MudSelectItem>
+                            <MudSelectItem T="int?" Value="@((int?)90)">90%</MudSelectItem>
+                            <MudSelectItem T="int?" Value="@((int?)100)">100%</MudSelectItem>
                         </MudSelect>
                     </MudItem>
                     <MudItem xs="12" sm="6" md="3">
