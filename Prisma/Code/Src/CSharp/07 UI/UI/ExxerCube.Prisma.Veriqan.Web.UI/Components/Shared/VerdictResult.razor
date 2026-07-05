@@ -33,10 +33,12 @@
 <MudPaper Class="pa-3 mb-4" Elevation="1">
     @if (Case.MarkedPagePngs.Count > 0)
     {
-        @foreach (var markedPage in _orderedMarkedPages)
-        {
-            <img src="@markedPage.DataUri" style="max-width:100%" alt="@markedPage.AltText" />
-        }
+        <div style="max-height:70vh; overflow-y:auto;">
+            @foreach (var markedPage in _orderedMarkedPages)
+            {
+                <img src="@markedPage.DataUri" style="max-width:100%" alt="@markedPage.AltText" />
+            }
+        </div>
     }
     else
     {
@@ -62,48 +64,60 @@
     }
     else
     {
-        <MudList T="string" Dense="true">
-            @foreach (var finding in _railFailFindings)
-            {
-                <MudListItem T="string">
-                    <ChildContent>
-                        <div class="vec-rail-card">
-                            <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-                                <MudChip T="string" Size="Size.Small" Color="Color.Error">@finding.CheckId</MudChip>
-                                @if (!IsUncatalogued(finding))
-                                {
-                                    <MudChip T="string" Size="Size.Small" Color="Color.Default">@finding.DofNumeral</MudChip>
-                                    <MudChip T="string" Size="Size.Small" Style="@TierChipStyle(finding.Tier)">@TierChipText(finding.Tier)</MudChip>
-                                }
-                                else
-                                {
-                                    <MudChip T="string" Size="Size.Small" Color="Color.Default">Sin catalogar</MudChip>
-                                }
+        @if (_railFailFindings.Count > 0)
+        {
+            <MudList T="string" Dense="true">
+                @foreach (var finding in _railFailFindings)
+                {
+                    <MudListItem T="string">
+                        <ChildContent>
+                            <div class="vec-rail-card">
+                                <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Error">@finding.CheckId</MudChip>
+                                    @if (!IsUncatalogued(finding))
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Default">@finding.DofNumeral</MudChip>
+                                        <MudChip T="string" Size="Size.Small" Style="@TierChipStyle(finding.Tier)">@TierChipText(finding.Tier)</MudChip>
+                                    }
+                                    else
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Default">Sin catalogar</MudChip>
+                                    }
+                                </div>
+                                <MudText Typo="Typo.body2" Class="mt-1">@finding.Label</MudText>
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">
+                                    Esperado: <code>@finding.Expected</code> · Observado: <code>@finding.Observed</code>
+                                </MudText>
                             </div>
-                            <MudText Typo="Typo.body2" Class="mt-1">@finding.Label</MudText>
-                            <MudText Typo="Typo.caption" Class="mud-text-secondary">
-                                Esperado: <code>@finding.Expected</code> · Observado: <code>@finding.Observed</code>
-                            </MudText>
-                        </div>
-                    </ChildContent>
-                </MudListItem>
-            }
-            @foreach (var finding in _railInsufficientFindings)
-            {
-                <MudListItem T="string">
-                    <ChildContent>
-                        <div class="vec-rail-card vec-rail-card-grey" style="opacity:0.75;">
-                            <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-                                <MudChip T="string" Size="Size.Small" Color="Color.Default">@finding.CheckId</MudChip>
-                                <MudChip T="string" Size="Size.Small" Color="Color.Default">@finding.DofNumeral</MudChip>
-                                <MudChip T="string" Size="Size.Small" Color="Color.Default">Datos insuficientes</MudChip>
-                            </div>
-                            <MudText Typo="Typo.body2" Class="mt-1">@finding.Label</MudText>
-                        </div>
-                    </ChildContent>
-                </MudListItem>
-            }
-        </MudList>
+                        </ChildContent>
+                    </MudListItem>
+                }
+            </MudList>
+        }
+        @if (_railInsufficientFindings.Count > 0)
+        {
+            <MudExpansionPanels>
+                <MudExpansionPanel Text="@($"{_railInsufficientFindings.Count} checks con datos insuficientes")">
+                    <MudList T="string" Dense="true">
+                        @foreach (var finding in _railInsufficientFindings)
+                        {
+                            <MudListItem T="string">
+                                <ChildContent>
+                                    <div class="vec-rail-card vec-rail-card-grey" style="opacity:0.75;">
+                                        <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Default">@finding.CheckId</MudChip>
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Default">@finding.DofNumeral</MudChip>
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Default">Datos insuficientes</MudChip>
+                                        </div>
+                                        <MudText Typo="Typo.body2" Class="mt-1">@finding.Label</MudText>
+                                    </div>
+                                </ChildContent>
+                            </MudListItem>
+                        }
+                    </MudList>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+        }
     }
     @if (Case.PassCount > 0)
     {
@@ -130,9 +144,12 @@
         _dataFailCount = failFindings.Count(f => !f.IsVisual);
 
         // Preserve Case.Findings order (matches the hero's numbered callouts — do not re-sort).
-        _railFailFindings = failFindings;
+        // Uncatalogued (engineering-gap) findings are hidden from the audience-facing rail;
+        // the aggregate counts in the banner above are computed upstream on the full finding
+        // set and may still include them (acceptable for the demo — display vs aggregate).
+        _railFailFindings = failFindings.Where(f => !IsUncatalogued(f)).ToList();
         _railInsufficientFindings = Case.Findings
-            .Where(f => f.Verdict == FindingVerdict.InsufficientData)
+            .Where(f => f.Verdict == FindingVerdict.InsufficientData && !IsUncatalogued(f))
             .ToList();
 
         _orderedMarkedPages = Case.MarkedPagePngs

@@ -227,11 +227,15 @@ public sealed class VerdictResultTests
     }
 
     /// <summary>
-    /// VLD-S5c FIX 4: an uncatalogued finding (engineering gap, not a compliance signal) must not
-    /// wear a law-shaped tier chip or a raw DofNumeral in front of a legal audience.
+    /// VUX-S4a (supersedes VLD-S5c FIX 4): an uncatalogued finding (engineering gap, not a
+    /// compliance signal) must be hidden ENTIRELY from the audience-facing rail — not merely
+    /// re-badged with a neutral chip. In front of a legal audience it must render nothing: no
+    /// CheckId, no law-shaped tier chip, no raw DofNumeral, and not even the "Sin catalogar" chip.
+    /// The neutral-chip branch remains in the component as a dead-safe fallback but is unreachable
+    /// because uncatalogued findings are filtered out of both rails in OnParametersSet.
     /// </summary>
     [Fact]
-    public async Task VerdictResult_UncataloguedFinding_ShowsNeutralChip_NotLawChip()
+    public async Task VerdictResult_UncataloguedFinding_IsHiddenFromRail()
     {
         await using var ctx = CreateContext();
         var findings = new List<DemoFinding>
@@ -248,7 +252,8 @@ public sealed class VerdictResultTests
         var cut = ctx.Render<VerdictResult>(builder =>
             builder.Add(c => c.Case, demoCase));
 
-        cut.Markup.ShouldContain("Sin catalogar");
+        cut.Markup.ShouldNotContain("CL-UNKNOWN");
+        cut.Markup.ShouldNotContain("Sin catalogar");
         cut.Markup.ShouldNotContain("Falla ley CONDUSEF — mejora sugerida al checklist del banco");
         cut.Markup.ShouldNotContain("Art. 99");
     }
