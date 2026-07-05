@@ -178,7 +178,14 @@ public sealed class FieldResolutionOrchestrator
 
     private static bool HasDisagreement<TValue>(IReadOnlyList<FieldCandidate<TValue>> candidates, FieldEscalationLadder ladder)
     {
-        var values = candidates.Where(c => c.HasValue).Select(c => c.Value).ToList();
+        // Only CREDIBLE candidates count as disagreeing peers. A stage-1 value we escalated
+        // past precisely because it failed the validator, fell below the confidence floor, or
+        // was self-reported invalid-format is a *rejected* candidate, not an opinion — including
+        // it here would make every validator/confidence-triggered recovery abstain (it always
+        // differs from the bad value it was recovering from). Excluding it lets a lone credible
+        // recovery win, while genuine divergence between two credible reads still abstains
+        // (honesty over recall, per the design's disagreement gate).
+        var values = candidates.Where(c => IsCredible(c, ladder)).Select(c => c.Value).ToList();
         if (values.Count < 2)
             return false;
 
@@ -189,6 +196,26 @@ public sealed class FieldResolutionOrchestrator
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// A candidate is "credible" — eligible to be treated as a genuine, competing opinion by the
+    /// disagreement gate — only when it carries a value that clears the same bars the escalation
+    /// triggers use to reject a value: it was found, it is not self-reported invalid-format, it
+    /// meets the ladder's confidence floor, and it passes the ladder's validator (when present).
+    /// </summary>
+    private static bool IsCredible<TValue>(FieldCandidate<TValue> candidate, FieldEscalationLadder ladder)
+    {
+        if (!candidate.HasValue)
+            return false;
+        if (candidate.Status == ExtractionStatus.ExtractedInvalidFormat)
+            return false;
+        if (candidate.Score < ladder.ConfidenceFloor)
+            return false;
+        if (ladder.Validator is not null && !ladder.Validator.IsValid(candidate.Value))
+            return false;
+
+        return true;
     }
 
     private static bool ValuesAgree<TValue>(TValue? a, TValue? b, double tolerance)
