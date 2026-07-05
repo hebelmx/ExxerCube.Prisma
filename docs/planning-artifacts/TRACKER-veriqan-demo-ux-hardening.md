@@ -103,3 +103,12 @@ Web.UI.Tests baseline was 50/50 (Epic C/D) — keep green.
 - STATUS: 4 scoped stories DONE + deployed-verified. VUX-S5 (canned-page parity refactor) is a
   surfaced owner design fork — NOT started (see VUX-S4b audit block). Awaiting adversarial-review
   verdict, then epic boundary → hand off.
+- 2026-07-05: Adversarial review (plan-completion-reviewer) verdict = COMPLETE WITH GAPS. Independently
+  reproduced build 0/0 + tests 50/50; could NOT refute global-interactivity boot (ran the compiled host:
+  /,/live,/health all 200, prerender markers intact, no render-mode conflict), hero bounding, MudBlazor
+  8.11 API validity, test integrity, or the S4b audit. Found 1 MAJOR (finding #1: "Sin incumplimientos"
+  reachable under a RED banner via the S4a filter) → FIXED + regression-tested (commit 43ce570e, tests
+  51/51). 1 MINOR (redundant per-page @rendermode) = harmless tech debt, reviewer said no action → left.
+- 2026-07-05: Image rebuilt w/ fix, container recreated (:18091), smoke /,/live,/health 200.
+  **EPIC COMPLETE.** Commits 788390f0 (S1–S4a) + 43ce570e (review fix), pushed to Liv. Stop at epic
+  boundary per scope discipline. VUX-S5 canned-page parity = owner decision, handed off (NOT started).
