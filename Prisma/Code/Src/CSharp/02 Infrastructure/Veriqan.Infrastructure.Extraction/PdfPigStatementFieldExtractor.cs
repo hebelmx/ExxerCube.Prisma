@@ -116,30 +116,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     // Constants / patterns — period/summary (Story 3.2)
     // -----------------------------------------------------------------------
 
-    /// <summary>
-    /// Spanish month abbreviation → 1-based month number map.
-    /// </summary>
-    private static readonly Dictionary<string, int> SpanishMonthMap =
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["ene"] = 1,  ["enero"] = 1,
-            ["feb"] = 2,  ["febrero"] = 2,
-            ["mar"] = 3,  ["marzo"] = 3,
-            ["abr"] = 4,  ["abril"] = 4,
-            ["may"] = 5,  ["mayo"] = 5,
-            ["jun"] = 6,  ["junio"] = 6,
-            ["jul"] = 7,  ["julio"] = 7,
-            ["ago"] = 8,  ["agosto"] = 8,
-            ["sep"] = 9,  ["septiembre"] = 9, ["sept"] = 9,
-            ["oct"] = 10, ["octubre"] = 10,
-            ["nov"] = 11, ["noviembre"] = 11,
-            ["dic"] = 12, ["diciembre"] = 12,
-        };
-
-    /// <summary>"d-mmm-yyyy" date format (e.g. "5-jul-2025", "04-ago-2025").</summary>
-    private static readonly Regex DateDashFormat = new(
-        @"^(\d{1,2})-([a-záéíóúñü]+)-(\d{4})$",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+    // Spanish month/date parsing lives in <see cref="StatementValueParsers"/> (shared with any
+    // future progressive-fallback stage) — see TryParseSpanishDate/RepairTruncatedDate below.
 
     /// <summary>
     /// Amount token: optional "$", digit-groups with commas, optional decimal.
@@ -915,7 +893,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
             // First token after "Periodo[:]" is the start date.
             var startToken = band[idx + 1].Text;
-            if (TryParseSpanishDate(startToken, out var startDate))
+            if (StatementValueParsers.TryParseSpanishDate(startToken, out var startDate))
                 return ExtractedField<DateOnly>.Found(startDate, locator);
 
             return ExtractedField<DateOnly>.Missing(locator);
@@ -1006,7 +984,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // Reconstruct the date string from all value tokens.
             // e.g. ["04", "de", "ago", "2025"] → "04 de ago 2025"
             var dateStr = string.Join(" ", valueWords.Select(x => x.Text)).Trim();
-            if (TryParseSpanishDate(dateStr, out var date))
+            if (StatementValueParsers.TryParseSpanishDate(dateStr, out var date))
                 return ExtractedField<DateOnly>.Found(date, BoundingBoxOf(valueWords, 1));
 
             return ExtractedField<DateOnly>.Missing(locator);
@@ -1059,11 +1037,11 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
             // Try concatenated (e.g. "25-ago-2025") or space-joined.
             var dateStr = string.Concat(dateTokens).Trim();
-            if (TryParseSpanishDate(dateStr, out var date))
+            if (StatementValueParsers.TryParseSpanishDate(dateStr, out var date))
                 return ExtractedField<DateOnly>.Found(date, BoundingBoxOf(valueWords, 1));
 
             dateStr = string.Join(" ", dateTokens).Trim();
-            if (TryParseSpanishDate(dateStr, out date))
+            if (StatementValueParsers.TryParseSpanishDate(dateStr, out date))
                 return ExtractedField<DateOnly>.Found(date, BoundingBoxOf(valueWords, 1));
 
             return ExtractedField<DateOnly>.Missing(locator);
@@ -1867,7 +1845,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         // ---- Operation date ---------------------------------------------------
         DateOnly? operationDate = null;
         var opDateToken = operationDateWords[0].Text;
-        if (TryParseSpanishDate(opDateToken, out var opDate))
+        if (StatementValueParsers.TryParseSpanishDate(opDateToken, out var opDate))
             operationDate = opDate;
 
         // ---- Charge date (X 96–157; year may be truncated to "dd-mmm-202") ---
@@ -1882,7 +1860,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         if (chargeDateWords.Count > 0)
         {
             var cdToken = chargeDateWords[0].Text;
-            if (TryParseSpanishDate(cdToken, out var cd))
+            if (StatementValueParsers.TryParseSpanishDate(cdToken, out var cd))
             {
                 chargeDate = cd;
             }
@@ -1914,8 +1892,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                     _timeProvider.GetUtcNow(),
                     ExxerCube.Prisma.Veriqan.Domain.VeriqanConstants.MexicoCityTimezone);
                 var repairedYear = periodYear ?? operationDate?.Year ?? clockLocalDate.Year;
-                var repaired = RepairTruncatedDate(cdToken, repairedYear);
-                if (repaired is not null && TryParseSpanishDate(repaired, out var repairedDate))
+                var repaired = StatementValueParsers.RepairTruncatedDate(cdToken, repairedYear);
+                if (repaired is not null && StatementValueParsers.TryParseSpanishDate(repaired, out var repairedDate))
                     chargeDate = repairedDate;
             }
         }
@@ -1998,27 +1976,6 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         => text == SignCreditAscii || text == SignCreditUnicode;
 
     /// <summary>
-    /// Attempts to repair a truncated date token where the year is missing its last digit,
-    /// e.g. "07-jul-202" → "07-jul-2025" when <paramref name="contextYear"/> is 2025.
-    /// </summary>
-    /// <param name="raw">Raw date token that may be truncated.</param>
-    /// <param name="contextYear">Year to use for repair (from operation date or current year).</param>
-    /// <returns>Repaired token, or <see langword="null"/> if repair cannot be applied.</returns>
-    private static string? RepairTruncatedDate(string raw, int contextYear)
-    {
-        // Pattern: "dd-mmm-YYY" — 3-digit year (missing last digit).
-        var m = Regex.Match(raw, @"^(\d{1,2}-[a-záéíóúñü]+-\d{3})$",
-            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-        if (!m.Success)
-            return null;
-
-        // Append the last digit of the context year.
-        var lastDigit = (contextYear % 10).ToString(
-            System.Globalization.CultureInfo.InvariantCulture);
-        return raw + lastDigit;
-    }
-
-    /// <summary>
     /// Groups words into horizontal Y-bands using a custom tolerance value.
     /// Uses the same first-match algorithm as <see cref="GroupIntoBands"/> but with
     /// a caller-specified tolerance instead of the header's <see cref="YBandTolerance"/>.
@@ -2049,56 +2006,6 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
         return result;
     }
-
-    // -----------------------------------------------------------------------
-    // Spanish date parsing
-    // -----------------------------------------------------------------------
-
-    /// <summary>
-    /// Parses Spanish-format dates:
-    /// <list type="bullet">
-    ///   <item><description>"d-mmm-yyyy" / "dd-mmm-yyyy": e.g. "5-jul-2025"</description></item>
-    ///   <item><description>"dd de mmm yyyy": e.g. "04 de ago 2025"</description></item>
-    /// </list>
-    /// Day-name prefixes ("lunes,") must be stripped by callers.
-    /// </summary>
-    private static bool TryParseSpanishDate(string? raw, out DateOnly result)
-    {
-        result = default;
-        if (string.IsNullOrWhiteSpace(raw))
-            return false;
-
-        var s = raw.Trim();
-
-        // Format 1: "d-mmm-yyyy"
-        var m = DateDashFormat.Match(s);
-        if (m.Success && TryGetMonth(m.Groups[2].Value, out var mo1))
-        {
-            if (int.TryParse(m.Groups[1].Value, out var d1)
-                && int.TryParse(m.Groups[3].Value, out var y1))
-            {
-                result = new DateOnly(y1, mo1, d1);
-                return true;
-            }
-        }
-
-        // Format 2: "dd de mmm yyyy" (must have exactly 4 tokens)
-        var parts = s.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length == 4
-            && string.Equals(parts[1], "de", StringComparison.OrdinalIgnoreCase)
-            && TryGetMonth(parts[2], out var mo2)
-            && int.TryParse(parts[0], out var d2)
-            && int.TryParse(parts[3], out var y2))
-        {
-            result = new DateOnly(y2, mo2, d2);
-            return true;
-        }
-
-        return false;
-    }
-
-    private static bool TryGetMonth(string abbr, out int month)
-        => SpanishMonthMap.TryGetValue(abbr, out month);
 
     // -----------------------------------------------------------------------
     // Amount parsing helpers

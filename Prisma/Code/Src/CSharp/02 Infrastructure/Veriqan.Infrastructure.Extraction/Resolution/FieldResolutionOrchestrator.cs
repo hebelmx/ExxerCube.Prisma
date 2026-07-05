@@ -24,18 +24,25 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Resolution;
 public sealed class FieldResolutionOrchestrator
 {
     private readonly IFieldEscalationLadderRegistry _ladderRegistry;
+    private readonly IFieldStageProvider _stageProvider;
     private readonly ILogger<FieldResolutionOrchestrator> _logger;
 
     /// <summary>
     /// Initializes a <see cref="FieldResolutionOrchestrator"/>.
     /// </summary>
     /// <param name="ladderRegistry">Per-field ladder lookup.</param>
+    /// <param name="stageProvider">
+    /// Resolves the higher-stage implementations available for a field when the caller does not
+    /// pass an explicit <c>higherStages</c> override to <see cref="ResolveAsync{TValue}"/>.
+    /// </param>
     /// <param name="logger">Logger used for escalation-stop diagnostics (missing stage, exhausted budget).</param>
     public FieldResolutionOrchestrator(
         IFieldEscalationLadderRegistry ladderRegistry,
+        IFieldStageProvider stageProvider,
         ILogger<FieldResolutionOrchestrator> logger)
     {
         _ladderRegistry = ladderRegistry ?? throw new ArgumentNullException(nameof(ladderRegistry));
+        _stageProvider = stageProvider ?? throw new ArgumentNullException(nameof(stageProvider));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -51,8 +58,11 @@ public sealed class FieldResolutionOrchestrator
     /// <param name="budget">Document-scoped cost guard (e.g. remaining LLM calls).</param>
     /// <param name="higherStages">
     /// Stage implementations available for rungs beyond stage 1, keyed by their
-    /// <see cref="IFieldResolutionStage{TValue}.Stage"/>. Defaults to none — the case for every
-    /// call in E1, since no higher stage exists yet.
+    /// <see cref="IFieldResolutionStage{TValue}.Stage"/>. When <see langword="null"/> (the normal
+    /// production path), the stages are instead obtained from the injected
+    /// <see cref="IFieldStageProvider"/>. When explicitly supplied (e.g. by a test), that list is
+    /// used as-is and the provider is not consulted — this preserves direct stage-injection for
+    /// callers that construct their own <see cref="IFieldResolutionStage{TValue}"/> fakes.
     /// </param>
     /// <param name="cancellationToken">Cancellation token propagated to every stage invocation.</param>
     /// <returns>
@@ -87,7 +97,10 @@ public sealed class FieldResolutionOrchestrator
             return Result<ExtractedField<TValue>>.WithSuccess(positionalField);
         }
 
-        var stages = higherStages ?? Array.Empty<IFieldResolutionStage<TValue>>();
+        // An explicit higherStages argument (test-injection contract) always wins and bypasses
+        // the provider; only when the caller passes null do we ask IFieldStageProvider — this
+        // keeps existing tests that inject stage fakes directly working unchanged.
+        var stages = higherStages ?? _stageProvider.GetHigherStages<TValue>(fieldKind);
 
         var stage1 = new PositionalStage<TValue>(positionalField);
         var stage1Context = new FieldResolutionContext<TValue>(

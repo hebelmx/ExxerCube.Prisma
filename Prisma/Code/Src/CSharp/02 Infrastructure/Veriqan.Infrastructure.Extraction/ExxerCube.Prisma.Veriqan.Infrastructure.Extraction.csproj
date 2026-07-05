@@ -28,6 +28,8 @@
     <PackageReference Include="CoenM.ImageSharp.ImageHash" />
     <!-- SixLabors.ImageSharp: pixel-format bridge from SkiaSharp BGRA bytes to Image<Rgba32> (VERIQAN-E2-S4) -->
     <PackageReference Include="SixLabors.ImageSharp" />
+    <!-- FuzzySharp: fuzzy/Levenshtein label matching for the progressive fallback-extraction chain (VERIQAN-E2) -->
+    <PackageReference Include="FuzzySharp" />
   </ItemGroup>
 
   <ItemGroup>

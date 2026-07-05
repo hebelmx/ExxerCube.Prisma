@@ -67,7 +67,7 @@ public sealed class EscalationSeamBehaviorNeutralTests
         var inner = CreateInner();
         var registry = new FieldEscalationLadderRegistry();
         var orchestrator = new FieldResolutionOrchestrator(
-            registry, XUnitLogger.CreateLogger<FieldResolutionOrchestrator>());
+            registry, new EmptyFieldStageProvider(), XUnitLogger.CreateLogger<FieldResolutionOrchestrator>());
         return new EscalatingStatementFieldExtractor(
             inner, orchestrator, XUnitLogger.CreateLogger<EscalatingStatementFieldExtractor>());
     }

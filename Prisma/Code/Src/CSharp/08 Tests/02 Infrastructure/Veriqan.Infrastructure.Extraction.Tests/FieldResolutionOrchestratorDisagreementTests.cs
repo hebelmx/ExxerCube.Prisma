@@ -47,7 +47,7 @@ public sealed class FieldResolutionOrchestratorDisagreementTests
     }
 
     private static FieldResolutionOrchestrator CreateOrchestrator(FieldEscalationLadder ladder) =>
-        new(new FixedLadderRegistry(ladder), XUnitLogger.CreateLogger<FieldResolutionOrchestrator>());
+        new(new FixedLadderRegistry(ladder), new EmptyFieldStageProvider(), XUnitLogger.CreateLogger<FieldResolutionOrchestrator>());
 
     // ── Tests ───────────────────────────────────────────────────────────────
 

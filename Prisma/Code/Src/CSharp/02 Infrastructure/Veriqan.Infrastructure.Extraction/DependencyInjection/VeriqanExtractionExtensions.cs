@@ -56,6 +56,12 @@ public static class VeriqanExtractionExtensions
         // (positional-only) until a later epic registers higher stages, so the decorator below is
         // behavior-neutral — it returns PdfPigStatementFieldExtractor's own result unchanged.
         services.TryAddSingleton<IFieldEscalationLadderRegistry, FieldEscalationLadderRegistry>();
+
+        // Stage-provider seam (E2 foundation): resolves the concrete higher-stage implementations
+        // for a field. The default returns none for every FieldKind, so — together with the empty
+        // ladders above — the orchestrator remains behavior-neutral until a later epic registers a
+        // real provider backed by fuzzy/semantic/LLM stages.
+        services.TryAddSingleton<IFieldStageProvider, EmptyFieldStageProvider>();
         services.TryAddSingleton<FieldResolutionOrchestrator>();
 
         services.TryAddSingleton<IStatementFieldExtractor>(sp => new EscalatingStatementFieldExtractor(
