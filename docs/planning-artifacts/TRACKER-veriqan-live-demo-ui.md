@@ -63,7 +63,26 @@ Epic B genuinely done, tests not hollow, host boots + /health 200. 2 confirmed d
   CheckId` for every finding. VLD-S4 must enrich from the LAW-vs-BRAND ledger JSON (veriqan-real-check-ledger-2026-07.json)
   + real per-finding tier + bbox rail data. Nothing renders it yet, so not a live bug — but it's the S4 landmine.
 
-## CARRIED RISK from S4b (raise at S5 checkpoint — legal-facing COPY, owner's call)
+## VLD-S5 OWNER DECISIONS (checkpoint 2026-07-04c — settled, build to these)
+- **Breaker:** relax the process-wide Polly breaker FOR THE DEMO HOST ONLY (Web.UI appsettings.json —
+  never shared/Worker config) so a few bad uploads can't blackout all cards, AND keep the per-card
+  LIVE/DEMO badge. Suggested: `Veriqan:Gate:Resilience:FailureRatio`=1.0 (only trips at 100% fail) or high
+  MinimumThroughput.
+- **Cold-start:** extend warm-up to a throwaway ProcessAsync at startup (best-effort, never crash) AND raise
+  effective live cap to ~45s. NOTE coupling: Gate `TimeoutPerRequest` (30s) fires INSIDE DemoRunner
+  `LiveTimeout`, so BOTH must rise — set demo `Veriqan:Gate:Resilience:TimeoutPerRequest`=60s +
+  `Veriqan:Demo:LiveTimeout`=45s → effective cap 45s.
+- **Tier chips (3-color ramp, owner-specified):** Both → **RED** "Falla checklist del banco Y ley CONDUSEF";
+  Condusef-only → **ORANGE** "Falla ley CONDUSEF — mejora sugerida al checklist del banco"; Bank-only →
+  **YELLOW** "Requisito del banco — no es mandato CONDUSEF". MudBlazor Color enum can't do distinct
+  orange vs yellow → use explicit hex (red #F44336 / orange #FF9800 / yellow #FBC02D). Update
+  VerdictResult.razor's TierChipColor/TierChipText (supersedes the S4b two-color placeholder + the AMBER
+  risk below is RESOLVED by this).
+- **Hero highlight limitation (accepted):** IMarkedPdfGenerator supports only red/amber (Bank→amber else
+  red), so the hero boxes can't match the 3-color rail exactly. Rail carries the precise tier; hero is
+  coarse. Do NOT change the generator (separate visual story).
+
+## CARRIED RISK from S4b (RESOLVED by the S5 tier-chip decision above — kept for history)
 - **[VLD-S5] AMBER tier-chip copy contradicts the domain model.** The design memo / epic-doc VLD-S4 AC
   mandates the Bank-tier chip read `"[AMBER · fails law only — not on bank checklist]"`. But
   `ChecklistTier.Bank` means the check is on the BANK's improvement checklist and is NOT a CONDUSEF law
@@ -127,7 +146,33 @@ than start it this session (it's a real multi-story epic with a design fork + an
 |-------|-------|--------|---------------------------|
 | VLD-S4a | RealCheckLedger + mapper enrichment + model fields | ✅ DONE | build 0/0; Web.UI.Tests 30/30 (19+11 new); commit fdae0ce2, pushed |
 | VLD-S4b | VerdictResult.razor + bUnit smoke | ✅ DONE | build 0/0; Web.UI.Tests 38/38 (31+1 smoke+6); bUnit 2.7.2 worked (no fallback); commit pending |
-| VLD-S5 | Live page (un-dark IDemoRunner) + hero chain | ⛔ design-fork checkpoint | — |
+| VLD-S5a | DemoRunner hero chain + demo resilience/warm-up config | ✅ DONE | build 0/0; Web.UI.Tests 41/41; commit 4e789962, pushed |
+| VLD-S5b | /live page (un-dark IDemoRunner) + LIVE/DEMO badge + 3-color tier chips | ✅ DONE | build 0/0; Web.UI.Tests 46/46; commit 4d3ade5b, pushed |
+| VLD-S5c | Adversarial-review remediation (upload crash, readiness gate, content-root) | ⏳ in progress | — |
+| VLD-S7 | Docker compose deploy | ⛔ owner checkpoint | — |
+
+## ADVERSARIAL REVIEW — S4+S5 (2026-07-04c, 2 reviewers: plan-completion + runtime qa)
+**Core claim CONFIRMED + runtime-proven:** pipeline genuinely un-darkened. QA booted the host, `/live`→200,
+a real ProcessAsync ran (58 findings, Signal=Red, 1.4MB marked-PDF). Honesty guarantees hold (no brand-as-law;
+truthful IsLive badge; exact 3-color tier chips). Could NOT refute the un-darkening, honesty, hero best-effort,
+resilience wiring, or build/test truth (46/46 real).
+**Findings → S5c remediation:**
+- **[CRITICAL→FIX] Upload circuit-crash.** `LiveVerification.OnFileSelectedAsync` reads the upload stream with
+  no try/catch → a >20MB upload throws IOException → circuit blanks in front of the audience. Wrap + friendly
+  error, respect the size guard, never crash. + test.
+- **[HIGH→FIX] Warm-up readiness gate not wired to UI.** `IPipelineReadiness` exists but the page only gates on
+  `_running`. AC: disable run until ready + "calentando…" chip. Inject + gate. + test.
+- **[DEPLOY→FIX] Content-root footgun (QA).** Launching the built DLL with CWD≠DLL-dir drops ALL appsettings.json
+  → demo silently stuck in canned mode. Pin `ContentRootPath = AppContext.BaseDirectory` in Program.cs (also
+  de-risks S7 container launch).
+- **[LOW→FIX] Uncatalogued chip.** Uncatalogued CheckId gets orange "Falla ley CONDUSEF" chip + raw DofNumeral
+  alongside the honest label. Render a neutral "Sin catalogar" chip + blank DofNumeral for uncatalogued.
+- **[MED→DEFER] Canned-fallback IsVisual undercount.** DemoDataService canned findings don't derive IsVisual from
+  the ledger → the ribbon undercounts VISUAL, but ONLY on the clearly-badged DATOS-DEMO fallback path (live path
+  is correct). Deferred — logged, low impact.
+- **[HIGH→DEFER w/ rationale] Staged narration.** AC wants paced stage captions; impl has one static caption. A
+  fake stage-timer would itself risk lying about elapsed time (real pipeline is one ProcessAsync call). Deferred
+  as polish; a future story can drive real stage events if the pipeline exposes them.
 | VLD-S7 | Docker compose deploy | ⛔ owner checkpoint | — |
 
 ## Log

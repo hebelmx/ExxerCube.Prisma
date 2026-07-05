@@ -3,7 +3,20 @@ using ExxerCube.Prisma.Veriqan.Web.UI.Options;
 using ExxerCube.Prisma.Veriqan.Web.UI.Services;
 using MudBlazor.Services;
 
-var builder = WebApplication.CreateBuilder(args);
+// VLD-S5c FIX 3: pin ContentRootPath to the assembly's own directory. The default
+// WebApplication.CreateBuilder(args) sets ContentRootPath = Environment.CurrentDirectory, so
+// launching the published DLL from any working directory other than its own folder (a common
+// deploy/ops footgun — e.g. a systemd unit or docker ENTRYPOINT with a different WorkingDirectory)
+// makes the host look for appsettings.json in the wrong place. When that lookup fails, ALL
+// configuration silently reads empty and the demo gets stuck in canned-fallback mode with no
+// visible error. Pinning to AppContext.BaseDirectory guarantees appsettings.json (which sits next
+// to the DLL) always loads, regardless of CWD. The repo-root walk-up used below for the
+// reference-bundle relative path is unaffected — it already starts from AppContext.BaseDirectory.
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = AppContext.BaseDirectory,
+});
 
 // ── Razor components + Interactive Server rendering (mirrors ExxerCube.Prisma.Web.UI) ──
 builder.Services.AddRazorComponents()

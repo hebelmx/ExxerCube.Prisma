@@ -6,6 +6,7 @@
 @inject IDemoRunner DemoRunner
 @inject IWebHostEnvironment WebHostEnvironment
 @inject ILogger<LiveVerification> Logger
+@inject IPipelineReadiness Readiness
 
 @* VLD-S5b: the first UI surface that actually drives IDemoRunner.RunAsync (and therefore, when
    Veriqan:Demo:LiveModeEnabled is true, the real IVerificationPipeline) end-to-end. Every fixture
@@ -26,6 +27,13 @@
 
 <MudGrid>
     <MudItem xs="12" md="4">
+        @if (!IsPipelineReady)
+        {
+            <MudAlert Severity="Severity.Info" Dense="true" Class="mb-3" Icon="@Icons.Material.Filled.HourglassTop">
+                Calentando el motor… (modo en vivo listo en unos segundos)
+            </MudAlert>
+        }
+
         <MudText Typo="Typo.h6" Class="mb-2">Casos de ejemplo</MudText>
         @foreach (var fixture in Fixtures)
         {
@@ -34,7 +42,7 @@
                 <MudText Typo="Typo.caption" Class="mud-text-secondary d-block mb-2">@fixture.Description</MudText>
                 <MudButton id="@FixtureButtonId(fixture)"
                            Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
-                           Disabled="_running"
+                           Disabled="@IsRunDisabled"
                            StartIcon="@Icons.Material.Filled.PlayCircle"
                            OnClick="@(() => RunFixtureAsync(fixture))">
                     Verificar en vivo
@@ -46,10 +54,10 @@
 
         <MudText Typo="Typo.h6" Class="mb-2">O suba su propio PDF</MudText>
         <MudPaper Class="pa-3" Elevation="1">
-            <MudFileUpload T="IBrowserFile" FilesChanged="OnFileSelectedAsync" Accept=".pdf" MaximumFileCount="1" Disabled="_running">
+            <MudFileUpload T="IBrowserFile" FilesChanged="OnFileSelectedAsync" Accept=".pdf" MaximumFileCount="1" Disabled="@IsRunDisabled">
                 <ActivatorContent>
                     <MudButton Variant="Variant.Outlined" Color="Color.Primary"
-                               StartIcon="@Icons.Material.Filled.AttachFile" Disabled="_running">
+                               StartIcon="@Icons.Material.Filled.AttachFile" Disabled="@IsRunDisabled">
                         Seleccionar archivo PDF…
                     </MudButton>
                 </ActivatorContent>
@@ -119,6 +127,13 @@
     /// <summary>Tied to the component lifetime so any in-flight work is cancelled on disposal.</summary>
     private readonly CancellationTokenSource _cts = new();
 
+    // VLD-S5c FIX 2: run controls stay disabled until the warm-up hosted service proves the
+    // pipeline can run at least once (IPipelineReadiness.IsReady), in addition to the existing
+    // "already running" gate — Readiness.IsReady is re-evaluated on every render, so a background
+    // warm-up flipping the flag is reflected the next time this component re-renders.
+    private bool IsPipelineReady => Readiness.IsReady;
+    private bool IsRunDisabled => _running || !IsPipelineReady;
+
     private static string FixtureButtonId(FixtureDescriptor fixture) =>
         $"run-{fixture.FileName.Replace(".", "-", StringComparison.Ordinal)}";
 
@@ -148,12 +163,33 @@
         if (file is null)
             return;
 
+        // VLD-S5c FIX 1: a file over the 20 MB cap (or any other read failure) throws IOException
+        // from OpenReadStream/CopyToAsync. Uncaught, that blanks the Blazor Server circuit in front
+        // of the audience. Catch it, show a friendly error, and never call RunAsync — this is only
+        // the user-upload path; the pre-vetted fixture-card path is untouched.
         byte[] bytes;
-        await using (var stream = file.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024, _cts.Token))
+        try
         {
+            await using var stream = file.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024, _cts.Token);
             using var memory = new MemoryStream();
             await stream.CopyToAsync(memory, _cts.Token);
             bytes = memory.ToArray();
+        }
+        catch (IOException ex)
+        {
+            Logger.LogWarning(ex, "Upload rejected for {FileName}: exceeds size cap or read failed", file.Name);
+            _running = false;
+            _error = "El archivo excede el tamaño máximo (20 MB) o no se pudo leer.";
+            StateHasChanged();
+            return;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Upload failed for {FileName}", file.Name);
+            _running = false;
+            _error = "El archivo excede el tamaño máximo (20 MB) o no se pudo leer.";
+            StateHasChanged();
+            return;
         }
 
         await RunAsync(bytes, file.Name);

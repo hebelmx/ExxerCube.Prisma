@@ -4,6 +4,7 @@ using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Web.UI.Components.Shared;
 using ExxerCube.Prisma.Veriqan.Web.UI.Models;
+using ExxerCube.Prisma.Veriqan.Web.UI.Services;
 using MudBlazor.Services;
 
 namespace ExxerCube.Prisma.Veriqan.Web.UI.Tests.Components;
@@ -223,5 +224,32 @@ public sealed class VerdictResultTests
         var aIndex = markup.IndexOf("CL-AAA", StringComparison.Ordinal);
         zIndex.ShouldBeGreaterThanOrEqualTo(0);
         aIndex.ShouldBeGreaterThan(zIndex);
+    }
+
+    /// <summary>
+    /// VLD-S5c FIX 4: an uncatalogued finding (engineering gap, not a compliance signal) must not
+    /// wear a law-shaped tier chip or a raw DofNumeral in front of a legal audience.
+    /// </summary>
+    [Fact]
+    public async Task VerdictResult_UncataloguedFinding_ShowsNeutralChip_NotLawChip()
+    {
+        await using var ctx = CreateContext();
+        var findings = new List<DemoFinding>
+        {
+            Fail(
+                "CL-UNKNOWN",
+                isVisual: false,
+                tier: ChecklistTier.Condusef,
+                label: RealCheckLedger.UncataloguedLabel,
+                dofNumeral: "Art. 99"),
+        };
+        var demoCase = BuildCase(VerdictSignal.Red, findings);
+
+        var cut = ctx.Render<VerdictResult>(builder =>
+            builder.Add(c => c.Case, demoCase));
+
+        cut.Markup.ShouldContain("Sin catalogar");
+        cut.Markup.ShouldNotContain("Falla ley CONDUSEF — mejora sugerida al checklist del banco");
+        cut.Markup.ShouldNotContain("Art. 99");
     }
 }

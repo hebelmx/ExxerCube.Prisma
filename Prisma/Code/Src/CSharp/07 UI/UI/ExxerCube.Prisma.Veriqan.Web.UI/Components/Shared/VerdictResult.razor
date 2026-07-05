@@ -70,8 +70,15 @@
                         <div class="vec-rail-card">
                             <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
                                 <MudChip T="string" Size="Size.Small" Color="Color.Error">@finding.CheckId</MudChip>
-                                <MudChip T="string" Size="Size.Small" Color="Color.Default">@finding.DofNumeral</MudChip>
-                                <MudChip T="string" Size="Size.Small" Style="@TierChipStyle(finding.Tier)">@TierChipText(finding.Tier)</MudChip>
+                                @if (!IsUncatalogued(finding))
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Default">@finding.DofNumeral</MudChip>
+                                    <MudChip T="string" Size="Size.Small" Style="@TierChipStyle(finding.Tier)">@TierChipText(finding.Tier)</MudChip>
+                                }
+                                else
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Default">Sin catalogar</MudChip>
+                                }
                             </div>
                             <MudText Typo="Typo.body2" Class="mt-1">@finding.Label</MudText>
                             <MudText Typo="Typo.caption" Class="mud-text-secondary">
@@ -147,6 +154,14 @@
         ChecklistTier.Bank => "background-color:#FBC02D;color:#000;",
         _ => string.Empty,
     };
+
+    // VLD-S5c FIX 4: an uncatalogued finding (an engineering gap in the check ledger, not a
+    // compliance signal) must not wear the orange/red/yellow tier chip or a DofNumeral — to a
+    // legal audience those can read as a real law citation. Render a neutral "Sin catalogar" chip
+    // and blank the DofNumeral instead; everything else about the finding (label, expected/observed)
+    // is unchanged.
+    private static bool IsUncatalogued(DemoFinding finding) =>
+        finding.Label == RealCheckLedger.UncataloguedLabel;
 
     private static string TierChipText(ChecklistTier tier) => tier switch
     {

@@ -6,12 +6,15 @@ using ExxerCube.Prisma.Veriqan.Web.UI.Components.Pages;
 using ExxerCube.Prisma.Veriqan.Web.UI.Models;
 using ExxerCube.Prisma.Veriqan.Web.UI.Services;
 using IndQuestResults;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging.Abstractions;
+using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 
 namespace ExxerCube.Prisma.Veriqan.Web.UI.Tests.Components;
 
@@ -24,7 +27,8 @@ namespace ExxerCube.Prisma.Veriqan.Web.UI.Tests.Components;
 /// </summary>
 public sealed class LiveVerificationTests
 {
-    private static Bunit.BunitContext CreateContext(IDemoRunner demoRunner, IWebHostEnvironment webHostEnvironment)
+    private static Bunit.BunitContext CreateContext(
+        IDemoRunner demoRunner, IWebHostEnvironment webHostEnvironment, IPipelineReadiness? readiness = null)
     {
         var ctx = new Bunit.BunitContext();
         // MudBlazor components invoke JS interop from OnAfterRenderAsync; "Loose" mode is the
@@ -34,7 +38,17 @@ public sealed class LiveVerificationTests
         ctx.Services.AddSingleton(demoRunner);
         ctx.Services.AddSingleton(webHostEnvironment);
         ctx.Services.AddSingleton<Microsoft.Extensions.Logging.ILogger<LiveVerification>>(NullLogger<LiveVerification>.Instance);
+        // Default to "warmed up" so pre-existing wiring tests (unrelated to VLD-S5c FIX 2) keep
+        // exercising the run controls in their enabled state.
+        ctx.Services.AddSingleton(readiness ?? CreateReadiness(isReady: true));
         return ctx;
+    }
+
+    private static IPipelineReadiness CreateReadiness(bool isReady)
+    {
+        var readiness = Substitute.For<IPipelineReadiness>();
+        readiness.IsReady.Returns(isReady);
+        return readiness;
     }
 
     /// <summary>
@@ -140,5 +154,57 @@ public sealed class LiveVerificationTests
         await cut.Find("#run-good-pdf").ClickAsync();
 
         cut.Markup.ShouldContain("simulated total failure");
+    }
+
+    /// <summary>
+    /// VLD-S5c FIX 1: an oversized (or otherwise unreadable) upload throws <see cref="IOException"/>
+    /// from <c>IBrowserFile.OpenReadStream</c>. Pre-fix, this was uncaught and blanked the Blazor
+    /// Server circuit. Post-fix, it must render a friendly error and never reach the runner.
+    /// </summary>
+    [Fact]
+    public async Task LiveVerification_OversizedUpload_ShowsError_NeverCallsRunner()
+    {
+        var demoRunner = Substitute.For<IDemoRunner>();
+        await using var ctx = CreateContext(demoRunner, CreateFakeWebHost());
+        var cut = ctx.Render<LiveVerification>();
+
+        var oversizedFile = Substitute.For<IBrowserFile>();
+        oversizedFile.Name.Returns("huge.pdf");
+        oversizedFile.OpenReadStream(Arg.Any<long>(), Arg.Any<CancellationToken>())
+            .Throws(new IOException("Supplied file with size 30000000 bytes exceeds the maximum of 20971520 bytes."));
+
+        var fileUpload = cut.FindComponent<MudFileUpload<IBrowserFile>>();
+        await cut.InvokeAsync(() => fileUpload.Instance.FilesChanged.InvokeAsync(oversizedFile));
+
+        cut.Markup.ShouldContain("El archivo excede el tamaño máximo (20 MB) o no se pudo leer.");
+        _ = demoRunner.DidNotReceive().RunAsync(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>VLD-S5c FIX 2: run controls stay disabled, with a visible indicator, until warm-up completes.</summary>
+    [Fact]
+    public async Task LiveVerification_NotWarmedUp_RunControlsDisabled()
+    {
+        var demoRunner = Substitute.For<IDemoRunner>();
+        var readiness = CreateReadiness(isReady: false);
+        await using var ctx = CreateContext(demoRunner, CreateFakeWebHost(), readiness);
+
+        var cut = ctx.Render<LiveVerification>();
+
+        cut.Markup.ShouldContain("Calentando el motor");
+        cut.Find("#run-good-pdf").HasAttribute("disabled").ShouldBeTrue();
+    }
+
+    /// <summary>Counterpart of <see cref="LiveVerification_NotWarmedUp_RunControlsDisabled"/>: once ready, no indicator and enabled controls.</summary>
+    [Fact]
+    public async Task LiveVerification_WarmedUp_RunControlsEnabled_NoIndicator()
+    {
+        var demoRunner = Substitute.For<IDemoRunner>();
+        var readiness = CreateReadiness(isReady: true);
+        await using var ctx = CreateContext(demoRunner, CreateFakeWebHost(), readiness);
+
+        var cut = ctx.Render<LiveVerification>();
+
+        cut.Markup.ShouldNotContain("Calentando el motor");
+        cut.Find("#run-good-pdf").HasAttribute("disabled").ShouldBeFalse();
     }
 }
