@@ -869,6 +869,22 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
             var bandY = w.BoundingBox.Bottom;
             var band = GetBand(bands, bandY);
+
+            // Guard: the matched "Tarjeta" token must be the LEFTMOST word on its band (the
+            // product HEADING, e.g. "Tarjeta de Crédito BSSB") and must be directly followed
+            // by "de" then a word beginning "Créd"/"Cred". This rejects the real Banamex-style
+            // label row "Número de tarjeta 4111000000070001", where "tarjeta" is the 3rd token
+            // (preceded by "Número de"), not the 1st — same left column, so the X<200 filter
+            // above does not discriminate it.
+            if (band.Count == 0 || !ReferenceEquals(band[0], w))
+                continue;
+            if (band.Count < 3)
+                continue;
+            if (!string.Equals(band[1].Text, "de", StringComparison.OrdinalIgnoreCase))
+                continue;
+            if (!NormalizeText(band[2].Text).StartsWith("CRED", StringComparison.Ordinal))
+                continue;
+
             var text = BandText(band);
 
             if (!string.IsNullOrWhiteSpace(text))
@@ -2396,6 +2412,13 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             if (neighborhoodTokens.Length > 0)
                 neighborhood = string.Join(" ", neighborhoodTokens).Trim();
         }
+
+        // Guard: a genuine mailing address always carries a 5-digit postal code. On the real
+        // Banamex-style layout this X/Y window instead captures the right-column PERIOD/PAGO
+        // block ("Periodo: ... Fecha de corte: ... Pago mínimo: ..."), which has no postal
+        // code — abstain rather than return that block as a false address.
+        if (postalCode is null)
+            return ExtractedField<ExtractedAddress>.Missing(FieldLocator.PageHint(1));
 
         var locator = BoundingBoxOf(addressWords, 1);
         return ExtractedField<ExtractedAddress>.Found(
