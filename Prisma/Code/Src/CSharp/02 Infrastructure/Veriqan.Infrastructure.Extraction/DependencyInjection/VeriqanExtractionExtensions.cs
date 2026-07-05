@@ -1,8 +1,10 @@
 using System;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Resolution;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.DependencyInjection;
 
@@ -45,7 +47,21 @@ public static class VeriqanExtractionExtensions
         // AddVeriqanExtraction is called (TryAdd semantics: first registration wins).
         services.TryAddSingleton<IPasswordProvider, NullPasswordProvider>();
 
-        services.AddSingleton<IStatementFieldExtractor, PdfPigStatementFieldExtractor>();
+        // Stage 1 (positional) — registered as its own concrete singleton so the strangler-fig
+        // decorator below can wrap it directly without resolving IStatementFieldExtractor
+        // recursively through itself.
+        services.TryAddSingleton<PdfPigStatementFieldExtractor>();
+
+        // Per-field progressive fallback-extraction chain (E1): every FieldKind ladder is empty
+        // (positional-only) until a later epic registers higher stages, so the decorator below is
+        // behavior-neutral — it returns PdfPigStatementFieldExtractor's own result unchanged.
+        services.TryAddSingleton<IFieldEscalationLadderRegistry, FieldEscalationLadderRegistry>();
+        services.TryAddSingleton<FieldResolutionOrchestrator>();
+
+        services.TryAddSingleton<IStatementFieldExtractor>(sp => new EscalatingStatementFieldExtractor(
+            sp.GetRequiredService<PdfPigStatementFieldExtractor>(),
+            sp.GetRequiredService<FieldResolutionOrchestrator>(),
+            sp.GetRequiredService<ILogger<EscalatingStatementFieldExtractor>>()));
 
         return services;
     }
