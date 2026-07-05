@@ -2,15 +2,16 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 @using ExxerCube.Prisma.Web.UI.Models
-@using Microsoft.AspNetCore.SignalR.Client
 @using ExxerCube.Prisma.Application.Services
 @using ExxerCube.Prisma.Domain.Events
 @using ExxerCube.Prisma.Domain.Models
 @using ExxerCube.Prisma.Domain.Interfaces
+@implements IDisposable
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject IProcessingMetricsService MetricsService
 @inject HealthCheckService HealthCheckService
+@inject IEventPublisher EventPublisher
 
 <PageTitle>OCR Processing Dashboard</PageTitle>
 
@@ -204,51 +205,30 @@
 
 @code {
     private DashboardMetrics metrics = new();
-    private HubConnection? hubConnection;
+    private IDisposable? _eventSubscription;
     private List<ChartSeries> processingTimeSeries = new();
     private string[] timeLabels = new string[0];
     private List<ChartSeries> successErrorSeries = new();
 
     protected override async Task OnInitializedAsync()
     {
-        await InitializeSignalR();
+        SubscribeToDomainEvents();
         await LoadRealData();
     }
 
-    private async Task InitializeSignalR()
+    private void SubscribeToDomainEvents()
     {
-        try
-        {
-            hubConnection = new HubConnectionBuilder()
-                .WithUrl(Navigation.ToAbsoluteUri("/processingHub"))
-                .Build();
-
-            hubConnection.On<DashboardMetrics>("MetricsUpdated", OnMetricsUpdated);
-
-            // FU1 (PRISMA-E5-S2): bridge the SignalREventBroadcaster path to a live DOM refresh.
-            // The broadcaster pushes DomainEvents via Ember's transport-agnostic SendToAllAsync, which
-            // emits on the fixed wire method "ReceiveMessage" — NOT the typed "MetricsUpdated" (that only
-            // fires from explicit ProcessingHub.UpdateMetrics calls). On any domain event we simply re-pull
-            // the current metrics from the service. Payload is bound as object (a JsonElement) and ignored:
-            // DomainEvent is abstract, so binding to it would fail client-side and the handler would never run.
-            hubConnection.On<object>("ReceiveMessage", _ => InvokeAsync(async () =>
+        // PRISMA-E5-S2 fix: the component runs server-side, so building a loopback SignalR
+        // connection is a needless round-trip through an authorized hub with no cookie
+        // attached (401, caught, silently dropped). Subscribe directly to
+        // the in-process IEventPublisher Rx stream instead — on any domain event, re-pull
+        // the current metrics from the service, mirroring the old "ReceiveMessage" handler.
+        _eventSubscription = EventPublisher.GetAllEventsStream()
+            .Subscribe(_ => InvokeAsync(async () =>
             {
                 await LoadRealData();
-                StateHasChanged(); // LoadRealData only sets fields; a hub callback must request its own render.
+                StateHasChanged(); // LoadRealData only sets fields; the subscription must request its own render.
             }));
-
-            await hubConnection.StartAsync();
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Failed to connect to real-time updates: {ex.Message}", Severity.Warning);
-        }
-    }
-
-    private void OnMetricsUpdated(DashboardMetrics updatedMetrics)
-    {
-        metrics = updatedMetrics;
-        StateHasChanged();
     }
 
     private async Task LoadRealData()
@@ -363,11 +343,8 @@
         };
     }
 
-    public async ValueTask DisposeAsync()
+    public void Dispose()
     {
-        if (hubConnection != null)
-        {
-            await hubConnection.DisposeAsync();
-        }
+        _eventSubscription?.Dispose();
     }
 }

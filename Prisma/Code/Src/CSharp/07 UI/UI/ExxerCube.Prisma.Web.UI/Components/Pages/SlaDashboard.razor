@@ -8,9 +8,9 @@
 @using ExxerCube.Prisma.Domain.Enum
 @using ExxerCube.Prisma.Web.UI.Models
 @using MudBlazor
-@using Microsoft.AspNetCore.SignalR.Client
 @using Microsoft.AspNetCore.Components
-@implements IAsyncDisposable
+@implements IDisposable
+@inject IEventPublisher EventPublisher
 
 <PageTitle>SLA Monitoring Dashboard</PageTitle>
 
@@ -342,8 +342,8 @@
     private DateTime? filterEndDate;
     private string? filterFileId;
 
-    // SignalR
-    private HubConnection? hubConnection;
+    // Domain event subscription
+    private IDisposable? _eventSubscription;
     private System.Threading.Timer? countdownTimer;
 
     [Inject] private SLATrackingService SLATrackingService { get; set; } = null!;
@@ -355,58 +355,24 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await InitializeSignalR();
+        SubscribeToDomainEvents();
         await LoadDataAsync();
         StartCountdownTimer();
     }
 
-    private async Task InitializeSignalR()
+    private void SubscribeToDomainEvents()
     {
-        try
-        {
-            hubConnection = new HubConnectionBuilder()
-                .WithUrl(Navigation.ToAbsoluteUri("/processingHub"))
-                .Build();
-
-            // Listen for SLA updates
-            hubConnection.On<string>("SLAStatusUpdated", OnSLAStatusUpdated);
-            hubConnection.On<string, string>("SLAEscalated", OnSLAEscalated);
-
-            // FU1 (PRISMA-E5-S2): bridge the SignalREventBroadcaster path to a live DOM refresh.
-            // The broadcaster pushes DomainEvents via Ember's SendToAllAsync on the fixed wire method
-            // "ReceiveMessage" — NOT the typed "SLAStatusUpdated"/"SLAEscalated" (those only fire from
-            // explicit ProcessingHub calls). On any domain event we re-pull the current SLA data. Payload
-            // is bound as object (a JsonElement) and ignored: the abstract DomainEvent cannot be bound client-side.
-            hubConnection.On<object>("ReceiveMessage", _ => InvokeAsync(async () =>
+        // PRISMA-E5-S2 fix: the component runs server-side, so building a loopback SignalR
+        // connection is a needless round-trip through an authorized hub with no cookie
+        // attached (401, caught, silently dropped). Subscribe directly to
+        // the in-process IEventPublisher Rx stream instead — on any domain event, re-pull
+        // the current SLA data, mirroring the old "ReceiveMessage" handler.
+        _eventSubscription = EventPublisher.GetAllEventsStream()
+            .Subscribe(_ => InvokeAsync(async () =>
             {
                 await LoadDataAsync();
-                StateHasChanged(); // ensure the hub-triggered reload re-renders the SLA surface.
+                StateHasChanged(); // ensure the event-triggered reload re-renders the SLA surface.
             }));
-
-            await hubConnection.StartAsync();
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Failed to connect to real-time updates: {ex.Message}", Severity.Warning);
-        }
-    }
-
-    private void OnSLAStatusUpdated(string fileId)
-    {
-        InvokeAsync(async () =>
-        {
-            await LoadDataAsync();
-            Snackbar.Add($"SLA status updated for case: {fileId}", Severity.Info);
-        });
-    }
-
-    private void OnSLAEscalated(string fileId, string escalationLevel)
-    {
-        InvokeAsync(async () =>
-        {
-            await LoadDataAsync();
-            Snackbar.Add($"Case {fileId} escalated to {escalationLevel}", Severity.Warning);
-        });
     }
 
     private void StartCountdownTimer()
@@ -643,14 +609,10 @@
         return Color.Default;
     }
 
-    public async ValueTask DisposeAsync()
+    public void Dispose()
     {
         countdownTimer?.Dispose();
-
-        if (hubConnection is not null)
-        {
-            await hubConnection.DisposeAsync();
-        }
+        _eventSubscription?.Dispose();
     }
 }
 
