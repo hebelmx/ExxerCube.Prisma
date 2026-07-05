@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Veriqan.Application.Ports;
+using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -82,12 +83,83 @@ public sealed class PipelineWarmupHostedService : IHostedService
 
             _readiness.MarkReady();
             _logger.LogInformation("Pipeline warm-up completed.");
+
+            // VLD-S5a: also drive ONE throwaway IVerificationPipeline.ProcessAsync run so
+            // PDFium/JIT are warm before the first real audience click. Deliberately best-effort
+            // and self-contained (own try/catch) — its outcome must never affect the readiness
+            // flag already set above, and must never throw out of this method.
+            await WarmUpPipelineRunAsync(scope, warmupKey, cancellationToken);
         }
         catch (Exception ex)
         {
             // Never throw out of a hosted service background task — log and move on. The demo
             // still functions in canned mode; live mode stays not-ready until warm-up recovers.
             _logger.LogWarning(ex, "Pipeline warm-up failed (non-fatal); live mode NOT ready.");
+        }
+    }
+
+    /// <summary>
+    /// Best-effort: resolves <see cref="IVerificationPipeline"/> from <paramref name="scope"/>
+    /// (the same warm-up scope already used for the reference-data bundle load) and drives ONE
+    /// throwaway run against a demo fixture PDF, purely to pay the JIT/native-interop (PDFium,
+    /// etc.) cold-start cost here instead of on the first real audience submission.
+    /// </summary>
+    /// <remarks>
+    /// Never throws and never affects <see cref="IPipelineReadiness"/> — a container image that
+    /// does not ship the demo fixture tree (the known S7 container-path gap) simply skips the
+    /// <c>ProcessAsync</c> step; the CSV-only warm-up above still ran and readiness was already
+    /// marked.
+    /// </remarks>
+    private async Task WarmUpPipelineRunAsync(
+        AsyncServiceScope scope,
+        StatementContextKey warmupKey,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var repoRoot = DemoCorpusPathResolver.FindRepoRoot(AppContext.BaseDirectory);
+            if (repoRoot is null)
+            {
+                _logger.LogInformation(
+                    "Pipeline warm-up: repository root not found from {BaseDirectory} — skipping " +
+                    "the throwaway ProcessAsync warm-up run (CSV warm-up above already completed).",
+                    AppContext.BaseDirectory);
+                return;
+            }
+
+            var warmupPdfPath = Path.Combine(repoRoot, "Prisma", "Fixtures", "PRP2", "demo", "good.pdf");
+            if (!File.Exists(warmupPdfPath))
+            {
+                _logger.LogInformation(
+                    "Pipeline warm-up: demo fixture PDF not found at {Path} — skipping the " +
+                    "throwaway ProcessAsync warm-up run (CSV warm-up above already completed).",
+                    warmupPdfPath);
+                return;
+            }
+
+            var pdfBytes = await File.ReadAllBytesAsync(warmupPdfPath, cancellationToken);
+            var pipeline = scope.ServiceProvider.GetRequiredService<IVerificationPipeline>();
+            var submission = new StatementSubmission(
+                Pdf: pdfBytes,
+                FileName: "warmup-good.pdf",
+                ContextKey: warmupKey);
+
+            var result = await pipeline.ProcessAsync(submission, cancellationToken);
+            if (result.IsFailure)
+            {
+                _logger.LogInformation(
+                    "Pipeline warm-up: throwaway ProcessAsync run did not succeed (non-fatal, " +
+                    "warm-up purpose only): {Error}",
+                    result.Error ?? "<none>");
+                return;
+            }
+
+            _logger.LogInformation("Pipeline warm-up: throwaway ProcessAsync run completed.");
+        }
+        catch (Exception ex)
+        {
+            // Never throw — this step is pure JIT/native-interop warm-up, not a readiness gate.
+            _logger.LogInformation(ex, "Pipeline warm-up: throwaway ProcessAsync run threw (non-fatal).");
         }
     }
 }

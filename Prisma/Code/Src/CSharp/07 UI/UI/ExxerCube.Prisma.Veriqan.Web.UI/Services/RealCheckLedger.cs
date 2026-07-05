@@ -83,6 +83,29 @@ public sealed class RealCheckLedger
     public bool TryGet(string checkId, out RealCheckLedgerEntry? entry) =>
         _entriesByCheckId.TryGetValue(checkId, out entry);
 
+    /// <summary>
+    /// Builds a <c>CheckId</c> → <see cref="ChecklistTier"/> map for the given
+    /// <paramref name="checkIds"/> (VLD-S5, for <c>IMarkedPdfGenerator</c>'s
+    /// <c>checklistTiers</c> parameter — Bank-tier findings render amber, everything else red).
+    /// </summary>
+    /// <param name="checkIds">The <c>RuleFinding.CheckId</c> values to look up.</param>
+    /// <returns>
+    /// A map containing an entry for every catalogued <paramref name="checkIds"/> value.
+    /// An uncatalogued CheckId is simply omitted — callers (and <c>IMarkedPdfGenerator</c>
+    /// itself) already treat an absent key as the conservative default (red highlight).
+    /// </returns>
+    public IReadOnlyDictionary<string, ChecklistTier> TierMap(IEnumerable<string> checkIds)
+    {
+        var map = new Dictionary<string, ChecklistTier>(StringComparer.Ordinal);
+        foreach (var checkId in checkIds)
+        {
+            if (TryGet(checkId, out var entry) && entry is not null)
+                map[checkId] = entry.Tier;
+        }
+
+        return map;
+    }
+
     // ── loading ──────────────────────────────────────────────────────────────
 
     private static IReadOnlyDictionary<string, RealCheckLedgerEntry> LoadEntries()

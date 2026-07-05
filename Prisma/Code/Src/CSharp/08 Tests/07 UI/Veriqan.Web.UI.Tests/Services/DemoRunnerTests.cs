@@ -3,6 +3,7 @@ using ExxerCube.Prisma.Veriqan.Domain.Entities;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Reporting;
 using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 using ExxerCube.Prisma.Veriqan.Web.UI.Models;
 using ExxerCube.Prisma.Veriqan.Web.UI.Options;
@@ -35,6 +36,9 @@ public sealed class DemoRunnerTests
     private readonly IServiceScopeFactory _scopeFactory = Substitute.For<IServiceScopeFactory>();
     private readonly IVerificationOutcomeMapper _mapper = Substitute.For<IVerificationOutcomeMapper>();
     private readonly DemoDataService _demoDataService = new();
+    private readonly IMarkedPdfGenerator _markedPdfGenerator = Substitute.For<IMarkedPdfGenerator>();
+    private readonly IMarkedPageRenderer _markedPageRenderer = Substitute.For<IMarkedPageRenderer>();
+    private readonly RealCheckLedger _realCheckLedger = new();
 
     private DemoRunner CreateSut(DemoOptions demoOptions, long maxSizeBytes = PdfExtractionOptions.DefaultMaxSizeBytes)
     {
@@ -52,6 +56,9 @@ public sealed class DemoRunnerTests
             _demoDataService,
             MsOptions.Create(demoOptions),
             MsOptions.Create(new PdfExtractionOptions { MaxSizeBytes = maxSizeBytes }),
+            _markedPdfGenerator,
+            _markedPageRenderer,
+            _realCheckLedger,
             NullLogger<DemoRunner>.Instance);
     }
 
@@ -173,5 +180,156 @@ public sealed class DemoRunnerTests
 
         _scopeFactory.DidNotReceive().CreateScope();
         _ = _pipeline.DidNotReceive().ProcessAsync(Arg.Any<StatementSubmission>(), Arg.Any<CancellationToken>());
+    }
+
+    // ------------------------------------------------------------------------------------------
+    // VLD-S5a — marked-PDF → PNG hero chain wiring.
+    // ------------------------------------------------------------------------------------------
+
+    private static readonly byte[] MarkedPdfBytes = [0x25, 0x50, 0x44, 0x46, 0x2D, 0x6D, 0x61, 0x72, 0x6B]; // "%PDF-mark"
+
+    private static VerificationOutcome CreateOutcomeWithOneFailFinding() =>
+        new(
+            Job: new VerificationJob(Guid.NewGuid(), "dummy-hash", DateTimeOffset.UtcNow, VerificationJobStatus.Completed),
+            Summary: null!,
+            Findings:
+            [
+                RuleFinding.Fail(
+                    checkId: "CL-21",
+                    technique: TechniqueClass.Deterministic,
+                    severity: FindingSeverity.Critical,
+                    engineVersion: "1.0.0"),
+            ]);
+
+    /// <summary>
+    /// Configures <see cref="_mapper"/> to capture whatever <c>markedPagePngs</c> dictionary
+    /// <see cref="DemoRunner"/> passes it, and echo it back on the returned
+    /// <see cref="DemoStatementCase.MarkedPagePngs"/> — isolating the assertion to DemoRunner's
+    /// OWN threading responsibility rather than the real mapper's enrichment logic (VLD-S4a,
+    /// already covered elsewhere).
+    /// </summary>
+    private void ConfigureMapperToEchoPngs()
+    {
+        _mapper.Map(
+                Arg.Any<VerificationOutcome>(),
+                Arg.Any<IReadOnlyDictionary<int, byte[]>>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                var pngs = callInfo.ArgAt<IReadOnlyDictionary<int, byte[]>>(1);
+                return Result<DemoStatementCase>.WithSuccess(new DemoStatementCase
+                {
+                    FileName = callInfo.ArgAt<string>(2),
+                    MarkedPagePngs = pngs,
+                });
+            });
+    }
+
+    [Fact]
+    public async Task RunAsync_LiveSuccess_MarkedPagePngsThreadedFromRenderer()
+    {
+        var sut = CreateSut(new DemoOptions { LiveModeEnabled = true });
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        _pipeline.ProcessAsync(Arg.Any<StatementSubmission>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<VerificationOutcome>.WithSuccess(CreateOutcomeWithOneFailFinding())));
+
+        _markedPdfGenerator.Generate(
+                Arg.Any<byte[]>(),
+                Arg.Any<IReadOnlyList<RuleFinding>>(),
+                Arg.Any<CancellationToken>(),
+                Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>())
+            .Returns(Result<byte[]>.WithSuccess(MarkedPdfBytes));
+
+        var rendererPngs = new Dictionary<int, byte[]> { [1] = [0x01, 0x02, 0x03] };
+        _markedPageRenderer.RenderFindingPages(
+                Arg.Any<byte[]>(),
+                Arg.Any<IReadOnlyList<RuleFinding>>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Result<IReadOnlyDictionary<int, byte[]>>.WithSuccess(rendererPngs));
+
+        ConfigureMapperToEchoPngs();
+
+        var result = await sut.RunAsync(SmallPdf, "estado-cuenta-visa-demo.pdf", cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.IsLive.ShouldBeTrue();
+        result.Value.Case.MarkedPagePngs.ShouldContainKey(1);
+        result.Value.Case.MarkedPagePngs[1].ShouldBe(rendererPngs[1]);
+
+        _markedPdfGenerator.Received(1).Generate(
+            Arg.Any<byte[]>(),
+            Arg.Any<IReadOnlyList<RuleFinding>>(),
+            Arg.Any<CancellationToken>(),
+            Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>());
+        _markedPageRenderer.Received(1).RenderFindingPages(
+            MarkedPdfBytes,
+            Arg.Any<IReadOnlyList<RuleFinding>>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RunAsync_MarkedPdfGenerationFails_LiveRunStillSucceedsWithEmptyPngs()
+    {
+        var sut = CreateSut(new DemoOptions { LiveModeEnabled = true });
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        _pipeline.ProcessAsync(Arg.Any<StatementSubmission>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<VerificationOutcome>.WithSuccess(CreateOutcomeWithOneFailFinding())));
+
+        _markedPdfGenerator.Generate(
+                Arg.Any<byte[]>(),
+                Arg.Any<IReadOnlyList<RuleFinding>>(),
+                Arg.Any<CancellationToken>(),
+                Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>())
+            .Returns(Result<byte[]>.WithFailure("simulated marked-PDF generation failure"));
+
+        ConfigureMapperToEchoPngs();
+
+        var result = await sut.RunAsync(SmallPdf, "estado-cuenta-visa-demo.pdf", cancellationToken);
+
+        // The missing hero must NOT sink an otherwise-good live verdict.
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.IsLive.ShouldBeTrue();
+        result.Value.Case.MarkedPagePngs.ShouldBeEmpty();
+
+        // Generation failed, so the renderer must never even be called.
+        _markedPageRenderer.DidNotReceive().RenderFindingPages(
+            Arg.Any<byte[]>(),
+            Arg.Any<IReadOnlyList<RuleFinding>>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RunAsync_RendererFails_LiveRunStillSucceedsWithEmptyPngs()
+    {
+        var sut = CreateSut(new DemoOptions { LiveModeEnabled = true });
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        _pipeline.ProcessAsync(Arg.Any<StatementSubmission>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<VerificationOutcome>.WithSuccess(CreateOutcomeWithOneFailFinding())));
+
+        _markedPdfGenerator.Generate(
+                Arg.Any<byte[]>(),
+                Arg.Any<IReadOnlyList<RuleFinding>>(),
+                Arg.Any<CancellationToken>(),
+                Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>())
+            .Returns(Result<byte[]>.WithSuccess(MarkedPdfBytes));
+
+        _markedPageRenderer.RenderFindingPages(
+                Arg.Any<byte[]>(),
+                Arg.Any<IReadOnlyList<RuleFinding>>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Result<IReadOnlyDictionary<int, byte[]>>.WithFailure("simulated rendering failure"));
+
+        ConfigureMapperToEchoPngs();
+
+        var result = await sut.RunAsync(SmallPdf, "estado-cuenta-visa-demo.pdf", cancellationToken);
+
+        // The missing hero must NOT sink an otherwise-good live verdict.
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.IsLive.ShouldBeTrue();
+        result.Value.Case.MarkedPagePngs.ShouldBeEmpty();
     }
 }

@@ -1,5 +1,6 @@
 using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Reporting;
 using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 using ExxerCube.Prisma.Veriqan.Web.UI.Options;
 using IndQuestResults;
@@ -38,6 +39,9 @@ public sealed class DemoRunner : IDemoRunner
     private readonly DemoDataService _demoDataService;
     private readonly IOptions<DemoOptions> _demoOptions;
     private readonly IOptions<PdfExtractionOptions> _pdfExtractionOptions;
+    private readonly IMarkedPdfGenerator _markedPdfGenerator;
+    private readonly IMarkedPageRenderer _markedPageRenderer;
+    private readonly RealCheckLedger _realCheckLedger;
     private readonly ILogger<DemoRunner> _logger;
 
     /// <summary>Initializes a new <see cref="DemoRunner"/>.</summary>
@@ -47,6 +51,9 @@ public sealed class DemoRunner : IDemoRunner
         DemoDataService demoDataService,
         IOptions<DemoOptions> demoOptions,
         IOptions<PdfExtractionOptions> pdfExtractionOptions,
+        IMarkedPdfGenerator markedPdfGenerator,
+        IMarkedPageRenderer markedPageRenderer,
+        RealCheckLedger realCheckLedger,
         ILogger<DemoRunner> logger)
     {
         _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
@@ -54,6 +61,9 @@ public sealed class DemoRunner : IDemoRunner
         _demoDataService = demoDataService ?? throw new ArgumentNullException(nameof(demoDataService));
         _demoOptions = demoOptions ?? throw new ArgumentNullException(nameof(demoOptions));
         _pdfExtractionOptions = pdfExtractionOptions ?? throw new ArgumentNullException(nameof(pdfExtractionOptions));
+        _markedPdfGenerator = markedPdfGenerator ?? throw new ArgumentNullException(nameof(markedPdfGenerator));
+        _markedPageRenderer = markedPageRenderer ?? throw new ArgumentNullException(nameof(markedPageRenderer));
+        _realCheckLedger = realCheckLedger ?? throw new ArgumentNullException(nameof(realCheckLedger));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -181,10 +191,14 @@ public sealed class DemoRunner : IDemoRunner
                 pipelineResult.Error ?? "Live verification pipeline failed.");
         }
 
-        // VLD-S5: wire IMarkedPdfGenerator -> IMarkedPageRenderer to produce the hero PNGs; empty for now.
+        var outcome = pipelineResult.Value!;
+        var pagePngs = BuildHeroPngs(pdf, outcome, fileName, callerToken, linkedCts.Token, out bool callerCancelled);
+        if (callerCancelled)
+            return ResultExtensions.Cancelled<DemoRunOutcome>();
+
         var mapped = _mapper.Map(
-            pipelineResult.Value!,
-            markedPagePngs: new Dictionary<int, byte[]>(),
+            outcome,
+            markedPagePngs: pagePngs,
             fileName,
             linkedCts.Token);
 
@@ -198,6 +212,63 @@ public sealed class DemoRunner : IDemoRunner
         }
 
         return Result<DemoRunOutcome>.WithSuccess(new DemoRunOutcome(mapped.Value!, IsLive: true));
+    }
+
+    /// <summary>
+    /// Best-effort marked-PDF → PNG hero chain: <see cref="IMarkedPdfGenerator"/> then
+    /// <see cref="IMarkedPageRenderer"/>. A missing hero must never sink an otherwise-good live
+    /// verdict, so any FAILURE from either step is logged and swallowed, returning an empty
+    /// dictionary. The one thing that must NOT be swallowed is the caller's own cancellation —
+    /// <paramref name="callerCancelled"/> is set when <paramref name="callerToken"/> tripped
+    /// during either call, so <see cref="RunLiveAsync"/> can surface a genuine
+    /// <c>Cancelled</c> result instead of silently falling through with an empty hero.
+    /// </summary>
+    private IReadOnlyDictionary<int, byte[]> BuildHeroPngs(
+        byte[] pdf,
+        VerificationOutcome outcome,
+        string fileName,
+        CancellationToken callerToken,
+        CancellationToken linkedToken,
+        out bool callerCancelled)
+    {
+        callerCancelled = false;
+        var emptyPngs = new Dictionary<int, byte[]>();
+
+        var tierMap = _realCheckLedger.TierMap(outcome.Findings.Select(f => f.CheckId));
+
+        var generateResult = _markedPdfGenerator.Generate(pdf, outcome.Findings, linkedToken, tierMap);
+        if (callerToken.IsCancellationRequested)
+        {
+            callerCancelled = true;
+            return emptyPngs;
+        }
+
+        if (generateResult.IsFailure)
+        {
+            _logger.LogWarning(
+                "Marked-PDF generation failed for {FileName}: {Error}. Returning the live verdict " +
+                "without a hero image.",
+                fileName, generateResult.Error ?? "<none>");
+            return emptyPngs;
+        }
+
+        var renderResult = _markedPageRenderer.RenderFindingPages(generateResult.Value!, outcome.Findings, linkedToken);
+        if (callerToken.IsCancellationRequested)
+        {
+            callerCancelled = true;
+            return emptyPngs;
+        }
+
+        if (renderResult.IsFailure)
+        {
+            _logger.LogWarning(
+                "Marked-page rendering failed for {FileName}: {Error}. Returning the live verdict " +
+                "without a hero image.",
+                fileName, renderResult.Error ?? "<none>");
+            return emptyPngs;
+        }
+
+        return renderResult.Value!;
     }
 
     private DemoStatementCase ResolveCannedCase(string fileName) =>

@@ -3,6 +3,7 @@ using ExxerCube.Prisma.Veriqan.Domain.Entities;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Reporting;
 using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 using ExxerCube.Prisma.Veriqan.Web.UI.Models;
 using ExxerCube.Prisma.Veriqan.Web.UI.Options;
@@ -68,12 +69,28 @@ public sealed class DemoRunnerScopeLifetimeTests
         var scopeFactory = Substitute.For<IServiceScopeFactory>();
         scopeFactory.CreateScope().Returns(spyScope);
 
+        // Hero chain is not this test's concern (scope lifetime is) — the generator is
+        // configured to fail so DemoRunner's best-effort fallback kicks in with an empty PNG
+        // dict, without needing to also configure the renderer.
+        var markedPdfGenerator = Substitute.For<IMarkedPdfGenerator>();
+        markedPdfGenerator.Generate(
+                Arg.Any<byte[]>(),
+                Arg.Any<IReadOnlyList<RuleFinding>>(),
+                Arg.Any<CancellationToken>(),
+                Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>())
+            .Returns(Result<byte[]>.WithFailure("hero chain not under test here"));
+        var markedPageRenderer = Substitute.For<IMarkedPageRenderer>();
+        var realCheckLedger = new RealCheckLedger();
+
         var sut = new DemoRunner(
             scopeFactory,
             mapper,
             demoDataService,
             MsOptions.Create(new DemoOptions { LiveModeEnabled = true }),
             MsOptions.Create(new PdfExtractionOptions()),
+            markedPdfGenerator,
+            markedPageRenderer,
+            realCheckLedger,
             NullLogger<DemoRunner>.Instance);
 
         var result = await sut.RunAsync(SmallPdf, "good.pdf", TestContext.Current.CancellationToken);
