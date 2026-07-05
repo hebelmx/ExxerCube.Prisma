@@ -1,7 +1,44 @@
 # HANDOFF — Veriqan progressive fallback chain implementation (next orchestrator)
 
 **For:** the next agent running `/bmad-orchestrator` on branch `Liv`.
-**Date:** 2026-07-05. **Status:** design complete + pushed; **implementation not started.**
+**Date:** 2026-07-05. **Status:** design complete + pushed. **E1 DONE + reviewed + pushed (4 commits).**
+
+---
+
+## ⏩ RESUME STATE (updated 2026-07-05, after E1)
+
+**Owner ruled (AskUserQuestion):** session scope = **PI-1 slice (E1+E2+E3-stub+E6.S6.2)**;
+decision #3 = **new `ExtractedByInference` status** (built). Decision #1 defaulted to the
+**recommended** path (FuzzySharp direct + Levenshtein copied to `Veriqan.Domain`) — not yet
+owner-ratified, revisit at E2 start. Decisions #2 (embeddings) / #4 (product gate) untouched (E4/E7).
+
+**E1 COMPLETE** — commits `30b81d83` (A: domain vocab), `df8d389b` (B: seam+decorator+DI),
+`7a42d1c5` (D: behavior-neutral harness), `36994e3a` (fix: disagreement-gate defect from the
+adversarial review). All on `Liv`, pushed. Behavior-neutral **proven** (E1.D harness: 0 field-status
+divergence across all 5 demo fixtures) and **honesty-gated** (demo E2E 5/5 unchanged throughout).
+Baselines: Extraction.Tests **199/199**, Validation **531/531**, Orchestration **122/122**, builds 0/0.
+
+**Adversarial review of E1 ran** (general-purpose skeptic vs the design doc). Verdict: E1 sound to
+build E2 on. One real defect found + **fixed** (`36994e3a`): the disagreement gate anchored on the
+discarded stage-1 value, so validator/confidence-triggered recovery always abstained — now only
+CREDIBLE candidates count as disagreeing peers. Three forward items tracked (see tasks #4/#5/#7):
+- **E2 (task #4):** registering the first non-empty ladder activates the decorator's dormant
+  `StatementModel` rebuild path → ADD a rebuild-path facet-preservation test.
+- **E3/E7 (task #5):** ladder-exhaustion honesty — a final still-invalid candidate is emitted as
+  `Extracted` (false-confident); decide clean-abstain policy WITHOUT breaking `ExtractedInvalidFormat`
+  propagation (intersects E7 decision #4).
+- **E5 (task #7):** `FieldCandidate` carries no LLM model/hash → orchestrator can't stamp full LLM
+  provenance yet; extend it when building the LLM stage.
+
+**NEXT = E2** (fuzzy/Levenshtein), with **E3-stub validators alongside** (design: E3 grows WITH E2)
+and **E6.S6.2** startable in parallel. ⚠️ E2 is the heaviest epic: it changes real extraction output,
+needs **PdfPig-coordinate** calibration (NOT pdftotext — P1.4 lesson) and the throwaway coord-dump
+diagnostic rebuilt, and MUST be verified against the **full verdict pipeline** (§4 below), not just
+extractor units. Tracker tasks #4 (E2), #5 (E3-stub), #6 (E6.S6.2), #7 (E5 fwd) carry the detail.
+
+---
+
+### (original handoff below — still the canonical spec for E2–E7)
 
 You are picking up a clean boundary. Phase 1 (extractor recalibration) shipped. Phase 2
 (fallback-chain **design**) shipped as docs only. Your job is to **orchestrate the
