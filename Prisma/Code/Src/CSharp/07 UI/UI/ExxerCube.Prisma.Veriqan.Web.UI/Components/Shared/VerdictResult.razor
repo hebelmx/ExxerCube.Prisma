@@ -1,8 +1,10 @@
 @* Reusable, parameterized presentational component: renders ONE DemoStatementCase, regardless
    of whether it came from the live pipeline (VerificationOutcomeMapper) or the canned
    DemoDataService. No @page route, no injected services, no data fetching — purely a view over
-   the Case parameter. VLD-S5 will consume it from a live page; the 4 canned pages are untouched
-   by this story. *@
+   the Case parameter. VUX-S5 consolidated the tier-grouped findings tables (previously
+   duplicated in /red and /yellow) plus an optional check-grid, narrative slot, and extracted-
+   fields table into this single component so all three pages (/red, /yellow, /live) share one
+   rich findings view. *@
 
 <VerdictBanner Signal="@Case.Signal">
     <MudGrid Justify="Justify.Center">
@@ -28,7 +30,31 @@
     }
 </MudPaper>
 
-<!-- Hero image: marked page(s), or graceful placeholder -->
+@if (ShowCheckGrid)
+{
+    <MudText Typo="Typo.h6" Class="mb-2">Grilla de verificación</MudText>
+    <MudPaper Class="pa-4 mb-4" Elevation="1">
+        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+            @foreach (var f in Case.Findings)
+            {
+                var cssClass = f.Verdict switch
+                {
+                    FindingVerdict.Pass => "vec-check-cell vec-check-pass",
+                    FindingVerdict.Fail => "vec-check-cell vec-check-fail",
+                    _ => "vec-check-cell vec-check-insufficient",
+                };
+                var tooltip = f.Verdict == FindingVerdict.Fail
+                    ? $"{f.CheckId}: {f.Label} | Esperado: {f.Expected} | Observado: {f.Observed}"
+                    : $"{f.CheckId}: {f.Label}";
+                <MudTooltip Text="@tooltip">
+                    <div class="@cssClass">@f.CheckId.Replace("CL-", "")</div>
+                </MudTooltip>
+            }
+        </div>
+    </MudPaper>
+}
+
+<!-- Hero image: marked page(s), marked-PDF iframe, or graceful placeholder -->
 <MudText Typo="Typo.h6" Class="mb-2">Página marcada</MudText>
 <MudPaper Class="pa-3 mb-4" Elevation="1">
     @if (Case.MarkedPagePngs.Count > 0)
@@ -39,6 +65,10 @@
                 <img src="@markedPage.DataUri" style="max-width:100%" alt="@markedPage.AltText" />
             }
         </div>
+    }
+    else if (Case.MarkedPdfPath is not null)
+    {
+        <iframe class="vec-pdf-frame" src="@Case.MarkedPdfPath" title="PDF marcado" />
     }
     else
     {
@@ -55,90 +85,200 @@
     }
 </MudPaper>
 
-<!-- The rail: Fail (in finding order) -> InsufficientData -> collapsed Pass summary -->
+<!-- Findings: tier-grouped tables (CONDUSEF-RED, Bank-YELLOW) -> InsufficientData accordion -> Pass summary -->
 <MudText Typo="Typo.h6" Class="mb-2">Hallazgos</MudText>
-<MudPaper Elevation="1" Class="mb-4">
-    @* The "no violations" state must reflect the TRUE aggregate compliance state (upstream
-       Case counts), NOT the rendered rail — the rail lists exclude uncatalogued engineering-gap
-       findings (VUX-S4a). Gating on the filtered lists here would let a RED case whose only
-       finding is an uncatalogued gap show "Sin incumplimientos" under a RED banner (contradiction).
-       Mirror the ribbon above, which is already gated on the unfiltered aggregate. *@
-    @if (Case.FailCount == 0 && Case.InsufficientDataCount == 0)
-    {
+@* The "no violations" state must reflect the TRUE aggregate compliance state (upstream
+   Case counts), NOT the rendered tables — the tables exclude uncatalogued engineering-gap
+   findings (VUX-S4a). Gating on the filtered lists here would let a RED case whose only
+   finding is an uncatalogued gap show "Sin incumplimientos" under a RED banner (contradiction).
+   Mirror the ribbon above, which is already gated on the unfiltered aggregate. *@
+@if (Case.FailCount == 0 && Case.InsufficientDataCount == 0)
+{
+    <MudPaper Elevation="1" Class="mb-4">
         <MudAlert Severity="Severity.Success" Dense="true" Class="ma-2">Sin incumplimientos.</MudAlert>
-    }
-    else
-    {
-        @if (_railFailFindings.Count > 0)
+    </MudPaper>
+}
+else
+{
+    <MudText Typo="Typo.h6" Class="mb-2">
+        <MudIcon Icon="@Icons.Material.Filled.Cancel" Color="Color.Error" Style="vertical-align:middle;" />
+        Incumplimiento CONDUSEF (RED)
+    </MudText>
+    <MudPaper Elevation="1" Class="mb-4">
+        @if (_condusefFailFindings.Count == 0)
         {
-            <MudList T="string" Dense="true">
-                @foreach (var finding in _railFailFindings)
-                {
-                    <MudListItem T="string">
-                        <ChildContent>
-                            <div class="vec-rail-card">
-                                <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-                                    <MudChip T="string" Size="Size.Small" Color="Color.Error">@finding.CheckId</MudChip>
-                                    @if (!IsUncatalogued(finding))
-                                    {
+            <MudAlert Severity="Severity.Success" Dense="true" Class="ma-2">Sin incumplimientos CONDUSEF.</MudAlert>
+        }
+        else
+        {
+            <MudTable Items="_condusefFailFindings" Dense="true" Hover="true" HorizontalScrollbar="true" Class="mb-0">
+                <HeaderContent>
+                    <MudTh>Check</MudTh>
+                    <MudTh>Tier</MudTh>
+                    <MudTh>Verificación</MudTh>
+                    <MudTh>Severidad</MudTh>
+                    <MudTh>Esperado</MudTh>
+                    <MudTh>Observado</MudTh>
+                    <MudTh>DOF</MudTh>
+                    <MudTh>
+                        <MudTooltip Text="Confianza = certeza de la lectura de los campos verificados (extracción), no del veredicto; 100% indica que ningún campo verificado tuvo baja confianza.">
+                            Confianza
+                        </MudTooltip>
+                    </MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>
+                        <MudChip T="string" Size="Size.Small" Color="Color.Error">@context.CheckId</MudChip>
+                    </MudTd>
+                    <MudTd>
+                        <MudChip T="string" Size="Size.Small" Style="@TierChipStyle(context.Tier)">@TierChipText(context.Tier)</MudChip>
+                    </MudTd>
+                    <MudTd>@context.Label</MudTd>
+                    <MudTd><MudText Typo="Typo.caption">@context.Severity</MudText></MudTd>
+                    <MudTd><code>@context.Expected</code></MudTd>
+                    <MudTd><code style="color:var(--mud-palette-error);">@context.Observed</code></MudTd>
+                    <MudTd><MudText Typo="Typo.caption">@context.DofNumeral</MudText></MudTd>
+                    <MudTd>
+                        <MudText Typo="Typo.caption">
+                            @(context.Verdict == FindingVerdict.InsufficientData
+                                ? "—"
+                                : $"{context.Confidence * 100:F0}%")
+                        </MudText>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudPaper>
+
+    <MudText Typo="Typo.h6" Class="mb-2">
+        <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Warning" Style="vertical-align:middle;" />
+        Oportunidades de mejora del banco (YELLOW)
+    </MudText>
+    <MudPaper Elevation="1" Class="mb-4">
+        @if (_bankFailFindings.Count == 0)
+        {
+            <MudAlert Severity="Severity.Info" Dense="true" Class="ma-2">Sin oportunidades de mejora en este caso.</MudAlert>
+        }
+        else
+        {
+            <MudTable Items="_bankFailFindings" Dense="true" Hover="true" HorizontalScrollbar="true" Class="mb-0">
+                <HeaderContent>
+                    <MudTh>Check</MudTh>
+                    <MudTh>Verificación</MudTh>
+                    <MudTh>Severidad</MudTh>
+                    <MudTh>Esperado</MudTh>
+                    <MudTh>Observado</MudTh>
+                    <MudTh>DOF</MudTh>
+                    <MudTh>
+                        <MudTooltip Text="Confianza = certeza de la lectura de los campos verificados (extracción), no del veredicto; 100% indica que ningún campo verificado tuvo baja confianza.">
+                            Confianza
+                        </MudTooltip>
+                    </MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>
+                        <MudChip T="string" Size="Size.Small" Style="@TierChipStyle(ChecklistTier.Bank)">@context.CheckId</MudChip>
+                    </MudTd>
+                    <MudTd>@context.Label</MudTd>
+                    <MudTd><MudText Typo="Typo.caption">@context.Severity</MudText></MudTd>
+                    <MudTd><code>@context.Expected</code></MudTd>
+                    <MudTd><code style="color:var(--mud-palette-warning);">@context.Observed</code></MudTd>
+                    <MudTd><MudText Typo="Typo.caption">@context.DofNumeral</MudText></MudTd>
+                    <MudTd>
+                        <MudText Typo="Typo.caption">
+                            @(context.Verdict == FindingVerdict.InsufficientData
+                                ? "—"
+                                : $"{context.Confidence * 100:F0}%")
+                        </MudText>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudPaper>
+
+    @if (_railInsufficientFindings.Count > 0)
+    {
+        <MudExpansionPanels Class="mb-4">
+            <MudExpansionPanel Text="@($"{_railInsufficientFindings.Count} checks con datos insuficientes")">
+                <MudList T="string" Dense="true">
+                    @foreach (var finding in _railInsufficientFindings)
+                    {
+                        <MudListItem T="string">
+                            <ChildContent>
+                                <div class="vec-rail-card vec-rail-card-grey" style="opacity:0.75;">
+                                    <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Default">@finding.CheckId</MudChip>
                                         <MudChip T="string" Size="Size.Small" Color="Color.Default">@finding.DofNumeral</MudChip>
-                                        <MudChip T="string" Size="Size.Small" Style="@TierChipStyle(finding.Tier)">@TierChipText(finding.Tier)</MudChip>
-                                    }
-                                    else
-                                    {
-                                        <MudChip T="string" Size="Size.Small" Color="Color.Default">Sin catalogar</MudChip>
-                                    }
-                                </div>
-                                <MudText Typo="Typo.body2" Class="mt-1">@finding.Label</MudText>
-                                <MudText Typo="Typo.caption" Class="mud-text-secondary">
-                                    Esperado: <code>@finding.Expected</code> · Observado: <code>@finding.Observed</code>
-                                </MudText>
-                            </div>
-                        </ChildContent>
-                    </MudListItem>
-                }
-            </MudList>
-        }
-        @if (_railInsufficientFindings.Count > 0)
-        {
-            <MudExpansionPanels>
-                <MudExpansionPanel Text="@($"{_railInsufficientFindings.Count} checks con datos insuficientes")">
-                    <MudList T="string" Dense="true">
-                        @foreach (var finding in _railInsufficientFindings)
-                        {
-                            <MudListItem T="string">
-                                <ChildContent>
-                                    <div class="vec-rail-card vec-rail-card-grey" style="opacity:0.75;">
-                                        <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-                                            <MudChip T="string" Size="Size.Small" Color="Color.Default">@finding.CheckId</MudChip>
-                                            <MudChip T="string" Size="Size.Small" Color="Color.Default">@finding.DofNumeral</MudChip>
-                                            <MudChip T="string" Size="Size.Small" Color="Color.Default">Datos insuficientes</MudChip>
-                                        </div>
-                                        <MudText Typo="Typo.body2" Class="mt-1">@finding.Label</MudText>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Default">Datos insuficientes</MudChip>
                                     </div>
-                                </ChildContent>
-                            </MudListItem>
-                        }
-                    </MudList>
-                </MudExpansionPanel>
-            </MudExpansionPanels>
-        }
+                                    <MudText Typo="Typo.body2" Class="mt-1">@finding.Label</MudText>
+                                </div>
+                            </ChildContent>
+                        </MudListItem>
+                    }
+                </MudList>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
     }
-    @if (Case.PassCount > 0)
-    {
-        <MudText Typo="Typo.caption" Class="pa-2 mud-text-secondary">
-            @Case.PassCount checks superados
-        </MudText>
-    }
-</MudPaper>
+}
+@if (Case.PassCount > 0)
+{
+    <MudText Typo="Typo.caption" Class="pa-2 mud-text-secondary">
+        @Case.PassCount checks superados
+    </MudText>
+}
+
+@if (Narrative is not null)
+{
+    <MudPaper Class="pa-4 mb-4" Elevation="1">
+        @Narrative
+    </MudPaper>
+}
+
+@if (ShowExtractedFields)
+{
+    <MudText Typo="Typo.h6" Class="mb-2">Datos del documento</MudText>
+    <MudPaper Class="pa-3 mb-4" Elevation="1">
+        <MudSimpleTable Dense="true">
+            <tbody>
+                <tr><td><b>Banco</b></td><td>@Case.ExtractedFields.BankName</td></tr>
+                <tr><td><b>Cuenta</b></td><td>@Case.ExtractedFields.MaskedAccount</td></tr>
+                <tr><td><b>Producto</b></td><td>@Case.ExtractedFields.ProductType</td></tr>
+                <tr><td><b>Período</b></td><td>@Case.ExtractedFields.Period</td></tr>
+                <tr><td><b>Saldo final</b></td><td>@Case.ExtractedFields.ClosingBalance.ToString("C2")</td></tr>
+                <tr><td><b>Movimientos</b></td><td>@Case.ExtractedFields.MovementCount</td></tr>
+                <tr><td><b>Páginas</b></td><td>@Case.ExtractedFields.PageCount</td></tr>
+            </tbody>
+        </MudSimpleTable>
+    </MudPaper>
+}
 
 @code {
-    /// <summary>The demo case to render — the sole input to this presentational component.</summary>
+    /// <summary>The demo case to render — the primary input to this presentational component.</summary>
     [Parameter, EditorRequired] public DemoStatementCase Case { get; set; } = null!;
+
+    /// <summary>
+    /// When <see langword="true"/>, renders the flat "Grilla de verificación" chip grid (one cell
+    /// per finding, colored by verdict) above the hero image. Off by default so /live stays lean.
+    /// </summary>
+    [Parameter] public bool ShowCheckGrid { get; set; }
+
+    /// <summary>
+    /// Optional page-specific narrative content (e.g. /yellow's "¿Qué significa YELLOW?" panel),
+    /// rendered inside its own titled-less MudPaper after the findings tables.
+    /// </summary>
+    [Parameter] public RenderFragment? Narrative { get; set; }
+
+    /// <summary>
+    /// When <see langword="true"/>, renders the "Datos del documento" extracted-fields table
+    /// below the findings (and narrative, if present).
+    /// </summary>
+    [Parameter] public bool ShowExtractedFields { get; set; }
 
     private int _visualFailCount;
     private int _dataFailCount;
-    private IReadOnlyList<DemoFinding> _railFailFindings = [];
+    private IReadOnlyList<DemoFinding> _condusefFailFindings = [];
+    private IReadOnlyList<DemoFinding> _bankFailFindings = [];
     private IReadOnlyList<DemoFinding> _railInsufficientFindings = [];
     private IReadOnlyList<MarkedPage> _orderedMarkedPages = [];
 
@@ -149,10 +289,17 @@
         _dataFailCount = failFindings.Count(f => !f.IsVisual);
 
         // Preserve Case.Findings order (matches the hero's numbered callouts — do not re-sort).
-        // Uncatalogued (engineering-gap) findings are hidden from the audience-facing rail;
+        // Uncatalogued (engineering-gap) findings are hidden from the audience-facing tables;
         // the aggregate counts in the banner above are computed upstream on the full finding
         // set and may still include them (acceptable for the demo — display vs aggregate).
-        _railFailFindings = failFindings.Where(f => !IsUncatalogued(f)).ToList();
+        var cataloguedFailFindings = failFindings.Where(f => !IsUncatalogued(f)).ToList();
+        _condusefFailFindings = cataloguedFailFindings
+            .Where(f => f.Tier == ChecklistTier.Condusef || f.Tier == ChecklistTier.Both)
+            .ToList();
+        _bankFailFindings = cataloguedFailFindings
+            .Where(f => f.Tier == ChecklistTier.Bank)
+            .ToList();
+
         _railInsufficientFindings = Case.Findings
             .Where(f => f.Verdict == FindingVerdict.InsufficientData && !IsUncatalogued(f))
             .ToList();
@@ -179,9 +326,8 @@
 
     // VLD-S5c FIX 4: an uncatalogued finding (an engineering gap in the check ledger, not a
     // compliance signal) must not wear the orange/red/yellow tier chip or a DofNumeral — to a
-    // legal audience those can read as a real law citation. Render a neutral "Sin catalogar" chip
-    // and blank the DofNumeral instead; everything else about the finding (label, expected/observed)
-    // is unchanged.
+    // legal audience those can read as a real law citation. It is filtered out of both tier
+    // tables entirely (VUX-S4a); this helper remains the single source of truth for that filter.
     private static bool IsUncatalogued(DemoFinding finding) =>
         finding.Label == RealCheckLedger.UncataloguedLabel;
 

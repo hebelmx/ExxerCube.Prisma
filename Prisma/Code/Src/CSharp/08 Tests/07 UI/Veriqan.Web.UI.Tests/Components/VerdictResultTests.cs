@@ -5,6 +5,7 @@ using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Web.UI.Components.Shared;
 using ExxerCube.Prisma.Veriqan.Web.UI.Models;
 using ExxerCube.Prisma.Veriqan.Web.UI.Services;
+using MudBlazor;
 using MudBlazor.Services;
 
 namespace ExxerCube.Prisma.Veriqan.Web.UI.Tests.Components;
@@ -26,6 +27,14 @@ public sealed class VerdictResultTests
         // instead, which is the standard bUnit setup for testing MudBlazor components headless.
         ctx.JSInterop.Mode = Bunit.JSRuntimeMode.Loose;
         ctx.Services.AddMudServices();
+        // VUX-S5: the consolidated tier tables render MudTooltip (Confianza column header + the
+        // optional check-grid cells), and MudBlazor 8.x renders tooltips through a popover — that
+        // throws "Missing <MudPopoverProvider />" unless one is registered against the shared
+        // IPopoverService in this BunitContext. The real app gets this from its layout; MudPopoverProvider
+        // has no ChildContent/Body parameter so it cannot be added via ctx.RenderTree.Add (that API
+        // requires a wrapping parameter) — rendering it as its own root component registers it with
+        // the context's IPopoverService, which is all MudTooltip needs.
+        ctx.Render<MudPopoverProvider>();
         return ctx;
     }
 
@@ -66,7 +75,9 @@ public sealed class VerdictResultTests
         IReadOnlyList<DemoFinding> findings,
         IReadOnlyDictionary<int, byte[]>? markedPagePngs = null,
         ExxerCube.Prisma.Veriqan.Domain.Enums.BlockReason? blockReason = null,
-        string? blockDetail = null)
+        string? blockDetail = null,
+        string? markedPdfPath = null,
+        DemoExtractedFields? extractedFields = null)
     {
         var passCount = findings.Count == 0 ? 12 : 0;
         return new DemoStatementCase
@@ -85,6 +96,8 @@ public sealed class VerdictResultTests
             MarkedPagePngs = markedPagePngs ?? new Dictionary<int, byte[]>(),
             BlockReason = blockReason,
             BlockDetail = blockDetail,
+            MarkedPdfPath = markedPdfPath,
+            ExtractedFields = extractedFields ?? new DemoExtractedFields(),
         };
     }
 
@@ -178,9 +191,13 @@ public sealed class VerdictResultTests
         var cut = ctx.Render<VerdictResult>(builder =>
             builder.Add(c => c.Case, demoCase));
 
+        // The CONDUSEF (RED) table renders a Tier chip with these two phrases (VUX-S5: the
+        // tier-grouped tables from RedCase). The Bank (YELLOW) table has no Tier column (all
+        // rows are implicitly Bank) — its CheckId chip is styled via TierChipStyle(Bank) instead
+        // of carrying the TierChipText phrase; that color-ramp coverage is asserted separately
+        // in TierChips_UseOwnerSpecified3ColorRamp below.
         cut.Markup.ShouldContain("Falla checklist del banco Y ley CONDUSEF");
         cut.Markup.ShouldContain("Falla ley CONDUSEF — mejora sugerida al checklist del banco");
-        cut.Markup.ShouldContain("Requisito del banco — no es mandato CONDUSEF");
     }
 
     [Fact]
@@ -286,7 +303,115 @@ public sealed class VerdictResultTests
             builder.Add(c => c.Case, demoCase));
 
         cut.Markup.ShouldContain("RED");
-        cut.Markup.ShouldNotContain("Sin incumplimientos");
+        // The overall no-violations claim ("Sin incumplimientos.") must not appear — checked with
+        // the trailing period so this does not collide with the tier tables' own accurate,
+        // narrower per-tier empty-state alerts (e.g. "Sin incumplimientos CONDUSEF.", which is a
+        // true statement about the catalogued CONDUSEF table being empty, not an overall claim).
+        cut.Markup.ShouldNotContain("Sin incumplimientos.");
         cut.Markup.ShouldNotContain("CL-UNKNOWN"); // still hidden from the rail
+    }
+
+    [Fact]
+    public async Task RedCase_RendersCondusefTableWithConfidencePercentage()
+    {
+        await using var ctx = CreateContext();
+        var findings = new List<DemoFinding>
+        {
+            Fail("CL-21", isVisual: false, tier: ChecklistTier.Condusef, label: "Aritmética"),
+        };
+        var demoCase = BuildCase(VerdictSignal.Red, findings);
+
+        var cut = ctx.Render<VerdictResult>(builder =>
+            builder.Add(c => c.Case, demoCase));
+
+        cut.Markup.ShouldContain("Incumplimiento CONDUSEF (RED)");
+        cut.Markup.ShouldContain("CL-21");
+        cut.Markup.ShouldContain("100%");
+    }
+
+    [Fact]
+    public async Task BankTierFail_AppearsInYellowTable_NotCondusefTable()
+    {
+        await using var ctx = CreateContext();
+        var findings = new List<DemoFinding>
+        {
+            Fail("CL-35", isVisual: true, tier: ChecklistTier.Bank, label: "Tipo de fuente"),
+        };
+        var demoCase = BuildCase(VerdictSignal.Yellow, findings);
+
+        var cut = ctx.Render<VerdictResult>(builder =>
+            builder.Add(c => c.Case, demoCase));
+
+        cut.Markup.ShouldContain("Oportunidades de mejora del banco (YELLOW)");
+        cut.Markup.ShouldContain("CL-35");
+        // The CONDUSEF table has no Bank-tier rows — its empty-state alert must render instead.
+        cut.Markup.ShouldContain("Sin incumplimientos CONDUSEF.");
+    }
+
+    [Fact]
+    public async Task ShowCheckGrid_True_RendersCheckGridCells()
+    {
+        await using var ctx = CreateContext();
+        var findings = new List<DemoFinding> { Fail("CL-21", isVisual: false) };
+        var demoCase = BuildCase(VerdictSignal.Red, findings);
+
+        var cut = ctx.Render<VerdictResult>(builder =>
+        {
+            builder.Add(c => c.Case, demoCase);
+            builder.Add(c => c.ShowCheckGrid, true);
+        });
+
+        cut.Markup.ShouldContain("vec-check-cell");
+        cut.Markup.ShouldContain("Grilla de verificación");
+    }
+
+    [Fact]
+    public async Task ShowCheckGrid_DefaultFalse_DoesNotRenderCheckGrid()
+    {
+        await using var ctx = CreateContext();
+        var findings = new List<DemoFinding> { Fail("CL-21", isVisual: false) };
+        var demoCase = BuildCase(VerdictSignal.Red, findings);
+
+        var cut = ctx.Render<VerdictResult>(builder =>
+            builder.Add(c => c.Case, demoCase));
+
+        cut.Markup.ShouldNotContain("vec-check-cell");
+    }
+
+    [Fact]
+    public async Task ShowExtractedFields_True_RendersBankNameFromCase()
+    {
+        await using var ctx = CreateContext();
+        var demoCase = BuildCase(
+            VerdictSignal.Yellow,
+            [],
+            extractedFields: new DemoExtractedFields { BankName = "Banco Demo S.A." });
+
+        var cut = ctx.Render<VerdictResult>(builder =>
+        {
+            builder.Add(c => c.Case, demoCase);
+            builder.Add(c => c.ShowExtractedFields, true);
+        });
+
+        cut.Markup.ShouldContain("Datos del documento");
+        cut.Markup.ShouldContain("Banco Demo S.A.");
+    }
+
+    [Fact]
+    public async Task Hero_FallsBackToPdfIframe_WhenMarkedPdfPathSetAndPngsEmpty()
+    {
+        await using var ctx = CreateContext();
+        var demoCase = BuildCase(
+            VerdictSignal.Red,
+            [Fail("CL-21", isVisual: false)],
+            markedPagePngs: new Dictionary<int, byte[]>(),
+            markedPdfPath: "exports/demo-marked.pdf");
+
+        var cut = ctx.Render<VerdictResult>(builder =>
+            builder.Add(c => c.Case, demoCase));
+
+        demoCase.MarkedPagePngs.Count.ShouldBe(0);
+        cut.Markup.ShouldContain("vec-pdf-frame");
+        cut.Markup.ShouldContain("exports/demo-marked.pdf");
     }
 }

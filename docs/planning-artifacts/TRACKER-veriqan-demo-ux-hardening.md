@@ -47,6 +47,53 @@ tables tell the two-tier story differently) → surface to owner, do NOT silentl
 follow-up story VUX-S5 gated on owner decision:** (a) refactor canned pages onto VerdictResult for full
 parity, vs (b) leave canned pages as-is (they are static screenshots of a narrative, /live is the hero).
 
+## VUX-S5 — Enhance VerdictResult into the shared findings component (OWNER-RATIFIED 2026-07-05)
+Owner chose: enhance `VerdictResult` and share it EVERYWHERE; **/live UPGRADES to the tier-grouped
+tables** (owner ratified the appearance change). De-risked: `DemoStatementCase` is ALREADY the shared
+view-model for both canned + live cases (has Findings w/ Confidence+Tier+Severity, ExtractedFields,
+MarkedPdfPath AND MarkedPagePngs) — no data-model reconciliation needed.
+
+**Design (single-column component, consumes `DemoStatementCase`):**
+1. Keep: VerdictBanner + Pass/Fail/InsufficientData/duration chips; VISUAL/DATA ribbon; bounded PNG
+   hero; InsufficientData collapsed accordion; eng-gap (uncatalogued) filtering; aggregate-gated
+   "Sin incumplimientos".
+2. Hero unify: PNG hero (70vh) if `MarkedPagePngs.Count>0`; ELSE iframe (`vec-pdf-frame`) if
+   `MarkedPdfPath != null`; ELSE the dashed placeholder.
+3. Findings: REPLACE the flat chip-rail with the two TIER-GROUPED TABLES (from RedCase, Story 2.2):
+   CONDUSEF/Both fails → RED table, Bank fails → YELLOW table; columns incl. **Confianza** (— for
+   InsufficientData). Use the 3-color TierChip ramp (TierChipStyle/TierChipText already in the file)
+   for the Tier cell/chip. Filter uncatalogued from both. InsufficientData → keep the collapsed
+   accordion below the tables. Pass → "N checks superados".
+4. New optional params/slots: `bool ShowCheckGrid` (the flex-wrap `vec-check-cell` grid, from canned
+   pages); `RenderFragment? Narrative` (for /yellow's "¿Qué significa YELLOW?" prose panel);
+   `bool ShowExtractedFields` (renders the "Datos del documento" table from `Case.ExtractedFields`).
+   All default OFF so /live is unaffected by them.
+5. Migrate: `/red` = `<VerdictResult Case ShowCheckGrid="true"/>` (iframe hero via MarkedPdfPath) +
+   keep its header; `/yellow` = `<VerdictResult Case ShowCheckGrid ShowExtractedFields><Narrative>…
+   </Narrative></VerdictResult>` + keep header. `/live` (LiveVerification) unchanged usage → auto-upgrades.
+   Remove the now-duplicated bespoke tables/grid/iframe markup + the `_condusefFailFindings`/
+   `_bankFailFindings` code-behind from RedCase/YellowCase.
+6. Tests: extend `VerdictResultTests` (tier tables render, Confianza cell, tier grouping, hero
+   PNG-vs-iframe fallback, ShowCheckGrid/Narrative/ShowExtractedFields slots). Keep the 51 green.
+**Risk:** /live is the demo hero — verify it end-to-end in-browser after (real ProcessAsync still RED,
+hero renders, tables replace rail, honesty guarantees intact). Adversarial review before closing.
+**Status: DONE + browser-verified (local run).** Delegated to 1 dev subagent; verified from ground truth:
+- build 0/0; Web.UI.Tests **57/57** (added 6 tier-table/grid/fields/hero-fallback tests).
+- `/red`: shared component — check-grid + CONDUSEF-RED table (CL-21, 3-color tier chip, Confianza 94%) +
+  Bank-YELLOW table (CL-35) + collapsed InsufficientData + pass summary. No double banner. NEW ribbon.
+- `/yellow`: shared component — CONDUSEF "Sin incumplimientos CONDUSEF." + YELLOW table (CL-35/CL-37) +
+  Narrative slot ("¿Qué significa YELLOW?") + Datos-del-documento fields table. No double banner.
+- `/live`: UPGRADED to the tier tables, real ProcessAsync (RED, CL-21..CL-48 with 3-color chips).
+- **Follow-on fix (found in browser):** the 8-col tables CLIPPED Esperado/Observado/DOF/Confianza in
+  /live's narrower result column. Added `HorizontalScrollbar="true"` to both MudTables → columns now
+  reachable via horizontal scroll on /live, no clip; full-width canned pages unaffected. Re-verified.
+- Consolidation: RedCase/YellowCase shed ~400 lines into VerdictResult (+ optional ShowCheckGrid,
+  Narrative slot, ShowExtractedFields params; hero = PNG→iframe→placeholder fallback).
+- Subagent notes: bUnit needed a `MudPopoverProvider` root (MudTooltip in tables); 2 pre-existing tests
+  adjusted (Bank table intentionally has no Tier column; the S4a honesty test narrowed to the exact
+  overall "Sin incumplimientos." string since per-tier "Sin incumplimientos CONDUSEF." is a TRUE state).
+**PENDING: adversarial review + container rebuild.**
+
 ## Known-acceptable limitations (logged for adversarial review)
 - Aggregate banner counts (Pass/Fail/InsufficientData, VISUAL/DATA ribbon) are computed upstream on the
   FULL finding set; the rail is filtered. With the eng-gap finding hidden, the accordion count matches the
