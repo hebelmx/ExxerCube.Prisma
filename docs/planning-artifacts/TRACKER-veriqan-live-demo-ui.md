@@ -185,6 +185,13 @@ resilience wiring, or build/test truth (46/46 real).
 | VLD-S7 | Docker compose deploy | ⛔ owner checkpoint | — |
 
 ## Log
+- 2026-07-05: **EPIC C/D COMPLETE.** Full arc S4→S5→S7 landed + verified + pushed on Liv:
+  S4a fdae0ce2, S4b 4a5d359f, S5a 4e789962, S5b 4d3ade5b, S5c 48087a6c (adversarial-review remediation),
+  S7 6c316292 (container build + smoke verified). Pipeline un-darkened at the UI (runtime-proven: real
+  ProcessAsync, 58 findings; /live→200 both on host and in-container). Honesty surfaces truthful (no
+  brand-as-law, IsLive badge, 3-color tier chips, uncatalogued neutral chip). Deferred (logged): staged
+  narration, canned-fallback IsVisual, in-container ProcessAsync pre-warm. S6 (retire canned pages) was
+  out of the chosen arc. STOP + hand off at the arc boundary per scope discipline.
 - 2026-07-04c: Orchestration run — owner chose Full C/D arc (S4→S5→S7). Ground-truth re-grounding found
   the pipeline is DARK at the UI (no page calls IDemoRunner; all render canned DemoDataService). Corrected
   tracker. VLD-S4 split into S4a (data core) + S4b (render component). **S4a DONE + verified + pushed
