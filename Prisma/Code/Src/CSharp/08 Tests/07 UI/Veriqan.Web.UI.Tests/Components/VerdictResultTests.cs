@@ -303,12 +303,16 @@ public sealed class VerdictResultTests
             builder.Add(c => c.Case, demoCase));
 
         cut.Markup.ShouldContain("RED");
-        // The overall no-violations claim ("Sin incumplimientos.") must not appear — checked with
-        // the trailing period so this does not collide with the tier tables' own accurate,
-        // narrower per-tier empty-state alerts (e.g. "Sin incumplimientos CONDUSEF.", which is a
-        // true statement about the catalogued CONDUSEF table being empty, not an overall claim).
+        // NO unqualified "no violations" claim may appear anywhere — not the overall alert
+        // ("Sin incumplimientos.") NOR the per-tier green success ("Sin incumplimientos CONDUSEF.").
+        // Both end with a period right after the last word; the uncatalogued fail is Condusef-tagged
+        // (mapper "never silently dropped from RED"), so the CONDUSEF tier is RED and must not show a
+        // green all-clear (VUX-S5 adversarial-review fix).
         cut.Markup.ShouldNotContain("Sin incumplimientos.");
-        cut.Markup.ShouldNotContain("CL-UNKNOWN"); // still hidden from the rail
+        cut.Markup.ShouldNotContain("Sin incumplimientos CONDUSEF.");
+        // Instead, the honest QUALIFIED message must appear: no *catalogued* CONDUSEF violations.
+        cut.Markup.ShouldContain("Sin incumplimientos CONDUSEF catalogados.");
+        cut.Markup.ShouldNotContain("CL-UNKNOWN"); // still hidden from the tables
     }
 
     [Fact]

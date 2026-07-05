@@ -105,11 +105,7 @@ else
         Incumplimiento CONDUSEF (RED)
     </MudText>
     <MudPaper Elevation="1" Class="mb-4">
-        @if (_condusefFailFindings.Count == 0)
-        {
-            <MudAlert Severity="Severity.Success" Dense="true" Class="ma-2">Sin incumplimientos CONDUSEF.</MudAlert>
-        }
-        else
+        @if (_condusefFailFindings.Count > 0)
         {
             <MudTable Items="_condusefFailFindings" Dense="true" Hover="true" HorizontalScrollbar="true" Class="mb-0">
                 <HeaderContent>
@@ -148,12 +144,29 @@ else
                 </RowTemplate>
             </MudTable>
         }
+        else if (_condusefHasHiddenFailOnly)
+        {
+            @* Tier table is empty ONLY because an uncatalogued (hidden) eng-gap fail was filtered
+               out. Uncatalogued fails are Condusef-tagged by the mapper ("never silently dropped
+               from RED"), so a green "Sin incumplimientos CONDUSEF." here would contradict the RED
+               banner. Render an honest QUALIFIED (Info, not Success) message instead. Mirrors the
+               aggregate empty-state guard. *@
+            <MudAlert Severity="Severity.Info" Dense="true" Class="ma-2">Sin incumplimientos CONDUSEF catalogados.</MudAlert>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Success" Dense="true" Class="ma-2">Sin incumplimientos CONDUSEF.</MudAlert>
+        }
     </MudPaper>
 
     <MudText Typo="Typo.h6" Class="mb-2">
         <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Warning" Style="vertical-align:middle;" />
         Oportunidades de mejora del banco (YELLOW)
     </MudText>
+    @* The Bank/YELLOW table has no Tier column, so restore the explicit "not a legal mandate"
+       disclaimer once here as a caption (single source: TierChipText) — a legal audience must not
+       read a bank-standard improvement as a CONDUSEF violation. *@
+    <MudText Typo="Typo.caption" Class="mb-2 mud-text-secondary d-block">@TierChipText(ChecklistTier.Bank)</MudText>
     <MudPaper Elevation="1" Class="mb-4">
         @if (_bankFailFindings.Count == 0)
         {
@@ -279,6 +292,7 @@ else
     private int _dataFailCount;
     private IReadOnlyList<DemoFinding> _condusefFailFindings = [];
     private IReadOnlyList<DemoFinding> _bankFailFindings = [];
+    private bool _condusefHasHiddenFailOnly;
     private IReadOnlyList<DemoFinding> _railInsufficientFindings = [];
     private IReadOnlyList<MarkedPage> _orderedMarkedPages = [];
 
@@ -299,6 +313,13 @@ else
         _bankFailFindings = cataloguedFailFindings
             .Where(f => f.Tier == ChecklistTier.Bank)
             .ToList();
+
+        // The CONDUSEF table is empty ONLY because uncatalogued (hidden) fails were filtered out —
+        // yet uncatalogued fails are Condusef-tagged by the mapper ("never silently dropped from
+        // RED"), so the case is RED because of them. Gate the tier's green "no violations" reassurance
+        // on the UNFILTERED tier presence so it never contradicts the RED banner (mirrors VUX-S4a).
+        _condusefHasHiddenFailOnly = _condusefFailFindings.Count == 0
+            && failFindings.Any(f => f.Tier is ChecklistTier.Condusef or ChecklistTier.Both);
 
         _railInsufficientFindings = Case.Findings
             .Where(f => f.Verdict == FindingVerdict.InsufficientData && !IsUncatalogued(f))

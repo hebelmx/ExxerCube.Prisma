@@ -92,7 +92,24 @@ hero renders, tables replace rail, honesty guarantees intact). Adversarial revie
 - Subagent notes: bUnit needed a `MudPopoverProvider` root (MudTooltip in tables); 2 pre-existing tests
   adjusted (Bank table intentionally has no Tier column; the S4a honesty test narrowed to the exact
   overall "Sin incumplimientos." string since per-tier "Sin incumplimientos CONDUSEF." is a TRUE state).
-**PENDING: adversarial review + container rebuild.**
+**Adversarial review (2 reviewers total) DONE.** Verdict on dd1c86e0 = REFUTED (Blocker) + 1 Minor.
+Both FIXED (commit after dd1c86e0):
+- **Blocker (honesty regression):** VUX-S5's per-tier CONDUSEF table empty-state was gated on the
+  FILTERED list, so a RED case whose only Condusef fail is uncatalogued (Condusef-tagged by the mapper,
+  "never silently dropped from RED"; reachable via /live upload) rendered a green "Sin incumplimientos
+  CONDUSEF." under the RED banner — the SAME honesty bug VUX-S4a fixed at the aggregate level, resurfaced
+  at the tier level. FIX: gate the tier's green reassurance on the UNFILTERED tier presence
+  (`_condusefHasHiddenFailOnly`); when clean only due to hidden uncatalogued fails, render a QUALIFIED
+  Info message "Sin incumplimientos CONDUSEF catalogados." instead of the green all-clear. Strengthened
+  the regression test to assert BOTH the overall AND the tier green claim are absent + the qualified
+  message present.
+- **Minor (content loss):** the Bank-tier "Requisito del banco — no es mandato CONDUSEF" disclaimer
+  became dead code on /live (YELLOW table has no Tier column). FIX: render it once as a caption under
+  the YELLOW heading via `TierChipText(ChecklistTier.Bank)` (kills the dead code, restores the legal
+  clarification on all pages).
+- Minor #3 (/yellow lost "estado conforme a nivel regulatorio" wording) LEFT — redundant, the Narrative
+  slot still states it.
+Build 0/0; Web.UI.Tests 57/57 (strengthened regression test). **EPIC COMPLETE pending container reverify.**
 
 ## Known-acceptable limitations (logged for adversarial review)
 - Aggregate banner counts (Pass/Fail/InsufficientData, VISUAL/DATA ribbon) are computed upstream on the
