@@ -67,8 +67,31 @@ Epic B genuinely done, tests not hollow, host boots + /health 200. 2 confirmed d
 - ✅ Epic B boundary (2026-07-04): plan-completion-reviewer + qa. Epic B confirmed done; 2 defects fixed; risks above carried.
 - Next: after VLD-S4/S5 land.
 
+## NEXT EPIC (handoff 2026-07-04b) — Epics C/D = VLD-S4 → VLD-S5 → VLD-S7
+Re-grounded in a later orchestrator session: **Epic B confirmed still DONE**; the demo pages
+(`RedCase/GreenCase/YellowCase/BlockedCase/Disposition/Overview/Upload`) already consume `IDemoRunner` +
+`IMarkedPageRenderer` (live seam wired). Owner reviewed the remaining scope and chose to **HAND OFF** rather
+than start it this session (it's a real multi-story epic with a design fork + an owner checkpoint, not the
+"small build" the design-memory implied). Resume points, in order:
+- **VLD-S4 (recommended first — self-contained, no gate):** enrich `VerificationOutcomeMapper` (currently
+  hardcodes `Tier=ChecklistTier.Condusef` + `Label=CheckId`) from the LAW-vs-BRAND ledger
+  `veriqan-real-check-ledger-2026-07.json` → real per-finding tier + law citation + bbox rail, so the wired
+  pages render TRUTHFUL findings. Lead visual findings = LAW-TYPO-MINSIZE / LAW-SEC-SIZECAP / LAW-TYPO-BOLD
+  (VLD-P1+P2 convergence); do NOT badge CL-35 as law (it's BRAND). Verify: build 0/0 + Web.UI.Tests.
+- **VLD-S5 (design fork — decide before coding):** warm-up is narrow (CSV only, not ProcessAsync/PDFium/JIT)
+  and the process-wide Polly breaker (FailureRatio 0.8/MinThroughput 5/Break 30s) silently drops ALL cards to
+  canned DEMO on ≥5 live fails in 60s. Fork: (a) presenter-visible "live degraded" badge vs (b) breaker-disabled
+  demo config. Also raise `DemoOptions.LiveTimeout` (20s) above Gate `TimeoutPerRequest` (30s).
+- **VLD-S7 (owner checkpoint):** Veriqan Web.UI is in NO compose file — add it + set
+  `Veriqan__CsvReferenceData__RootDirectory` env (the `DemoCorpusPathResolver` walk-up to CLAUDE.md returns
+  null in the source-less published container) + bake the reference bundle into the image. **OPEN owner decision:
+  container SQL vs in-memory persistence — do not silently default.**
+
 ## Log
 - 2026-07-04: Orchestration started; tracker created.
 - 2026-07-04: VLD-S1 delegated (dev), VLD-P1 (Explore), VLD-P2 (analyst) in parallel. All returned.
 - 2026-07-04: VLD-S1 VERIFIED from ground truth (build 0/0, proof test 1/1). VLD-P1/P2 docs persisted. Committing.
 - Persistence decision recorded: dev-run in-memory (no SQL); container SQL-vs-in-memory = OPEN, checkpoint at VLD-S7.
+- 2026-07-04b: Re-grounded in a multi-epic session (S4-C plan + Prisma Manual-Review fixes done first). Confirmed
+  Epic B done + pages wired. Owner chose to HAND OFF Epics C/D (VLD-S4/S5/S7) for a fresh-context run. No code
+  changed in Veriqan this session; handoff pointer added above.
