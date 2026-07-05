@@ -54,7 +54,9 @@ builder.Services.Configure<DemoOptions>(builder.Configuration.GetSection(DemoOpt
 // Scoped: DemoRunner is itself resolved from the Blazor circuit's own DI scope, and opens a
 // further fresh scope per RunAsync call to resolve the scoped IVerificationPipeline.
 builder.Services.AddScoped<IDemoRunner, DemoRunner>();
-// MINIMAL mapping for now (VLD-S4 enriches with the LAW-vs-BRAND ledger, tiers, bbox rail data).
+// VLD-S4a: real check ledger (embedded resource) used by the mapper to enrich findings with
+// honest tiers, labels, and law-vs-brand DOF-numeral citations.
+builder.Services.AddSingleton<RealCheckLedger>();
 builder.Services.AddSingleton<IVerificationOutcomeMapper, VerificationOutcomeMapper>();
 builder.Services.AddSingleton<IPipelineReadiness, PipelineReadiness>();
 builder.Services.AddHostedService<PipelineWarmupHostedService>();

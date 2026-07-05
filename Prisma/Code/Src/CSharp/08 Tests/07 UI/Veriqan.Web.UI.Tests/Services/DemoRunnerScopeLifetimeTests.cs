@@ -57,7 +57,12 @@ public sealed class DemoRunnerScopeLifetimeTests
             .Returns(Task.FromResult(Result<VerificationOutcome>.WithSuccess(dummyOutcome)));
 
         var cannedMappedCase = demoDataService.GetBySignal(VerdictSignal.Green)!;
-        mapper.Map(Arg.Any<VerificationOutcome>(), Arg.Any<string>()).Returns(cannedMappedCase);
+        mapper.Map(
+                Arg.Any<VerificationOutcome>(),
+                Arg.Any<IReadOnlyDictionary<int, byte[]>>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Result<DemoStatementCase>.WithSuccess(cannedMappedCase));
 
         var spyScope = new SpyServiceScope(pipeline);
         var scopeFactory = Substitute.For<IServiceScopeFactory>();

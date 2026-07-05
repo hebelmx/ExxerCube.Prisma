@@ -14,6 +14,15 @@
 
   <ItemGroup>
     <!--
+      VLD-S4a: RealCheckLedger data — baked into the assembly as an embedded resource so it is
+      readable from the published container (no docs/ source tree present at runtime).
+      Loaded via Assembly.GetManifestResourceStream in RealCheckLedger.
+    -->
+    <EmbeddedResource Include="Data\veriqan-real-check-ledger-2026-07.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
       Veriqan domain + application: real enums (VerdictSignal, FindingVerdict, BlockReason, etc.)
       and value objects (BlockedOutcome) consumed by the demo data service and page components.
       Direction: UI → Veriqan only; no Prisma domain reference needed for this demo surface.

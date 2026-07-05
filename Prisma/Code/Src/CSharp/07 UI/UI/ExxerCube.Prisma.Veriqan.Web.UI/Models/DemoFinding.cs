@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+
 namespace ExxerCube.Prisma.Veriqan.Web.UI.Models;
 
 /// <summary>
@@ -61,8 +63,18 @@ public sealed class DemoFinding
     /// </summary>
     public double Confidence { get; init; } = 1.0;
 
-    // DEFERRED (Epic 2 review): the S2.2 acceptance criteria also list a per-finding
-    // "locator/page" column. This is not shown today because the demo model carries no
-    // honest source for it — locator/page arrives only from a real marked-PDF run
-    // (real-pipeline data). Wire it when the real pipeline lands.
+    /// <summary>
+    /// Gets whether this check is a visual/layout rule (vs. a data/arithmetic rule).
+    /// Sourced from the real check ledger (VLD-S4a) via <c>RealCheckLedger</c>; defaults to
+    /// <see langword="false"/> for canned/demo-data findings that predate the ledger.
+    /// </summary>
+    public bool IsVisual { get; init; }
+
+    /// <summary>
+    /// Gets the PDF location where the relevant field was found (or expected), or
+    /// <see langword="null"/> when location information is not available (e.g. canned demo
+    /// data, or a rule that does not report a locator).
+    /// Wired by VLD-S4a from <c>RuleFinding.Locator</c>.
+    /// </summary>
+    public FieldLocator? Locator { get; init; }
 }

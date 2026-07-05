@@ -181,8 +181,23 @@ public sealed class DemoRunner : IDemoRunner
                 pipelineResult.Error ?? "Live verification pipeline failed.");
         }
 
-        var mappedCase = _mapper.Map(pipelineResult.Value!, fileName);
-        return Result<DemoRunOutcome>.WithSuccess(new DemoRunOutcome(mappedCase, IsLive: true));
+        // VLD-S5: wire IMarkedPdfGenerator -> IMarkedPageRenderer to produce the hero PNGs; empty for now.
+        var mapped = _mapper.Map(
+            pipelineResult.Value!,
+            markedPagePngs: new Dictionary<int, byte[]>(),
+            fileName,
+            linkedCts.Token);
+
+        if (mapped.IsFailure)
+        {
+            if (callerToken.IsCancellationRequested)
+                return ResultExtensions.Cancelled<DemoRunOutcome>();
+
+            return Result<DemoRunOutcome>.WithFailure(
+                mapped.Error ?? "Live verification outcome mapping failed.");
+        }
+
+        return Result<DemoRunOutcome>.WithSuccess(new DemoRunOutcome(mapped.Value!, IsLive: true));
     }
 
     private DemoStatementCase ResolveCannedCase(string fileName) =>

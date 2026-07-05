@@ -67,10 +67,35 @@ Epic B genuinely done, tests not hollow, host boots + /health 200. 2 confirmed d
 - ✅ Epic B boundary (2026-07-04): plan-completion-reviewer + qa. Epic B confirmed done; 2 defects fixed; risks above carried.
 - Next: after VLD-S4/S5 land.
 
-## NEXT EPIC (handoff 2026-07-04b) — Epics C/D = VLD-S4 → VLD-S5 → VLD-S7
+## ⚠️ GROUND-TRUTH CORRECTION (orchestration run 2026-07-04c)
+The 2026-07-04b handoff below claimed "the demo pages already consume `IDemoRunner` + `IMarkedPageRenderer`
+(live seam wired)." **That is FALSE — verified from ground truth.** `IDemoRunner` is referenced ONLY in
+`Program.cs` (DI registration); NO page or component calls `RunAsync`. Every page
+(`RedCase/GreenCase/YellowCase/BlockedCase/Disposition/Overview/Upload`) injects `DemoDataService` and renders
+**canned** data. The live seam Epic B built is wired in DI but **DARK at the UI**. Also `VerdictResult.razor`
+does NOT exist and bUnit is NOT referenced. Consequence: the epic doc's original VLD-S4 (mapper enrichment
+**+ `VerdictResult.razor` render component**) and VLD-S5 (the page that first consumes `IDemoRunner`) are BOTH
+real and match reality — the handoff's "just enrich the mapper" narrowing was based on the false premise.
+Following the epic doc, not the narrowed handoff.
+
+**Reconciled scope for this run (owner chose Full C/D arc S4→S5→S7; S6 page-retirement excluded):**
+- **VLD-S4a** (data core, no Razor, unit-testable): `RealCheckLedger` (embed `veriqan-real-check-ledger-2026-07.json`
+  as EmbeddedResource — container-safe, NOT a docs/ read) + `DemoFinding.{IsVisual,Locator}` +
+  `DemoStatementCase.MarkedPagePngs` + rewrite `VerificationOutcomeMapper` to `Result<T>` signature with
+  ledger-driven Tier/Label/IsVisual/DofNumeral enrichment (uncatalogued CheckId → visible engineering-gap label,
+  never silent CheckId-as-label). Update interface + `DemoRunner` + `Program.cs`. Unit tests in `Veriqan.Web.UI.Tests`.
+- **VLD-S4b** (render component): `Components/Shared/VerdictResult.razor` + bUnit smoke (VERIFY-FIRST; documented
+  fallback to plain view-model method if bUnit ⟂ xunit.v3.mtp-v2).
+- **VLD-S5** (un-dark + design-fork checkpoint): the live page that FIRST calls `IDemoRunner.RunAsync` + wires the
+  marked-PDF→PNG hero chain (`IMarkedPdfGenerator`→`IMarkedPageRenderer`) into `DemoRunner`. `VerificationOutcome`
+  carries NO marked PDF — the chain is genuinely new wiring here, not a badge on an already-live page.
+- **VLD-S7** (owner checkpoint): compose + reference-bundle bake + persistence decision.
+
+## NEXT EPIC (handoff 2026-07-04b) — Epics C/D = VLD-S4 → VLD-S5 → VLD-S7 — SUPERSEDED BY THE CORRECTION ABOVE
 Re-grounded in a later orchestrator session: **Epic B confirmed still DONE**; the demo pages
-(`RedCase/GreenCase/YellowCase/BlockedCase/Disposition/Overview/Upload`) already consume `IDemoRunner` +
-`IMarkedPageRenderer` (live seam wired). Owner reviewed the remaining scope and chose to **HAND OFF** rather
+(`RedCase/GreenCase/YellowCase/BlockedCase/Disposition/Overview/Upload`) ~~already consume `IDemoRunner` +
+`IMarkedPageRenderer` (live seam wired)~~ **[WRONG — see correction above; pages render canned data]**. Owner
+reviewed the remaining scope and chose to **HAND OFF** rather
 than start it this session (it's a real multi-story epic with a design fork + an owner checkpoint, not the
 "small build" the design-memory implied). Resume points, in order:
 - **VLD-S4 (recommended first — self-contained, no gate):** enrich `VerificationOutcomeMapper` (currently

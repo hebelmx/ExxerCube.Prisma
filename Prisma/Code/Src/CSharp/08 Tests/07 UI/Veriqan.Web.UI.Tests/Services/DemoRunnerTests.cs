@@ -95,7 +95,11 @@ public sealed class DemoRunnerTests
         result.IsSuccess.ShouldBeTrue();
         result.Value!.IsLive.ShouldBeFalse();
         result.Value.Case.FileName.ShouldBe("estado-cuenta-mc-demo.pdf");
-        _mapper.DidNotReceive().Map(Arg.Any<VerificationOutcome>(), Arg.Any<string>());
+        _mapper.DidNotReceive().Map(
+            Arg.Any<VerificationOutcome>(),
+            Arg.Any<IReadOnlyDictionary<int, byte[]>>(),
+            Arg.Any<string>(),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]

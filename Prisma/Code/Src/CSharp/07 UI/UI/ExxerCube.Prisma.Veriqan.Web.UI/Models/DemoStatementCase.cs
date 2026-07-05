@@ -68,6 +68,17 @@ public sealed class DemoStatementCase
     /// <summary>Gets or sets the path (relative to wwwroot) of the marked PDF preview, or null.</summary>
     public string? MarkedPdfPath { get; init; }
 
+    /// <summary>
+    /// Gets the in-memory marked-page hero PNGs, keyed by 1-based page number.
+    /// </summary>
+    /// <remarks>
+    /// Populated by <c>IVerificationOutcomeMapper</c> from the marked-PDF→PNG rasterization
+    /// chain (VLD-S5); empty for canned demo cases and for the current live path until VLD-S5
+    /// wires <c>IMarkedPdfGenerator</c> + <c>IMarkedPageRenderer</c> into <c>DemoRunner</c>.
+    /// S4b/S5 render these as data-URIs.
+    /// </remarks>
+    public IReadOnlyDictionary<int, byte[]> MarkedPagePngs { get; init; } = new Dictionary<int, byte[]>();
+
     /// <summary>Gets or sets the audit trail rows for this case.</summary>
     public IReadOnlyList<DemoAuditRow> AuditRows { get; init; } = Array.Empty<DemoAuditRow>();
 
