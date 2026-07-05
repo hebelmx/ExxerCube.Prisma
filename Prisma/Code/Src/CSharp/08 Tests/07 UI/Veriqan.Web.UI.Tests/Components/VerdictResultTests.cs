@@ -168,6 +168,7 @@ public sealed class VerdictResultTests
         await using var ctx = CreateContext();
         var findings = new List<DemoFinding>
         {
+            Fail("CL-21", isVisual: false, tier: ChecklistTier.Both),
             Fail("LAW-1", isVisual: true, tier: ChecklistTier.Condusef),
             Fail("CL-1", isVisual: true, tier: ChecklistTier.Bank),
         };
@@ -176,8 +177,29 @@ public sealed class VerdictResultTests
         var cut = ctx.Render<VerdictResult>(builder =>
             builder.Add(c => c.Case, demoCase));
 
-        cut.Markup.ShouldContain("[RED · fails checklist AND law]");
-        cut.Markup.ShouldContain("[AMBER · fails law only — not on bank checklist]");
+        cut.Markup.ShouldContain("Falla checklist del banco Y ley CONDUSEF");
+        cut.Markup.ShouldContain("Falla ley CONDUSEF — mejora sugerida al checklist del banco");
+        cut.Markup.ShouldContain("Requisito del banco — no es mandato CONDUSEF");
+    }
+
+    [Fact]
+    public async Task TierChips_UseOwnerSpecified3ColorRamp()
+    {
+        await using var ctx = CreateContext();
+        var findings = new List<DemoFinding>
+        {
+            Fail("CL-21", isVisual: false, tier: ChecklistTier.Both),
+            Fail("LAW-1", isVisual: true, tier: ChecklistTier.Condusef),
+            Fail("CL-1", isVisual: true, tier: ChecklistTier.Bank),
+        };
+        var demoCase = BuildCase(VerdictSignal.Red, findings);
+
+        var cut = ctx.Render<VerdictResult>(builder =>
+            builder.Add(c => c.Case, demoCase));
+
+        cut.Markup.ShouldContain("background-color:#F44336;color:#fff;");
+        cut.Markup.ShouldContain("background-color:#FF9800;color:#000;");
+        cut.Markup.ShouldContain("background-color:#FBC02D;color:#000;");
     }
 
     [Fact]

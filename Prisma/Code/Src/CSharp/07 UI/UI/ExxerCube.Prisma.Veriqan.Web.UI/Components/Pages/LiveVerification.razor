@@ -1,0 +1,195 @@
+@page "/live"
+@rendermode InteractiveServer
+@implements IDisposable
+@using Microsoft.AspNetCore.Hosting
+@using Microsoft.Extensions.Logging
+@inject IDemoRunner DemoRunner
+@inject IWebHostEnvironment WebHostEnvironment
+@inject ILogger<LiveVerification> Logger
+
+@* VLD-S5b: the first UI surface that actually drives IDemoRunner.RunAsync (and therefore, when
+   Veriqan:Demo:LiveModeEnabled is true, the real IVerificationPipeline) end-to-end. Every fixture
+   card and the upload slot funnel into the same RunAsync helper below, which renders the result
+   through the reusable VerdictResult component (VLD-S4b) plus an honest LIVE/DEMO badge driven by
+   DemoRunOutcome.IsLive — the presenter must always be able to tell a real run from a canned
+   fallback. NEVER add .ConfigureAwait(false) anywhere in this file's await chain: this component
+   calls StateHasChanged() after awaits, and a prior page in this repo crashed its Blazor Server
+   circuit by dropping the SynchronizationContext this way. *@
+
+<PageTitle>Verificación en vivo — Veriqan Demo</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-1">Verificación en vivo</MudText>
+<MudText Typo="Typo.body2" Class="mb-6 mud-text-secondary">
+    Ejecuta el pipeline real de Veriqan sobre un documento y muestra el veredicto que produce —
+    con reflujo honesto a datos de respaldo si el modo en vivo está deshabilitado o el pipeline falla.
+</MudText>
+
+<MudGrid>
+    <MudItem xs="12" md="4">
+        <MudText Typo="Typo.h6" Class="mb-2">Casos de ejemplo</MudText>
+        @foreach (var fixture in Fixtures)
+        {
+            <MudPaper Class="pa-3 mb-3" Elevation="1">
+                <MudText Typo="Typo.subtitle1">@fixture.Label</MudText>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary d-block mb-2">@fixture.Description</MudText>
+                <MudButton id="@FixtureButtonId(fixture)"
+                           Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                           Disabled="_running"
+                           StartIcon="@Icons.Material.Filled.PlayCircle"
+                           OnClick="@(() => RunFixtureAsync(fixture))">
+                    Verificar en vivo
+                </MudButton>
+            </MudPaper>
+        }
+
+        <MudDivider Class="my-4" />
+
+        <MudText Typo="Typo.h6" Class="mb-2">O suba su propio PDF</MudText>
+        <MudPaper Class="pa-3" Elevation="1">
+            <MudFileUpload T="IBrowserFile" FilesChanged="OnFileSelectedAsync" Accept=".pdf" MaximumFileCount="1" Disabled="_running">
+                <ActivatorContent>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.AttachFile" Disabled="_running">
+                        Seleccionar archivo PDF…
+                    </MudButton>
+                </ActivatorContent>
+            </MudFileUpload>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" md="8">
+        @if (_running)
+        {
+            <MudPaper Class="pa-8 d-flex flex-column align-center justify-center" Elevation="1" Style="min-height:220px;">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="mb-4" />
+                <MudText Typo="Typo.body1">@_stageCaption</MudText>
+            </MudPaper>
+        }
+        else if (_error is not null)
+        {
+            <MudAlert Severity="Severity.Error" Dense="true">@_error</MudAlert>
+        }
+        else if (_outcome is not null)
+        {
+            <div class="mb-3" id="live-outcome-badge">
+                @if (_outcome.IsLive)
+                {
+                    <MudChip T="string" Color="Color.Success" Icon="@Icons.Material.Filled.Bolt">EN VIVO</MudChip>
+                }
+                else
+                {
+                    <MudChip T="string" Style="background-color:#FBC02D;color:#000;" Icon="@Icons.Material.Filled.History">
+                        DATOS DEMO (respaldo)
+                    </MudChip>
+                }
+            </div>
+            <VerdictResult Case="@_outcome.Case" />
+        }
+        else
+        {
+            <MudPaper Class="pa-8 d-flex align-center justify-center" Elevation="0"
+                      Style="min-height:220px; border:2px dashed var(--mud-palette-divider); border-radius:4px;">
+                <MudText Typo="Typo.body2" Class="mud-text-secondary text-center">
+                    Seleccione un caso de ejemplo o suba un PDF para ejecutar la verificación en vivo.
+                </MudText>
+            </MudPaper>
+        }
+    </MudItem>
+</MudGrid>
+
+@code {
+    // Fixture bytes are served as static wwwroot content (Data/demo-fixtures/... was rejected —
+    // 9.5 MB total is too large to bake into the assembly as EmbeddedResource, unlike the small
+    // RealCheckLedger JSON) and read lazily, per click, via IWebHostEnvironment.WebRootFileProvider
+    // — never from "Prisma/Fixtures/..." on disk, which does not exist in a published container.
+    private static readonly IReadOnlyList<FixtureDescriptor> Fixtures =
+    [
+        new("good.pdf", "Caso conforme", "Estado de cuenta sin incumplimientos conocidos."),
+        new("bad-font-cl35.pdf", "Falla de tipografía (CL-35)", "Tamaño de fuente insuficiente en el bloque legal."),
+        new("bad-math-cl21.pdf", "Falla aritmética (CL-21)", "Discrepancia entre saldo y movimientos."),
+        new("scanned.pdf", "Documento escaneado", "Estado de cuenta escaneado, sin capa de texto nativa."),
+        new("compliant-master.pdf", "Master reforzado CONDUSEF", "Versión con las mejoras del Epic 3 aplicadas."),
+    ];
+
+    private bool _running;
+    private string _stageCaption = string.Empty;
+    private DemoRunOutcome? _outcome;
+    private string? _error;
+
+    /// <summary>Tied to the component lifetime so any in-flight work is cancelled on disposal.</summary>
+    private readonly CancellationTokenSource _cts = new();
+
+    private static string FixtureButtonId(FixtureDescriptor fixture) =>
+        $"run-{fixture.FileName.Replace(".", "-", StringComparison.Ordinal)}";
+
+    private async Task RunFixtureAsync(FixtureDescriptor fixture)
+    {
+        var fileInfo = WebHostEnvironment.WebRootFileProvider.GetFileInfo($"demo-fixtures/{fixture.FileName}");
+        if (!fileInfo.Exists)
+        {
+            _error = $"Archivo de ejemplo no encontrado: {fixture.FileName}";
+            StateHasChanged();
+            return;
+        }
+
+        byte[] bytes;
+        await using (var stream = fileInfo.CreateReadStream())
+        {
+            using var memory = new MemoryStream();
+            await stream.CopyToAsync(memory, _cts.Token);
+            bytes = memory.ToArray();
+        }
+
+        await RunAsync(bytes, fixture.FileName);
+    }
+
+    private async Task OnFileSelectedAsync(IBrowserFile? file)
+    {
+        if (file is null)
+            return;
+
+        byte[] bytes;
+        await using (var stream = file.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024, _cts.Token))
+        {
+            using var memory = new MemoryStream();
+            await stream.CopyToAsync(memory, _cts.Token);
+            bytes = memory.ToArray();
+        }
+
+        await RunAsync(bytes, file.Name);
+    }
+
+    private async Task RunAsync(byte[] pdf, string fileName)
+    {
+        _running = true;
+        _error = null;
+        _outcome = null;
+        _stageCaption = "Analizando documento…";
+        StateHasChanged();
+
+        var result = await DemoRunner.RunAsync(pdf, fileName, _cts.Token);
+
+        if (result.IsSuccess)
+        {
+            _outcome = result.Value;
+        }
+        else
+        {
+            Logger.LogWarning(
+                "Live verification run failed for {FileName}: {Error}", fileName, result.Error ?? "<none>");
+            _error = result.Error ?? "La verificación en vivo falló.";
+        }
+
+        _running = false;
+        StateHasChanged();
+    }
+
+    /// <summary>Cancels any in-flight work (fixture load, upload read, or pipeline run) on disposal.</summary>
+    public void Dispose()
+    {
+        _cts.Cancel();
+        _cts.Dispose();
+    }
+
+    private sealed record FixtureDescriptor(string FileName, string Label, string Description);
+}

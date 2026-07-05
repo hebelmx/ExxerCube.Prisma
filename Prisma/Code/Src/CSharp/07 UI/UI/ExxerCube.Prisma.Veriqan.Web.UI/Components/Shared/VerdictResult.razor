@@ -71,7 +71,7 @@
                             <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
                                 <MudChip T="string" Size="Size.Small" Color="Color.Error">@finding.CheckId</MudChip>
                                 <MudChip T="string" Size="Size.Small" Color="Color.Default">@finding.DofNumeral</MudChip>
-                                <MudChip T="string" Size="Size.Small" Color="@TierChipColor(finding.Tier)">@TierChipText(finding.Tier)</MudChip>
+                                <MudChip T="string" Size="Size.Small" Style="@TierChipStyle(finding.Tier)">@TierChipText(finding.Tier)</MudChip>
                             </div>
                             <MudText Typo="Typo.body2" Class="mt-1">@finding.Label</MudText>
                             <MudText Typo="Typo.caption" Class="mud-text-secondary">
@@ -137,17 +137,22 @@
             .ToList();
     }
 
-    private static Color TierChipColor(ChecklistTier tier) => tier switch
+    // Owner-specified 3-color ramp (VLD-S5b): MudBlazor's Color enum cannot produce distinct
+    // orange vs yellow, so the chip background is set via an explicit inline style instead of
+    // the Color parameter. Text colors are chosen for contrast against each background.
+    private static string TierChipStyle(ChecklistTier tier) => tier switch
     {
-        ChecklistTier.Condusef or ChecklistTier.Both => Color.Error,
-        ChecklistTier.Bank => Color.Warning,
-        _ => Color.Default,
+        ChecklistTier.Both => "background-color:#F44336;color:#fff;",
+        ChecklistTier.Condusef => "background-color:#FF9800;color:#000;",
+        ChecklistTier.Bank => "background-color:#FBC02D;color:#000;",
+        _ => string.Empty,
     };
 
     private static string TierChipText(ChecklistTier tier) => tier switch
     {
-        ChecklistTier.Condusef or ChecklistTier.Both => "[RED · fails checklist AND law]",
-        ChecklistTier.Bank => "[AMBER · fails law only — not on bank checklist]",
+        ChecklistTier.Both => "Falla checklist del banco Y ley CONDUSEF",
+        ChecklistTier.Condusef => "Falla ley CONDUSEF — mejora sugerida al checklist del banco",
+        ChecklistTier.Bank => "Requisito del banco — no es mandato CONDUSEF",
         _ => string.Empty,
     };
 
