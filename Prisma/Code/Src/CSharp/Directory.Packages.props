@@ -129,6 +129,11 @@
 		<PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
 		<!-- Shouldly for assertions in unit tests -->
 		<PackageVersion Include="Shouldly" Version="4.3.0" />
+		<!-- bUnit for Blazor component render tests (VLD-S4b). 2.7.2 targets net10.0 explicitly
+		     (verified via nuspec) and is a self-contained TestContext, so it does not need to hook
+		     into xunit's MTP runner discovery — only instantiated as a plain object inside a normal
+		     xunit.v3.mtp-v2 [Fact]. -->
+		<PackageVersion Include="bunit" Version="2.7.2" />
 		<!-- Stryker.NET for mutation testing -->
 		<PackageVersion Include="StrykerMutator.Core" Version="0.9.0" />
 		<!-- Coverlet for code coverage -->

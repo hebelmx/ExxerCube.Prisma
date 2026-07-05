@@ -63,6 +63,16 @@ Epic B genuinely done, tests not hollow, host boots + /health 200. 2 confirmed d
   CheckId` for every finding. VLD-S4 must enrich from the LAW-vs-BRAND ledger JSON (veriqan-real-check-ledger-2026-07.json)
   + real per-finding tier + bbox rail data. Nothing renders it yet, so not a live bug — but it's the S4 landmine.
 
+## CARRIED RISK from S4b (raise at S5 checkpoint — legal-facing COPY, owner's call)
+- **[VLD-S5] AMBER tier-chip copy contradicts the domain model.** The design memo / epic-doc VLD-S4 AC
+  mandates the Bank-tier chip read `"[AMBER · fails law only — not on bank checklist]"`. But
+  `ChecklistTier.Bank` means the check is on the BANK's improvement checklist and is NOT a CONDUSEF law
+  mandate (enum doc + two-tier thesis: Bank→YELLOW opportunity, CONDUSEF→RED law floor). "fails law only"
+  is backwards — a Bank-tier failure is a bank opportunity, not a law failure. `VerdictResult.razor`
+  renders the phrase verbatim as specced (faithful to the AC), but it would MISLEAD a legal/bank audience.
+  S5 is the first story that shows this to the audience → fix the copy there. Suggested: `"[AMBER ·
+  oportunidad de mejora del banco — no es mandato CONDUSEF]"`. OWNER must ratify legal copy.
+
 ## Adversarial review checkpoints
 - ✅ Epic B boundary (2026-07-04): plan-completion-reviewer + qa. Epic B confirmed done; 2 defects fixed; risks above carried.
 - Next: after VLD-S4/S5 land.
@@ -112,7 +122,20 @@ than start it this session (it's a real multi-story epic with a design fork + an
   null in the source-less published container) + bake the reference bundle into the image. **OPEN owner decision:
   container SQL vs in-memory persistence — do not silently default.**
 
+## Epic C/D status (run 2026-07-04c)
+| Story | Title | Status | Verified (build/test/git) |
+|-------|-------|--------|---------------------------|
+| VLD-S4a | RealCheckLedger + mapper enrichment + model fields | ✅ DONE | build 0/0; Web.UI.Tests 30/30 (19+11 new); commit fdae0ce2, pushed |
+| VLD-S4b | VerdictResult.razor + bUnit smoke | ✅ DONE | build 0/0; Web.UI.Tests 38/38 (31+1 smoke+6); bUnit 2.7.2 worked (no fallback); commit pending |
+| VLD-S5 | Live page (un-dark IDemoRunner) + hero chain | ⛔ design-fork checkpoint | — |
+| VLD-S7 | Docker compose deploy | ⛔ owner checkpoint | — |
+
 ## Log
+- 2026-07-04c: Orchestration run — owner chose Full C/D arc (S4→S5→S7). Ground-truth re-grounding found
+  the pipeline is DARK at the UI (no page calls IDemoRunner; all render canned DemoDataService). Corrected
+  tracker. VLD-S4 split into S4a (data core) + S4b (render component). **S4a DONE + verified + pushed
+  (fdae0ce2):** RealCheckLedger embedded-resource loader, mapper Result<T> + ledger enrichment, DemoFinding
+  {IsVisual,Locator} + DemoStatementCase.MarkedPagePngs. 30/30 green.
 - 2026-07-04: Orchestration started; tracker created.
 - 2026-07-04: VLD-S1 delegated (dev), VLD-P1 (Explore), VLD-P2 (analyst) in parallel. All returned.
 - 2026-07-04: VLD-S1 VERIFIED from ground truth (build 0/0, proof test 1/1). VLD-P1/P2 docs persisted. Committing.

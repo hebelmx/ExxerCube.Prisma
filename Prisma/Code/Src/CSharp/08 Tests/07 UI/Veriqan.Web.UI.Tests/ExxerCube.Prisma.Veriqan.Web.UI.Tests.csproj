@@ -26,6 +26,9 @@
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="NSubstitute.Analyzers.CSharp" />
   </ItemGroup>
+  <ItemGroup Label="Blazor component render tests (VLD-S4b spike)">
+    <PackageReference Include="bunit" />
+  </ItemGroup>
   <ItemGroup Label="Logging">
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Meziantou.Extensions.Logging.Xunit.v3" />
