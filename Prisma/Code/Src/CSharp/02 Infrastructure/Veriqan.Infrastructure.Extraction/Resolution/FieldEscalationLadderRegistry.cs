@@ -22,16 +22,17 @@ public interface IFieldEscalationLadderRegistry
 
 /// <summary>
 /// Default <see cref="IFieldEscalationLadderRegistry"/> — a per-<see cref="FieldKind"/> lookup
-/// table built once at construction. As of E1, <em>every</em> field resolves to
-/// <see cref="FieldEscalationLadder.PositionalOnly"/>: no <see cref="FieldKind"/> has a rung
-/// beyond stage 1, so nothing ever escalates (design doc program plan — E1 is behavior-neutral by
-/// construction).
+/// table built once at construction. As of E1 every field resolved to
+/// <see cref="FieldEscalationLadder.PositionalOnly"/>: no <see cref="FieldKind"/> had a rung
+/// beyond stage 1, so nothing ever escalated (design doc program plan — E1 is behavior-neutral by
+/// construction). E2.2 gives <see cref="FieldKind.PaymentDueDate"/> the first non-empty ladder;
+/// every other field remains <see cref="FieldEscalationLadder.PositionalOnly"/>.
 /// </summary>
 /// <remarks>
-/// Later epics (E2+) grow this table — e.g. giving <see cref="FieldKind.PaymentDueDate"/> a
-/// fuzzy/Levenshtein ladder — by overriding entries in <see cref="BuildDefaultLadders"/> (or by
-/// constructing the registry with an explicit table via the internal constructor used by tests).
-/// That is a data change to this one method, not new stage or orchestrator code.
+/// Later epics (E2.3+) grow this table further — e.g. giving TASA/CAT a similar fuzzy ladder — by
+/// adding entries in <see cref="BuildDefaultLadders"/> (or by constructing the registry with an
+/// explicit table via the internal constructor used by tests). That is a data change to this one
+/// method, not new stage or orchestrator code.
 /// </remarks>
 public sealed class FieldEscalationLadderRegistry : IFieldEscalationLadderRegistry
 {
@@ -70,6 +71,18 @@ public sealed class FieldEscalationLadderRegistry : IFieldEscalationLadderRegist
         var table = new Dictionary<FieldKind, FieldEscalationLadder>(allFieldKinds.Length);
         foreach (var fieldKind in allFieldKinds)
             table[fieldKind] = FieldEscalationLadder.PositionalOnly(fieldKind);
+
+        // E2.2: the first non-empty ladder. PaymentDueDate escalates to the fuzzy label-anchor
+        // stage (StageId.FuzzyLabel) ONLY when the positional extractor found nothing at all
+        // (StatusGate) — the safe, additive case; a positionally-found value is never
+        // second-guessed by this rung. A recovered value must independently clear
+        // PaymentDueDatePlausibilityValidator (belt-and-suspenders alongside the stage's own
+        // plausibility gate).
+        table[FieldKind.PaymentDueDate] = new FieldEscalationLadder(
+            FieldKind.PaymentDueDate,
+            ConfidenceFloor: 0.0,
+            Rungs: [new FieldEscalationRung(StageId.FuzzyLabel, EscalationTrigger.StatusGate)],
+            Validator: new PaymentDueDatePlausibilityValidator());
 
         return table;
     }

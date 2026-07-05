@@ -57,11 +57,12 @@ public static class VeriqanExtractionExtensions
         // behavior-neutral — it returns PdfPigStatementFieldExtractor's own result unchanged.
         services.TryAddSingleton<IFieldEscalationLadderRegistry, FieldEscalationLadderRegistry>();
 
-        // Stage-provider seam (E2 foundation): resolves the concrete higher-stage implementations
-        // for a field. The default returns none for every FieldKind, so — together with the empty
-        // ladders above — the orchestrator remains behavior-neutral until a later epic registers a
-        // real provider backed by fuzzy/semantic/LLM stages.
-        services.TryAddSingleton<IFieldStageProvider, EmptyFieldStageProvider>();
+        // Stage-provider seam (E2.2): resolves the concrete higher-stage implementations for a
+        // field. DefaultFieldStageProvider registers a fuzzy label-anchor stage for
+        // FieldKind.PaymentDueDate (the field's ladder — see FieldEscalationLadderRegistry — only
+        // escalates to it when the positional extractor found nothing); every other field still
+        // returns no stages, so the orchestrator remains behavior-neutral for them.
+        services.TryAddSingleton<IFieldStageProvider, DefaultFieldStageProvider>();
         services.TryAddSingleton<FieldResolutionOrchestrator>();
 
         services.TryAddSingleton<IStatementFieldExtractor>(sp => new EscalatingStatementFieldExtractor(

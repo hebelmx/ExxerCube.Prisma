@@ -29,6 +29,20 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Tests;
 /// any <see cref="FieldKind"/> is expected to break this suite deliberately — until then, any
 /// divergence here is a real E1.B bug.
 /// </para>
+/// <para>
+/// <b>E2.2 update:</b> <see cref="CreateEscalating"/> now wires the real production
+/// <see cref="DefaultFieldStageProvider"/> (not <see cref="EmptyFieldStageProvider"/>) so this
+/// harness actually exercises the fuzzy label-anchor stage registered for
+/// <see cref="FieldKind.PaymentDueDate"/> — the only field with a non-empty ladder as of this
+/// chunk. Every field OTHER than PaymentDueDate is still asserted byte-identical via
+/// <see cref="Compare{T}"/>. PaymentDueDate is compared by <see cref="ComparePaymentDueDate"/>
+/// instead: when positional already found a value, StatusGate cannot fire and identity is still
+/// required; when positional found nothing, the escalated result may honestly stay NotExtracted
+/// (fuzzy stage also abstained) OR recover a plausible value via <see cref="StageId.FuzzyLabel"/> —
+/// both are acceptable, and only those two outcomes are acceptable (a value that doesn't clear
+/// <see cref="PaymentDueDatePlausibilityValidator.IsPlausible"/>, or provenance from any other
+/// stage, is still flagged as a mismatch).
+/// </para>
 /// </remarks>
 public sealed class EscalationSeamBehaviorNeutralTests
 {
@@ -66,8 +80,10 @@ public sealed class EscalationSeamBehaviorNeutralTests
         // of which concrete inner instance produced the positional result.
         var inner = CreateInner();
         var registry = new FieldEscalationLadderRegistry();
+        // E2.2: DefaultFieldStageProvider (production wiring), not EmptyFieldStageProvider — see
+        // the class remarks above for why the empty provider would make this harness stale.
         var orchestrator = new FieldResolutionOrchestrator(
-            registry, new EmptyFieldStageProvider(), XUnitLogger.CreateLogger<FieldResolutionOrchestrator>());
+            registry, new DefaultFieldStageProvider(), XUnitLogger.CreateLogger<FieldResolutionOrchestrator>());
         return new EscalatingStatementFieldExtractor(
             inner, orchestrator, XUnitLogger.CreateLogger<EscalatingStatementFieldExtractor>());
     }
@@ -155,7 +171,7 @@ public sealed class EscalationSeamBehaviorNeutralTests
             Compare("Product", bps.Product, eps.Product, mismatches);
             Compare("PeriodStart", bps.PeriodStart, eps.PeriodStart, mismatches);
             Compare("PeriodCutDate", bps.PeriodCutDate, eps.PeriodCutDate, mismatches);
-            Compare("PaymentDueDate", bps.PaymentDueDate, eps.PaymentDueDate, mismatches);
+            ComparePaymentDueDate(bps.PaymentDueDate, eps.PaymentDueDate, mismatches);
             Compare("DayCountPrinted", bps.DayCountPrinted, eps.DayCountPrinted, mismatches);
             Compare("PagoParaNoGenerarIntereses", bps.PagoParaNoGenerarIntereses, eps.PagoParaNoGenerarIntereses, mismatches);
             Compare("PagoMinimo", bps.PagoMinimo, eps.PagoMinimo, mismatches);
@@ -214,5 +230,53 @@ public sealed class EscalationSeamBehaviorNeutralTests
             mismatches.Add(
                 $"{fieldName}: escalated Provenance.Stage={escalated.Provenance.Stage} (expected {StageId.Positional})");
         }
+    }
+
+    /// <summary>
+    /// PaymentDueDate-specific comparison (E2.2): unlike every other field in this harness, this
+    /// one has a non-empty ladder, so the escalated path is allowed to genuinely recover a value
+    /// the positional extractor missed. See the class remarks for the full acceptance matrix.
+    /// </summary>
+    private static void ComparePaymentDueDate(
+        ExtractedField<DateOnly> baseline,
+        ExtractedField<DateOnly> escalated,
+        List<string> mismatches)
+    {
+        if (baseline.Status != ExtractionStatus.NotExtracted)
+        {
+            // Positional already found something — StatusGate (PaymentDueDate's only trigger)
+            // cannot fire, so the orchestrator cannot have escalated. Must be byte-identical, same
+            // as every other field.
+            Compare("PaymentDueDate", baseline, escalated, mismatches);
+            return;
+        }
+
+        // Positional found nothing: either the fuzzy stage also honestly abstained (unchanged —
+        // required for every other field, still the default expectation here) or it recovered a
+        // plausible value. Anything else is a real divergence.
+        if (escalated.Status == ExtractionStatus.NotExtracted)
+            return;
+
+        var isHonestRecovery =
+            escalated.Status == ExtractionStatus.Extracted
+            && escalated.Provenance.Stage == StageId.FuzzyLabel
+            && PaymentDueDatePlausibilityValidator.IsPlausible(escalated.Value);
+
+        if (!isHonestRecovery)
+        {
+            mismatches.Add(
+                $"PaymentDueDate: escalated result is neither 'still NotExtracted' nor a plausible "
+                + $"FuzzyLabel recovery. Status={escalated.Status} Value={escalated.Value} "
+                + $"Provenance={escalated.Provenance.Stage}");
+        }
+
+        // A genuine recovery is not itself a mismatch — it is the point of E2.2 — but it changes
+        // the demo verdict-preservation gate's scope, so it must be visible in test output rather
+        // than silently swallowed.
+        TestContext.Current.SendDiagnosticMessage(
+            isHonestRecovery
+                ? $"[E2.2] PaymentDueDate recovered {escalated.Value:yyyy-MM-dd} via FuzzyLabel "
+                  + $"(confidence {escalated.Confidence:0.00})."
+                : "[E2.2] PaymentDueDate escalated result failed the honesty check above.");
     }
 }
