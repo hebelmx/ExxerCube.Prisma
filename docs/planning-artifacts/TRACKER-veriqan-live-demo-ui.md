@@ -148,8 +148,17 @@ than start it this session (it's a real multi-story epic with a design fork + an
 | VLD-S4b | VerdictResult.razor + bUnit smoke | ✅ DONE | build 0/0; Web.UI.Tests 38/38 (31+1 smoke+6); bUnit 2.7.2 worked (no fallback); commit pending |
 | VLD-S5a | DemoRunner hero chain + demo resilience/warm-up config | ✅ DONE | build 0/0; Web.UI.Tests 41/41; commit 4e789962, pushed |
 | VLD-S5b | /live page (un-dark IDemoRunner) + LIVE/DEMO badge + 3-color tier chips | ✅ DONE | build 0/0; Web.UI.Tests 46/46; commit 4d3ade5b, pushed |
-| VLD-S5c | Adversarial-review remediation (upload crash, readiness gate, content-root) | ⏳ in progress | — |
-| VLD-S7 | Docker compose deploy | ⛔ owner checkpoint | — |
+| VLD-S5c | Adversarial-review remediation (upload crash, readiness gate, content-root) | ✅ DONE | build 0/0; Web.UI.Tests 50/50; commit 48087a6c, pushed |
+| VLD-S7 | Docker compose deploy | ✅ DONE | image built (1.14GB); container smoke: /health,/,/live → 200; reference bundle loaded in-container; commit pending |
+
+**VLD-S7 owner decision (2026-07-05):** **IN-MEMORY, no SQL** (confirmed). Demo Web.UI container is
+STANDALONE — no sqlserver dep, no ConnectionStrings__VeriqanDb, no AES encryption key. Files authored:
+new `.../ExxerCube.Prisma.Veriqan.Web.UI/Dockerfile` (mirrors Worker; installs libfontconfig1+libfreetype6
+for SkiaSharp/PDFium hero rasterization) + `veriqan-web-ui` service in `docker-compose.veriqan.yml`
+(host 18091, bind-mounts PRP2/demo reference-bundle → `/data/veriqan/demo-reference-bundle` +
+`Veriqan__CsvReferenceData__RootDirectory` absolute override). Content-root pin (S5c) means appsettings loads
+in-container. Verified `.dockerignore` doesn't exclude wwwroot/demo-fixtures or appsettings.json. Build+smoke
+pending (docker build of ~70 projects in flight).
 
 ## ADVERSARIAL REVIEW — S4+S5 (2026-07-04c, 2 reviewers: plan-completion + runtime qa)
 **Core claim CONFIRMED + runtime-proven:** pipeline genuinely un-darkened. QA booted the host, `/live`→200,

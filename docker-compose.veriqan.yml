@@ -5,15 +5,23 @@
 #   1. cp .env.veriqan.example .env.veriqan   # fill in required secrets
 #   2. docker compose -f docker-compose.veriqan.yml up --build
 #
-# Services (2 total):
-#   sqlserver       — SQL Server 2022 (persistence dependency)
+# Services (3 total):
+#   sqlserver       — SQL Server 2022 (persistence dependency for veriqan-worker only)
 #   veriqan-worker  — Veriqan VEC Worker  (port 18090 on host)
+#   veriqan-web-ui  — Veriqan Web.UI demo host (port 18091 on host) — STANDALONE / IN-MEMORY.
+#                     Runs the live pipeline in-process (VLD-S5) but has NO dependency on
+#                     sqlserver and sets NO ConnectionStrings__VeriqanDb: it always falls back to
+#                     AddVeriqanInMemoryPersistence() (VLD-S1/S7 owner decision — sales-demo
+#                     surface, not a system of record). It can be started independently of the
+#                     other two services.
 #
 # Volumes (2 total):
 #   veriqan-sqldata — SQL Server data files (named, persisted across restarts)
 #   veriqan-data    — Reference-bundle CSV files (bind-mounted from repo tree)
+#                     veriqan-web-ui bind-mounts its OWN reference bundle directly (see below) —
+#                     it uses the PRP2/demo bundle, not the worker's veriqan-data bundle.
 #
-# Build context for veriqan-worker is the REPO ROOT so the Dockerfile can
+# Build context for veriqan-worker and veriqan-web-ui is the REPO ROOT so their Dockerfiles can
 #   COPY Prisma/Code/Src/CSharp/ and the root nuget.config.
 #
 # Required env vars (set in .env.veriqan — never hardcode here):
@@ -143,4 +151,60 @@ services:
     depends_on:
       sqlserver:
         condition: service_healthy
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Veriqan Web.UI demo host
+  # Builds from repo root so the multi-stage Dockerfile can reach nuget.config
+  # and the full CSharp source tree. STANDALONE: no sqlserver dependency, no
+  # ConnectionStrings__VeriqanDb — in-memory persistence only (VLD-S1/S7).
+  # ---------------------------------------------------------------------------
+  veriqan-web-ui:
+    build:
+      context: .
+      dockerfile: "Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Veriqan.Web.UI/Dockerfile"
+    container_name: veriqan-web-ui
+    image: veriqan-web-ui:dev
+    networks:
+      - veriqan-dev
+    ports:
+      # Host port 18091 (18090 is taken by veriqan-worker above).
+      # Container-internal port stays 8080 (see ASPNETCORE_URLS below).
+      - "18091:8080"
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+
+      # Absolute in-container path to the demo reference-data bundle — must be ABSOLUTE (the
+      # dev-time repo-root-relative CLAUDE.md walk-up cannot resolve inside a published image;
+      # see DemoCorpusPathResolver / Program.cs). Must match the volume mount target below.
+      Veriqan__CsvReferenceData__RootDirectory: "/data/veriqan/demo-reference-bundle"
+
+      # OpenTelemetry OTLP endpoint (optional observability).
+      Veriqan__OtlpEndpoint: ${OTLP_ENDPOINT:-http://localhost:4317}
+
+      # Seq structured-log sink (empty string = disabled).
+      Veriqan__Seq__ServerUrl: ${SEQ_URL:-}
+
+      # SMTP — optional. The live pipeline's alert dispatch fails best-effort (logged, non-fatal)
+      # when no relay is reachable, which is expected for a standalone demo host. Every var has a
+      # safe default so this service never requires .env.veriqan secrets.
+      Veriqan__Smtp__Host: ${VERIQAN_SMTP_HOST:-localhost}
+      Veriqan__Smtp__Port: "587"
+      Veriqan__Smtp__EnableSsl: "true"
+      Veriqan__Smtp__From: "noreply@veriqan.local"
+      Veriqan__Smtp__UserName: ${VERIQAN_SMTP_USER:-}
+      Veriqan__Smtp__Password: ${VERIQAN_SMTP_PASSWORD:-}
+      Veriqan__Alerts__Recipients: ${VERIQAN_ALERT_RECIPIENTS:-[]}
+
+    volumes:
+      # Bind-mount the PRP2 demo reference-bundle (NOT the worker's veriqan-data bundle — the
+      # Web.UI demo's DemoRunner looks up institution key "Demo Bank (Iqubica)", which lives under
+      # Prisma/Fixtures/PRP2/demo/reference-bundle/Demo_Bank_(Iqubica)/).
+      - type: bind
+        source: ./Prisma/Fixtures/PRP2/demo/reference-bundle
+        target: /data/veriqan/demo-reference-bundle
+        read_only: true
+
+    # No depends_on: sqlserver — this service is fully standalone (in-memory persistence).
     restart: unless-stopped
