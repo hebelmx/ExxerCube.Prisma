@@ -1592,10 +1592,19 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     private const double DesgloseOperationDateXMax = 95.0;
     private const double DeskglosechargeDateXMin = 96.0;
     private const double DesgloseChargeDateXMax = 157.0;
-    private const double DesgloseDescriptionXMin = 158.0;
+    // Nudged from 158 → 145: the real Banamex-style layout's first description word
+    // (e.g. "MERCADO", "OXXO") starts at X≈150.6, just left of the Dummie VEC value.
+    // Still safely clear of the operation/charge-date columns (X ≤ 157), which only
+    // ever contain date-pattern tokens there, so no date token can be mis-joined
+    // into the description text.
+    private const double DesgloseDescriptionXMin = 145.0;
     private const double DesgloseDescriptionXMax = 422.0;
     private const double DesgloseSignXMin = 423.0;
-    private const double DesgloseSignXMax = 438.0;
+    // Widened from 438 → 480: covers both the Dummie VEC layout (sign at X≈423–438)
+    // and the real Banamex-style layout (sign at X≈469.5–474.2), while staying safely
+    // below the amount column's first real token (X≈483.6) so it never mis-groups the
+    // amount itself as a sign candidate (the amount regex rejects "+"/"−" anyway).
+    private const double DesgloseSignXMax = 480.0;
     private const double DesgloseAmountXMin = 436.0;
 
     // Y-band tolerance tighter than the header (14 pt row spacing; 4 pt avoids merging adjacent rows).
@@ -1658,15 +1667,19 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             var page = doc.GetPage(pageIndex);
             var words = page.GetWords().ToList();
 
-            // Check whether this page contains the DESGLOSE section header.
-            // The header line has "DESGLOSE" at Y≈663 (empirically measured).
-            var hasDesgloseHeader = words.Any(w =>
-                string.Equals(w.Text, "DESGLOSE", StringComparison.OrdinalIgnoreCase));
+            // Section evidence: the literal "DESGLOSE" header word (Dummie VEC layout,
+            // Y≈663) if present. This is no longer a gate on which pages get scanned —
+            // the real Banamex-style layout's movements table page has NO such literal
+            // token (only unrelated prose mentions "desglose" lowercase elsewhere) — but
+            // it is still tracked as evidence so a document with zero movement-shaped rows
+            // and zero header evidence (e.g. an image-only scan with no extractable text)
+            // is correctly classified SectionNotFound rather than NoRowsParsed.
+            if (words.Any(w => string.Equals(w.Text, "DESGLOSE", StringComparison.OrdinalIgnoreCase)))
+                sectionFound = true;
 
-            if (!hasDesgloseHeader)
-                continue;
-
-            sectionFound = true;
+            // Every page is scanned for movement-shaped rows: TryParseMovementRow requires
+            // BOTH a leading operation-date token AND a sign token before accepting a band,
+            // so unrelated tables/prose on non-DESGLOSE pages are rejected there, not here.
 
             // Group all words into Y-bands using the tighter DESGLOSE tolerance.
             var bands = GroupIntoBandsWithTolerance(words, DesgloseBandTolerance);
@@ -1728,6 +1741,12 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         }
 
         var missingTotal = ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
+
+        // At least one successfully-parsed movement row is itself the strongest possible
+        // section evidence — a row can only be produced by a band with BOTH a date and a
+        // sign token, so it can't be a false positive from unrelated page content.
+        if (movements.Count > 0)
+            sectionFound = true;
 
         if (!sectionFound)
             return ([], MovementsExtractionStatus.SectionNotFound, missingTotal, missingTotal);
