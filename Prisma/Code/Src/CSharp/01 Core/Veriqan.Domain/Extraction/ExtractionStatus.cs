@@ -23,4 +23,14 @@ public enum ExtractionStatus
     /// The raw value is preserved so downstream checks can report it as a defect.
     /// </summary>
     ExtractedInvalidFormat,
+
+    // TODO(E3/E5): decide coverage-count semantics when a stage first emits ExtractedByInference.
+
+    /// <summary>
+    /// The value was resolved by a semantic-search or LLM inference stage rather than read
+    /// positionally. Treated as a candidate that a downstream consumer MAY require human
+    /// confirmation for before it gates a verdict (mirrors Prisma's <c>RequiresManualReview</c>
+    /// pattern). No stage emits this yet as of E1.
+    /// </summary>
+    ExtractedByInference,
 }

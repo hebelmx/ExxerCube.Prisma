@@ -17,7 +17,12 @@ public sealed class ExtractedField<T>
     /// <param name="confidence">Extraction confidence in the range [0.0, 1.0].  Use 0.0 for <see cref="ExtractionStatus.NotExtracted"/>.</param>
     /// <param name="locator">Where the field was found (or expected).  Never <see langword="null"/>.</param>
     /// <param name="status">Outcome of the extraction attempt.</param>
-    public ExtractedField(T? value, double confidence, FieldLocator locator, ExtractionStatus status)
+    /// <param name="provenance">
+    /// How the value was obtained. Defaults to <see cref="ExtractionProvenance.Positional"/> when
+    /// omitted — every extractor predating the progressive fallback-extraction chain (E1) only
+    /// ever produces positional values, so this parameter is optional and behavior-neutral.
+    /// </param>
+    public ExtractedField(T? value, double confidence, FieldLocator locator, ExtractionStatus status, ExtractionProvenance? provenance = null)
     {
         ArgumentNullException.ThrowIfNull(locator);
         if (confidence is < 0.0 or > 1.0)
@@ -27,6 +32,7 @@ public sealed class ExtractedField<T>
         Confidence = confidence;
         Locator = locator;
         Status = status;
+        Provenance = provenance ?? ExtractionProvenance.Positional;
     }
 
     /// <summary>
@@ -59,6 +65,13 @@ public sealed class ExtractedField<T>
     /// </summary>
     public ExtractionStatus Status { get; }
 
+    /// <summary>
+    /// How this value was obtained — which resolution stage produced it, and (for the LLM
+    /// stage only) content-hash diagnostics. Defaults to <see cref="ExtractionProvenance.Positional"/>
+    /// for every field produced before the progressive fallback-extraction chain (E1) exists.
+    /// </summary>
+    public ExtractionProvenance Provenance { get; }
+
     // -----------------------------------------------------------------------
     // Factory helpers
     // -----------------------------------------------------------------------
@@ -66,19 +79,19 @@ public sealed class ExtractedField<T>
     /// <summary>
     /// Creates a successfully-extracted field with full confidence and a known locator.
     /// </summary>
-    public static ExtractedField<T> Found(T value, FieldLocator locator) =>
-        new(value, 1.0, locator, ExtractionStatus.Extracted);
+    public static ExtractedField<T> Found(T value, FieldLocator locator, ExtractionProvenance? provenance = null) =>
+        new(value, 1.0, locator, ExtractionStatus.Extracted, provenance);
 
     /// <summary>
     /// Creates a field that was found but whose value violates a format rule.
     /// Confidence is set to 0.7 (found but suspect).
     /// </summary>
-    public static ExtractedField<T> InvalidFormat(T rawValue, FieldLocator locator) =>
-        new(rawValue, 0.7, locator, ExtractionStatus.ExtractedInvalidFormat);
+    public static ExtractedField<T> InvalidFormat(T rawValue, FieldLocator locator, ExtractionProvenance? provenance = null) =>
+        new(rawValue, 0.7, locator, ExtractionStatus.ExtractedInvalidFormat, provenance);
 
     /// <summary>
     /// Creates a not-found field with a best-effort page-level locator hint.
     /// </summary>
-    public static ExtractedField<T> Missing(FieldLocator? hint = null) =>
-        new(default, 0.0, hint ?? FieldLocator.PageHint(), ExtractionStatus.NotExtracted);
+    public static ExtractedField<T> Missing(FieldLocator? hint = null, ExtractionProvenance? provenance = null) =>
+        new(default, 0.0, hint ?? FieldLocator.PageHint(), ExtractionStatus.NotExtracted, provenance);
 }
