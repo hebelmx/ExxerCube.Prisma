@@ -5,6 +5,50 @@
 
 ---
 
+## ⏩⏩⏩ LATEST (2026-07-06 session 2) — **E6.S6.2 DESIGN + S6.2.1 DONE, pushed `48fe6639` → NEXT = S6.2.2 (real-Banamex layout)**
+
+**Orchestrated the E6.S6.2 design-first flow + shipped the S6.2.1 slice on `Liv`.** Verified from ground truth
+(build 0/0, `Veriqan.Infrastructure.Extraction.Tests` **268/268**, 0 skipped).
+
+**Canonical docs (read these to resume):**
+- `docs/planning-artifacts/E6-S6.2-synthetic-generator-design.md` — the settled design (6 forks answered,
+  owner rulings + spike result folded in, §0 non-goals, §5 field→X/Y/token placement table, §9 S6.2.1 slice,
+  §10 reordered build sequence). **This is the intended-solution doc — do not drift from it.**
+- `docs/planning-artifacts/E6-S6.2-extractor-geometry-map.md` — extractor band-constant reference (has a
+  page-size correction: Dummie-VEC = 540×780, real good.pdf = 612×792).
+
+**Pivotal finding (verified):** the Dummie-VEC geometry the extractor is calibrated to already resolves
+TASA/CAT/RESUMEN/NIVEL-DE-USO GREEN today via a hand-built PowerPoint fixture
+(`Prisma/Fixtures/PRP2/01+Dummie+VEC+jul_ago+20252.pdf`, 540×780) —
+`PdfPigStatementFieldExtractorPeriodTests.cs:220` + `ResumenTests.cs`. So E6.S6.2 = turn that proof into a
+reproducible, manifest-backed generator, not discover geometry.
+
+**Make-or-break spike ran BEFORE build → GO:** PyMuPDF `insert_text` does NOT reproduce the E2.3
+token-fragmentation (via PdfPig `GetWords()`: percent tokens round-trip single + regex-matching, Y-flip
+`fitz_y=780−Bottom` exact). Keep one `insert_text` per full token string.
+
+**Owner rulings (AskUserQuestion 2026-07-06):** S6.2.1 = **extraction-fidelity only** (no verdict assertion,
+NO `arithmeticChecks` — deferred to S6.2.3). Layout: **Dummie-VEC now, real-Banamex 612×792 left-column layout
+= the next slice S6.2.2** (ahead of variance/defects).
+
+**S6.2.1 shipped (`48fe6639`):** `scripts/veriqan-corpus/synth_gen.py` (PyMuPDF; `requirements.txt` pins
+`pymupdf==1.27.2.2`) → `Prisma/Fixtures/PRP2/synthetic/s6211-baseline.pdf` + `.manifest.json` (god's-eye;
+`sourceProvenance`, NOT `provenance` — that collides with `ExtractionProvenance`). `SyntheticGoldenRoundTripTests`
++ `SyntheticGoldManifest`(loader, `Result<T>`) + `StatementModelFieldAccessors`(no-reflection) in
+`Veriqan.Infrastructure.Extraction.Tests`. 15 fields resolved first-try, 0 coord tuning; deterministic
+(word-geometry byte-identical). Honest gap: the DESIGN got a qa adversarial pass; the built code did not get a
+separate fan-out review (green + test-covered → judged disproportionate) — optional quick skeptic next time.
+
+### 🎯 NEXT SESSION — E6.S6.2.2 (real-Banamex layout profile), DESIGN-FORK, do NOT build blind
+Add a 2nd generator layout profile targeting the real `good.pdf` **612×792 LEFT-column** geometry (RESUMEN
+left-col pass `labelMinX<280`/`amtMaxX≤280`; the synthetic CAN supply the Tasa/CAT the real doc lacks →
+exercises the extractor **fallback path** S6.2.1's right-column clone never touched). **RE-RUN the PdfPig-coords
+recon + token-frag spike against the left-column band geometry BEFORE writing generator code** (same trap that
+killed E2.3). Then S6.2.3 (defect-injection + verdict-level, reintroduce `arithmeticChecks`), S6.2.4 (variance),
+S6.2.5 (movements), S6.2.6 (batch+CI) — design §10.
+
+---
+
 ## ⏩⏩ LATEST (2026-07-06) — E2.1/E2.2 REVIEWED (clean) + **E2.3 REFUTED by corpus reality → PIVOT to E6.S6.2**
 
 **Session summary (orchestrator):**
