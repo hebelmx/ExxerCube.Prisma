@@ -5,7 +5,52 @@
 
 ---
 
-## ⏩⏩⏩ LATEST (2026-07-06 session 2) — **E6.S6.2 DESIGN + S6.2.1 DONE, pushed `48fe6639` → NEXT = S6.2.2 (real-Banamex layout)**
+## ⏩⏩⏩⏩ LATEST (2026-07-06 session 3) — **E6.S6.2.2 (real-Banamex left-column) DONE, pushed `03e87223` → NEXT = S6.2.3 (defect injection + verdict-level)**
+
+**Orchestrated S6.2.2 recon-first + shipped the slice on `Liv`.** Verified from ground truth
+(build 0/0, `Veriqan.Infrastructure.Extraction.Tests` **269/269**, 0 skipped — 268 baseline + 1 new s622 `[Fact]`).
+
+**Recon-first discipline honored (the whole point of the slice):** ran the PdfPig-coords recon + PyMuPDF
+token-frag spike against the real `good.pdf` 612×792 **left-column** band geometry BEFORE any generator
+code → **GO** (I independently re-verified every load-bearing claim from source, not the agent summary).
+Key verified facts:
+- `good.pdf` = **612×792, 9 pages**. Its left-column RESUMEN rows (`label Left≈25.5, amount Left≈207.7`,
+  combined `$` token) already round-trip today via `ExtractResumenField` **pass-2** (`labelMinX:0/labelMaxX:280/amtMaxX:280`).
+- **HARD CONSTRAINT:** `ExtractNivelDeUsoField` hardcodes `if (Left<280) continue` (`:1507`) — NIVEL DE USO +
+  Saldo deudor total + Crédito disponible have **NO left-column pass**, so even in the "left-column" profile
+  they MUST be placed **right-column** (label L≈303, split-`$` L≈460) exactly as real good.pdf does. Placing
+  them left-column → silent Missing.
+- Token-fragmentation (the E2.3 killer) does **not** reproduce at 612×792 — one `insert_text` per token → one
+  un-fragmented PdfPig word (percents match `^\d+(?:\.\d+)?%$`, split-dollar `$`+digits as 2 tokens).
+
+**S6.2.2 shipped (`03e87223`):** `scripts/veriqan-corpus/synth_gen.py` now has `--profile {dummievec,realbanamex,all}`
+(default `all`); s6211 token table/geometry **unchanged** (word-geometry byte-identical — verified). New fixture
+`Prisma/Fixtures/PRP2/synthetic/s622-realbanamex-baseline.{pdf,manifest.json}` (612×792, `sourceProvenance:synthetic`,
+`defect:null`, **no arithmeticChecks** per owner extraction-only ruling; RESUMEN/Saldo/Crédito identities kept
+arithmetic-consistent so S6.2.3 can turn CL-21 on without re-authoring — new value persona Tasa 0.1975/Cat 0.2610).
+`SyntheticGoldenRoundTripTests` refactored to a shared `AssertGoldenRoundTripAsync` helper + two `[Fact]`s
+(s6211 unchanged + new s622), reusing `SyntheticGoldManifestLoader` + `StatementModelFieldAccessors` unchanged
+(all 14 Extracted fields already had accessors). **No production extractor code touched.**
+
+**Adversarial review DONE (single skeptic, 7 refutation angles, all CONFIRMED-clean):** non-vacuous (every
+manifest field asserted or recorded as mismatch, no silent-skip); genuinely exercises the left-column pass-2
+(RESUMEN X=25.5 can only match pass-2); NIVEL honestly right-column; manifest is god's-eye (hardcoded literals
+in `build_manifest_s622`, not reverse-engineered); word-geometry deterministic; no scope drift; s6211 no regression.
+**Verdict: sound to build S6.2.3 on.** ONE latent note (not a defect): re-running the generator dirties PDF
+**bytes** (PyMuPDF metadata) though word-geometry is stable → if S6.2.6 ever wires generate-then-`git diff --exit-code`
+into CI, gate on word-geometry, NOT bytes.
+
+### 🎯 NEXT SESSION — E6.S6.2.3 (defect injection + verdict-level), design §10 #3
+Wire `math`/`font`/`scanned`/`abstain` (design §8) onto the generator output; **(re)introduce** the manifest's
+`arithmeticChecks`/`defect` fields (design §6.2 note — the S6.2.2 values are already arithmetic-consistent);
+add **verdict-level** tests (does CL-21 actually fire RED on the synthetic `math` variant, end-to-end through
+`VerificationPipeline` — NOT just the extractor). This is where the deferred verdict-level proof lands. Verify
+against the FULL verdict pipeline (Extraction + Validation + Orchestration `VecChecklistDemoE2ETests`), not just
+Extraction units (the P1.4 lesson). Then S6.2.4 (variance), S6.2.5 (DESGLOSE movements), S6.2.6 (batch+CI).
+
+---
+
+## ⏩⏩⏩ (2026-07-06 session 2) — **E6.S6.2 DESIGN + S6.2.1 DONE, pushed `48fe6639`**
 
 **Orchestrated the E6.S6.2 design-first flow + shipped the S6.2.1 slice on `Liv`.** Verified from ground truth
 (build 0/0, `Veriqan.Infrastructure.Extraction.Tests` **268/268**, 0 skipped).
