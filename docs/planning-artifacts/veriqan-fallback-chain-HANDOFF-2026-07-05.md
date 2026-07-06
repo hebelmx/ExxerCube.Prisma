@@ -5,6 +5,80 @@
 
 ---
 
+## ⏩⏩ LATEST (2026-07-06) — E2.1/E2.2 REVIEWED (clean) + **E2.3 REFUTED by corpus reality → PIVOT to E6.S6.2**
+
+**Session summary (orchestrator):**
+1. **E2.1/E2.2 adversarial review DONE + closed out** (commit `4877d438`, pushed). Two-lens skeptics (honesty +
+   verdict-preservation) vs the design doc. Verdict = **sound to build on** (E2.1 byte-identical-neutral; rebuild
+   path facet-faithful 26+24 members; demo 0/5 verdicts unchanged empirically; all 3 suites green — Extraction
+   **267/267** after the new canary, Validation 531/531, Orchestration 122/122). Two latent findings triaged:
+   (F1) the "PaymentDueDate has 0 consumers" claim was FALSE — it has **Visual-rule** consumers
+   (`TypographyPointSizeFloorRule.cs:193` LAW-TYPO-MINSIZE, `MandatedBoldFieldsRule.cs:444` LAW-TYPO-BOLD,
+   `VerificationPipeline.cs:1203`) → corrected + a **canary** now pins abstention on the 5 fixtures
+   (`PaymentDueDateFuzzyRecoveryCanaryTests`). (F2) `FuzzyLabelStage` can fabricate a plausible-but-wrong date from
+   a cross-column homonym label ("fecha de cargo"→85, "fecha ultimo pago"→82, "fecha de pago minimo"→100 all clear
+   threshold-80) → folded into E2.3-if-ever-built as a discriminating-token AC.
+
+2. **E2.3 (TASA/CAT + amounts) REFUTED — do NOT build fuzzy ladders for it.** Two PdfPig-ground-truth scouts across
+   all 4 text-bearing demo fixtures proved E2.3-as-fuzzy-recovery has **no genuine win on the available corpus**:
+   - 10/18 target fields are **already Extracted** on every fixture → fuzzy fallback = dead code.
+   - The 8 always-missing fields are missing because the **VALUE isn't extractable text**, not because of a
+     mislabel — so `FuzzyLabelStage` (find missed label → read band) can recover **none** of them:
+     - **Tasa** = text-layer defect (no rate digits emitted anywhere; only footer print-shop codes + the CFDI IVA
+       16% decoy). Verified across all 4 fixtures. Needs a **generator/fixture fix or OCR/raster**, not fuzzy.
+     - **TotalCargos / TotalAbonos** = genuinely absent (no label+value in any text layer).
+     - **PagosYAbonos / AdeudoPeriodoAnterior** = print-suppressed $0 rows (a lone "-", NO label) → **E3
+       implied-zero policy** (the already-open ladder-exhaustion honesty item #5).
+     - **SaldoDeudorTotal** = value not in text (only page-4 glosario prose) → **E3 computed-proxy or abstain**.
+     - **PagoMinimoMasMeses** = absent + near-zero consumers → skip.
+   - **CAT is out of E2.3 anyway** — the design escalation matrix (line 107) says `Cat = Positional→semantic→LLM`
+     (E4), not fuzzy. The handoff task title #8 was looser than the canonical matrix.
+   - **Decision #1 (Levenshtein copy) is MOOT** — `VecTextMatcher.NormalizedLevenshteinRatio`
+     (`01 Core/Veriqan.Domain/Extraction/VecTextMatcher.cs:223-255`) already exists in Domain, dependency-free.
+   - E2.2 infra confirmed **fully reusable** (pure data change: register ladders + stages) IF a real fuzzy win ever
+     appears. No amount/decimal parser in `StatementValueParsers` yet (scoped-in when needed). Positional is
+     page-1-restricted (`PdfPigStatementFieldExtractor.cs:554-560`); FuzzyLabelStage already scans all pages.
+
+3. **OWNER RE-PLAN (AskUserQuestion 2026-07-06): PIVOT to E6.S6.2** — the demo fixtures are **anonymized REAL
+   Banamex** docs (`scripts/veriqan-corpus/{anonymize,enhance}.py`, real sources live OUTSIDE the repo) whose text
+   layer genuinely omits Tasa/totals. The root-cause fix is the **greenfield synthetic estado-de-cuenta generator**
+   (E6.S6.2, the non-owner-gated escape valve) that emits a **complete text layer + god's-eye manifest**, so
+   POSITIONAL extraction lights up CL-10/21/22/24/44 + Section19 with no fuzzy needed and the pipeline can be
+   measured against known truth.
+
+### 🎯 NEXT SESSION — E6.S6.2 scope (DESIGN-FIRST — do NOT build blind)
+**Goal:** synthetic Banamex-style credit-card statement PDFs with (a) a complete, well-tokenized text layer
+containing ALL verdict-gating fields (Tasa%, RESUMEN 7, NIVEL DE USO, DESGLOSE totals, non-suppressed rows,
+movements), and (b) a **god's-eye JSON manifest** = source-contained gold (per-field value + expected status incl.
+legitimate abstentions + provenance tag `synthetic`), per the design QA "golden corpus per-field triple" and the
+[[prisma-domain-3-docs-unreliable]] lesson (gold from the generator manifest, NEVER a delivered file).
+
+**Design forks to settle BEFORE any code (this is why it's design-first, not a blind build):**
+1. **Generator tech:** HTML-template→PDF (weasyprint/Playwright — maintainable, excellent text layer; RECOMMENDED)
+   vs PyMuPDF programmatic drawing (consistent w/ anonymize.py, painful for rich layout) vs reportlab.
+2. **⚠️ Layout fidelity — THE CRITICAL RISK (same trap that killed E2.3):** `PdfPigStatementFieldExtractor`'s
+   positional bands are calibrated to the REAL Banamex page-1 coordinate geometry. If the synthetic layout differs,
+   positional MISSES fields even though they're present → defeats the pivot. Recommend **mimic the Banamex band
+   geometry closely** (measure real `good.pdf` PdfPig coords, replicate X-columns/Y-bands) so the EXISTING extractor
+   "just works" — proving end-to-end pipeline, not fixture-specific patching (the PI-1 bar).
+3. **Manifest schema** + a C# loader for the eval harness.
+4. **Committability:** synthetic = no PII → PDFs+manifests CAN be committed (unlike the anonymized real ones). Put
+   under `Prisma/Fixtures/PRP2/synthetic/` (confirm with owner).
+5. **Defect injection:** mirror anonymize.py `--inject {math,font,scanned}` so CL-21/CL-35/text-density get
+   synthetic known-bad inputs with manifest-tagged expected verdicts.
+6. **Variance:** parameterize layout/phrasing/position/values to prove robustness.
+
+**Recommended first slice (S6.2.1):** generate ONE synthetic statement (HTML→PDF) mimicking the Banamex page-1
+bands closely enough that the EXISTING `PdfPigStatementFieldExtractor` resolves Tasa + RESUMEN + DESGLOSE totals
+positionally, + emit its god's-eye manifest, + a C# golden round-trip test asserting `ExtractFullAsync` resolves
+those verdict-gating fields (the ones the real fixtures CAN'T) to the manifest values. That single slice proves the
+escape valve end-to-end; variance + defect-injection + batch follow.
+
+**First step:** a short **design pass** (architect + qa party, or an `architect` subagent producing the design doc)
+to settle forks 1+2 BEFORE any generator code. Do not build against an unsettled layout-fidelity strategy.
+
+---
+
 ## ⏩ RESUME STATE (updated 2026-07-05, after E1)
 
 **Owner ruled (AskUserQuestion):** session scope = **PI-1 slice (E1+E2+E3-stub+E6.S6.2)**;
