@@ -111,6 +111,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Fixtures\synthetic\s6211-baseline.manifest.json</Link>
     </Content>
+    <!-- E6.S6.2.2 synthetic real-Banamex left-column golden fixture (scripts/veriqan-corpus/synth_gen.py). -->
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\s622-realbanamex-baseline.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\s622-realbanamex-baseline.pdf</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\s622-realbanamex-baseline.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\s622-realbanamex-baseline.manifest.json</Link>
+    </Content>
   </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">
     <ProjectCapability Include="DiagnoseCapabilities" />
