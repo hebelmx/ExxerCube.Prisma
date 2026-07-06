@@ -102,6 +102,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Fixtures\demo\scanned.pdf</Link>
     </Content>
+    <!-- E6.S6.2.1 synthetic Dummie-VEC golden fixture (scripts/veriqan-corpus/synth_gen.py). -->
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\s6211-baseline.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\s6211-baseline.pdf</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\s6211-baseline.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\s6211-baseline.manifest.json</Link>
+    </Content>
   </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">
     <ProjectCapability Include="DiagnoseCapabilities" />

@@ -1,0 +1,9 @@
+# Pinned per E6.S6.2 design doc §11 risk 4 (PyMuPDF version drift): the field
+# placement table in docs/planning-artifacts/E6-S6.2-synthetic-generator-design.md
+# was calibrated against this exact PyMuPDF version's insert_text baseline
+# behaviour. Bumping this version requires re-running the golden round-trip test
+# (SyntheticGoldenRoundTripTests) before trusting the generated geometry.
+#
+# Used by: synth_gen.py (S6.2.1+), anonymize.py, enhance.py.
+pymupdf==1.27.2.2
+pillow==11.3.0
