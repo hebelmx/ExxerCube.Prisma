@@ -40,7 +40,12 @@ CREDIBLE candidates count as disagreeing peers. Three forward items tracked (see
   positional misses it (StatusGate trigger = only when positional NotExtracted). Stage SELF-ABSTAINS on
   no-match/unparseable/implausible (honesty; doesn't rely on the open exhaustion policy). `DefaultFieldStageProvider`
   now registered. **Verdict-preservation held: 0/5 demo verdicts changed** — the real Banamex layout never
-  prints this field on p1 (fuzzy abstains on all 4), and PaymentDueDate has 0 validation-rule consumers.
+  prints this field on p1 (fuzzy abstains on all 5). ⚠️ **CORRECTED by the E2.1/E2.2 adversarial review
+  (2026-07-06):** PaymentDueDate is NOT consumer-free. The Validation *project* has no rule, but the **Visual**
+  rule assembly does (wired into `VerificationPipeline`): `LAW-TYPO-MINSIZE` (`TypographyPointSizeFloorRule.cs:193`
+  branches strategy on `Status==Extracted`), `LAW-TYPO-BOLD` (`MandatedBoldFieldsRule.cs:444`), and the extracted-
+  field tally (`VerificationPipeline.cs:1203`). So 0/5 holds ONLY because fuzzy empirically abstains on this corpus,
+  NOT because a recovery is verdict-inert. A canary test now pins that abstention (task #5).
   Rebuild-path facet test added (a non-empty ladder now always activates the decorator's StatementModel
   rebuild — verified facet-preserving). Baselines now: **Extraction 262/262**, Validation 531/531,
   Orchestration 122/122 (demo 5/5), full solution 0/0.
@@ -55,7 +60,16 @@ CREDIBLE candidates count as disagreeing peers. Three forward items tracked (see
   `Extracted`. E2.2 dodged it via stage-level self-abstention; E2.3's Tasa/CAT/amounts MUST do the same
   (they have real verdict consumers — CL-10/21/22/24/44 — so a false-confident recovery CAN flip a verdict).
 
-**NEXT (tracker):** #10 = **adversarial review of E2.1/E2.2 FIRST** (behavior-changing, not yet reviewed) →
+**E2.1/E2.2 ADVERSARIAL REVIEW DONE (2026-07-06):** two-lens skeptics (honesty + verdict-preservation).
+Verdict = **sound to build E2.3 on** — E2.1 byte-identical-neutral, rebuild path facet-faithful (26 StatementModel
++ 24 PeriodSummary members carried), demo 0/5 verdicts changed (empirically re-run), all 3 suites green.
+Two latent findings triaged: (F1) false "0 consumers" claim → corrected above + canary added (task #5); (F2)
+`FuzzyLabelStage` can fabricate a plausible-but-wrong date from a cross-column homonym label ("fecha de cargo"→85,
+"fecha ultimo pago"→82, "fecha de pago minimo"→100 all clear threshold-80 vs the alias set; the 2020–2035 window
+can't catch an in-range wrong date) → this is the SAME homonym-collision E2.3 must solve for CAT; folded into E2.3
+as a hard AC (discriminating-token matching + red→green homonym tests). Blast-radius today = zero.
+
+**NEXT (tracker):** #5 = **review close-out** (canary + record correction, IN PROGRESS) →
 then #8 (**E2.3** TASA/CAT + amounts — the hard fields: CAT homonym collision, footer token-fragmentation,
 real verdict consumers) → #9 (**E2.4** movements table-shape, separate seam) → #5 (E3 validators grow) →
 #6 (**E6.S6.2** greenfield estado-de-cuenta generator, its own session) → #7 (E5 FieldCandidate LLM hashes).
