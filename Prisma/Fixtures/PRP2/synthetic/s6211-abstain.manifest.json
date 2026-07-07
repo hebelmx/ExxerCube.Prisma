@@ -8,12 +8,12 @@
     "generatedAtUtc": "2026-07-06T00:00:00Z"
   },
   "pdf": {
-    "fileName": "s6211-baseline.pdf",
+    "fileName": "s6211-abstain.pdf",
     "pageWidthPt": 540.0,
     "pageHeightPt": 780.0,
     "pageCount": 8
   },
-  "defect": null,
+  "defect": "abstain",
   "bundle": {
     "productId": "TC-BSSB",
     "productName": "Tarjeta de Crédito BSSB",
@@ -23,14 +23,16 @@
   },
   "fields": {
     "Tasa": {
-      "value": 0.2736,
+      "value": null,
       "clrType": "decimal",
-      "expectedStatus": "Extracted"
+      "expectedStatus": "NotExtracted",
+      "reason": "TASA/CAT block deliberately omitted (synthetic-only honest-abstention test)."
     },
     "Cat": {
-      "value": 0.2886,
+      "value": null,
       "clrType": "decimal",
-      "expectedStatus": "Extracted"
+      "expectedStatus": "NotExtracted",
+      "reason": "TASA/CAT block deliberately omitted (synthetic-only honest-abstention test)."
     },
     "PagoParaNoGenerarIntereses": {
       "value": 32446.69,
@@ -104,12 +106,12 @@
     {
       "checkId": "CL-21",
       "expectedOutcome": "Pass",
-      "note": "5-core-sum 32446.69 == printed Pago 32446.69 (delta 0 <= $0.50)."
+      "note": "Tasa/Cat are not CL-21 operands; arithmetic identity holds."
     },
     {
       "checkId": "CL-22",
       "expectedOutcome": "Pass",
-      "note": "SaldoCargosRegulares 32446.69 == PagoParaNoGenerarIntereses 32446.69."
+      "note": "Tasa/Cat are not CL-22 operands; arithmetic identity holds."
     }
   ],
   "knownFixtureDefects": []

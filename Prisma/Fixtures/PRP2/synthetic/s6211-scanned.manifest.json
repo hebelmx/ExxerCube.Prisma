@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "sourceProvenance": "synthetic",
+  "generator": {
+    "tool": "synth_gen.py",
+    "toolVersion": "0.1.0",
+    "seed": 20260706,
+    "generatedAtUtc": "2026-07-06T00:00:00Z"
+  },
+  "pdf": {
+    "fileName": "s6211-scanned.pdf",
+    "pageWidthPt": 540.0,
+    "pageHeightPt": 780.0,
+    "pageCount": 8
+  },
+  "defect": "scanned",
+  "bundle": {
+    "productId": "TC-BSSB",
+    "productName": "Tarjeta de Crédito BSSB",
+    "periodStart": "2025-07-05",
+    "periodEnd": "2025-08-04",
+    "creditLine": 100000.0
+  },
+  "fields": {
+    "Tasa": {
+      "value": null,
+      "clrType": "decimal",
+      "expectedStatus": "NotExtracted",
+      "reason": "Image-only (rasterized) PDF extracts zero fields; the extraction-coverage floor (Stage 2b) short-circuits first with BlockReason.InsufficientExtractionCoverage before the text-layer floor is reached (ExtractionGap)."
+    },
+    "Cat": {
+      "value": null,
+      "clrType": "decimal",
+      "expectedStatus": "NotExtracted",
+      "reason": "Image-only (rasterized) PDF extracts zero fields; the extraction-coverage floor (Stage 2b) short-circuits first with BlockReason.InsufficientExtractionCoverage before the text-layer floor is reached (ExtractionGap)."
+    },
+    "PagoParaNoGenerarIntereses": {
+      "value": null,
+      "clrType": "decimal",
+      "expectedStatus": "NotExtracted",
+      "reason": "Image-only (rasterized) PDF extracts zero fields; the extraction-coverage floor (Stage 2b) short-circuits first with BlockReason.InsufficientExtractionCoverage before the text-layer floor is reached (ExtractionGap)."
+    },
+    "AdeudoPeriodoAnterior": {
+      "value": null,
+      "clrType": "decimal",
+      "expectedStatus": "NotExtracted",
+      "reason": "Image-only (rasterized) PDF extracts zero fields; the extraction-coverage floor (Stage 2b) short-circuits first with BlockReason.InsufficientExtractionCoverage before the text-layer floor is reached (ExtractionGap)."
+    },
+    "CargosRegularesNoMeses": {
+      "value": null,
+      "clrType": "decimal",
+      "expectedStatus": "NotExtracted",
+      "reason": "Image-only (rasterized) PDF extracts zero fields; the extraction-coverage floor (Stage 2b) short-circuits first with BlockReason.InsufficientExtractionCoverage before the text-layer floor is reached (ExtractionGap)."
+    },
+    "CargosComprasAMesesCapital": {
+      "value": null,
+      "clrType": "decimal",
+      "expectedStatus": "NotExtracted",
+      "reason": "Image-only (rasterized) PDF extracts zero fields; the extraction-coverage floor (Stage 2b) short-circuits first with BlockReason.InsufficientExtractionCoverage before the text-layer floor is reached (ExtractionGap)."
+    },
+    "MontoIntereses": {
+      "value": null,
+      "clrType": "decimal",
+      "expectedStatus": "NotExtracted",
+      "reason": "Image-only (rasterized) PDF extracts zero fields; the extraction-coverage floor (Stage 2b) short-circuits first with BlockReason.InsufficientExtractionCoverage before the text-layer floor is reached (ExtractionGap)."
+    },
+    "MontoComisiones": {
+      "value": null,
+      "clrType": "decimal",
+      "expectedStatus": "NotExtracted",
+      "reason": "Image-only (rasterized) PDF extracts zero fields; the extraction-coverage floor (Stage 2b) short-circuits first with BlockReason.InsufficientExtractionCoverage before the text-layer floor is reached (ExtractionGap)."
+    },
+    "IvaInteresesYComisiones": {
+      "value": null,
+      "clrType": "decimal",
+      "expectedStatus": "NotExtracted",
+      "reason": "Image-only (rasterized) PDF extracts zero fields; the extraction-coverage floor (Stage 2b) short-circuits first with BlockReason.InsufficientExtractionCoverage before the text-layer floor is reached (ExtractionGap)."
+    },
+    "PagosYAbonos": {
+      "value": null,
+      "clrType": "decimal",
+      "expectedStatus": "NotExtracted",
+      "reason": "Image-only (rasterized) PDF extracts zero fields; the extraction-coverage floor (Stage 2b) short-circuits first with BlockReason.InsufficientExtractionCoverage before the text-layer floor is reached (ExtractionGap)."
+    },
+    "SaldoCargosRegulares": {
+      "value": null,
+      "clrType": "decimal",
+      "expectedStatus": "NotExtracted",
+      "reason": "Image-only (rasterized) PDF extracts zero fields; the extraction-coverage floor (Stage 2b) short-circuits first with BlockReason.InsufficientExtractionCoverage before the text-layer floor is reached (ExtractionGap)."
+    },
+    "SaldoCargosAMeses": {
+      "value": null,
+      "clrType": "decimal",
+      "expectedStatus": "NotExtracted",
+      "reason": "Image-only (rasterized) PDF extracts zero fields; the extraction-coverage floor (Stage 2b) short-circuits first with BlockReason.InsufficientExtractionCoverage before the text-layer floor is reached (ExtractionGap)."
+    },
+    "SaldoDeudorTotal": {
+      "value": null,
+      "clrType": "decimal",
+      "expectedStatus": "NotExtracted",
+      "reason": "Image-only (rasterized) PDF extracts zero fields; the extraction-coverage floor (Stage 2b) short-circuits first with BlockReason.InsufficientExtractionCoverage before the text-layer floor is reached (ExtractionGap)."
+    },
+    "CreditoDisponible": {
+      "value": null,
+      "clrType": "decimal",
+      "expectedStatus": "NotExtracted",
+      "reason": "Image-only (rasterized) PDF extracts zero fields; the extraction-coverage floor (Stage 2b) short-circuits first with BlockReason.InsufficientExtractionCoverage before the text-layer floor is reached (ExtractionGap)."
+    },
+    "TotalCargos": {
+      "value": null,
+      "clrType": "decimal",
+      "expectedStatus": "NotExtracted",
+      "reason": "Image-only (rasterized) PDF extracts zero fields; the extraction-coverage floor (Stage 2b) short-circuits first with BlockReason.InsufficientExtractionCoverage before the text-layer floor is reached (ExtractionGap)."
+    }
+  },
+  "movements": [],
+  "arithmeticChecks": [],
+  "knownFixtureDefects": [
+    {
+      "checkId": null,
+      "expectedOutcome": "ExtractionGap",
+      "reason": "Image-only PDF extracts 0 fields → extraction-coverage floor (Stage 2b, default 10) not met → BlockReason.InsufficientExtractionCoverage → VerdictSignal.ExtractionGap (fires before the text-layer floor)."
+    }
+  ]
+}

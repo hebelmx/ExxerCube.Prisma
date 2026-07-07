@@ -8,12 +8,12 @@
     "generatedAtUtc": "2026-07-06T00:00:00Z"
   },
   "pdf": {
-    "fileName": "s6211-baseline.pdf",
+    "fileName": "s6211-font.pdf",
     "pageWidthPt": 540.0,
     "pageHeightPt": 780.0,
     "pageCount": 8
   },
-  "defect": null,
+  "defect": "font",
   "bundle": {
     "productId": "TC-BSSB",
     "productName": "Tarjeta de Crédito BSSB",
@@ -104,13 +104,19 @@
     {
       "checkId": "CL-21",
       "expectedOutcome": "Pass",
-      "note": "5-core-sum 32446.69 == printed Pago 32446.69 (delta 0 <= $0.50)."
+      "note": "Arithmetic identity unchanged by the font defect."
     },
     {
       "checkId": "CL-22",
       "expectedOutcome": "Pass",
-      "note": "SaldoCargosRegulares 32446.69 == PagoParaNoGenerarIntereses 32446.69."
+      "note": "Arithmetic identity unchanged by the font defect."
     }
   ],
-  "knownFixtureDefects": []
+  "knownFixtureDefects": [
+    {
+      "checkId": "CL-35",
+      "expectedOutcome": "Fail",
+      "reason": "A Courier token is injected in the header; CL-35 requires Helvetica (demo bundle)."
+    }
+  ]
 }

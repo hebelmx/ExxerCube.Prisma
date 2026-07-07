@@ -8,12 +8,12 @@
     "generatedAtUtc": "2026-07-06T00:00:00Z"
   },
   "pdf": {
-    "fileName": "s6211-baseline.pdf",
+    "fileName": "s6211-math.pdf",
     "pageWidthPt": 540.0,
     "pageHeightPt": 780.0,
     "pageCount": 8
   },
-  "defect": null,
+  "defect": "math",
   "bundle": {
     "productId": "TC-BSSB",
     "productName": "Tarjeta de Crédito BSSB",
@@ -33,7 +33,7 @@
       "expectedStatus": "Extracted"
     },
     "PagoParaNoGenerarIntereses": {
-      "value": 32446.69,
+      "value": 32457.69,
       "clrType": "decimal",
       "expectedStatus": "Extracted"
     },
@@ -103,13 +103,13 @@
   "arithmeticChecks": [
     {
       "checkId": "CL-21",
-      "expectedOutcome": "Pass",
-      "note": "5-core-sum 32446.69 == printed Pago 32446.69 (delta 0 <= $0.50)."
+      "expectedOutcome": "Fail",
+      "note": "Printed Pago +$11.00 vs 5-core-sum → delta $11.00 > $0.50."
     },
     {
       "checkId": "CL-22",
-      "expectedOutcome": "Pass",
-      "note": "SaldoCargosRegulares 32446.69 == PagoParaNoGenerarIntereses 32446.69."
+      "expectedOutcome": "Fail",
+      "note": "SaldoCargosRegulares 32446.69 vs injected Pago 32457.69 → delta $11.00."
     }
   ],
   "knownFixtureDefects": []

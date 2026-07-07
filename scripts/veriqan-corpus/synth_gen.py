@@ -79,6 +79,7 @@ from anonymize import (  # noqa: E402  (import after sys.path mutation, by desig
     _make_clabe,
     _make_pan,
     _make_rfc_personal,
+    build_scanned_doc,  # generic rasterizer — reused as-is for the S6.2.3 'scanned' variant
 )
 
 # ─── Constants ────────────────────────────────────────────────────────────────
@@ -120,12 +121,18 @@ def put(
     *,
     fontsize: float = FONT_SIZE,
     page_height: float = PAGE_HEIGHT_PT,
+    fontname: str = FONT_NAME,
 ) -> None:
-    """Place `text` as ONE insert_text call at PdfPig-space (x, bottom)."""
+    """Place `text` as ONE insert_text call at PdfPig-space (x, bottom).
+
+    `fontname` defaults to Helvetica; the S6.2.3 'font' defect variant passes a
+    non-Helvetica base-14 alias (``"cour"``) for a single token so CL-35's
+    font-consistency check (which scans every FontRun) fires.
+    """
     page.insert_text(
         fitz_point(x, bottom, page_height),
         text,
-        fontname=FONT_NAME,
+        fontname=fontname,
         fontsize=fontsize,
         color=COLOR_BLACK,
     )
@@ -272,6 +279,15 @@ def build_manifest() -> dict[str, Any]:
             },
         },
         "movements": [],
+        # arithmeticChecks reintroduced at S6.2.3 (design §6.2): the clean baseline
+        # PASSES both arithmetic identities — the verdict-level test asserts CL-21/CL-22
+        # are NOT in FailCheckIds here, and ARE for the s6211-math variant.
+        "arithmeticChecks": [
+            {"checkId": "CL-21", "expectedOutcome": "Pass",
+             "note": "5-core-sum 32446.69 == printed Pago 32446.69 (delta 0 <= $0.50)."},
+            {"checkId": "CL-22", "expectedOutcome": "Pass",
+             "note": "SaldoCargosRegulares 32446.69 == PagoParaNoGenerarIntereses 32446.69."},
+        ],
         "knownFixtureDefects": [],
     }
 
@@ -492,6 +508,178 @@ def build_pdf_s622() -> "fitz.Document":
     return doc
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# S6.2.3 — Defect-injection variants (off the S6.2.1 Dummie-VEC s6211 baseline)
+# ═══════════════════════════════════════════════════════════════════════════
+# Additive: nothing here mutates PAGE1_TOKENS / build_pdf() / build_manifest(),
+# so the S6.2.1 baseline geometry is unaffected.  Each variant is a deterministic
+# transform of the proven s6211 baseline (design authority: E6-S6.2 design doc
+# §8 defect-injection + §10 build-sequence item #3 = "defect injection + verdict-level").
+#
+# INJECTION IS GENERATOR-NATIVE (a deliberate, documented deviation from design
+# §8's "reuse anonymize.py's _inject_math/_inject_font as-is"): those helpers are
+# calibrated to the REAL Banamex coordinate geometry (a $-token search box at
+# x 190-280 / y 315-350) and to a title string ("Estado de Cuenta Mensual") that
+# the s6211 Dummie-VEC layout does not contain — so they do not apply here.  The
+# generator knows its own token coordinates exactly, so it perturbs / omits /
+# re-fonts the specific token directly.  Only `build_scanned_doc` (a generic
+# whole-document rasterizer) is genuinely layout-agnostic and IS reused verbatim.
+#
+# Why s6211 (not the s622 real-Banamex profile) carries the defect variants:
+#   - s6211's Product token "Tarjeta de Crédito BSSB" is Extracted (Left=23.9<200)
+#     and already resolves against the demo reference bundle's products.csv → the
+#     verdict pipeline binds and runs CL-21/CL-22.  s622's Product is NotExtracted
+#     (no "Tarjeta" token in its left-column layout) → UnknownProduct → the
+#     pipeline short-circuits to ExtractionGap and rules never run.
+#   - s6211's baseline satisfies BOTH arithmetic identities
+#     (SaldoCargosRegulares == PagoParaNoGenerarIntereses == 32446.69), so a single
+#     +$11.00 on the printed Pago figure cleanly trips CL-21 AND CL-22.
+
+MATH_DELTA = 11.00  # +$11.00 fat-finger — well above the $0.50 CL-21/CL-22 legal tolerance
+DEFECT_VARIANTS = ("math", "font", "scanned", "abstain")
+
+# The one baseline token whose amount the 'math' variant perturbs (+$11.00).
+_MATH_BASELINE_PAGO = "Pago para no generar intereses $32,446.69"
+_MATH_DEFECT_PAGO = "Pago para no generar intereses $32,457.69"  # 32446.69 + 11.00
+
+# The TASA/CAT block the 'abstain' variant omits entirely (design §8 abstain example):
+# drops Tasa + Cat to NotExtracted while leaving every other field intact.
+_ABSTAIN_DROP_TEXTS = frozenset({
+    "TASA DE INTERES ANUAL",
+    "CAT",
+    "ORDINARIA FIJA",
+    "28.86% sin IVA 27.36%",
+})
+
+# Extra Courier token for the 'font' variant — placed in an empty header zone
+# (Bottom=720, above all field bands) so no field band is disturbed; its sole
+# purpose is to introduce a non-Helvetica FontRun so CL-35 fails.
+_FONT_DEFECT_TOKEN = (20.0, 720.0, "Estado de Cuenta")  # (x, bottom, text)
+
+
+def _s6211_variant_tokens(variant: str) -> list[tuple[float, float, str]]:
+    """Return the page-1 token list for a defect variant (transform of PAGE1_TOKENS)."""
+    if variant == "abstain":
+        return [t for t in PAGE1_TOKENS if t[2] not in _ABSTAIN_DROP_TEXTS]
+    if variant == "math":
+        return [
+            (x, b, _MATH_DEFECT_PAGO if txt == _MATH_BASELINE_PAGO else txt)
+            for (x, b, txt) in PAGE1_TOKENS
+        ]
+    # 'font' and 'scanned' keep the baseline tokens (font adds a Courier token in
+    # build; scanned rasterizes the whole doc after building the baseline).
+    return list(PAGE1_TOKENS)
+
+
+def build_pdf_s6211_variant(variant: str) -> "fitz.Document":
+    """Build one s6211 defect-variant PDF.  `variant` must be in DEFECT_VARIANTS."""
+    if variant not in DEFECT_VARIANTS:
+        raise ValueError(f"Unknown variant {variant!r}; expected one of {DEFECT_VARIANTS}")
+
+    doc = fitz.open()
+    page1 = doc.new_page(width=PAGE_WIDTH_PT, height=PAGE_HEIGHT_PT)
+    for x, bottom, text in _s6211_variant_tokens(variant):
+        put(page1, x, bottom, text)
+
+    if variant == "font":
+        fx, fb, ftext = _FONT_DEFECT_TOKEN
+        put(page1, fx, fb, ftext, fontname="cour")  # Courier — trips CL-35
+
+    for page_num in range(2, PAGE_COUNT + 1):
+        page = doc.new_page(width=PAGE_WIDTH_PT, height=PAGE_HEIGHT_PT)
+        put(page, 20.0, PAGE_HEIGHT_PT - 30.0, f"S6.2.1 synthetic filler — page {page_num}")
+
+    if variant == "scanned":
+        # build_scanned_doc rasterizes every page → image-only PDF (no text layer).
+        # It extracts 0 fields, so the extraction-coverage floor (Stage 2b) fires
+        # ExtractionGap (InsufficientExtractionCoverage) first — before the later
+        # text-layer floor is reached — halting the pipeline before any rule runs.
+        scanned = build_scanned_doc(doc)
+        doc.close()
+        return scanned
+
+    return doc
+
+
+def _arith(check_id: str, outcome: str, note: str) -> dict[str, Any]:
+    """One arithmeticChecks entry (design §6.2 note: checkId / expectedOutcome / note)."""
+    return {"checkId": check_id, "expectedOutcome": outcome, "note": note}
+
+
+def build_manifest_s6211_variant(variant: str) -> dict[str, Any]:
+    """God's-eye manifest for an s6211 defect variant — baseline overlaid with the defect."""
+    manifest = build_manifest()
+    manifest["defect"] = variant
+    manifest["pdf"] = dict(manifest["pdf"])
+    manifest["pdf"]["fileName"] = f"s6211-{variant}.pdf"
+
+    def not_extracted(reason: str) -> dict[str, Any]:
+        return {"value": None, "clrType": "decimal", "expectedStatus": "NotExtracted", "reason": reason}
+
+    if variant == "math":
+        # The extractor STILL reads the (wrong) printed value correctly — only the
+        # verdict differs.  CL-21 & CL-22 both fail (delta $11.00 > $0.50 tolerance).
+        manifest["fields"]["PagoParaNoGenerarIntereses"] = {
+            "value": 32457.69, "clrType": "decimal", "expectedStatus": "Extracted",
+        }
+        manifest["arithmeticChecks"] = [
+            _arith("CL-21", "Fail", "Printed Pago +$11.00 vs 5-core-sum → delta $11.00 > $0.50."),
+            _arith("CL-22", "Fail", "SaldoCargosRegulares 32446.69 vs injected Pago 32457.69 → delta $11.00."),
+        ]
+        manifest["knownFixtureDefects"] = []
+    elif variant == "font":
+        # Arithmetic untouched (CL-21/CL-22 still pass); a Courier run trips CL-35.
+        manifest["arithmeticChecks"] = [
+            _arith("CL-21", "Pass", "Arithmetic identity unchanged by the font defect."),
+            _arith("CL-22", "Pass", "Arithmetic identity unchanged by the font defect."),
+        ]
+        manifest["knownFixtureDefects"] = [
+            {"checkId": "CL-35", "expectedOutcome": "Fail",
+             "reason": "A Courier token is injected in the header; CL-35 requires Helvetica (demo bundle)."},
+        ]
+    elif variant == "scanned":
+        # Image-only PDF → every positional field NotExtracted; pipeline → ExtractionGap.
+        for name in list(manifest["fields"].keys()):
+            manifest["fields"][name] = not_extracted(
+                "Image-only (rasterized) PDF extracts zero fields; the extraction-coverage floor "
+                "(Stage 2b) short-circuits first with BlockReason.InsufficientExtractionCoverage "
+                "before the text-layer floor is reached (ExtractionGap).")
+        manifest["arithmeticChecks"] = []  # rules never run — no arithmetic outcome to assert
+        manifest["knownFixtureDefects"] = [
+            {"checkId": None, "expectedOutcome": "ExtractionGap",
+             "reason": "Image-only PDF extracts 0 fields → extraction-coverage floor (Stage 2b, "
+                       "default 10) not met → BlockReason.InsufficientExtractionCoverage → "
+                       "VerdictSignal.ExtractionGap (fires before the text-layer floor)."},
+        ]
+    elif variant == "abstain":
+        # TASA/CAT block omitted → Tasa+Cat NotExtracted; CL-21/CL-22 operands untouched.
+        manifest["fields"]["Tasa"] = not_extracted("TASA/CAT block deliberately omitted (synthetic-only honest-abstention test).")
+        manifest["fields"]["Cat"] = not_extracted("TASA/CAT block deliberately omitted (synthetic-only honest-abstention test).")
+        manifest["arithmeticChecks"] = [
+            _arith("CL-21", "Pass", "Tasa/Cat are not CL-21 operands; arithmetic identity holds."),
+            _arith("CL-22", "Pass", "Tasa/Cat are not CL-22 operands; arithmetic identity holds."),
+        ]
+        manifest["knownFixtureDefects"] = []
+
+    return manifest
+
+
+def _write_s6211_variants(output_dir: Path) -> None:
+    for variant in DEFECT_VARIANTS:
+        doc = build_pdf_s6211_variant(variant)
+        pdf_path = output_dir / f"s6211-{variant}.pdf"
+        doc.save(str(pdf_path), garbage=4, deflate=True)
+        doc.close()
+        print(f"Wrote {pdf_path} ({pdf_path.stat().st_size} bytes)")
+
+        manifest = build_manifest_s6211_variant(variant)
+        manifest_path = output_dir / f"s6211-{variant}.manifest.json"
+        with open(manifest_path, "w", encoding="utf-8") as f:
+            json.dump(manifest, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+        print(f"Wrote {manifest_path}")
+
+
 def _write_dummievec(output_dir: Path) -> None:
     doc = build_pdf()
     pdf_path = output_dir / PDF_FILENAME
@@ -536,6 +724,7 @@ def main() -> int:
 
     if args.profile in ("dummievec", "all"):
         _write_dummievec(OUTPUT_DIR)
+        _write_s6211_variants(OUTPUT_DIR)  # S6.2.3 defect variants (math/font/scanned/abstain)
     if args.profile in ("realbanamex", "all"):
         _write_realbanamex(OUTPUT_DIR)
 

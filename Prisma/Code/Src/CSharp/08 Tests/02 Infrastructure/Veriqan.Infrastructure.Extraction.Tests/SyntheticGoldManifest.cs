@@ -39,19 +39,35 @@ internal sealed record SyntheticFieldExpectation(
 }
 
 /// <summary>
+/// A single expected regulatory-arithmetic verdict outcome, as recorded in a synthetic gold
+/// manifest's optional <c>arithmeticChecks</c> array (E6.S6.2.3 — see
+/// <c>docs/planning-artifacts/E6-S6.2-synthetic-generator-design.md</c> §6.2). Not consumed at
+/// the extraction-fidelity level; a later verdict-level test reads this member.
+/// </summary>
+/// <param name="CheckId">The checklist rule identifier (e.g. <c>"CL-21"</c>).</param>
+/// <param name="ExpectedOutcome">Expected verdict outcome string (e.g. <c>"Pass"</c>, <c>"Fail"</c>).</param>
+/// <param name="Note">Optional human-readable explanation of the expected outcome.</param>
+internal sealed record SyntheticArithmeticCheck(
+    string CheckId,
+    string ExpectedOutcome,
+    string? Note);
+
+/// <summary>
 /// God's-eye gold manifest for a single synthetic estado-de-cuenta PDF (E6.S6.2.1).
 /// Loaded from the sibling <c>*.manifest.json</c> file next to the synthetic PDF fixture.
 /// </summary>
 /// <remarks>
-/// <c>ArithmeticChecks</c> is intentionally NOT a member of this record for the S6.2.1 slice
-/// (owner ruling: extraction-fidelity only, no verdict-level assertion). It is expected to be
-/// added at S6.2.3 when a verdict-level test actually consumes it — see the design doc §6.2.
+/// <c>ArithmeticChecks</c> is populated from the optional top-level <c>arithmeticChecks</c>
+/// manifest array (defaults to empty when absent, e.g. the S6.2.1/S6.2.2 baseline manifests).
+/// It is not asserted by the extraction-fidelity round-trip tests in this project — a later
+/// verdict-level test consumes it. See the design doc §6.2.
 /// </remarks>
 internal sealed record SyntheticGoldManifest(
     int SchemaVersion,
     string SourceProvenance,
     string? Defect,
-    IReadOnlyDictionary<string, SyntheticFieldExpectation> Fields);
+    IReadOnlyDictionary<string, SyntheticFieldExpectation> Fields,
+    IReadOnlyList<SyntheticArithmeticCheck> ArithmeticChecks);
 
 /// <summary>
 /// Loads a <see cref="SyntheticGoldManifest"/> from disk. Never throws — malformed or missing
@@ -119,7 +135,29 @@ internal static class SyntheticGoldManifestLoader
                 }
             }
 
-            var manifest = new SyntheticGoldManifest(schemaVersion, sourceProvenance, defect, fields);
+            var arithmeticChecks = new List<SyntheticArithmeticCheck>();
+            if (root.TryGetProperty("arithmeticChecks", out var arithmeticChecksEl)
+                && arithmeticChecksEl.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var checkEl in arithmeticChecksEl.EnumerateArray())
+                {
+                    var checkId = checkEl.TryGetProperty("checkId", out var checkIdEl)
+                        && checkIdEl.ValueKind != JsonValueKind.Null
+                            ? checkIdEl.GetString() ?? string.Empty
+                            : string.Empty;
+                    var expectedOutcome = checkEl.TryGetProperty("expectedOutcome", out var expectedOutcomeEl)
+                        ? expectedOutcomeEl.GetString() ?? string.Empty
+                        : string.Empty;
+                    var note = checkEl.TryGetProperty("note", out var noteEl)
+                        && noteEl.ValueKind != JsonValueKind.Null
+                            ? noteEl.GetString()
+                            : null;
+
+                    arithmeticChecks.Add(new SyntheticArithmeticCheck(checkId, expectedOutcome, note));
+                }
+            }
+
+            var manifest = new SyntheticGoldManifest(schemaVersion, sourceProvenance, defect, fields, arithmeticChecks);
             return Result<SyntheticGoldManifest>.WithSuccess(manifest);
         }
         catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)

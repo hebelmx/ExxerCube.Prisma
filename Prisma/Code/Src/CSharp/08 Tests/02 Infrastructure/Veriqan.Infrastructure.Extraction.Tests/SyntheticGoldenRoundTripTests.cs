@@ -26,6 +26,15 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Tests;
 /// pass-2 left-column scan, <c>ExtractNivelDeUsoField</c>'s hard right-column gate,
 /// <c>ExtractTasaAndCat</c>'s label-anchored scan supplying the TASA/CAT real good.pdf lacks).
 /// </description></item>
+/// <item><description>
+/// <b>E6.S6.2.3</b> — 4 defect variants of the S6.2.1 baseline layout: <c>s6211-math.pdf</c>
+/// (printed-value math defect, extraction-fidelity unaffected), <c>s6211-font.pdf</c> (Courier
+/// token injected for a later CL-35 check, extraction-fidelity unaffected), <c>s6211-scanned.pdf</c>
+/// (image-only, no text layer — every field honestly <c>NotExtracted</c>, extractor still
+/// returns success), and <c>s6211-abstain.pdf</c> (TASA/CAT block omitted — honest abstention).
+/// Each manifest's optional <c>arithmeticChecks</c> is for a later verdict-level test, not
+/// asserted here.
+/// </description></item>
 /// </list>
 /// <para>
 /// Both this slice's fields double as a regression canary for TASA/CAT/RESUMEN/NIVEL-DE-USO
@@ -145,6 +154,74 @@ public sealed class SyntheticGoldenRoundTripTests
         await AssertGoldenRoundTripAsync(
             Path.Combine(FixturesDir, "s622-realbanamex-baseline.pdf"),
             Path.Combine(FixturesDir, "s622-realbanamex-baseline.manifest.json"),
+            ct);
+    }
+
+    /// <summary>
+    /// E6.S6.2.3 defect variant — injected math defect (Pago printed +$11.00 above the
+    /// 5-core-sum identity). Extraction-fidelity only: the defect lives in a printed field
+    /// value, not in extractability, so every field still resolves <c>Extracted</c> exactly
+    /// like the baseline. The manifest's <c>arithmeticChecks</c> (CL-21/CL-22 expected Fail)
+    /// are for the later verdict-level test, not asserted here.
+    /// </summary>
+    [Fact]
+    public async Task SyntheticGolden_S6211Math_AllManifestFieldsMatchExpectedOutcome()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        await AssertGoldenRoundTripAsync(
+            Path.Combine(FixturesDir, "s6211-math.pdf"),
+            Path.Combine(FixturesDir, "s6211-math.manifest.json"),
+            ct);
+    }
+
+    /// <summary>
+    /// E6.S6.2.3 defect variant — injected font defect (a Courier token in the header, for a
+    /// later CL-35 typography check). Extraction-fidelity is unaffected: every baseline field
+    /// still resolves <c>Extracted</c> with its unchanged value.
+    /// </summary>
+    [Fact]
+    public async Task SyntheticGolden_S6211Font_AllManifestFieldsMatchExpectedOutcome()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        await AssertGoldenRoundTripAsync(
+            Path.Combine(FixturesDir, "s6211-font.pdf"),
+            Path.Combine(FixturesDir, "s6211-font.manifest.json"),
+            ct);
+    }
+
+    /// <summary>
+    /// E6.S6.2.3 defect variant — image-only (rasterized) PDF, no text layer. Confirms
+    /// <see cref="PdfPigStatementFieldExtractor.ExtractFullAsync"/> still returns a
+    /// <b>successful</b> <c>Result&lt;T&gt;</c> with every field honestly <c>NotExtracted</c>
+    /// (the extractor itself does not gate on a text-layer floor — that is a pipeline/verdict
+    /// concern, not an extractor concern).
+    /// </summary>
+    [Fact]
+    public async Task SyntheticGolden_S6211Scanned_AllManifestFieldsMatchExpectedOutcome()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        await AssertGoldenRoundTripAsync(
+            Path.Combine(FixturesDir, "s6211-scanned.pdf"),
+            Path.Combine(FixturesDir, "s6211-scanned.manifest.json"),
+            ct);
+    }
+
+    /// <summary>
+    /// E6.S6.2.3 defect variant — TASA/CAT block deliberately omitted from the source PDF.
+    /// Honest-abstention test: Tasa/Cat must resolve <c>NotExtracted</c> while every other
+    /// baseline field still resolves <c>Extracted</c>.
+    /// </summary>
+    [Fact]
+    public async Task SyntheticGolden_S6211Abstain_AllManifestFieldsMatchExpectedOutcome()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        await AssertGoldenRoundTripAsync(
+            Path.Combine(FixturesDir, "s6211-abstain.pdf"),
+            Path.Combine(FixturesDir, "s6211-abstain.manifest.json"),
             ct);
     }
 }
