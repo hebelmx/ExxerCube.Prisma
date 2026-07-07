@@ -5,7 +5,28 @@
 
 ---
 
-## ⏩⏩⏩⏩ LATEST (2026-07-06 session 3) — **E6.S6.2.2 (real-Banamex left-column) DONE, pushed `03e87223` → NEXT = S6.2.3 (defect injection + verdict-level)**
+## ⏩⏩⏩⏩⏩ LATEST (2026-07-07) — **E6.S6.2.3 (defect injection + VERDICT-LEVEL proof) DONE + reviewed + pushed `cadd086e` → NEXT = S6.2.4 (variance)**
+
+**Resumed a prior session's uncommitted-but-complete S6.2.3 work, verified it from ground truth, adversarial-reviewed it, fixed one honesty defect, and shipped it on `Liv`.** The prior session had authored all of S6.2.3 (generator + 4 defect fixtures + golden facts + the verdict-level E2E) but never verified/reviewed/committed — it was sitting dirty in the tree.
+
+**Verified from ground truth (not summaries):** build 0/0; `Veriqan.Infrastructure.Extraction.Tests` **273/273** (269 + 4 defect-variant golden facts); `Veriqan.Orchestration.Tests` **128/128** (122 + 6 new verdict-level, incl. the demo E2E `VecChecklistDemoE2ETests` regression gate — no regression).
+
+**S6.2.3 shipped (`cadd086e`):**
+- `synth_gen.py` emits `s6211-{math,font,scanned,abstain}.{pdf,manifest.json}` from the baseline layout (design §8). **math** = printed Pago **+$11.00** (> $0.50 legal tolerance — respects the Epic-5 "defect must exceed tolerance" lesson) → CL-21/CL-22 fire on a genuine over-tolerance defect; **font** = injected Courier run (baseline all-Helvetica) → CL-35; **scanned** = image-only raster (0 extractable fields); **abstain** = TASA/CAT block omitted → Tasa/Cat honestly `NotExtracted`.
+- Manifests reintroduce `arithmeticChecks` (design §6.2) as **declared god's-eye literals** (not derived from tool output). `SyntheticGoldManifest` gains `ArithmeticChecks`.
+- `SyntheticDefectVerdictE2ETests` (Orchestration) drives the **REAL `VerificationPipeline`**: CL-21/CL-22 RED on math + PASS on baseline (non-vacuous — Pass gated on `ShouldNotContain` in BOTH Fail and InsufficientData); CL-35 on font AND **not** on baseline (discriminator locked); scanned halts on the specific `BlockReason.InsufficientExtractionCoverage`.
+- **No production code touched** — test project + fixtures + generator script only.
+
+**Adversarial review (1 skeptic, 8 angles): SOUND TO COMMIT.** Found + FIXED one **MEDIUM honesty defect** pre-commit: the scanned manifest/comments/test misattributed the ExtractionGap to the **text-layer floor** (Stage 2c, `MinTextLayerWordCount`), but the **extraction-coverage floor** (Stage 2b, `MinExtractionCoverageCount`, default 10) fires *first* on a 0-field raster → `InsufficientExtractionCoverage`. The signal-only assertion papered over the wrong mechanism. Fixed: manifest reason strings + `synth_gen.py` + the test now asserts the exact `BlockReason` (verified empirically — the reason IS `InsufficientExtractionCoverage`). Also closed the LOW one-sided CL-35 test (added baseline-negative assertion). One LOW latent note left un-fixed: the two independent manifest parsers (Extraction.Tests `SyntheticGoldManifest` loader vs the Orchestration test's local `ArithmeticCheckEntry` DTO) disagree on null-`checkId` handling (loader tolerates → `""`, DTO throws) — not triggered (only `knownFixtureDefects` carries a null checkId, which the Orchestration parser never reads).
+
+⚠️ **PRE-EXISTING UNRELATED DIRT left in the working tree (NOT mine, NOT S6.2.3, deliberately NOT committed):** `.gitignore` was gutted from 711 lines to just `secrets/` on 2026-07-04 (un-ignores build dirs + `.env`/`.env.veriqan` secrets), `secrets/.gitignore` deleted, `docker-compose.staging.override.yml` (Ollama host-gateway, from the LLM demo), `docs/qa/calibration/calibration-report.md` (a test side-effect — Epic-3 memory says revert before commit). **The gutted `.gitignore` is destructive and should be restored** — flag to owner; I did not touch it (not my change, and restoring/deleting is owner-gated).
+
+### 🎯 NEXT SESSION — E6.S6.2.4 (variance), design §10
+Parameterize layout/phrasing/position/values across the s6211 baseline to prove the extractor's robustness isn't overfit to one token table (design §"Variance"). Keep the god's-eye manifest per variant. Then S6.2.5 (DESGLOSE movements table) and S6.2.6 (batch generation + CI gate — remember: gate on **word-geometry**, NOT PDF bytes; PyMuPDF metadata churns bytes on every regen). Verify EVERY slice against the full verdict pipeline (Extraction + Orchestration demo E2E), calibrate from PdfPig coords.
+
+---
+
+## ⏩⏩⏩⏩ (2026-07-06 session 3) — **E6.S6.2.2 (real-Banamex left-column) DONE, pushed `03e87223`**
 
 **Orchestrated S6.2.2 recon-first + shipped the slice on `Liv`.** Verified from ground truth
 (build 0/0, `Veriqan.Infrastructure.Extraction.Tests` **269/269**, 0 skipped — 268 baseline + 1 new s622 `[Fact]`).
