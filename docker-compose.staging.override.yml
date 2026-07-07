@@ -49,3 +49,9 @@ services:
       DISPLAY: "${DISPLAY:-:0}"
     volumes:
       - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
+    # LLM demo: let the container reach the HOST's Ollama daemon (bound on the host,
+    # not in the compose network). host-gateway resolves host.docker.internal to the
+    # docker bridge gateway. Requires Ollama to listen on 0.0.0.0 (OLLAMA_HOST=0.0.0.0),
+    # not the default 127.0.0.1 — see LlmProviders__Ollama__BaseUrl in .env.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
