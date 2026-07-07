@@ -194,6 +194,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Fixtures\synthetic\s6211-edge-label.manifest.json</Link>
     </Content>
+    <!-- E6.S6.2.5 populated DESGLOSE movements table + totals (scripts/veriqan-corpus/synth_gen.py). -->
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\s6211-desglose.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\s6211-desglose.pdf</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\s6211-desglose.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\s6211-desglose.manifest.json</Link>
+    </Content>
   </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">
     <ProjectCapability Include="DiagnoseCapabilities" />

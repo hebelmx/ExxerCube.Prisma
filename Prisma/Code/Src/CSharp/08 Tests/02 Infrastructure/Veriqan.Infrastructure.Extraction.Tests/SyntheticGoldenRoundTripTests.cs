@@ -285,4 +285,25 @@ public sealed class SyntheticGoldenRoundTripTests
             Path.Combine(FixturesDir, "s6211-edge-label.manifest.json"),
             ct);
     }
+
+    /// <summary>
+    /// E6.S6.2.5 — page 1 reuses the S6.2.1 baseline layout verbatim (unchanged canary: all
+    /// 14 baseline fields still resolve <c>Extracted</c> to their baseline values), and page 2
+    /// adds a populated DESGLOSE DE MOVIMIENTOS DEL PERIODO table (3 rows + a "Total cargos" and
+    /// a "Total abonos" summary row). Closes the <c>TotalCargos</c>/<c>TotalAbonos</c> gap every
+    /// prior synthetic manifest (S6.2.1/S6.2.2/S6.2.4) explicitly deferred as
+    /// <c>NotExtracted</c> — both now resolve <c>Extracted</c>, and both totals tie to the exact
+    /// same RESUMEN values the baseline's own CL-21/CL-22 arithmetic checks already assert
+    /// (32,446.69 == PagoParaNoGenerarIntereses; 67,796.35 == PagosYAbonos).
+    /// </summary>
+    [Fact]
+    public async Task SyntheticGolden_S6211Desglose_AllManifestFieldsMatchExpectedOutcome()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        await AssertGoldenRoundTripAsync(
+            Path.Combine(FixturesDir, "s6211-desglose.pdf"),
+            Path.Combine(FixturesDir, "s6211-desglose.manifest.json"),
+            ct);
+    }
 }

@@ -988,6 +988,141 @@ def _write_s6211_variance(output_dir: Path) -> None:
         print(f"Wrote {manifest_path}")
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# S6.2.5 — DESGLOSE DE MOVIMIENTOS DEL PERIODO (populated movements table)
+# ═══════════════════════════════════════════════════════════════════════════
+# Additive: page 1 reuses PAGE1_TOKENS verbatim (unchanged canary — every S6.2.1
+# baseline field must still resolve Extracted to its baseline value); the movements
+# table is placed on page 2 (S6.2.1's/S6.2.4's page 2 is minimal filler, so nothing
+# on that page has ever been load-bearing). Closes the TotalCargos/TotalAbonos gap
+# the S6.2.1/S6.2.2/S6.2.4 manifests all explicitly deferred ("DESGLOSE totals
+# deferred to a later slice").
+#
+# Ground truth verified this session against PdfPigStatementFieldExtractor.cs
+# (ExtractMovements / TryParseMovementRow / TryParseTotalRow):
+#   - DesgloseBandTolerance = 4.0pt → rows must be > 4pt apart (14pt used here).
+#   - A DATA row requires BOTH an operation-date token at Left <= 95 matching
+#     `^\d{1,2}-[a-záéíóúñü]+-\d{2,4}$` AND a sign token — IsSignToken accepts
+#     "+" / "-" (ASCII) / "−" (U+2212) — at Left 423..480. We emit ASCII "+"/"-"
+#     only: the base-14 'helv' font lacks a U+2212 glyph (PyMuPDF substitutes
+#     U+00B7, which IsSignToken rejects). Amount tokens (Left >= 436) match
+#     `^\$?([\d,]+(?:\.\d+)?)$`.
+#   - A TOTAL row requires NO sign token in 423..480, >= 2 description-column
+#     (Left 145..422) words, a "Total" token immediately followed by "cargos" or
+#     "abonos" (OrdinalIgnoreCase), and an amount (Left >= 436).
+#   - Sign placed at Left≈425 (inside 423..435, clear of the amount column's first
+#     real token at Left≈436+) and amount at Left≈485 (unambiguously >= 436) so the
+#     overlapping 436..480 sign/amount bands never collide.
+#
+# Totals tie to the S6.2.1 baseline's own RESUMEN values so the fixture is
+# internally consistent, not just individually plausible:
+#   Total cargos  31,461.30 + 985.39 = 32,446.69  (== baseline CargosRegularesNoMeses
+#                                                     + CargosComprasAMesesCapital,
+#                                                     == baseline PagoParaNoGenerarIntereses)
+#   Total abonos  67,796.35            (== baseline PagosYAbonos == AdeudoPeriodoAnterior)
+
+PDF_FILENAME_S6211_DESGLOSE = "s6211-desglose.pdf"
+MANIFEST_FILENAME_S6211_DESGLOSE = "s6211-desglose.manifest.json"
+
+# Page-2 DESGLOSE table tokens (PdfPig space). One tuple == one insert_text call
+# (token-fragmentation rule). Rows 14pt apart — well clear of the 4pt band tolerance.
+_S6211_DESGLOSE_PAGE2_TOKENS: list[tuple[float, float, str]] = [
+    (18.3, 663.0, "DESGLOSE"),
+    # Row 1 (charge) — Bottom=640
+    (20.0, 640.0, "05-jul-2025"),
+    (100.0, 640.0, "06-jul-2025"),
+    (150.0, 640.0, "COMPRA REGULAR"),
+    (425.0, 640.0, "+"),
+    (485.0, 640.0, "$31,461.30"),
+    # Row 2 (charge) — Bottom=626
+    (20.0, 626.0, "05-jul-2025"),
+    (100.0, 626.0, "06-jul-2025"),
+    (150.0, 626.0, "COMPRA A MESES"),
+    (425.0, 626.0, "+"),
+    (485.0, 626.0, "$985.39"),
+    # Row 3 (credit) — Bottom=612
+    (20.0, 612.0, "05-jul-2025"),
+    (100.0, 612.0, "06-jul-2025"),
+    (150.0, 612.0, "PAGO RECIBIDO"),
+    (425.0, 612.0, "-"),  # ASCII HYPHEN-MINUS U+002D — NOT U+2212: the base-14 'helv'
+                          # font has no U+2212 glyph, so PyMuPDF silently substitutes
+                          # U+00B7 MIDDLE DOT, which IsSignToken rejects → the credit row
+                          # would be dropped. ASCII '-' is in WinAnsi (survives helv) and
+                          # IsSignToken/IsCreditToken accept it (SignCreditAscii).
+    (485.0, 612.0, "$67,796.35"),
+    # Total cargos row — Bottom=594, no sign token
+    (150.0, 594.0, "Total"),
+    (195.0, 594.0, "cargos"),
+    (485.0, 594.0, "$32,446.69"),
+    # Total abonos row — Bottom=580, no sign token
+    (150.0, 580.0, "Total"),
+    (195.0, 580.0, "abonos"),
+    (485.0, 580.0, "$67,796.35"),
+]
+
+
+def build_pdf_s6211_desglose() -> "fitz.Document":
+    """S6.2.1 baseline page 1 (unchanged canary) + a populated DESGLOSE movements
+    table on page 2 + plain filler pages 3-8."""
+    doc = fitz.open()
+
+    page1 = doc.new_page(width=PAGE_WIDTH_PT, height=PAGE_HEIGHT_PT)
+    for x, bottom, text in PAGE1_TOKENS:
+        put(page1, x, bottom, text)
+
+    page2 = doc.new_page(width=PAGE_WIDTH_PT, height=PAGE_HEIGHT_PT)
+    for x, bottom, text in _S6211_DESGLOSE_PAGE2_TOKENS:
+        put(page2, x, bottom, text)
+
+    for page_num in range(3, PAGE_COUNT + 1):
+        page = doc.new_page(width=PAGE_WIDTH_PT, height=PAGE_HEIGHT_PT)
+        put(page, 20.0, PAGE_HEIGHT_PT - 30.0, f"S6.2.5 synthetic filler — page {page_num}")
+
+    return doc
+
+
+def build_manifest_s6211_desglose() -> dict[str, Any]:
+    """Baseline manifest (all 14 financial fields Extracted, unchanged values) with
+    TotalCargos/TotalAbonos flipped from the baseline's NotExtracted stub to Extracted,
+    plus a god's-eye `movements` array for documentation (the loader does not read it —
+    StatementModelFieldAccessors.Map has no `movements` accessor — but it keeps the
+    manifest an honest, complete record of what the PDF actually contains)."""
+    def extracted(value: float, clr_type: str = "decimal") -> dict[str, Any]:
+        return {"value": value, "clrType": clr_type, "expectedStatus": "Extracted"}
+
+    manifest = build_manifest()
+    manifest["pdf"] = dict(manifest["pdf"])
+    manifest["pdf"]["fileName"] = PDF_FILENAME_S6211_DESGLOSE
+    manifest["fields"]["TotalCargos"] = extracted(32446.69)
+    manifest["fields"]["TotalAbonos"] = extracted(67796.35)
+    manifest["movements"] = [
+        {"opDate": "2025-07-05", "chargeDate": "2025-07-06",
+         "description": "COMPRA REGULAR", "sign": "charge", "amount": 31461.30},
+        {"opDate": "2025-07-05", "chargeDate": "2025-07-06",
+         "description": "COMPRA A MESES", "sign": "charge", "amount": 985.39},
+        {"opDate": "2025-07-05", "chargeDate": "2025-07-06",
+         "description": "PAGO RECIBIDO", "sign": "credit", "amount": 67796.35},
+    ]
+    # arithmeticChecks unchanged from build_manifest() — CL-21/CL-22 both PASS, and
+    # the DESGLOSE totals above tie to the exact same baseline figures they check.
+    return manifest
+
+
+def _write_s6211_desglose(output_dir: Path) -> None:
+    doc = build_pdf_s6211_desglose()
+    pdf_path = output_dir / PDF_FILENAME_S6211_DESGLOSE
+    doc.save(str(pdf_path), garbage=4, deflate=True)
+    doc.close()
+    print(f"Wrote {pdf_path} ({pdf_path.stat().st_size} bytes)")
+
+    manifest = build_manifest_s6211_desglose()
+    manifest_path = output_dir / MANIFEST_FILENAME_S6211_DESGLOSE
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    print(f"Wrote {manifest_path}")
+
+
 def _write_dummievec(output_dir: Path) -> None:
     doc = build_pdf()
     pdf_path = output_dir / PDF_FILENAME
@@ -1034,6 +1169,7 @@ def main() -> int:
         _write_dummievec(OUTPUT_DIR)
         _write_s6211_variants(OUTPUT_DIR)  # S6.2.3 defect variants (math/font/scanned/abstain)
         _write_s6211_variance(OUTPUT_DIR)  # S6.2.4 variance variants (var-a/b/c + edge-band/label)
+        _write_s6211_desglose(OUTPUT_DIR)  # S6.2.5 populated DESGLOSE movements table + totals
     if args.profile in ("realbanamex", "all"):
         _write_realbanamex(OUTPUT_DIR)
 
