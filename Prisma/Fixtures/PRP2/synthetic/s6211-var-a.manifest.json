@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "sourceProvenance": "synthetic",
+  "generator": {
+    "tool": "synth_gen.py",
+    "toolVersion": "0.1.0",
+    "seed": 20260707,
+    "generatedAtUtc": "2026-07-06T00:00:00Z"
+  },
+  "pdf": {
+    "fileName": "s6211-var-a.pdf",
+    "pageWidthPt": 540.0,
+    "pageHeightPt": 780.0,
+    "pageCount": 8
+  },
+  "defect": null,
+  "bundle": {
+    "productId": "TC-BSSB",
+    "productName": "Tarjeta de Crédito BSSB Oro",
+    "periodStart": "2025-07-05",
+    "periodEnd": "2025-08-04",
+    "creditLine": 121941.36
+  },
+  "fields": {
+    "Tasa": {
+      "value": 0.2891,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "Cat": {
+      "value": 0.3047,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "PagoParaNoGenerarIntereses": {
+      "value": 41619.24,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "AdeudoPeriodoAnterior": {
+      "value": 52435.19,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "CargosRegularesNoMeses": {
+      "value": 39648.02,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "CargosComprasAMesesCapital": {
+      "value": 1971.22,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "MontoIntereses": {
+      "value": 0.0,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "MontoComisiones": {
+      "value": 0.0,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "IvaInteresesYComisiones": {
+      "value": 0.0,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "PagosYAbonos": {
+      "value": 52435.19,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "SaldoCargosRegulares": {
+      "value": 41619.24,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "SaldoCargosAMeses": {
+      "value": 23121.51,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "SaldoDeudorTotal": {
+      "value": 64740.75,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "CreditoDisponible": {
+      "value": 57200.61,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "TotalCargos": {
+      "value": null,
+      "clrType": "decimal",
+      "expectedStatus": "NotExtracted",
+      "reason": "S6.2.1 does not populate a movements table; DESGLOSE totals deferred to a later slice"
+    }
+  },
+  "movements": [],
+  "arithmeticChecks": [],
+  "knownFixtureDefects": [],
+  "variance": {
+    "label": "a",
+    "yShiftPt": -3.0,
+    "note": "Seeded value persona + rigid whole-page Y-shift; every field must still resolve Extracted (extraction-fidelity, no verdict assertion)."
+  }
+}

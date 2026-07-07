@@ -224,4 +224,65 @@ public sealed class SyntheticGoldenRoundTripTests
             Path.Combine(FixturesDir, "s6211-abstain.manifest.json"),
             ct);
     }
+
+    /// <summary>
+    /// E6.S6.2.4 in-tolerance variance — three seeded personas re-emit the baseline
+    /// layout with NOVEL arithmetic-consistent values (product/holder/amounts/percents)
+    /// plus a rigid whole-page Y-shift inside <c>YBandTolerance</c> (5pt). Every field
+    /// must STILL resolve <c>Extracted</c> to the manifest's (varied) value — proving the
+    /// extractor generalizes over value + absolute-position variance and is not overfit to
+    /// the one hardcoded s6211 token table. Values differ per fixture, so a memorized
+    /// baseline string could not satisfy these.
+    /// </summary>
+    [Theory]
+    [InlineData("a")]
+    [InlineData("b")]
+    [InlineData("c")]
+    public async Task SyntheticGolden_S6211Variance_AllManifestFieldsMatchExpectedOutcome(string label)
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        await AssertGoldenRoundTripAsync(
+            Path.Combine(FixturesDir, $"s6211-var-{label}.pdf"),
+            Path.Combine(FixturesDir, $"s6211-var-{label}.manifest.json"),
+            ct);
+    }
+
+    /// <summary>
+    /// E6.S6.2.4 tolerance-edge — the Adeudo amount token is displaced +7pt off its label
+    /// band (beyond <c>YBandTolerance</c> 5pt). The label IS still matched but no amount
+    /// parses in its band, so <c>AdeudoPeriodoAnterior</c> honestly resolves
+    /// <c>ExtractedInvalidFormat</c> (implied-zero — the Epic-5 F1 matched-label /
+    /// missing-amount distinction, NOT <c>NotExtracted</c>) while every other field stays
+    /// <c>Extracted</c>. This edge and the label edge exercise the extractor's two distinct
+    /// honest failure modes.
+    /// </summary>
+    [Fact]
+    public async Task SyntheticGolden_S6211EdgeBand_AllManifestFieldsMatchExpectedOutcome()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        await AssertGoldenRoundTripAsync(
+            Path.Combine(FixturesDir, "s6211-edge-band.pdf"),
+            Path.Combine(FixturesDir, "s6211-edge-band.manifest.json"),
+            ct);
+    }
+
+    /// <summary>
+    /// E6.S6.2.4 tolerance-edge — the accent is dropped from the <c>Crédito</c> label token
+    /// (<c>Crédito disponible:</c> → <c>Credito disponible:</c>). Positional labels are
+    /// matched by exact <c>OrdinalIgnoreCase</c> equality (not accent-folded), so
+    /// <c>CreditoDisponible</c> honestly resolves <c>NotExtracted</c> while every other field
+    /// stays <c>Extracted</c> — mapping the exact-label-match edge.
+    /// </summary>
+    [Fact]
+    public async Task SyntheticGolden_S6211EdgeLabel_AllManifestFieldsMatchExpectedOutcome()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        await AssertGoldenRoundTripAsync(
+            Path.Combine(FixturesDir, "s6211-edge-label.pdf"),
+            Path.Combine(FixturesDir, "s6211-edge-label.manifest.json"),
+            ct);
+    }
 }

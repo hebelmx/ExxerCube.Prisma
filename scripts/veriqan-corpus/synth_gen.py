@@ -63,6 +63,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import random
 import sys
 from pathlib import Path
 from typing import Any
@@ -680,6 +681,313 @@ def _write_s6211_variants(output_dir: Path) -> None:
         print(f"Wrote {manifest_path}")
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# S6.2.4 — Variance (seeded) over the S6.2.1 Dummie-VEC baseline
+# ═══════════════════════════════════════════════════════════════════════════
+# Additive. Proves the extractor is NOT overfit to the one hardcoded s6211 token
+# table by re-emitting the baseline layout with (a) seeded value personas
+# (product/holder/amounts/percents, kept arithmetic-consistent) so the golden
+# round-trip asserts the extractor resolves NOVEL values (not the memorized
+# baseline), and (b) a per-variant whole-page rigid Y-shift so absolute Y cannot
+# be what the extractor keys on. Two EDGE variants deliberately cross a real
+# tolerance to map the boundary.
+#
+# Ground-truth constants honored (recon 2026-07-07 vs PdfPigStatementFieldExtractor.cs):
+#   - YBandTolerance = 5.0pt (:113). The whole-page shift is RIGID (one offset for
+#     every page-1 token) so every intra- and inter-row Y-gap is preserved exactly
+#     — no band ever merges or splits. |shift| <= 3pt and every baseline band is
+#     > 3pt clear of every hard Y-window boundary (HeaderYMin=530, HeaderYMax=700,
+#     ClientNameYMin=630, TASA scan ceiling=350), so the shift never crosses one.
+#     (A rigid shift, NOT independent per-band jitter: the baseline interleaves
+#     left/right-column rows only ~2pt apart in Y and packs same-column rows ~10.8pt
+#     apart, so independent ±3pt jitter could merge previously-separate bands —
+#     that is exactly the topology change we must NOT introduce. Rigid-shift is the
+#     safe realization of the design's "±3pt Y jitter inside the 5pt tolerance".)
+#   - Left/right column split = 280.0. The shift is Y-only, so no X boundary moves.
+#   - Positional labels are matched by EXACT OrdinalIgnoreCase equality, NOT fuzzy,
+#     NOT accent-folded (MatchesLabel :2478). So value tokens vary freely (the
+#     extractor returns whatever is printed) while every label token stays verbatim
+#     in the in-tolerance variants — and the EDGE variants weaponize exactly this.
+#
+# EDGE variants (design §10.4 "map the edges of what the extractor tolerates").
+# They land on the extractor's TWO distinct honest failure modes — verified against
+# the real extractor via the golden round-trip, not assumed:
+#   - s6211-edge-band  — the Adeudo amount token is displaced +7pt off its label's
+#     band (> YBandTolerance 5.0pt); the label IS still matched but no amount parses
+#     in its band → AdeudoPeriodoAnterior honestly ExtractedInvalidFormat (implied-zero,
+#     NOT NotExtracted — the Epic-5 F1 distinction), everything else intact.
+#   - s6211-edge-label — the accent is dropped from the "Crédito" label token
+#     ("Crédito disponible:" → "Credito disponible:"); exact-equality label match
+#     never matches → CreditoDisponible honestly NotExtracted, everything else intact.
+
+VARIANCE_SEEDS: dict[str, int] = {"a": 20260707, "b": 20260708, "c": 20260709}
+
+# Surrounding-text pools (NOT asserted by the golden test — the manifest.fields set
+# is financial-only; these vary the text the asserted amounts sit AMONG, so a real
+# non-overfit resolution can be distinguished from baseline-string memorization).
+_VARIANCE_PRODUCTS = (
+    "Tarjeta de Crédito BSSB Oro",
+    "Tarjeta de Crédito BSSB Platino",
+    "Tarjeta de Crédito BSSB Clásica",
+)
+_VARIANCE_HOLDERS = (
+    "MARIA GONZALEZ LOPEZ",
+    "JOSE RAMIREZ SOTO",
+    "ANA TORRES DIAZ",
+)
+
+
+def _money(value: float) -> str:
+    """US/MX thousands-and-cents money string, e.g. 31461.3 -> '$31,461.30'."""
+    return f"${value:,.2f}"
+
+
+def _build_variance_persona(label: str, seed: int) -> dict[str, Any]:
+    """A seeded, internally-arithmetic-consistent value persona for one variance PDF.
+
+    The amount identities mirror the baseline's (design §6.2 note) so a later slice
+    could turn CL-21/CL-22 on without re-authoring:
+      pago == cargos_reg + cargos_compras (+ 0 + 0 + 0), with adeudo == pagos_abonos
+      (they cancel); saldo_cargos_reg == pago (CL-22); saldo_deudor == the two saldos;
+      credito_disp == credit_line - saldo_deudor.
+    Interest/commission/IVA are kept at 0.00 (as the baseline) so the three identical
+    '+ $0.00' tokens stay unambiguous for the full-string substitution map below.
+    """
+    rng = random.Random(seed)
+
+    adeudo = round(rng.uniform(40_000, 70_000), 2)
+    cargos_reg = round(rng.uniform(20_000, 40_000), 2)
+    cargos_compras = round(rng.uniform(500, 2_000), 2)
+    pago = round(cargos_reg + cargos_compras, 2)          # + 0 + 0 + 0; adeudo cancels pagos
+    pagos_abonos = adeudo
+    saldo_cargos_reg = pago                                # CL-22 identity
+    saldo_cargos_meses = round(rng.uniform(10_000, 25_000), 2)
+    saldo_deudor = round(saldo_cargos_reg + saldo_cargos_meses, 2)
+    credit_line = round(saldo_deudor + rng.uniform(20_000, 60_000), 2)
+    credito_disp = round(credit_line - saldo_deudor, 2)
+
+    tasa_pct = round(rng.uniform(18.0, 32.0), 2)
+    cat_pct = round(tasa_pct + rng.uniform(1.0, 6.0), 2)
+
+    # HARD CAP |shift| <= 3.0pt is load-bearing: the tightest baseline clearance to a hard
+    # Y-window boundary is the RFC band (533.6) at only 3.6pt above HeaderYMin=530 (Adeudo
+    # 353.9 is 3.9pt above the TASA ceiling 350). Widening this range toward the 5pt
+    # YBandTolerance would silently push those bands across their boundaries → dropped fields.
+    y_shift = rng.choice((-3.0, -2.0, -1.0, 1.0, 2.0, 3.0))
+    product_name = _VARIANCE_PRODUCTS[rng.randrange(len(_VARIANCE_PRODUCTS))]
+    holder = _VARIANCE_HOLDERS[rng.randrange(len(_VARIANCE_HOLDERS))]
+
+    # Full-token-text substitution map (baseline PAGE1_TOKENS text -> persona text).
+    # Keyed on the WHOLE token string (never a substring), so it is unambiguous and
+    # every unmatched token — crucially every EXACT positional label — passes through
+    # verbatim. The three '+ $0.00' tokens are intentionally absent (they stay 0.00).
+    token_subs = {
+        "Tarjeta de Crédito BSSB": product_name,
+        "CARLOS MENDOZA VARGAS": holder,
+        "Pago para no generar intereses $32,446.69":
+            f"Pago para no generar intereses {_money(pago)}",
+        "28.86% sin IVA 27.36%": f"{cat_pct:.2f}% sin IVA {tasa_pct:.2f}%",
+        "= $67,796.35": f"= {_money(adeudo)}",
+        "+ $31,461.30": f"+ {_money(cargos_reg)}",
+        "+ $985.39": f"+ {_money(cargos_compras)}",
+        "- $67,796.35": f"- {_money(pagos_abonos)}",
+        "$ 32,446.69": f"$ {saldo_cargos_reg:,.2f}",
+        "$ 19,941.16": f"$ {saldo_cargos_meses:,.2f}",
+        "Saldo deudor total: $ 52,387.85": f"Saldo deudor total: $ {saldo_deudor:,.2f}",
+        "Crédito disponible: $ 47,612.15": f"Crédito disponible: $ {credito_disp:,.2f}",
+    }
+
+    return {
+        "label": label,
+        "seed": seed,
+        "pdf_filename": f"s6211-var-{label}.pdf",
+        "y_shift": y_shift,
+        "product_name": product_name,
+        "credit_line": credit_line,
+        "token_subs": token_subs,
+        "fields": {
+            "Tasa": round(tasa_pct / 100.0, 4),
+            "Cat": round(cat_pct / 100.0, 4),
+            "PagoParaNoGenerarIntereses": pago,
+            "AdeudoPeriodoAnterior": adeudo,
+            "CargosRegularesNoMeses": cargos_reg,
+            "CargosComprasAMesesCapital": cargos_compras,
+            "MontoIntereses": 0.00,
+            "MontoComisiones": 0.00,
+            "IvaInteresesYComisiones": 0.00,
+            "PagosYAbonos": pagos_abonos,
+            "SaldoCargosRegulares": saldo_cargos_reg,
+            "SaldoCargosAMeses": saldo_cargos_meses,
+            "SaldoDeudorTotal": saldo_deudor,
+            "CreditoDisponible": credito_disp,
+        },
+    }
+
+
+def _apply_token_subs_and_shift(
+    tokens: list[tuple[float, float, str]],
+    token_subs: dict[str, str],
+    y_shift: float,
+) -> list[tuple[float, float, str]]:
+    """Rebuild a page-1 token list: substitute value tokens by exact full-text match
+    (labels pass through verbatim) and apply one RIGID whole-page Y-shift."""
+    return [
+        (x, round(bottom + y_shift, 4), token_subs.get(text, text))
+        for (x, bottom, text) in tokens
+    ]
+
+
+def _build_s6211_doc(page1_tokens: list[tuple[float, float, str]]) -> "fitz.Document":
+    """8-page Dummie-VEC-geometry doc from an explicit page-1 token list (pages 2-8
+    are the same human-debug filler as build_pdf())."""
+    doc = fitz.open()
+    page1 = doc.new_page(width=PAGE_WIDTH_PT, height=PAGE_HEIGHT_PT)
+    for x, bottom, text in page1_tokens:
+        put(page1, x, bottom, text)
+    for page_num in range(2, PAGE_COUNT + 1):
+        page = doc.new_page(width=PAGE_WIDTH_PT, height=PAGE_HEIGHT_PT)
+        put(page, 20.0, PAGE_HEIGHT_PT - 30.0, f"S6.2.1 synthetic filler — page {page_num}")
+    return doc
+
+
+def build_manifest_variance(persona: dict[str, Any]) -> dict[str, Any]:
+    """God's-eye manifest for one in-tolerance variance PDF — baseline structure with
+    the 14 financial fields overridden to the persona's declared (literal) values."""
+    def extracted(value: float) -> dict[str, Any]:
+        return {"value": value, "clrType": "decimal", "expectedStatus": "Extracted"}
+
+    m = build_manifest()
+    m["pdf"] = dict(m["pdf"])
+    m["pdf"]["fileName"] = persona["pdf_filename"]
+    m["generator"] = dict(m["generator"])
+    m["generator"]["seed"] = persona["seed"]
+    m["bundle"] = dict(m["bundle"])
+    m["bundle"]["productName"] = persona["product_name"]
+    m["bundle"]["creditLine"] = persona["credit_line"]
+    m["defect"] = None
+    m["variance"] = {
+        "label": persona["label"],
+        "yShiftPt": persona["y_shift"],
+        "note": "Seeded value persona + rigid whole-page Y-shift; every field must "
+                "still resolve Extracted (extraction-fidelity, no verdict assertion).",
+    }
+    # Extraction-only slice: arithmeticChecks stay unconsumed → drop them (values ARE
+    # kept consistent above, so a later slice can recompute+re-add without re-authoring).
+    m["arithmeticChecks"] = []
+    m["knownFixtureDefects"] = []
+    for name, value in persona["fields"].items():
+        m["fields"][name] = extracted(value)
+    return m
+
+
+def build_pdf_variance(persona: dict[str, Any]) -> "fitz.Document":
+    tokens = _apply_token_subs_and_shift(PAGE1_TOKENS, persona["token_subs"], persona["y_shift"])
+    return _build_s6211_doc(tokens)
+
+
+# ─── Edge variants (map the tolerance boundary; baseline values, one mutation) ────
+
+def build_pdf_edge_band() -> "fitz.Document":
+    """Adeudo amount displaced +7pt off its label band (> YBandTolerance 5.0pt).
+    Moved UP into the ~19.8pt empty gap below the RESUMEN title (353.9 -> 360.9),
+    so it lands clear of every other row's band and is matched to no label."""
+    tokens = []
+    for x, bottom, text in PAGE1_TOKENS:
+        if text == "= $67,796.35" and abs(bottom - 353.9) < 0.01:
+            tokens.append((x, round(bottom + 7.0, 4), text))
+        else:
+            tokens.append((x, bottom, text))
+    return _build_s6211_doc(tokens)
+
+
+def build_pdf_edge_label() -> "fitz.Document":
+    """Accent dropped from the 'Crédito' label token → exact-equality label match
+    fails for CreditoDisponible (all other fields untouched)."""
+    subs = {"Crédito disponible: $ 47,612.15": "Credito disponible: $ 47,612.15"}
+    tokens = [(x, bottom, subs.get(text, text)) for (x, bottom, text) in PAGE1_TOKENS]
+    return _build_s6211_doc(tokens)
+
+
+def _build_manifest_edge(
+    pdf_filename: str, edge_field: str, expected_status: str, reason: str
+) -> dict[str, Any]:
+    """Baseline manifest with exactly ONE field flipped to a non-Extracted status.
+
+    The two edges land on DIFFERENT honest failure modes (verified against the real
+    extractor, not assumed): a never-matched label → NotExtracted, but a matched
+    label whose amount is missing/unparseable in-band → ExtractedInvalidFormat
+    (the implied-zero/invalid-format distinction the Epic-5 F1 honesty work built)."""
+    m = build_manifest()
+    m["pdf"] = dict(m["pdf"])
+    m["pdf"]["fileName"] = pdf_filename
+    m["defect"] = "edge"
+    m["arithmeticChecks"] = []
+    m["fields"][edge_field] = {
+        "value": None,
+        "clrType": "decimal",
+        "expectedStatus": expected_status,
+        "reason": reason,
+    }
+    m["knownFixtureDefects"] = [{"field": edge_field, "reason": reason}]
+    return m
+
+
+def _write_s6211_variance(output_dir: Path) -> None:
+    # In-tolerance robustness variants
+    for label, seed in VARIANCE_SEEDS.items():
+        persona = _build_variance_persona(label, seed)
+        doc = build_pdf_variance(persona)
+        pdf_path = output_dir / persona["pdf_filename"]
+        doc.save(str(pdf_path), garbage=4, deflate=True)
+        doc.close()
+        print(f"Wrote {pdf_path} ({pdf_path.stat().st_size} bytes)")
+
+        manifest = build_manifest_variance(persona)
+        manifest_path = output_dir / f"s6211-var-{label}.manifest.json"
+        with open(manifest_path, "w", encoding="utf-8") as f:
+            json.dump(manifest, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+        print(f"Wrote {manifest_path}")
+
+    # Edge variants (tolerance-boundary mapping). expected_status is the REAL extractor
+    # behavior verified via the golden round-trip, not an assumption.
+    edges = [
+        (
+            "s6211-edge-band.pdf",
+            build_pdf_edge_band(),
+            "AdeudoPeriodoAnterior",
+            "ExtractedInvalidFormat",
+            "Amount token '= $...' displaced +7pt off the 'Adeudo del periodo anterior' "
+            "label band (> YBandTolerance 5.0pt); the label IS still matched but no amount "
+            "parses in its band, so the extractor emits ExtractedInvalidFormat (implied-zero), "
+            "NOT NotExtracted. Maps the vertical band-tolerance edge and the matched-label / "
+            "missing-amount honesty distinction.",
+        ),
+        (
+            "s6211-edge-label.pdf",
+            build_pdf_edge_label(),
+            "CreditoDisponible",
+            "NotExtracted",
+            "Accent dropped from the 'Crédito' label token ('Crédito disponible:' → "
+            "'Credito disponible:'); positional labels are matched by exact "
+            "OrdinalIgnoreCase equality (not accent-folded), so the label is NEVER matched "
+            "→ NotExtracted. Maps the exact-label-match edge.",
+        ),
+    ]
+    for pdf_filename, doc, field, expected_status, reason in edges:
+        pdf_path = output_dir / pdf_filename
+        doc.save(str(pdf_path), garbage=4, deflate=True)
+        doc.close()
+        print(f"Wrote {pdf_path} ({pdf_path.stat().st_size} bytes)")
+
+        manifest = _build_manifest_edge(pdf_filename, field, expected_status, reason)
+        manifest_path = output_dir / f"{pdf_filename[:-4]}.manifest.json"
+        with open(manifest_path, "w", encoding="utf-8") as f:
+            json.dump(manifest, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+        print(f"Wrote {manifest_path}")
+
+
 def _write_dummievec(output_dir: Path) -> None:
     doc = build_pdf()
     pdf_path = output_dir / PDF_FILENAME
@@ -725,6 +1033,7 @@ def main() -> int:
     if args.profile in ("dummievec", "all"):
         _write_dummievec(OUTPUT_DIR)
         _write_s6211_variants(OUTPUT_DIR)  # S6.2.3 defect variants (math/font/scanned/abstain)
+        _write_s6211_variance(OUTPUT_DIR)  # S6.2.4 variance variants (var-a/b/c + edge-band/label)
     if args.profile in ("realbanamex", "all"):
         _write_realbanamex(OUTPUT_DIR)
 
