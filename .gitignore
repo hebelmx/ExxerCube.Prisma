@@ -709,3 +709,8 @@ scripts/veriqan-corpus/_raw/
 Prisma/Fixtures/PRP2/demo/_raw/
 # NOTE: anonymized demo fixtures (Prisma/Fixtures/PRP2/demo/*.pdf) ARE allowed in-repo,
 # but only after a human reviews them for residual PII. Anonymize first, commit second.
+
+# ── PRP1-golden corpus — regenerable HTML renderings are NOT part of the golden set ──
+# The tracked golden companions per case are docx/md/pdf/xml + ground_truth.json; the
+# generator also emits an .html preview per case that is regenerable output, not corpus.
+Prisma/Fixtures/PRP1-golden/**/*.html
