@@ -5,7 +5,26 @@
 
 ---
 
-## ⏩⏩⏩⏩⏩ LATEST (2026-07-07) — **E6.S6.2.3 (defect injection + VERDICT-LEVEL proof) DONE + reviewed + pushed `cadd086e` → NEXT = S6.2.4 (variance)**
+## ⏩⏩⏩⏩⏩⏩ LATEST (2026-07-07 session 2) — **E6.S6.2.4 (seeded variance + tolerance edges) DONE + reviewed + pushed `e1a67c59` → NEXT = S6.2.5 (DESGLOSE movements)**
+
+**Orchestrated S6.2.4 recon-first + shipped on `Liv`.** Verified from ground truth: build 0/0; `Veriqan.Infrastructure.Extraction.Tests` **278/278** (273 + 3 variance theory cases + 2 edge facts); demo E2E `VecChecklistDemoE2ETests` **5/5** (no regression). No production code touched.
+
+**Recon FIRST (E2.3-avoidance), and it paid off twice.** An `Explore` recon of `PdfPigStatementFieldExtractor.cs` established the real constants: **`YBandTolerance=5.0pt` (:113)**; left/right split X=280; header Y-window 530–700; TASA scan ceiling Bottom≤350; and the pivotal finding — **positional labels are matched by EXACT `OrdinalIgnoreCase` equality, NOT fuzzy, NOT accent-folded (`MatchesLabel` :2478)**. This REFINES the design's "phrasing-alias list" idea: a label phrasing/accent change doesn't test robustness, it BREAKS the field — so it belongs in the EDGE variants, not the in-tolerance ones.
+
+**S6.2.4 shipped (`e1a67c59`):** `synth_gen.py --profile dummievec` now also emits (additive; committed baseline/defect fixtures untouched — generated via a one-off `_write_s6211_variance(OUTPUT_DIR)` call, not `--profile all`, to avoid byte-churn):
+- **`s6211-var-{a,b,c}`** — 3 seeded personas re-emit the baseline layout with NOVEL arithmetic-consistent values (product/holder/amounts/percents, all differing from baseline AND each other → non-vacuous) + a **RIGID whole-page Y-shift** (`|shift|≤3pt`). Rigid, NOT independent per-band jitter, is deliberate + documented: the baseline interleaves left/right rows ~2pt apart and packs same-column rows ~10.8pt apart, so independent ±3pt jitter could merge previously-separate bands (topology change = the trap). Every field still resolves `Extracted` to the varied value.
+- **`s6211-edge-band` / `s6211-edge-label`** — the two edges land on the extractor's **two distinct honest failure modes**: displacing the Adeudo amount +7pt off its label band → **`ExtractedInvalidFormat`** (matched label, no in-band amount — the Epic-5 F1 implied-zero distinction); dropping the accent from the "Crédito" label → **`NotExtracted`** (never-matched label). Manifests are god's-eye (one persona value drives BOTH the printed token AND the declared field). Extraction-only slice; values kept CL-21/CL-22-consistent for a later slice; deterministic (manifests byte-identical across regen).
+
+**GROUND-TRUTH CATCH (the point of verifying):** the initial edge-band manifest asserted `NotExtracted`; the golden round-trip REFUTED it — real behavior is `ExtractedInvalidFormat` (matched-label/missing-amount → implied-zero, per Epic-5 F1). Corrected manifest + generator + test doc to the real behavior. **LESSON reaffirmed: assume nothing about extractor edge behavior — the test is the oracle, not your model of it.**
+
+**Adversarial review (1 skeptic, 8 angles): SOUND, 0 defects.** One latent non-defect noted + guard-commented: the tightest boundary clearance is the RFC band (533.6, only 3.6pt above HeaderYMin=530), so the `|shift|≤3pt` cap is load-bearing — a comment now warns against widening it toward the 5pt tolerance.
+
+### 🎯 NEXT SESSION — E6.S6.2.5 (DESGLOSE movements), design §10.5
+Populate a real movements/transactions table (design §5.6 columns) with N rows + totals, closing the `TotalCargos`/`TotalAbonos` gap left `NotExtracted` in every s6211 manifest so far. ⚠️ **DESGLOSE has a TIGHTER band tolerance = 4.0pt (`DesgloseBandTolerance` :1582)** and its own X columns (OpDateXMax 95, ChargeDate 96–157, Desc 145–422, Sign 423–480, Amount min 436 — recon 2026-07-07) — re-verify these from source before placing rows (row spacing must clear 4pt, not 5pt). Then S6.2.6 (batch + CI; gate on word-geometry NOT PDF bytes). Verify the full pipeline; calibrate from PdfPig coords.
+
+---
+
+## ⏩⏩⏩⏩⏩ (2026-07-07) — **E6.S6.2.3 (defect injection + VERDICT-LEVEL proof) DONE + reviewed + pushed `cadd086e`**
 
 **Resumed a prior session's uncommitted-but-complete S6.2.3 work, verified it from ground truth, adversarial-reviewed it, fixed one honesty defect, and shipped it on `Liv`.** The prior session had authored all of S6.2.3 (generator + 4 defect fixtures + golden facts + the verdict-level E2E) but never verified/reviewed/committed — it was sitting dirty in the tree.
 
