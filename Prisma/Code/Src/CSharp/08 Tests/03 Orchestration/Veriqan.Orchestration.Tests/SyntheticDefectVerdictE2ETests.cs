@@ -198,7 +198,10 @@ public sealed class SyntheticDefectVerdictE2ETests
         services.AddScoped<IVerificationPipeline, VerificationPipeline>();
         services.AddSingleton(TimeProvider.System);
 
-        var sp = services.BuildServiceProvider();
+        // Dispose the root container (not just the child scope below) — it owns the singleton
+        // IHeaderProductOcrEngine (TesseractHeaderProductOcrEngine); disposing only the async
+        // scope would leak that native engine handle (see VecChecklistDemoE2ETests).
+        await using var sp = services.BuildServiceProvider();
 
         var pdfBytes = await File.ReadAllBytesAsync(fixturePath, ct);
 

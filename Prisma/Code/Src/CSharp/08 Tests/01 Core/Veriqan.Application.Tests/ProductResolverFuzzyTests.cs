@@ -116,4 +116,112 @@ public sealed class ProductResolverFuzzyTests
         // edit rather than a silent drift.
         ProductResolver.FuzzyScoreThreshold.ShouldBe(85);
     }
+
+    // -----------------------------------------------------------------------
+    // Ambiguity guard — abstain rather than nearest-guess between two plausible products
+    // (adversarial-review finding #3 / owner ruling 2)
+    // -----------------------------------------------------------------------
+
+    private static VecReferenceBundle BundleWithOroAndOros() => new(
+        BundleMetadata: new BundleMetadata("1.0.0", "Demo Bank", null, null, null, null),
+        Products:
+        [
+            new VecProduct(
+                ProductId: "TC-ORO",
+                ProductName: "Tarjeta Oro",
+                Aliases: null,
+                HasRewardsProgram: false,
+                CardImage: null,
+                ImportantMessageImage: null,
+                Tariffs: null),
+            new VecProduct(
+                ProductId: "TC-OROS",
+                ProductName: "Tarjeta Oros",
+                Aliases: null,
+                HasRewardsProgram: false,
+                CardImage: null,
+                ImportantMessageImage: null,
+                Tariffs: null),
+        ],
+        InterestRates: null,
+        MandatoryLegends: null,
+        SequentialImages: null,
+        Promotions: null,
+        ClientAccounts: null,
+        PriorStatements: null,
+        ExpectedTransactions: null,
+        ToleranceConfig: null,
+        ValidationConstants: null);
+
+    /// <summary>
+    /// Two distinct catalog products ("Tarjeta Oro" / "Tarjeta Oros") both clear
+    /// <see cref="ProductResolver.FuzzyScoreThreshold"/> for a single OCR-noise token and land
+    /// within <see cref="ProductResolver.FuzzyAmbiguityMargin"/> of each other — measured via
+    /// <c>Fuzz.Ratio</c>: token "TARJETA OROO" scores 96 against "TARJETA ORO" and 92 against
+    /// "TARJETA OROS" (gap 4 &lt;= margin 5, both &gt;= 85). The literal token "TARJETA OROS" is
+    /// deliberately NOT used here — it would exact-match the "Tarjeta Oros" alias in Pass 1 before
+    /// fuzzy matching ever runs. The resolver must abstain (BLOCKED UnknownProduct) rather than
+    /// nearest-guess between the two plausible products (owner ruling 2 honesty boundary).
+    /// </summary>
+    [Fact]
+    public void Resolve_TwoDistinctProductsTieAboveThreshold_AbstainsAsAmbiguous()
+    {
+        var resolver = new ProductResolver();
+        var bundle = BundleWithOroAndOros();
+
+        var result = resolver.Resolve("Tarjeta Oroo", bundle);
+
+        result.IsSuccess.ShouldBeFalse(
+            $"Expected an ambiguity abstention, but resolver matched: {result.Value?.ProductId}");
+        BlockedOutcome.TryParse(result.Error, out var outcome).ShouldBeTrue();
+        outcome!.Reason.ShouldBe(BlockReason.UnknownProduct);
+    }
+
+    /// <summary>
+    /// Companion to <see cref="Resolve_TwoDistinctProductsTieAboveThreshold_AbstainsAsAmbiguous"/>:
+    /// proves the ambiguity guard doesn't over-abstain. Token "TARJETA ORQ" scores 91 against
+    /// "TARJETA ORO" and only 38 against an unrelated second product ("CUENTA DEBITO PLATINO") —
+    /// the best clears the threshold and the gap (53) is far past
+    /// <see cref="ProductResolver.FuzzyAmbiguityMargin"/>, so the resolver must still resolve.
+    /// </summary>
+    [Fact]
+    public void Resolve_OneProductClearlyDominates_Resolves()
+    {
+        var resolver = new ProductResolver();
+        var bundle = new VecReferenceBundle(
+            BundleMetadata: new BundleMetadata("1.0.0", "Demo Bank", null, null, null, null),
+            Products:
+            [
+                new VecProduct(
+                    ProductId: "TC-ORO",
+                    ProductName: "Tarjeta Oro",
+                    Aliases: null,
+                    HasRewardsProgram: false,
+                    CardImage: null,
+                    ImportantMessageImage: null,
+                    Tariffs: null),
+                new VecProduct(
+                    ProductId: "TC-PLATINO",
+                    ProductName: "Cuenta Debito Platino",
+                    Aliases: null,
+                    HasRewardsProgram: false,
+                    CardImage: null,
+                    ImportantMessageImage: null,
+                    Tariffs: null),
+            ],
+            InterestRates: null,
+            MandatoryLegends: null,
+            SequentialImages: null,
+            Promotions: null,
+            ClientAccounts: null,
+            PriorStatements: null,
+            ExpectedTransactions: null,
+            ToleranceConfig: null,
+            ValidationConstants: null);
+
+        var result = resolver.Resolve("Tarjeta Orq", bundle);
+
+        result.IsSuccess.ShouldBeTrue($"Expected the clear winner to resolve. Error: {result.Error}");
+        result.Value!.ProductId.ShouldBe("TC-ORO");
+    }
 }

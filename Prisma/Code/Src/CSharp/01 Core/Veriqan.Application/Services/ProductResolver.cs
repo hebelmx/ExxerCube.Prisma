@@ -34,6 +34,12 @@ internal sealed class ProductResolver : IProductResolver
     /// </summary>
     public const int FuzzyScoreThreshold = 85;
 
+    /// <summary>Max score gap (0-100) within which a second catalog product tying the best fuzzy
+    /// match is treated as an UNRESOLVABLE ambiguity rather than a winner — the resolver abstains
+    /// (BLOCKED UnknownProduct) rather than nearest-guess between two plausible products
+    /// (E7 owner ruling 2 honesty boundary). Calibration constant — flagged for owner ratification.</summary>
+    public const int FuzzyAmbiguityMargin = 5;
+
     /// <inheritdoc />
     public Result<VecProduct> Resolve(string productToken, VecReferenceBundle bundle)
     {
@@ -92,26 +98,54 @@ internal sealed class ProductResolver : IProductResolver
 
     private static VecProduct? TryFuzzyResolve(string normalisedToken, IReadOnlyList<VecProduct> products)
     {
-        VecProduct? bestMatch = null;
-        var bestScore = -1;
+        // Best score PER DISTINCT product (the max over that product's ProductId/name/aliases),
+        // tracking the top-two distinct products so an ambiguity between two genuinely different
+        // products can be detected below.
+        VecProduct? topProduct = null;
+        var topScore = -1;
+        VecProduct? secondProduct = null;
+        var secondScore = -1;
 
         foreach (var product in products)
         {
+            var productBestScore = -1;
+
             foreach (var candidateName in CandidateNames(product))
             {
                 if (string.IsNullOrWhiteSpace(candidateName))
                     continue;
 
                 var score = Fuzz.Ratio(normalisedToken, Normalise(candidateName));
-                if (score > bestScore)
-                {
-                    bestScore = score;
-                    bestMatch = product;
-                }
+                if (score > productBestScore)
+                    productBestScore = score;
+            }
+
+            if (productBestScore > topScore)
+            {
+                secondScore = topScore;
+                secondProduct = topProduct;
+                topScore = productBestScore;
+                topProduct = product;
+            }
+            else if (productBestScore > secondScore)
+            {
+                secondScore = productBestScore;
+                secondProduct = product;
             }
         }
 
-        return bestMatch is not null && bestScore >= FuzzyScoreThreshold ? bestMatch : null;
+        if (topProduct is null || topScore < FuzzyScoreThreshold)
+            return null;
+
+        // Ambiguity guard (owner ruling 2): a second DISTINCT product also clearing the threshold,
+        // within FuzzyAmbiguityMargin of the best, means we cannot honestly disambiguate — abstain
+        // rather than nearest-guess between two plausible products.
+        if (secondProduct is not null
+            && secondScore >= FuzzyScoreThreshold
+            && topScore - secondScore <= FuzzyAmbiguityMargin)
+            return null;
+
+        return topProduct;
     }
 
     private static IEnumerable<string> CandidateNames(VecProduct product)

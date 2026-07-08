@@ -23,6 +23,14 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Ocr;
 /// </remarks>
 internal sealed class HeaderOcrResultCache
 {
+    /// <summary>
+    /// Hard cap on the number of distinct crop-hash entries retained. The cache is held by a
+    /// process-lifetime singleton, so without a bound a Worker processing many distinct statements
+    /// over its lifetime would grow it without limit. The demo shares 1 crop across 4 fixtures;
+    /// 256 bounds unbounded growth in a long-lived Worker while keeping realistic hit rates.
+    /// </summary>
+    public const int MaxEntries = 256;
+
     private readonly ConcurrentDictionary<string, string> _cache = new(StringComparer.Ordinal);
 
     /// <summary>Number of distinct crop hashes currently cached. Exposed for tests only.</summary>
@@ -45,7 +53,34 @@ internal sealed class HeaderOcrResultCache
         ArgumentNullException.ThrowIfNull(compute);
 
         var key = ComputeKey(cropBytes);
-        return _cache.GetOrAdd(key, static (_, factory) => factory(), compute);
+        var value = _cache.GetOrAdd(key, static (_, factory) => factory(), compute);
+
+        EvictIfOverCapacity();
+
+        return value;
+    }
+
+    /// <summary>
+    /// If the cache has grown past <see cref="MaxEntries"/>, removes entries (via a
+    /// <see cref="ConcurrentDictionary{TKey,TValue}.Keys"/> snapshot) until it is back at/below the
+    /// cap. <see cref="ConcurrentDictionary{TKey,TValue}"/> has no built-in LRU ordering, so eviction
+    /// here is approximate and non-LRU by design — the goal is bounding unbounded growth in a
+    /// long-lived process-scoped Worker singleton, not guaranteeing any particular retention policy.
+    /// Thread-safe: each removal is an independent <see cref="ConcurrentDictionary{TKey,TValue}.TryRemove(TKey,out TValue)"/>;
+    /// a benign race between concurrent callers can only ever evict slightly more than strictly necessary.
+    /// </summary>
+    private void EvictIfOverCapacity()
+    {
+        if (_cache.Count <= MaxEntries)
+            return;
+
+        foreach (var key in _cache.Keys)
+        {
+            if (_cache.Count <= MaxEntries)
+                break;
+
+            _cache.TryRemove(key, out _);
+        }
     }
 
     /// <summary>

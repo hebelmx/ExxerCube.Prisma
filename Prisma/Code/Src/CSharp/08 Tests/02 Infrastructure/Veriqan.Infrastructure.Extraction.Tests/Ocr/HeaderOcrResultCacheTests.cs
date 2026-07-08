@@ -99,4 +99,21 @@ public sealed class HeaderOcrResultCacheTests
 
         a.ShouldNotBe(b);
     }
+
+    [Fact]
+    public void Cache_ExceedsMaxEntries_EvictsDownToBound()
+    {
+        var cache = new HeaderOcrResultCache();
+
+        for (var i = 0; i < HeaderOcrResultCache.MaxEntries + 10; i++)
+        {
+            var index = i;
+            cache.GetOrCompute(Bytes($"crop-{index}"), () => $"TEXT-{index}");
+        }
+
+        cache.Count.ShouldBeLessThanOrEqualTo(
+            HeaderOcrResultCache.MaxEntries,
+            "The cache must bound its size once MaxEntries is exceeded (a process-lifetime " +
+            "singleton must not grow without limit).");
+    }
 }

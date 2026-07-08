@@ -213,7 +213,10 @@ public sealed class VerificationPipelineEndToEndTests
         services.AddScoped<IVerificationPipeline, VerificationPipeline>();
         services.AddSingleton(TimeProvider.System);
 
-        var sp = services.BuildServiceProvider();
+        // Dispose the root container (not just the child scope below) — it owns the singleton
+        // IHeaderProductOcrEngine (TesseractHeaderProductOcrEngine); disposing only the async
+        // scope would leak that native engine handle (see VecChecklistDemoE2ETests).
+        await using var sp = services.BuildServiceProvider();
 
         var ct = TestContext.Current.CancellationToken;
         var pdfBytes = await File.ReadAllBytesAsync(FixturePdf, ct);

@@ -76,7 +76,13 @@ public sealed class TesseractHeaderProductOcrEngine : IHeaderProductOcrEngine, I
 
             return Result<string>.WithSuccess(text);
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (OperationCanceledException)
+        {
+            // Task.Run(..., cancellationToken) throws this when cancellation fires after entry.
+            // CLAUDE.md: never throw OperationCanceledException — catch and convert to Result.
+            return ResultExtensions.Cancelled<string>();
+        }
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Header-product OCR failed.");
             return Result<string>.WithFailure($"Header-product OCR failed: {ex.Message}");

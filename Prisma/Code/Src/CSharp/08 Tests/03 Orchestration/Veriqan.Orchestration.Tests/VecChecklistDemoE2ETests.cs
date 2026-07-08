@@ -376,8 +376,8 @@ public sealed class VecChecklistDemoE2ETests
         // ------------------------------------------------------------------
         result.IsSuccess.ShouldBeTrue(
             $"Pipeline returned a Result failure for '{fixtureName}': {result.Error ?? "<none>"}. " +
-            "Check that the CSV bundle files exist and that the product alias in products.csv " +
-            "resolves the extracted token 'Número de tarjeta 4111000000070001'.");
+            "Check that the CSV bundle files exist and that the header-image OCR product resolution " +
+            "(E7.S7.2/S7.3) recovered the product and resolved it to TC-COSTCO-BANAMEX in products.csv.");
 
         var outcome = result.Value!;
 

@@ -82,6 +82,22 @@ public sealed class HeaderImageOcrStageSnapshotTests
             1,
             expectedRenderHeightPx);
 
+        // Pin assertions (adversarial-review finding #5): the two asserts below derive their
+        // expectations FROM the constants under test (RenderDpi / HeaderCropFraction), so lowering
+        // either constant would move expected and actual together and this test would stay green
+        // without ever verifying the VALUE is right. These hardcoded literals pin good.pdf's known
+        // real geometry (612×792pt, confirmed via `pdfinfo`) so a RenderDpi or HeaderCropFraction
+        // regression turns THIS gated (no-native-Tesseract) test red.
+        expectedRenderWidthPx.ShouldBe(
+            1275,
+            "good.pdf page-1 is 612pt wide; at 150 DPI = 1275px. A change means RenderDpi or the "
+            + "fixture geometry regressed.");
+        expectedCropHeightPx.ShouldBe(
+            495,
+            "good.pdf header crop must be 30% of the 1650px rendered height = 495px. A change means "
+            + "HeaderCropFraction (validated at 0.30 with ~4pt margin over the heading band) "
+            + "regressed and must be re-validated against the LiveOcr canary.");
+
         var cropBytes = HeaderImageOcrStage.RenderHeaderCrop(pdfBytes);
 
         cropBytes.ShouldNotBeNull("Production render/crop path failed on the real good.pdf fixture.");
