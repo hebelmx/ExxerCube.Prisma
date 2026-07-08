@@ -39,13 +39,13 @@ Token-fragmentation rule (the actual E2.3 killer — see design doc §3/§5.3):
 Usage:
     python synth_gen.py [--profile {dummievec,realbanamex,all}] [--write-index]
         Default "all" generates every profile's PDFs + manifests (S6.2.1-S6.2.5,
-        12 specimens total) into Prisma/Fixtures/PRP2/synthetic/, and — because a
+        13 specimens total) into Prisma/Fixtures/PRP2/synthetic/, and — because a
         "--profile all" run is a full regeneration of the standing corpus — also
         (re)writes the corpus index (see below).
 
         "--write-index" (E6.S6.2.6): index-only mode — write ONLY
         Prisma/Fixtures/PRP2/synthetic/corpus-manifest.json, a byte-deterministic
-        index of the 12 standing specimens (id/pdf/manifest/profile/slice/defect/
+        index of the 13 standing specimens (id/pdf/manifest/profile/slice/defect/
         description), sourced from a hardcoded specimen table (CORPUS_SPECIMENS)
         — never by scanning the output directory (scanning would be OS/order-
         dependent and could index stale files) — and exit; no PDF/manifest is
@@ -1161,9 +1161,168 @@ def _write_realbanamex(output_dir: Path) -> None:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# S7.1 — header-image OCR product fixture (raster banner, top-30% header band)
+# ═══════════════════════════════════════════════════════════════════════════
+# Additive to the S6.2.2 real-Banamex profile above — reuses PAGE1_TOKENS_S622
+# verbatim (unchanged canary: this specimen's 14 financial fields must resolve
+# exactly like s622-realbanamex-baseline) and adds ONE new thing: a RASTERIZED
+# product-name banner ("Tarjeta de Crédito COSTCO BANAMEX") inserted as a PNG
+# image into the top 30%-of-page-height header band.
+#
+# Design authority: docs/planning-artifacts/veriqan-e7-s72-header-ocr-design-2026-07-08.md
+# §4.F "S7.1 shared contract" — binding on this section:
+#   - Fractional rect (x0=0.0, y0=0.0, x1=1.0, y1=0.30) of the page MediaBox,
+#     expressed in page-space (top-left origin, Y grows down) at generation
+#     time — this is ALREADY the native fitz/page-space convention (no
+#     PdfPig-bottom flip needed for the crop rect itself; the flip in
+#     fitz_point()/put() above only matters for PdfPig-space TEXT placement).
+#   - The manifest's expected identity is carried in a NEW top-level
+#     `headerOcrProduct` key (productId/productName/assertionRoute), NOT the
+#     `fields` dict (StatementModelFieldAccessors.Map has no Product accessor
+#     — adding one would break AssertGoldenRoundTripAsync's accessor lookup).
+#   - Structurally distinct from `build_scanned_doc` (whole-page rasterize):
+#     here only a small banner sub-image sits inside the header band; every
+#     other token on the page is real, extractable PDF text.
+#
+# Byte-determinism: the banner PNG is produced from fixed inputs only (fixed
+# text, fixed font, fixed font size, fixed render matrix) — no randomness, no
+# wall-clock — so re-running the generator reproduces identical PNG bytes and
+# therefore an identical PDF (verified: see module usage notes / DoD check
+# "regenerate twice, git diff must be empty").
+#
+# Make-or-break spike (2026-07-08, throwaway script, deleted after use):
+# fontsize=30 rendered at 300 DPI onto a small isolated canvas, inserted at
+# (20,40)-(400,78)pt on the final 612x792 page, cropped at the production
+# HeaderImageOcrStage.RenderDpi=150 / HeaderCropFraction=0.30 geometry, fed to
+# `tesseract -l spa --psm 3` (PSM 3 == Tesseract .NET's PageSegMode.Auto, the
+# exact mode TesseractHeaderProductOcrEngine uses) — OCR text came back
+# 'Tarjeta de Crédito COSTCO BANAMEX\n', a clean match against
+# HeaderImageOcrStage.cs's ProductHeadingPattern regex. GO.
+
+PDF_FILENAME_S71 = "s71-header-ocr-costco.pdf"
+MANIFEST_FILENAME_S71 = "s71-header-ocr-costco.manifest.json"
+
+HEADER_OCR_PRODUCT_ID = "TC-COSTCO-BANAMEX"
+HEADER_OCR_PRODUCT_NAME = "Tarjeta de Crédito COSTCO BANAMEX"
+
+# Fractional header-band rect (design doc §4.F) — full page width, top 30% of
+# MediaBox height. In fitz/page-space this needs no bottom-flip: (x0,y0) is
+# already the top-left corner and y1 grows downward toward mid-page.
+HEADER_BAND_X0_FRAC = 0.0
+HEADER_BAND_Y0_FRAC = 0.0
+HEADER_BAND_X1_FRAC = 1.0
+HEADER_BAND_Y1_FRAC = 0.30
+
+# Banner canvas + insertion geometry, pinned by the make-or-break spike above.
+_BANNER_CANVAS_WIDTH_PT = 900.0
+_BANNER_CANVAS_HEIGHT_PT = 90.0
+_BANNER_RENDER_DPI = 300
+_BANNER_FONT_SIZE = 30.0
+_BANNER_INSERT_X0 = 20.0
+_BANNER_INSERT_Y0 = 40.0
+_BANNER_INSERT_WIDTH_PT = 380.0
+_BANNER_INSERT_HEIGHT_PT = _BANNER_INSERT_WIDTH_PT * (_BANNER_CANVAS_HEIGHT_PT / _BANNER_CANVAS_WIDTH_PT)
+
+
+def _build_header_banner_png(text: str) -> bytes:
+    """Render `text` onto an isolated small canvas at high DPI and return PNG
+    bytes — a genuine raster (get_pixmap -> tobytes("png")), mirroring
+    anonymize.py's build_scanned_doc pixmap->PNG pattern but scoped to a single
+    banner rather than a whole page. Deterministic: fixed text/font/matrix,
+    no randomness, no wall-clock.
+    """
+    banner_doc = fitz.open()
+    page = banner_doc.new_page(width=_BANNER_CANVAS_WIDTH_PT, height=_BANNER_CANVAS_HEIGHT_PT)
+    page.insert_text(
+        fitz.Point(20, 60),
+        text,
+        fontname=FONT_NAME,
+        fontsize=_BANNER_FONT_SIZE,
+        color=COLOR_BLACK,
+    )
+    pix = page.get_pixmap(matrix=fitz.Matrix(_BANNER_RENDER_DPI / 72, _BANNER_RENDER_DPI / 72), alpha=False)
+    png_bytes = pix.tobytes("png")
+    banner_doc.close()
+    return png_bytes
+
+
+def build_pdf_s71() -> "fitz.Document":
+    """S6.2.2 real-Banamex page-1 tokens (unchanged canary) + a rasterized
+    product-name banner inserted into the top-30% header band — the header
+    band is otherwise empty (PAGE1_TOKENS_S622's topmost token sits at
+    Bottom=450, i.e. fitz-y=342, well below the header band's fitz-y<=237.6
+    ceiling), so the banner is isolated with no competing text at overlapping
+    Y (the column-bleed risk the design doc's PSM.Auto choice guards against)."""
+    doc = fitz.open()
+
+    page1 = doc.new_page(width=PAGE_WIDTH_PT_S622, height=PAGE_HEIGHT_PT_S622)
+    for x, bottom, text in PAGE1_TOKENS_S622:
+        put(page1, x, bottom, text, page_height=PAGE_HEIGHT_PT_S622)
+
+    banner_png = _build_header_banner_png(HEADER_OCR_PRODUCT_NAME)
+    banner_rect = fitz.Rect(
+        _BANNER_INSERT_X0,
+        _BANNER_INSERT_Y0,
+        _BANNER_INSERT_X0 + _BANNER_INSERT_WIDTH_PT,
+        _BANNER_INSERT_Y0 + _BANNER_INSERT_HEIGHT_PT,
+    )
+    page1.insert_image(banner_rect, stream=banner_png)
+
+    for page_num in range(2, PAGE_COUNT_S622 + 1):
+        page = doc.new_page(width=PAGE_WIDTH_PT_S622, height=PAGE_HEIGHT_PT_S622)
+        put(
+            page,
+            20.0,
+            PAGE_HEIGHT_PT_S622 - 30.0,
+            f"S7.1 synthetic filler — page {page_num}",
+            page_height=PAGE_HEIGHT_PT_S622,
+        )
+
+    return doc
+
+
+def build_manifest_s71() -> dict[str, Any]:
+    """God's-eye manifest: reuses the S6.2.2 baseline's 14 financial-field
+    expectations verbatim (the banner is additive, not a defect — the extractor
+    must still resolve every positional field exactly like s622-realbanamex-baseline),
+    plus the S7.1-specific `headerOcrProduct` resolved-identity block (design
+    doc §4.F). Deliberately does NOT add a `Product` key to `fields` —
+    StatementModelFieldAccessors.Map has no Product accessor (see that file's
+    remark); the resolved-identity assertion route is `headerOcrProduct`,
+    consumed by a LiveOcr test, not the word-geometry [Theory]."""
+    manifest = build_manifest_s622()
+    manifest["pdf"] = dict(manifest["pdf"])
+    manifest["pdf"]["fileName"] = PDF_FILENAME_S71
+    manifest["bundle"] = dict(manifest["bundle"])
+    manifest["bundle"]["productId"] = HEADER_OCR_PRODUCT_ID
+    manifest["bundle"]["productName"] = HEADER_OCR_PRODUCT_NAME
+    manifest["headerOcrProduct"] = {
+        "productId": HEADER_OCR_PRODUCT_ID,
+        "productName": HEADER_OCR_PRODUCT_NAME,
+        "assertionRoute": "resolved-ProductId/LiveOcr",
+    }
+    return manifest
+
+
+def _write_s71_header_ocr(output_dir: Path) -> None:
+    doc = build_pdf_s71()
+    pdf_path = output_dir / PDF_FILENAME_S71
+    doc.save(str(pdf_path), garbage=4, deflate=True)
+    doc.close()
+    print(f"Wrote {pdf_path} ({pdf_path.stat().st_size} bytes)")
+
+    manifest = build_manifest_s71()
+    manifest_path = output_dir / MANIFEST_FILENAME_S71
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    print(f"Wrote {manifest_path}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # S6.2.6 — Standing corpus index (batch runner + corpus-manifest.json)
 # ═══════════════════════════════════════════════════════════════════════════
-# A single hardcoded table is the source of truth for what the 12-specimen
+# A single hardcoded table is the source of truth for what the 13-specimen
 # standing corpus SHOULD contain — the index is built FROM this table, never
 # by scanning OUTPUT_DIR (a directory scan is OS/filesystem-order-dependent
 # and would silently index stale/leftover files instead of asserting the
@@ -1290,6 +1449,17 @@ CORPUS_SPECIMENS: list[dict[str, Any]] = [
         "description": "Baseline page 1 (unchanged canary) + a populated DESGLOSE movements "
                         "table on page 2",
     },
+    {
+        "id": "s71-header-ocr-costco",
+        "pdf": "s71-header-ocr-costco.pdf",
+        "manifest": "s71-header-ocr-costco.manifest.json",
+        "profile": "header-ocr",
+        "slice": "S7.1",
+        "defect": None,
+        "description": "S6.2.2 real-Banamex baseline + a rasterized 'Tarjeta de Crédito COSTCO "
+                        "BANAMEX' banner in the top-30% header band (resolved-identity manifest "
+                        "block headerOcrProduct, consumed by a LiveOcr test, not the fields gate)",
+    },
 ]
 
 
@@ -1360,6 +1530,7 @@ def main() -> int:
         _write_s6211_desglose(OUTPUT_DIR)  # S6.2.5 populated DESGLOSE movements table + totals
     if args.profile in ("realbanamex", "all"):
         _write_realbanamex(OUTPUT_DIR)
+        _write_s71_header_ocr(OUTPUT_DIR)  # S7.1: header-image OCR product fixture
 
     if args.profile == "all":
         _write_corpus_index(OUTPUT_DIR)  # S6.2.6: (re)write the standing-corpus index

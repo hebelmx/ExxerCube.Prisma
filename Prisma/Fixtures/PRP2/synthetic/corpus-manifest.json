@@ -109,6 +109,15 @@
       "slice": "S6.2.2",
       "defect": null,
       "description": "Real-Banamex 612x792 left-column baseline clone"
+    },
+    {
+      "id": "s71-header-ocr-costco",
+      "pdf": "s71-header-ocr-costco.pdf",
+      "manifest": "s71-header-ocr-costco.manifest.json",
+      "profile": "header-ocr",
+      "slice": "S7.1",
+      "defect": null,
+      "description": "S6.2.2 real-Banamex baseline + a rasterized 'Tarjeta de Crédito COSTCO BANAMEX' banner in the top-30% header band (resolved-identity manifest block headerOcrProduct, consumed by a LiveOcr test, not the fields gate)"
     }
   ]
 }
