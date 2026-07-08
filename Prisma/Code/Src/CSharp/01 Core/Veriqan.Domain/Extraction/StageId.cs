@@ -42,6 +42,14 @@ public readonly record struct StageId(string Value)
     /// </summary>
     public static StageId LlmExtraction { get; } = new("LlmExtraction");
 
+    /// <summary>
+    /// Header-image OCR stage: renders page 1, crops the top fractional header band, and reads
+    /// a product-name heading via Tesseract OCR when the positional extractor found nothing (see
+    /// <c>docs/planning-artifacts/veriqan-e7-s72-header-ocr-design-2026-07-08.md</c>). As of
+    /// E7.S7.2/S7.3 the only field registered against this stage is <c>FieldKind.Product</c>.
+    /// </summary>
+    public static StageId HeaderImageOcr { get; } = new("HeaderImageOcr");
+
     /// <inheritdoc/>
     public override string ToString() => Value;
 }

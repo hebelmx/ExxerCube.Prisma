@@ -5,6 +5,23 @@
 
 ---
 
+## ▶▶▶ EPIC E7 STARTED (2026-07-07 session 5) — **Real product resolution; design forks resolved + make-or-break spike GO. No code yet — clean handoff at the architecture boundary.**
+
+**Owner-picked E7 as the next fallback-chain epic** (over E3/E4/E5, which the design gates as premature). E7 = resolve Product against a real catalog, retire the `TC-BSSB` alias hack, make the null-product gate intentional (design line 183/226).
+
+**Recon (Explore, read-only) established the code map:** `ProductResolver` (`01 Core/Veriqan.Application/Services/ProductResolver.cs`) already correctly matches `VecReferenceBundle.Products` by id/alias, DI-wired, called via `BundleBinder.BindAsync` ← `VerificationPipeline.cs:669`. The alias hack = a fixture-CSV exact-string alias `Número de tarjeta 4111000000070001|TC-BSSB` (`Fixtures/PRP2/demo/reference-bundle/Demo_Bank_(Iqubica)/products.csv:2`) + load-bearing comment `PdfPigStatementFieldExtractor.cs:851-858` + `VecChecklistDemoE2ETests` doc. A clean 3-product catalog already exists (`Prisma/Data/Veriqan/reference-bundles/Demo_Bank_(Iqubica)/products.csv`). Gate = any resolve miss → `BlockReason.UnknownProduct` → `ExtractionGap` (`VerdictAggregator.IsExtractionGapReason`). **The synthetic harness does NOT measure Product** (manifests carry `bundle.productId` metadata but `SyntheticGoldManifest` ignores it; no `Product` key in any manifest `fields` block).
+
+**DECISIVE GROUND-TRUTH FINDING (reshaped the epic):** the demo product **"Tarjeta de Crédito COSTCO BANAMEX"** is on page 1 of `good.pdf` (upper-right + left column) but **rendered as glyphs/image, NOT in the text layer** — `pdftotext -layout`/`-raw` + grep banamex/costco/tarjeta-de-cr = **0 hits**; only real "tarjeta" text token is `Número de tarjeta 4111000000070001`. That is WHY the text-only PdfPig extractor can't see it and WHY the alias hack was needed.
+
+**Owner decision (2 AskUserQuestion rounds): extract the real token via OCR of the page-1 header image region** (chosen over card-number/BIN path and over context-provided ProductId). Product is load-bearing — naive hack removal → UnknownProduct → ExtractionGap → all 4 demo verdicts break (known, reverted once).
+
+**Make-or-break SPIKE (E7.S7.0) = GO.** Tesseract 5.5.0 (`spa` avail) reads it CLEANLY from a rendered crop: upper-right `pdftoppm -r 300 -x 1650 -y 240 -W 900 -H 220` → "Estado de Cuenta Mensual / Tarjeta de Crédito / COSTCO BANAMEX"; left-column line `-x 100 -y 680 -W 780 -H 70` → "Tarjeta de Crédito COSTCO BANAMEX". Veriqan already renders page images (PDFtoImage / MarkedPdfGenerator) and has Tesseract (Prisma engine).
+
+### 🎯 NEXT SESSION — E7.S7.2 is the next build; it is ARCHITECTURE-TOUCHING → design before dev
+Stories (tracker): **S7.0 spike DONE (GO)**; **S7.2** wire header-image OCR → product token → resolve against catalog (OWNER-SETTLED direction; open design: where OCR plugs into the extraction path, how the header region is located WITHOUT a per-fixture hardcoded crop — a per-tenant/bank header-band config, and OCR determinism/caching for the corpus harness); **S7.1** make Product a measured field in the synthetic harness — **NOTE: no longer cleanly fork-independent** — the synthetic generator renders TEXT, so measuring the OCR-product path needs the generator to rasterize a product banner; decide alongside S7.2; **S7.3** retire alias hack + re-spec gate (catalog-resolved runs verdict; clean-abstain on OCR/exhaustion ≠ block) + keep 4 demo verdicts green (blocked by S7.2). **Recommend an architect+qa design pass (or a small BMAD party) on S7.2 region-strategy + OCR determinism BEFORE delegating dev.** Verify EVERY chunk against the full verdict pipeline; calibrate from PdfPig coords + rendered-crop OCR.
+
+---
+
 ## ✅✅✅ EPIC CLOSED (2026-07-07 session 4) — **E6.S6.2.6 (batch runner + CI gate) DONE + reviewed + pushed `48d19266` → EPIC E6.S6.2 COMPLETE (6/6 slices)**
 
 **Orchestrated S6.2.6 as two isolated chunks, verified each from ground truth, epic-boundary adversarial-reviewed, shipped on `Liv`.** This is the FINAL slice — epic E6.S6.2 (synthetic estado-de-cuenta generator + god's-eye golden corpus) is now complete. Verified from ground truth: build 0/0; `Veriqan.Infrastructure.Extraction.Tests` **280/280** (12 specimens via one index-driven `[Theory]` + 1 new completeness `[Fact]`, 0 skipped); index byte-identical on regen; NO production code touched (Orchestration/Validation verdict suites cannot regress — change surface is 1 Python script + 1 index fixture + the test project only).

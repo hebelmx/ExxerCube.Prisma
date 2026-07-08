@@ -848,21 +848,41 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             var bandY = w.BoundingBox.Bottom;
             var band = GetBand(bands, bandY);
 
-            // NOTE (P1.4 / recalibration): the real Banamex-style demo layout has no product
-            // heading, so this matches the "Número de tarjeta 4111..." label row and returns
-            // the whole band as the product token. That is technically wrong, BUT it is
-            // load-bearing BY DESIGN: the demo reference bundle registers that exact string as
-            // a pipe-separated alias for TC-BSSB so product resolution succeeds and the rules
-            // run (see VecChecklistDemoE2ETests doc-comment). A P1.1 guard that abstained here
-            // was reverted because it turned the whole demo verdict into ExtractionGap
-            // (UnknownProduct). Proper product resolution is Phase-2 (fallback chain) work.
+            // NOTE (E7.S7.2/S7.3 — the former P1.4 alias hack is retired here): the real
+            // Banamex-style demo layout has no product heading, so this word-match instead hits
+            // the "Número de tarjeta 4111..." label row. That band is a card-number/digit
+            // pattern, not a product-name phrase — returning it as Found was "technically wrong,
+            // BUT load-bearing BY DESIGN" (the demo catalog carried it as a TC-BSSB alias). The
+            // header-image OCR fallback stage (StageId.HeaderImageOcr) now reads the genuine
+            // product name off the page-1 header image, so this fallback ABSTAINS (Missing)
+            // instead of fabricating the digit band as a product token — that abstention is what
+            // makes the escalation ladder's StatusGate trigger fire (see
+            // FieldEscalationLadderRegistry.BuildDefaultLadders, FieldKind.Product rung; design
+            // doc veriqan-e7-s72-header-ocr-design-2026-07-08.md §4.A.1).
             var text = BandText(band);
 
-            if (!string.IsNullOrWhiteSpace(text))
+            if (!string.IsNullOrWhiteSpace(text) && !IsCardNumberBand(text))
                 return ExtractedField<string>.Found(text, BoundingBoxOf(band, 1));
         }
 
         return ExtractedField<string>.Missing(FieldLocator.PageHint(1));
+    }
+
+    /// <summary>
+    /// A card-number/digit band (e.g. "Número de tarjeta 4111000000070001") carries a long run of
+    /// digits and no genuine product-name phrase — distinguishes that shape from a real product
+    /// heading like "Tarjeta de Crédito COSTCO BANAMEX" (letters only, no card number).
+    /// </summary>
+    private static bool IsCardNumberBand(string bandText)
+    {
+        var digitCount = 0;
+        foreach (var ch in bandText)
+        {
+            if (char.IsDigit(ch))
+                digitCount++;
+        }
+
+        return digitCount >= 8;
     }
 
     // -----------------------------------------------------------------------

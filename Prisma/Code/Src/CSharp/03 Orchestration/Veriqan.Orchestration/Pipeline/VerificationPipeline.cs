@@ -1226,10 +1226,22 @@ internal sealed class VerificationPipeline : IVerificationPipeline
     }
 
     /// <summary>
-    /// Returns <see langword="true"/> when the status indicates the field was found in the PDF,
-    /// whether the value was well-formed (<see cref="ExtractionStatus.Extracted"/>) or
-    /// had a format defect (<see cref="ExtractionStatus.ExtractedInvalidFormat"/>).
+    /// Returns <see langword="true"/> when the status indicates the field was found positionally
+    /// in the PDF's own text layer, whether the value was well-formed
+    /// (<see cref="ExtractionStatus.Extracted"/>) or had a format defect
+    /// (<see cref="ExtractionStatus.ExtractedInvalidFormat"/>).
     /// </summary>
+    /// <remarks>
+    /// <b>Provenance-aware by construction (E7.S7.2/S7.3 owner ruling 4):</b> a field resolved by
+    /// an inference stage (semantic search, LLM extraction, or header-image OCR — status
+    /// <see cref="ExtractionStatus.ExtractedByInference"/>) deliberately does NOT match either
+    /// branch here and is therefore excluded from <see cref="CountExtractedFields"/>'s
+    /// extraction-floor count. That floor exists to measure how much of the document's own text
+    /// layer was readable; a value recovered from a second-source OCR pass over a rendered image
+    /// says nothing about text-layer coverage and must not inflate it (e.g. a scanned/image-only
+    /// PDF whose only recoverable field is an OCR-read Product must still fail the floor and
+    /// resolve to <c>ExtractionGap</c>, never be pushed over the floor by that one field).
+    /// </remarks>
     private static bool IsExtracted(ExtractionStatus status) =>
         status is ExtractionStatus.Extracted or ExtractionStatus.ExtractedInvalidFormat;
 

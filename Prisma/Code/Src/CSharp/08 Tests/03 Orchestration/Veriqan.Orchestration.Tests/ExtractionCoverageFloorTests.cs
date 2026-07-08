@@ -146,6 +146,69 @@ public sealed class ExtractionCoverageFloorTests
         count.ShouldBe(7);
     }
 
+    /// <summary>
+    /// E7.S7.2/S7.3 owner ruling 4 (provenance-aware floor): a <see cref="PeriodSummary.Product"/>
+    /// field with status <see cref="ExtractionStatus.ExtractedByInference"/> — the status stamped
+    /// on a header-image-OCR-recovered product (<c>StageId.HeaderImageOcr</c>) — must NOT count
+    /// toward the extraction-coverage floor, even though every other field is missing. This is the
+    /// exact shape of a scanned/image-only document whose only recoverable field is an
+    /// OCR-recovered Product: the floor must stay unmet so the pipeline still resolves to
+    /// <c>ExtractionGap</c> rather than being pushed over the floor by a second-source inference.
+    /// </summary>
+    [Fact]
+    public void CountExtractedFields_ProductExtractedByInference_DoesNotCountTowardFloor()
+    {
+        // Arrange — all header fields missing; PeriodSummary.Product is present but
+        // ExtractedByInference (OCR-recovered); every other PeriodSummary field is missing.
+        var locator = FieldLocator.PageHint(1);
+        var missingHeader = ExtractedField<string>.Missing(locator);
+        var missingName = ExtractedField<ExtractedClientName>.Missing(locator);
+        var missingAddr = ExtractedField<ExtractedAddress>.Missing(locator);
+        var missingDate = ExtractedField<DateOnly>.Missing(locator);
+        var missingInt = ExtractedField<int>.Missing(locator);
+        var missingDecimal = ExtractedField<decimal>.Missing(locator);
+
+        var ocrRecoveredProduct = new ExtractedField<string>(
+            "Tarjeta de Crédito COSTCO BANAMEX",
+            confidence: 0.9,
+            locator: locator,
+            status: ExtractionStatus.ExtractedByInference,
+            provenance: new ExtractionProvenance(StageId.HeaderImageOcr));
+
+        var model = new StatementModel(
+            clientName: missingName,
+            address: missingAddr,
+            branchNumber: missingHeader,
+            cardNumber: missingHeader,
+            clabe: missingHeader,
+            clientNumber: missingHeader,
+            rfc: missingHeader)
+        {
+            PeriodSummary = new PeriodSummary(
+                product: ocrRecoveredProduct,
+                periodStart: missingDate,
+                periodCutDate: missingDate,
+                paymentDueDate: missingDate,
+                dayCountPrinted: missingInt,
+                dayCount: new DayCountVerification(null, null, false),
+                pagoParaNoGenerarIntereses: missingDecimal,
+                pagoMinimo: missingDecimal,
+                pagoMinimoMasMeses: missingDecimal,
+                tasa: missingDecimal,
+                cat: missingDecimal,
+                saldoDeudorTotal: missingDecimal,
+                creditoDisponible: missingDecimal),
+        };
+
+        // Act
+        var count = VerificationPipeline.CountExtractedFields(model);
+
+        // Assert — the OCR-recovered Product is present but must not be counted.
+        count.ShouldBe(0,
+            "An ExtractedByInference Product (header-image OCR) must not count toward the " +
+            "extraction-coverage floor — the floor measures positional text-layer coverage.");
+    }
+
     // =========================================================================
     // Part 2 — Pipeline integration tests (floor fires / does not fire)
     // =========================================================================

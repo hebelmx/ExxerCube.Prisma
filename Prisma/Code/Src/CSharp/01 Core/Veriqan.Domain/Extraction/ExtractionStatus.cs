@@ -24,13 +24,16 @@ public enum ExtractionStatus
     /// </summary>
     ExtractedInvalidFormat,
 
-    // TODO(E3/E5): decide coverage-count semantics when a stage first emits ExtractedByInference.
-
     /// <summary>
-    /// The value was resolved by a semantic-search or LLM inference stage rather than read
-    /// positionally. Treated as a candidate that a downstream consumer MAY require human
-    /// confirmation for before it gates a verdict (mirrors Prisma's <c>RequiresManualReview</c>
-    /// pattern). No stage emits this yet as of E1.
+    /// The value was resolved by a semantic-search, LLM inference, or header-image OCR stage
+    /// rather than read positionally from the document's own text layer. Treated as a candidate
+    /// that a downstream consumer MAY require human confirmation for before it gates a verdict
+    /// (mirrors Prisma's <c>RequiresManualReview</c> pattern). Resolved (E7.S7.2/S7.3, owner
+    /// ruling 4): <c>VerificationPipeline.CountExtractedFields</c>'s <c>IsExtracted</c> helper
+    /// intentionally does NOT match this status, so a field with this status never counts toward
+    /// the extraction-coverage floor — the floor stays a positional-text-layer coverage measure,
+    /// not inflated by a second-source inference recovery. First stage to emit this:
+    /// <c>StageId.HeaderImageOcr</c> (header-image product-name OCR).
     /// </summary>
     ExtractedByInference,
 }

@@ -84,6 +84,16 @@ public sealed class FieldEscalationLadderRegistry : IFieldEscalationLadderRegist
             Rungs: [new FieldEscalationRung(StageId.FuzzyLabel, EscalationTrigger.StatusGate)],
             Validator: new PaymentDueDatePlausibilityValidator());
 
+        // E7.S7.2/S7.3: Product escalates to the header-image OCR stage (StageId.HeaderImageOcr)
+        // ONLY when the positional extractor found nothing at all (StatusGate) — mirrors the
+        // PaymentDueDate pattern above. As of this slice, PdfPigStatementFieldExtractor's
+        // card-number-band fallback is neutered to abstain (Missing) instead of returning the
+        // digit band, so this rung is what actually recovers the real product name via OCR.
+        table[FieldKind.Product] = new FieldEscalationLadder(
+            FieldKind.Product,
+            ConfidenceFloor: 0.0,
+            Rungs: [new FieldEscalationRung(StageId.HeaderImageOcr, EscalationTrigger.StatusGate)]);
+
         return table;
     }
 }

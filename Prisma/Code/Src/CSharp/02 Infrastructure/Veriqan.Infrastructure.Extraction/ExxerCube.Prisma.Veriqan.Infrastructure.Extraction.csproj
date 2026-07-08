@@ -30,6 +30,8 @@
     <PackageReference Include="SixLabors.ImageSharp" />
     <!-- FuzzySharp: fuzzy/Levenshtein label matching for the progressive fallback-extraction chain (VERIQAN-E2) -->
     <PackageReference Include="FuzzySharp" />
+    <!-- Tesseract OCR engine: header-image product-name recognition (E7.S7.2/S7.3) -->
+    <PackageReference Include="Tesseract" />
   </ItemGroup>
 
   <ItemGroup>

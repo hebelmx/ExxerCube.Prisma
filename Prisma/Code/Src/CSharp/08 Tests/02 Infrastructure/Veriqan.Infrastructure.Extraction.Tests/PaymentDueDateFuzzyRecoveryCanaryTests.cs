@@ -1,6 +1,8 @@
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Ocr;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Resolution;
 using Meziantou.Extensions.Logging.Xunit.v3;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Tests;
 
@@ -28,7 +30,13 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Tests;
 /// deliberate finding — do NOT weaken this assertion to make it pass; update the verdict-impact
 /// analysis first, then intentionally relax this canary in the same change.
 /// </para>
+/// <para>
+/// <b>E7.S7.2/S7.3 update:</b> <see cref="FieldKind.Product"/> now also has a non-empty ladder,
+/// so <see cref="CreateEscalating"/> wires the real <see cref="TesseractHeaderProductOcrEngine"/>
+/// — this class belongs to <see cref="VeriqanHeaderOcrCollection"/>.
+/// </para>
 /// </remarks>
+[Collection(VeriqanHeaderOcrCollection.Name)]
 public sealed class PaymentDueDateFuzzyRecoveryCanaryTests
 {
     private static readonly string[] FixtureNames =
@@ -45,6 +53,9 @@ public sealed class PaymentDueDateFuzzyRecoveryCanaryTests
     private static string FixturePath(string fileName) =>
         Path.Combine(AppContext.BaseDirectory, "Fixtures", "demo", fileName);
 
+    private static readonly TesseractHeaderProductOcrEngine OcrEngine =
+        new(NullLogger<TesseractHeaderProductOcrEngine>.Instance);
+
     // Mirrors EscalationSeamBehaviorNeutralTests.CreateEscalating — the production wiring
     // (DefaultFieldStageProvider, not the empty provider) so this canary actually exercises the
     // fuzzy label-anchor stage registered for FieldKind.PaymentDueDate.
@@ -55,8 +66,9 @@ public sealed class PaymentDueDateFuzzyRecoveryCanaryTests
             Microsoft.Extensions.Options.Options.Create(new PdfExtractionOptions()),
             new NullPasswordProvider());
         var registry = new FieldEscalationLadderRegistry();
+        var stageProvider = new DefaultFieldStageProvider(OcrEngine, NullLoggerFactory.Instance);
         var orchestrator = new FieldResolutionOrchestrator(
-            registry, new DefaultFieldStageProvider(), XUnitLogger.CreateLogger<FieldResolutionOrchestrator>());
+            registry, stageProvider, XUnitLogger.CreateLogger<FieldResolutionOrchestrator>());
         return new EscalatingStatementFieldExtractor(
             inner, orchestrator, XUnitLogger.CreateLogger<EscalatingStatementFieldExtractor>());
     }

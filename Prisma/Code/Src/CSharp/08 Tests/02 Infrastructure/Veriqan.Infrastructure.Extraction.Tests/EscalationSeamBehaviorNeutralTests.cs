@@ -1,8 +1,10 @@
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Ocr;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Resolution;
 using IndQuestResults;
 using Meziantou.Extensions.Logging.Xunit.v3;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Tests;
 
@@ -33,17 +35,30 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Tests;
 /// <b>E2.2 update:</b> <see cref="CreateEscalating"/> now wires the real production
 /// <see cref="DefaultFieldStageProvider"/> (not <see cref="EmptyFieldStageProvider"/>) so this
 /// harness actually exercises the fuzzy label-anchor stage registered for
-/// <see cref="FieldKind.PaymentDueDate"/> — the only field with a non-empty ladder as of this
-/// chunk. Every field OTHER than PaymentDueDate is still asserted byte-identical via
-/// <see cref="Compare{T}"/>. PaymentDueDate is compared by <see cref="ComparePaymentDueDate"/>
-/// instead: when positional already found a value, StatusGate cannot fire and identity is still
-/// required; when positional found nothing, the escalated result may honestly stay NotExtracted
-/// (fuzzy stage also abstained) OR recover a plausible value via <see cref="StageId.FuzzyLabel"/> —
-/// both are acceptable, and only those two outcomes are acceptable (a value that doesn't clear
+/// <see cref="FieldKind.PaymentDueDate"/>. Every field OTHER than PaymentDueDate/Product is still
+/// asserted byte-identical via <see cref="Compare{T}"/>. PaymentDueDate is compared by
+/// <see cref="ComparePaymentDueDate"/> instead: when positional already found a value, StatusGate
+/// cannot fire and identity is still required; when positional found nothing, the escalated
+/// result may honestly stay NotExtracted (fuzzy stage also abstained) OR recover a plausible
+/// value via <see cref="StageId.FuzzyLabel"/> — both are acceptable, and only those two outcomes
+/// are acceptable (a value that doesn't clear
 /// <see cref="PaymentDueDatePlausibilityValidator.IsPlausible"/>, or provenance from any other
 /// stage, is still flagged as a mismatch).
 /// </para>
+/// <para>
+/// <b>E7.S7.2/S7.3 update:</b> <see cref="FieldKind.Product"/> also gets a non-empty ladder
+/// (<see cref="StageId.HeaderImageOcr"/>, header-image OCR). It is compared by
+/// <see cref="CompareProduct"/> using the same shape as <see cref="ComparePaymentDueDate"/>: when
+/// positional already found a value, identity is required; when positional found nothing (the
+/// now-neutered card-number-band fallback in <c>PdfPigStatementFieldExtractor.ExtractProductName</c>),
+/// the escalated result may stay NotExtracted (OCR also abstained) OR recover a real product-name
+/// string via <see cref="StageId.HeaderImageOcr"/>. This class runs the real
+/// <see cref="TesseractHeaderProductOcrEngine"/> (not a fake), so it belongs to
+/// <see cref="VeriqanHeaderOcrCollection"/> to serialize with every other test class that
+/// constructs the real singleton engine.
+/// </para>
 /// </remarks>
+[Collection(VeriqanHeaderOcrCollection.Name)]
 public sealed class EscalationSeamBehaviorNeutralTests
 {
     // -----------------------------------------------------------------------
@@ -74,16 +89,23 @@ public sealed class EscalationSeamBehaviorNeutralTests
             Microsoft.Extensions.Options.Options.Create(new PdfExtractionOptions()),
             new NullPasswordProvider());
 
+    // Shared real OCR engine — one per test class run, mirroring the singleton production
+    // lifecycle (the engine deadlocks on a second concurrent instantiation).
+    private static readonly TesseractHeaderProductOcrEngine OcrEngine =
+        new(NullLogger<TesseractHeaderProductOcrEngine>.Instance);
+
     private static EscalatingStatementFieldExtractor CreateEscalating()
     {
         // A SECOND, independent inner instance — the decorator must be transparent regardless
         // of which concrete inner instance produced the positional result.
         var inner = CreateInner();
         var registry = new FieldEscalationLadderRegistry();
-        // E2.2: DefaultFieldStageProvider (production wiring), not EmptyFieldStageProvider — see
-        // the class remarks above for why the empty provider would make this harness stale.
+        // E2.2/E7.S7.2/S7.3: DefaultFieldStageProvider (production wiring), not
+        // EmptyFieldStageProvider — see the class remarks above for why the empty provider would
+        // make this harness stale.
+        var stageProvider = new DefaultFieldStageProvider(OcrEngine, NullLoggerFactory.Instance);
         var orchestrator = new FieldResolutionOrchestrator(
-            registry, new DefaultFieldStageProvider(), XUnitLogger.CreateLogger<FieldResolutionOrchestrator>());
+            registry, stageProvider, XUnitLogger.CreateLogger<FieldResolutionOrchestrator>());
         return new EscalatingStatementFieldExtractor(
             inner, orchestrator, XUnitLogger.CreateLogger<EscalatingStatementFieldExtractor>());
     }
@@ -168,7 +190,7 @@ public sealed class EscalationSeamBehaviorNeutralTests
             var bps = baseline.PeriodSummary;
             var eps = escalated.PeriodSummary;
 
-            Compare("Product", bps.Product, eps.Product, mismatches);
+            CompareProduct(bps.Product, eps.Product, mismatches);
             Compare("PeriodStart", bps.PeriodStart, eps.PeriodStart, mismatches);
             Compare("PeriodCutDate", bps.PeriodCutDate, eps.PeriodCutDate, mismatches);
             ComparePaymentDueDate(bps.PaymentDueDate, eps.PaymentDueDate, mismatches);
@@ -278,5 +300,49 @@ public sealed class EscalationSeamBehaviorNeutralTests
                 ? $"[E2.2] PaymentDueDate recovered {escalated.Value:yyyy-MM-dd} via FuzzyLabel "
                   + $"(confidence {escalated.Confidence:0.00})."
                 : "[E2.2] PaymentDueDate escalated result failed the honesty check above.");
+    }
+
+    /// <summary>
+    /// Product-specific comparison (E7.S7.2/S7.3): unlike every other field in this harness, this
+    /// one has a non-empty ladder, so the escalated path is allowed to genuinely recover a value
+    /// the (now-neutered) positional card-number-band fallback missed. See the class remarks for
+    /// the full acceptance matrix.
+    /// </summary>
+    private static void CompareProduct(
+        ExtractedField<string> baseline,
+        ExtractedField<string> escalated,
+        List<string> mismatches)
+    {
+        if (baseline.Status != ExtractionStatus.NotExtracted)
+        {
+            // Positional already found something — StatusGate (Product's only trigger) cannot
+            // fire, so the orchestrator cannot have escalated. Must be byte-identical.
+            Compare("Product", baseline, escalated, mismatches);
+            return;
+        }
+
+        // Positional found nothing (the neutered card-number-band fallback abstained): either the
+        // OCR stage also honestly abstained, or it recovered a real product-name string.
+        if (escalated.Status == ExtractionStatus.NotExtracted)
+            return;
+
+        var isHonestRecovery =
+            escalated.Status == ExtractionStatus.ExtractedByInference
+            && escalated.Provenance.Stage == StageId.HeaderImageOcr
+            && !string.IsNullOrWhiteSpace(escalated.Value);
+
+        if (!isHonestRecovery)
+        {
+            mismatches.Add(
+                $"Product: escalated result is neither 'still NotExtracted' nor an honest "
+                + $"HeaderImageOcr recovery. Status={escalated.Status} Value={escalated.Value} "
+                + $"Provenance={escalated.Provenance.Stage}");
+        }
+
+        TestContext.Current.SendDiagnosticMessage(
+            isHonestRecovery
+                ? $"[E7.S7.2/S7.3] Product recovered '{escalated.Value}' via HeaderImageOcr "
+                  + $"(confidence {escalated.Confidence:0.00})."
+                : "[E7.S7.2/S7.3] Product escalated result failed the honesty check above.");
     }
 }

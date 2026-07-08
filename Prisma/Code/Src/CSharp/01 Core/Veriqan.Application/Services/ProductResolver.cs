@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
+using FuzzySharp;
 using IndQuestResults;
 
 namespace ExxerCube.Prisma.Veriqan.Application.Services;
@@ -11,12 +13,27 @@ namespace ExxerCube.Prisma.Veriqan.Application.Services;
 /// Default implementation of <see cref="IProductResolver"/>.
 /// Matches a free-text product token against <see cref="VecProduct.ProductId"/>
 /// and each entry in <see cref="VecProduct.Aliases"/> using case-insensitive,
-/// whitespace-normalised comparison.
+/// whitespace-normalised comparison, with a fuzzy-match fallback for OCR-recovered tokens.
 /// No silent default is applied: an unresolvable token always produces a
 /// BLOCKED <see cref="BlockReason.UnknownProduct"/> failure.
 /// </summary>
 internal sealed class ProductResolver : IProductResolver
 {
+    /// <summary>
+    /// Minimum FuzzySharp <see cref="Fuzz.Ratio(string, string)"/> score (0-100) a catalog <c>ProductName</c>,
+    /// <c>ProductId</c>, or alias must clear — after the exact-match pass misses every product —
+    /// before a fuzzy match is accepted (E7.S7.2/S7.3 owner ruling 2, 2026-07-08: "fuzzy from day
+    /// one"). Exists to absorb small OCR noise (stray whitespace, an accent drop, a misread
+    /// character) on a header-image-OCR-recovered product token, NOT to guess between genuinely
+    /// different products. Below this threshold the token is treated as unresolved — this
+    /// resolver NEVER picks the nearest match by fiat; abstention (BLOCKED UnknownProduct) is
+    /// always preferred over a fabricated match. 85 mirrors the conservative 80-point convention
+    /// already used by <c>FuzzyLabelStage.DefaultScoreThreshold</c> for label matching, nudged up
+    /// because a wrong PRODUCT match (vs. a wrong label window) directly changes which legal
+    /// checklist runs.
+    /// </summary>
+    public const int FuzzyScoreThreshold = 85;
+
     /// <inheritdoc />
     public Result<VecProduct> Resolve(string productToken, VecReferenceBundle bundle)
     {
@@ -40,13 +57,12 @@ internal sealed class ProductResolver : IProductResolver
             return Result<VecProduct>.WithFailure(noProducts.ToErrorString());
         }
 
+        // Pass 1 — exact match (canonical ProductId or any alias).
         foreach (var product in bundle.Products)
         {
-            // Match by canonical ProductId
             if (Normalise(product.ProductId) == normalised)
                 return Result<VecProduct>.WithSuccess(product);
 
-            // Match by any alias
             if (product.Aliases is not null)
             {
                 foreach (var alias in product.Aliases)
@@ -57,6 +73,13 @@ internal sealed class ProductResolver : IProductResolver
             }
         }
 
+        // Pass 2 — fuzzy fallback (owner ruling 2). Only reached when exact match missed every
+        // product/alias. Scores every candidate name and only accepts the best match when it
+        // clears FuzzyScoreThreshold — never picks a "least-bad" match below the bar.
+        var fuzzyMatch = TryFuzzyResolve(normalised, bundle.Products);
+        if (fuzzyMatch is not null)
+            return Result<VecProduct>.WithSuccess(fuzzyMatch);
+
         var blocked = new BlockedOutcome(
             BlockReason.UnknownProduct,
             $"No product matched token '{productToken}' in the reference bundle.");
@@ -66,6 +89,42 @@ internal sealed class ProductResolver : IProductResolver
     // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
+
+    private static VecProduct? TryFuzzyResolve(string normalisedToken, IReadOnlyList<VecProduct> products)
+    {
+        VecProduct? bestMatch = null;
+        var bestScore = -1;
+
+        foreach (var product in products)
+        {
+            foreach (var candidateName in CandidateNames(product))
+            {
+                if (string.IsNullOrWhiteSpace(candidateName))
+                    continue;
+
+                var score = Fuzz.Ratio(normalisedToken, Normalise(candidateName));
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestMatch = product;
+                }
+            }
+        }
+
+        return bestMatch is not null && bestScore >= FuzzyScoreThreshold ? bestMatch : null;
+    }
+
+    private static IEnumerable<string> CandidateNames(VecProduct product)
+    {
+        yield return product.ProductId;
+        yield return product.ProductName;
+
+        if (product.Aliases is null)
+            yield break;
+
+        foreach (var alias in product.Aliases)
+            yield return alias;
+    }
 
     /// <summary>
     /// Returns an upper-case, whitespace-collapsed string suitable for token comparison.

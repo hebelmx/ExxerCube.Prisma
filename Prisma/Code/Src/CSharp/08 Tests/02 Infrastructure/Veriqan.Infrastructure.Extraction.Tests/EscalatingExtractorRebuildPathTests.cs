@@ -1,8 +1,10 @@
 using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Ocr;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Resolution;
 using IndQuestResults;
 using Meziantou.Extensions.Logging.Xunit.v3;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Tests;
@@ -33,7 +35,16 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Tests;
 /// positional model, which is a stronger and more precise proof than deep equality (several
 /// facet types, e.g. <see cref="FinancialTable"/>, do not override <c>Equals</c>).
 /// </para>
+/// <para>
+/// <b>E7.S7.2/S7.3 update:</b> <see cref="FieldKind.Product"/> also gets a non-empty ladder
+/// (header-image OCR), so <c>Product</c> is no longer guaranteed reference-identical either —
+/// it is asserted separately at the end of the test, alongside PaymentDueDate, using the same
+/// "unchanged OR honest recovery" shape. This class runs the real
+/// <see cref="TesseractHeaderProductOcrEngine"/>, so it belongs to
+/// <see cref="VeriqanHeaderOcrCollection"/>.
+/// </para>
 /// </remarks>
+[Collection(VeriqanHeaderOcrCollection.Name)]
 public sealed class EscalatingExtractorRebuildPathTests
 {
     private static readonly string[] FixtureNames =
@@ -48,6 +59,11 @@ public sealed class EscalatingExtractorRebuildPathTests
 
     private static string FixturePath(string fileName) =>
         Path.Combine(AppContext.BaseDirectory, "Fixtures", "demo", fileName);
+
+    // Shared real OCR engine — one per test class run, mirroring the singleton production
+    // lifecycle (the engine deadlocks on a second concurrent instantiation).
+    private static readonly TesseractHeaderProductOcrEngine OcrEngine =
+        new(NullLogger<TesseractHeaderProductOcrEngine>.Instance);
 
     [Theory]
     [MemberData(nameof(Fixtures))]
@@ -78,7 +94,7 @@ public sealed class EscalatingExtractorRebuildPathTests
 
         var orchestrator = new FieldResolutionOrchestrator(
             new FieldEscalationLadderRegistry(),
-            new DefaultFieldStageProvider(),
+            new DefaultFieldStageProvider(OcrEngine, NullLoggerFactory.Instance),
             XUnitLogger.CreateLogger<FieldResolutionOrchestrator>());
         var escalating = new EscalatingStatementFieldExtractor(
             fakeInner, orchestrator, XUnitLogger.CreateLogger<EscalatingStatementFieldExtractor>());
@@ -123,16 +139,15 @@ public sealed class EscalatingExtractorRebuildPathTests
         ReferenceEquals(escalated.PagePerceptualHashes, innerModel.PagePerceptualHashes).ShouldBeTrue();
 
         // PeriodSummary itself is a NEW instance (rebuilt to potentially swap in a resolved
-        // PaymentDueDate), but every field OTHER than PaymentDueDate must be the SAME
-        // ExtractedField reference the positional extractor produced — their ladders are still
-        // empty, so the orchestrator's early pass-through returns the original instance.
+        // PaymentDueDate/Product), but every field OTHER than PaymentDueDate/Product must be the
+        // SAME ExtractedField reference the positional extractor produced — their ladders are
+        // still empty, so the orchestrator's early pass-through returns the original instance.
         innerModel.PeriodSummary.ShouldNotBeNull();
         escalated.PeriodSummary.ShouldNotBeNull();
         var bps = innerModel.PeriodSummary!;
         var eps = escalated.PeriodSummary!;
 
-        ReferenceEquals(eps, bps).ShouldBeFalse("PeriodSummary must be rebuilt (PaymentDueDate may have changed).");
-        ReferenceEquals(eps.Product, bps.Product).ShouldBeTrue();
+        ReferenceEquals(eps, bps).ShouldBeFalse("PeriodSummary must be rebuilt (PaymentDueDate/Product may have changed).");
         ReferenceEquals(eps.PeriodStart, bps.PeriodStart).ShouldBeTrue();
         ReferenceEquals(eps.PeriodCutDate, bps.PeriodCutDate).ShouldBeTrue();
         ReferenceEquals(eps.DayCountPrinted, bps.DayCountPrinted).ShouldBeTrue();
@@ -178,6 +193,30 @@ public sealed class EscalatingExtractorRebuildPathTests
             TestContext.Current.SendDiagnosticMessage(
                 $"[E2.2] {fixtureName}: PaymentDueDate recovered {eps.PaymentDueDate.Value:yyyy-MM-dd} "
                 + $"(confidence {eps.PaymentDueDate.Confidence:0.00}).");
+        }
+
+        // Product: the other field allowed to differ (E7.S7.2/S7.3), and only in the honest-
+        // recovery direction (positional's now-neutered card-number-band fallback missed it,
+        // header-image OCR recovered a real product-name string) or unchanged (both
+        // NotExtracted, or positional already succeeded so StatusGate never fired).
+        if (bps.Product.Status != ExtractionStatus.NotExtracted)
+        {
+            eps.Product.Status.ShouldBe(bps.Product.Status);
+            eps.Product.Value.ShouldBe(bps.Product.Value);
+        }
+        else if (eps.Product.Status == ExtractionStatus.NotExtracted)
+        {
+            // OCR stage abstained too — unchanged.
+        }
+        else
+        {
+            eps.Product.Status.ShouldBe(ExtractionStatus.ExtractedByInference);
+            eps.Product.Provenance.Stage.ShouldBe(StageId.HeaderImageOcr);
+            eps.Product.Value.ShouldNotBeNullOrWhiteSpace();
+
+            TestContext.Current.SendDiagnosticMessage(
+                $"[E7.S7.2/S7.3] {fixtureName}: Product recovered '{eps.Product.Value}' via "
+                + $"HeaderImageOcr (confidence {eps.Product.Confidence:0.00}).");
         }
     }
 }

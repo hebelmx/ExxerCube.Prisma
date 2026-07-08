@@ -259,10 +259,15 @@ public sealed class FieldResolutionOrchestrator
                 candidate.Value, candidate.Score, candidate.Locator, ExtractionStatus.ExtractedInvalidFormat, provenance);
         }
 
-        // Values reached via semantic search or LLM inference are marked ExtractedByInference so
-        // a downstream consumer may require human confirmation before they gate a verdict
-        // (design doc, "Provenance & honesty vocabulary"). No stage produces these yet in E1.
-        var status = candidate.Stage == StageId.SemanticSearch || candidate.Stage == StageId.LlmExtraction
+        // Values reached via semantic search, LLM inference, or header-image OCR are marked
+        // ExtractedByInference so a downstream consumer may require human confirmation before
+        // they gate a verdict (design doc, "Provenance & honesty vocabulary"), and so
+        // VerificationPipeline.CountExtractedFields' extraction-floor count — which only counts
+        // Extracted/ExtractedInvalidFormat — excludes them (E7.S7.2/S7.3 owner ruling 4: the
+        // floor stays a text-coverage measure, not inflated by a second-source OCR recovery).
+        var status = candidate.Stage == StageId.SemanticSearch
+            || candidate.Stage == StageId.LlmExtraction
+            || candidate.Stage == StageId.HeaderImageOcr
             ? ExtractionStatus.ExtractedByInference
             : ExtractionStatus.Extracted;
 

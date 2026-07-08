@@ -17,6 +17,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <!-- FuzzySharp: fuzzy-match fallback in ProductResolver for OCR-recovered product tokens (E7.S7.2/S7.3, owner ruling 2) -->
+    <PackageReference Include="FuzzySharp" />
   </ItemGroup>
 
   <ItemGroup>

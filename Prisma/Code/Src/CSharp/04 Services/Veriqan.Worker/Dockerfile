@@ -66,4 +66,21 @@ EXPOSE 8080
 
 COPY --from=build /app/publish .
 
+# E7.S7.2/S7.3: install the Tesseract OCR native stack for the header-image product-name OCR
+# stage (HeaderImageOcrStage / TesseractHeaderProductOcrEngine). The Tesseract.NET (charlesw)
+# NuGet ships ONLY Windows natives (x64/tesseract50.dll, x64/leptonica-1.82.0.dll) and on Linux
+# P/Invokes the sonames `libtesseract50.so` / `libleptonica-1.82.0.so` — which apt does not
+# provide (noble ships libtesseract.so.5 / liblept.so.5). So: (1) apt-install tesseract + spa/eng
+# language data (tessdata lands at /usr/share/tesseract-ocr/5/tessdata, which
+# TesseractHeaderProductOcrEngine already probes); (2) run the repo's link shim to symlink the
+# ABI-compatible system libs to the wrapper's expected names under /app/x64. Without this the
+# container fails SILENTLY at runtime (mirrors the identical fix already applied to Prisma's
+# Web.UI/Dockerfile for GH#28).
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        tesseract-ocr tesseract-ocr-spa tesseract-ocr-eng \
+    && rm -rf /var/lib/apt/lists/*
+COPY "Prisma/Code/Src/CSharp/eng/link-tesseract-natives.sh" /tmp/link-tesseract-natives.sh
+RUN bash /tmp/link-tesseract-natives.sh /app && rm /tmp/link-tesseract-natives.sh
+
 ENTRYPOINT ["dotnet", "ExxerCube.Prisma.Veriqan.Worker.dll"]

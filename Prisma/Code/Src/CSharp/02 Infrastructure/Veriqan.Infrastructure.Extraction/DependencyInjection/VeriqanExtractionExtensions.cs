@@ -1,5 +1,6 @@
 using System;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Ocr;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Resolution;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -57,11 +58,18 @@ public static class VeriqanExtractionExtensions
         // behavior-neutral — it returns PdfPigStatementFieldExtractor's own result unchanged.
         services.TryAddSingleton<IFieldEscalationLadderRegistry, FieldEscalationLadderRegistry>();
 
+        // Header-image OCR engine (E7.S7.2/S7.3): SINGLETON — the native TesseractEngine must be
+        // created at most once per process (deadlock on a second concurrent instantiation) and is
+        // not thread-safe; TesseractHeaderProductOcrEngine serializes access internally.
+        services.TryAddSingleton<IHeaderProductOcrEngine, TesseractHeaderProductOcrEngine>();
+
         // Stage-provider seam (E2.2): resolves the concrete higher-stage implementations for a
         // field. DefaultFieldStageProvider registers a fuzzy label-anchor stage for
-        // FieldKind.PaymentDueDate (the field's ladder — see FieldEscalationLadderRegistry — only
-        // escalates to it when the positional extractor found nothing); every other field still
-        // returns no stages, so the orchestrator remains behavior-neutral for them.
+        // FieldKind.PaymentDueDate and (E7.S7.2/S7.3) a header-image OCR stage for
+        // FieldKind.Product (each field's ladder — see FieldEscalationLadderRegistry — only
+        // escalates to its higher stage when the positional extractor found nothing); every
+        // other field still returns no stages, so the orchestrator remains behavior-neutral for
+        // them. Registered as a singleton so the OCR engine it wraps is not re-resolved per call.
         services.TryAddSingleton<IFieldStageProvider, DefaultFieldStageProvider>();
         services.TryAddSingleton<FieldResolutionOrchestrator>();
 

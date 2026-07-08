@@ -342,7 +342,15 @@ public sealed class VecChecklistDemoE2ETests
         services.AddScoped<IVerificationPipeline, VerificationPipeline>();
         services.AddSingleton(TimeProvider.System);
 
-        var sp = services.BuildServiceProvider();
+        // E7.S7.2/S7.3: dispose the root container (not just the child scope below) — it owns the
+        // singleton IHeaderProductOcrEngine (TesseractHeaderProductOcrEngine), and each theory
+        // case's fresh ServiceCollection constructs its own native TesseractEngine. Leaving `sp`
+        // undisposed would leak that native engine across every theory case in this process (the
+        // engine's own doc-comment: native engines must be fully torn down, not just abandoned) —
+        // disposing here keeps at most one engine alive at a time even though this test's DI
+        // lifetime (fresh container per fixture) differs from the real Worker's single
+        // process-lifetime container.
+        await using var sp = services.BuildServiceProvider();
 
         var ct = TestContext.Current.CancellationToken;
         var pdfBytes = await File.ReadAllBytesAsync(fixturePath, ct);
