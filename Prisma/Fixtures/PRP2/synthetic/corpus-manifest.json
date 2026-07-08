@@ -1,0 +1,114 @@
+{
+  "$comment": "E6.S6.2.6 standing synthetic corpus index. Regenerate: python scripts/veriqan-corpus/synth_gen.py --write-index (index only, no PDF churn) or --profile all (full regeneration, index rewritten at the end). Word-geometry is the contract, NOT PDF bytes (PyMuPDF churns container bytes per regen); manifests are byte-deterministic.",
+  "generator": "scripts/veriqan-corpus/synth_gen.py",
+  "specimens": [
+    {
+      "id": "s6211-abstain",
+      "pdf": "s6211-abstain.pdf",
+      "manifest": "s6211-abstain.manifest.json",
+      "profile": "dummievec",
+      "slice": "S6.2.3",
+      "defect": "abstain",
+      "description": "Baseline with the TASA/CAT block omitted; honest NotExtracted abstention"
+    },
+    {
+      "id": "s6211-baseline",
+      "pdf": "s6211-baseline.pdf",
+      "manifest": "s6211-baseline.manifest.json",
+      "profile": "dummievec",
+      "slice": "S6.2.1",
+      "defect": null,
+      "description": "Dummie-VEC 540x780 right-column baseline"
+    },
+    {
+      "id": "s6211-desglose",
+      "pdf": "s6211-desglose.pdf",
+      "manifest": "s6211-desglose.manifest.json",
+      "profile": "dummievec",
+      "slice": "S6.2.5",
+      "defect": null,
+      "description": "Baseline page 1 (unchanged canary) + a populated DESGLOSE movements table on page 2"
+    },
+    {
+      "id": "s6211-edge-band",
+      "pdf": "s6211-edge-band.pdf",
+      "manifest": "s6211-edge-band.manifest.json",
+      "profile": "dummievec",
+      "slice": "S6.2.4",
+      "defect": "edge-band",
+      "description": "Adeudo amount displaced +7pt off its label band (> YBandTolerance); ExtractedInvalidFormat tolerance edge"
+    },
+    {
+      "id": "s6211-edge-label",
+      "pdf": "s6211-edge-label.pdf",
+      "manifest": "s6211-edge-label.manifest.json",
+      "profile": "dummievec",
+      "slice": "S6.2.4",
+      "defect": "edge-label",
+      "description": "Accent dropped from the 'Crédito' label; NotExtracted exact-match edge"
+    },
+    {
+      "id": "s6211-font",
+      "pdf": "s6211-font.pdf",
+      "manifest": "s6211-font.manifest.json",
+      "profile": "dummievec",
+      "slice": "S6.2.3",
+      "defect": "font",
+      "description": "Baseline + injected Courier token; trips CL-35 font-consistency"
+    },
+    {
+      "id": "s6211-math",
+      "pdf": "s6211-math.pdf",
+      "manifest": "s6211-math.manifest.json",
+      "profile": "dummievec",
+      "slice": "S6.2.3",
+      "defect": "math",
+      "description": "Baseline + $11.00 fat-finger on printed Pago; trips CL-21/CL-22"
+    },
+    {
+      "id": "s6211-scanned",
+      "pdf": "s6211-scanned.pdf",
+      "manifest": "s6211-scanned.manifest.json",
+      "profile": "dummievec",
+      "slice": "S6.2.3",
+      "defect": "scanned",
+      "description": "Baseline rasterized to an image-only PDF; 0 fields extracted, ExtractionGap"
+    },
+    {
+      "id": "s6211-var-a",
+      "pdf": "s6211-var-a.pdf",
+      "manifest": "s6211-var-a.manifest.json",
+      "profile": "dummievec",
+      "slice": "S6.2.4",
+      "defect": null,
+      "description": "Seeded value persona 'a' + rigid whole-page Y-shift (in-tolerance variance)"
+    },
+    {
+      "id": "s6211-var-b",
+      "pdf": "s6211-var-b.pdf",
+      "manifest": "s6211-var-b.manifest.json",
+      "profile": "dummievec",
+      "slice": "S6.2.4",
+      "defect": null,
+      "description": "Seeded value persona 'b' + rigid whole-page Y-shift (in-tolerance variance)"
+    },
+    {
+      "id": "s6211-var-c",
+      "pdf": "s6211-var-c.pdf",
+      "manifest": "s6211-var-c.manifest.json",
+      "profile": "dummievec",
+      "slice": "S6.2.4",
+      "defect": null,
+      "description": "Seeded value persona 'c' + rigid whole-page Y-shift (in-tolerance variance)"
+    },
+    {
+      "id": "s622-realbanamex-baseline",
+      "pdf": "s622-realbanamex-baseline.pdf",
+      "manifest": "s622-realbanamex-baseline.manifest.json",
+      "profile": "realbanamex",
+      "slice": "S6.2.2",
+      "defect": null,
+      "description": "Real-Banamex 612x792 left-column baseline clone"
+    }
+  ]
+}

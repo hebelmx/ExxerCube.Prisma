@@ -102,6 +102,11 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Fixtures\demo\scanned.pdf</Link>
     </Content>
+    <!-- E6.S6.2.6 standing corpus index (scripts/veriqan-corpus/synth_gen.py, write-index mode). -->
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\corpus-manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\corpus-manifest.json</Link>
+    </Content>
     <!-- E6.S6.2.1 synthetic Dummie-VEC golden fixture (scripts/veriqan-corpus/synth_gen.py). -->
     <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\s6211-baseline.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

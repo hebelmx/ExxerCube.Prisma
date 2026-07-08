@@ -37,13 +37,20 @@ Token-fragmentation rule (the actual E2.3 killer — see design doc §3/§5.3):
     how the real proven Dummie-VEC fixture — a PowerPoint export — already works).
 
 Usage:
-    python synth_gen.py [--profile {dummievec,realbanamex,all}]
-        Default "all" generates BOTH:
-          - s6211-baseline.pdf + s6211-baseline.manifest.json (Dummie-VEC, 540x780,
-            right-column — S6.2.1, UNCHANGED geometry)
-          - s622-realbanamex-baseline.pdf + s622-realbanamex-baseline.manifest.json
-            (real-Banamex left-column clone, 612x792 — S6.2.2, additive)
-        into Prisma/Fixtures/PRP2/synthetic/.
+    python synth_gen.py [--profile {dummievec,realbanamex,all}] [--write-index]
+        Default "all" generates every profile's PDFs + manifests (S6.2.1-S6.2.5,
+        12 specimens total) into Prisma/Fixtures/PRP2/synthetic/, and — because a
+        "--profile all" run is a full regeneration of the standing corpus — also
+        (re)writes the corpus index (see below).
+
+        "--write-index" (E6.S6.2.6): index-only mode — write ONLY
+        Prisma/Fixtures/PRP2/synthetic/corpus-manifest.json, a byte-deterministic
+        index of the 12 standing specimens (id/pdf/manifest/profile/slice/defect/
+        description), sourced from a hardcoded specimen table (CORPUS_SPECIMENS)
+        — never by scanning the output directory (scanning would be OS/order-
+        dependent and could index stale files) — and exit; no PDF/manifest is
+        generated or byte-churned, and --profile is ignored:
+            python synth_gen.py --write-index
 
 Determinism: fixed seed, hardcoded period dates — no wall-clock dependency.
 Re-running this script must reproduce byte-identical (or at minimum
@@ -1153,6 +1160,168 @@ def _write_realbanamex(output_dir: Path) -> None:
     print(f"Wrote {manifest_path}")
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# S6.2.6 — Standing corpus index (batch runner + corpus-manifest.json)
+# ═══════════════════════════════════════════════════════════════════════════
+# A single hardcoded table is the source of truth for what the 12-specimen
+# standing corpus SHOULD contain — the index is built FROM this table, never
+# by scanning OUTPUT_DIR (a directory scan is OS/filesystem-order-dependent
+# and would silently index stale/leftover files instead of asserting the
+# intended corpus). Keep this table in sync whenever a specimen is added,
+# renamed, or retired by one of the _write_* functions above.
+#
+# `defect` mirrors each specimen's manifest["defect"] value where the writer
+# sets one (math/font/scanned/abstain); the two S6.2.4 edge variants use their
+# own short slugs ("edge-band"/"edge-label", vs. the manifest's shared "edge")
+# since those are more informative for an at-a-glance index. `slice` records
+# which epic slice's writer emits the specimen (see module docstring headers
+# above for the full slice-by-slice narrative).
+
+CORPUS_MANIFEST_FILENAME = "corpus-manifest.json"
+
+CORPUS_SPECIMENS: list[dict[str, Any]] = [
+    {
+        "id": "s6211-baseline",
+        "pdf": "s6211-baseline.pdf",
+        "manifest": "s6211-baseline.manifest.json",
+        "profile": "dummievec",
+        "slice": "S6.2.1",
+        "defect": None,
+        "description": "Dummie-VEC 540x780 right-column baseline",
+    },
+    {
+        "id": "s622-realbanamex-baseline",
+        "pdf": "s622-realbanamex-baseline.pdf",
+        "manifest": "s622-realbanamex-baseline.manifest.json",
+        "profile": "realbanamex",
+        "slice": "S6.2.2",
+        "defect": None,
+        "description": "Real-Banamex 612x792 left-column baseline clone",
+    },
+    {
+        "id": "s6211-math",
+        "pdf": "s6211-math.pdf",
+        "manifest": "s6211-math.manifest.json",
+        "profile": "dummievec",
+        "slice": "S6.2.3",
+        "defect": "math",
+        "description": "Baseline + $11.00 fat-finger on printed Pago; trips CL-21/CL-22",
+    },
+    {
+        "id": "s6211-font",
+        "pdf": "s6211-font.pdf",
+        "manifest": "s6211-font.manifest.json",
+        "profile": "dummievec",
+        "slice": "S6.2.3",
+        "defect": "font",
+        "description": "Baseline + injected Courier token; trips CL-35 font-consistency",
+    },
+    {
+        "id": "s6211-scanned",
+        "pdf": "s6211-scanned.pdf",
+        "manifest": "s6211-scanned.manifest.json",
+        "profile": "dummievec",
+        "slice": "S6.2.3",
+        "defect": "scanned",
+        "description": "Baseline rasterized to an image-only PDF; 0 fields extracted, ExtractionGap",
+    },
+    {
+        "id": "s6211-abstain",
+        "pdf": "s6211-abstain.pdf",
+        "manifest": "s6211-abstain.manifest.json",
+        "profile": "dummievec",
+        "slice": "S6.2.3",
+        "defect": "abstain",
+        "description": "Baseline with the TASA/CAT block omitted; honest NotExtracted abstention",
+    },
+    {
+        "id": "s6211-var-a",
+        "pdf": "s6211-var-a.pdf",
+        "manifest": "s6211-var-a.manifest.json",
+        "profile": "dummievec",
+        "slice": "S6.2.4",
+        "defect": None,
+        "description": "Seeded value persona 'a' + rigid whole-page Y-shift (in-tolerance variance)",
+    },
+    {
+        "id": "s6211-var-b",
+        "pdf": "s6211-var-b.pdf",
+        "manifest": "s6211-var-b.manifest.json",
+        "profile": "dummievec",
+        "slice": "S6.2.4",
+        "defect": None,
+        "description": "Seeded value persona 'b' + rigid whole-page Y-shift (in-tolerance variance)",
+    },
+    {
+        "id": "s6211-var-c",
+        "pdf": "s6211-var-c.pdf",
+        "manifest": "s6211-var-c.manifest.json",
+        "profile": "dummievec",
+        "slice": "S6.2.4",
+        "defect": None,
+        "description": "Seeded value persona 'c' + rigid whole-page Y-shift (in-tolerance variance)",
+    },
+    {
+        "id": "s6211-edge-band",
+        "pdf": "s6211-edge-band.pdf",
+        "manifest": "s6211-edge-band.manifest.json",
+        "profile": "dummievec",
+        "slice": "S6.2.4",
+        "defect": "edge-band",
+        "description": "Adeudo amount displaced +7pt off its label band (> YBandTolerance); "
+                        "ExtractedInvalidFormat tolerance edge",
+    },
+    {
+        "id": "s6211-edge-label",
+        "pdf": "s6211-edge-label.pdf",
+        "manifest": "s6211-edge-label.manifest.json",
+        "profile": "dummievec",
+        "slice": "S6.2.4",
+        "defect": "edge-label",
+        "description": "Accent dropped from the 'Crédito' label; NotExtracted exact-match edge",
+    },
+    {
+        "id": "s6211-desglose",
+        "pdf": "s6211-desglose.pdf",
+        "manifest": "s6211-desglose.manifest.json",
+        "profile": "dummievec",
+        "slice": "S6.2.5",
+        "defect": None,
+        "description": "Baseline page 1 (unchanged canary) + a populated DESGLOSE movements "
+                        "table on page 2",
+    },
+]
+
+
+def build_corpus_index() -> dict[str, Any]:
+    """The byte-deterministic standing-corpus index (design: E6.S6.2.6 part A).
+
+    Sourced entirely from the hardcoded CORPUS_SPECIMENS table above — no
+    filesystem scan — and sorted by `id` so repeated regeneration is
+    byte-identical (no wall-clock, no dict/OS ordering dependency)."""
+    specimens = sorted((dict(s) for s in CORPUS_SPECIMENS), key=lambda s: s["id"])
+    return {
+        "$comment": (
+            "E6.S6.2.6 standing synthetic corpus index. Regenerate: python "
+            "scripts/veriqan-corpus/synth_gen.py --write-index (index only, no "
+            "PDF churn) or --profile all (full regeneration, index rewritten at "
+            "the end). Word-geometry is the contract, NOT PDF bytes (PyMuPDF "
+            "churns container bytes per regen); manifests are byte-deterministic."
+        ),
+        "generator": "scripts/veriqan-corpus/synth_gen.py",
+        "specimens": specimens,
+    }
+
+
+def _write_corpus_index(output_dir: Path) -> None:
+    index = build_corpus_index()
+    index_path = output_dir / CORPUS_MANIFEST_FILENAME
+    with open(index_path, "w", encoding="utf-8") as f:
+        json.dump(index, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    print(f"Wrote {index_path} ({len(index['specimens'])} specimens)")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -1161,9 +1330,28 @@ def main() -> int:
         default="all",
         help="Which layout profile to generate (default: all).",
     )
+    parser.add_argument(
+        "--write-index",
+        action="store_true",
+        help=(
+            "Index-only mode: write only "
+            "Prisma/Fixtures/PRP2/synthetic/corpus-manifest.json (the standing "
+            "corpus index, sourced from the hardcoded CORPUS_SPECIMENS table) and "
+            "exit — no PDF/manifest is generated or byte-churned. Ignores "
+            "--profile. A '--profile all' run (the default with no flags) always "
+            "(re)writes the index too, once generation completes, so the index "
+            "stays in sync without a separate step in the common case."
+        ),
+    )
     args = parser.parse_args()
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    if args.write_index:
+        # Index-only mode: refresh the index cheaply without regenerating (and
+        # thereby byte-churning) any of the 12 committed PDFs.
+        _write_corpus_index(OUTPUT_DIR)
+        return 0
 
     if args.profile in ("dummievec", "all"):
         _write_dummievec(OUTPUT_DIR)
@@ -1172,6 +1360,9 @@ def main() -> int:
         _write_s6211_desglose(OUTPUT_DIR)  # S6.2.5 populated DESGLOSE movements table + totals
     if args.profile in ("realbanamex", "all"):
         _write_realbanamex(OUTPUT_DIR)
+
+    if args.profile == "all":
+        _write_corpus_index(OUTPUT_DIR)  # S6.2.6: (re)write the standing-corpus index
 
     return 0
 
