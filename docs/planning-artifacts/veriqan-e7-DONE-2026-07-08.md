@@ -38,27 +38,41 @@ Two parallel skeptics (completeness auditor + correctness/honesty). Completeness
 - **F7** cancellation mid-OCR threw `OperationCanceledException` → now `Cancelled<string>()` per CLAUDE.md.
 - **M3** stale retired-alias-hack diagnostic string.
 
-## ⚠️ DEFERRED — owner decisions still open (NOT silently resolved)
+## ⚠️ DEFERRED items — RESOLVED in the 2026-07-08 close pass
 
-1. **F3 ambiguity margin (`FuzzyAmbiguityMargin = 5`)** — new calibration constant, chosen conservatively
-   to honor owner ruling 2 ("abstain, never nearest-guess"). Safe for the current 2-row catalog; **needs
-   owner ratification** if/when near-named catalog rows are added. The whole-string `Fuzz.Ratio` also
-   dilutes the discriminating brand suffix under the shared `"TARJETA DE CRÉDITO "` prefix — a token-set
-   metric is the lever if this ever bites.
-2. **F4 — masked-card under-neuter (LATENT, real-corpus).** `IsCardNumberBand` uses `digitCount ≥ 8`.
-   A masked band like `**** **** **** 0001` (4 visible digits) is NOT seen as a card band → positional
-   `ExtractProductName` returns `Found` → `StatusGate` never fires → OCR recovery is bypassed →
-   `UnknownProduct`/`ExtractionGap`. Abstain-safe (no fabrication) but a functional gap for real masked
-   statements. Demo unaffected (unmasked 16-digit). Needs real-corpus ground truth to calibrate.
-3. **F1 / M1 — LiveOcr test architecture.** The 5-verdict demo bar + 2 escalation-seam tests + the s71
-   LiveOcr test now exercise native OCR. They **fail loud** (honesty-safe) on a Tesseract-less lane rather
-   than skip. Convention: CI must exclude `Category=LiveOcr` (and provision native Tesseract for the lanes
-   that keep them). The design's §6 "T1 is the only Tesseract-free gate" holds only for
-   `HeaderImageOcrStageSnapshotTests`.
-4. **M2 — duplicate `products.csv`.** A stale second copy at
-   `Prisma/Data/Veriqan/reference-bundles/Demo_Bank_(Iqubica)/products.csv` (mounted by the durable/prod
-   docker service) lacks the `TC-COSTCO-BANAMEX` row. Pre-existing divergence, out of E7's slice scope;
-   flag if the durable-service path matters for the demo.
+All four deferred items were triaged from ground truth and dispositioned (commits `51370580` M2,
+`146eb4da` F1/M1 on `Liv`):
+
+1. **F3 ambiguity margin (`FuzzyAmbiguityMargin = 5`)** — ✅ **RATIFIED as-is (owner, 2026-07-08).**
+   `FuzzyAmbiguityMargin = 5` and `FuzzyScoreThreshold = 85` are accepted for the current 2-row catalog.
+   No code changed. Re-open with the token-set-metric lever (the whole-string `Fuzz.Ratio` dilutes the
+   discriminating brand suffix under the shared `"TARJETA DE CRÉDITO "` prefix) only when near-named
+   catalog rows are added.
+2. **F4 — masked-card under-neuter (LATENT).** ⏸️ **DEFERRED — confirmed no fixture evidence
+   (owner, 2026-07-08).** Verified from ground truth: NO masked-card pattern (`****`/bullet/`X`-runs)
+   exists in ANY Veriqan PRP2 fixture or synthetic specimen — every card number is unmasked 16-digit
+   (`4111000000070001`). F4's failure scenario is hypothetical against held data, so `IsCardNumberBand`
+   (`digitCount ≥ 8`) is left as-is rather than writing speculative masking-detection code. Revisit when a
+   real masked statement enters the corpus; the fix (abstain-safe masking-char guard + synthetic fixture)
+   is understood and small. Abstain-safe today (no fabrication).
+3. **F1 / M1 — LiveOcr test architecture.** ✅ **CLOSED (`146eb4da`).** Five classes that construct the
+   real native `TesseractHeaderProductOcrEngine` are now tagged `[Trait("Category","LiveOcr")]`
+   (`VecChecklistDemoE2ETests`, `SyntheticDefectVerdictE2ETests`, `EscalationSeamBehaviorNeutralTests`,
+   `EscalatingExtractorRebuildPathTests`, `PaymentDueDateFuzzyRecoveryCanaryTests`) — the earlier count of
+   "2 tagged" left the rest exposed. `HeaderImageOcrStageSnapshotTests` (T1) stays trait-free by design.
+   Two borderline classes were verified and deliberately left untagged (no native OCR at runtime):
+   `VerificationPipelineEndToEndTests` (Windows-path fixture absent on CI → `File.Exists` early-return) and
+   `CalibrationDriverTests` (its 3 seed-corpus PDFs carry a text-layer product heading → stage-1 resolves →
+   `StatusGate` never escalates to OCR). CI (`quality-gates.yml`) now excludes `Category=LiveOcr` via the
+   correct **MTP** switch `-- --filter-not-trait "Category=LiveOcr"` (this repo runs xUnit v3 on
+   Microsoft.Testing.Platform, so the legacy VSTest `--filter "Category=..."` form is not honored; the
+   broken E2E `--filter` was fixed to `-- --filter-trait "Category=E2E"` in the same pass). Proven by count:
+   Extraction 304→282 (22 excluded), Orchestration 129→118 (11 excluded), both 0 failed / build 0/0.
+4. **M2 — duplicate `products.csv`.** ✅ **CLOSED (`51370580`).** The durable/prod copy at
+   `Prisma/Data/Veriqan/reference-bundles/Demo_Bank_(Iqubica)/products.csv` (mounted into the containerized
+   service by `docker-compose.veriqan.yml:147`) lacked the `TC-COSTCO-BANAMEX` row — a real Docker-path
+   demo breaker (product would fall to `UnknownProduct`/`ExtractionGap`), not merely cosmetic. Synced the
+   missing row to match the fixture copy.
 
 ## Determinism note (carry forward)
 
