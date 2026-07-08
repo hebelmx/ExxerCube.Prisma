@@ -29,6 +29,9 @@
     <PackageReference Include="ZXing.Net" />
     <!-- FakeTimeProvider: deterministic clock injection tests (VERIQAN-E2-S8) -->
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <!-- Concrete DI container: T1 snapshot test resolves the real IProductResolver via
+         AddVeriqanBinding() rather than a hand-rolled fake (E7 follow-up, T1 gated regression net). -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
   </ItemGroup>
   <ItemGroup Label="Logging">
     <PackageReference Include="Microsoft.Extensions.Logging" />
@@ -84,6 +87,12 @@
     <Content Include="..\..\..\..\..\..\Fixtures\PRP2\demo\good.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Fixtures\demo\good.pdf</Link>
+    </Content>
+    <!-- E7 follow-up T1 gated-test snapshot: real Tesseract OCR text captured from good.pdf's
+         header crop (design doc veriqan-e7-s72-header-ocr-design-2026-07-08.md SS3.3). -->
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\demo\good-header-ocr.snapshot.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\demo\good-header-ocr.snapshot.json</Link>
     </Content>
     <!-- Remaining demo-corpus fixtures (VERIQAN-E1.D behavior-neutral escalation-seam harness). -->
     <Content Include="..\..\..\..\..\..\Fixtures\PRP2\demo\compliant-master.pdf">

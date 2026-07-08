@@ -39,8 +39,11 @@ public sealed class HeaderImageOcrStage : IFieldResolutionStage<string>
     public const double HeaderCropFraction = 0.30;
 
     /// <summary>DPI used to render page 1 before cropping — matches the codebase's one existing
-    /// render precedent (<c>PdfPigStatementFieldExtractor.FiscalPageRenderDpi</c>).</summary>
-    private const int RenderDpi = 150;
+    /// render precedent (<c>PdfPigStatementFieldExtractor.FiscalPageRenderDpi</c>). Internal
+    /// (not private) so a T1 gated geometry test can compute the expected render-pixel dimensions
+    /// independently and compare against <see cref="RenderHeaderCrop"/>'s actual output without
+    /// duplicating this constant.</summary>
+    internal const int RenderDpi = 150;
 
     /// <summary>Confidence assigned to a genuine OCR recognition (below positional's 1.0 — this
     /// is an inferred, not positionally-verified, read).</summary>
@@ -111,12 +114,8 @@ public sealed class HeaderImageOcrStage : IFieldResolutionStage<string>
             }
 
             var text = ocrResult.Value ?? string.Empty;
-            var match = ProductHeadingPattern.Match(text);
-            if (!match.Success)
-                return Result<FieldCandidate<string>>.WithSuccess(FieldCandidate<string>.None(Stage));
-
-            var recognized = NormalizeOcrLine(match.Value);
-            if (string.IsNullOrWhiteSpace(recognized))
+            var recognized = TryMatchProductHeading(text);
+            if (recognized is null)
                 return Result<FieldCandidate<string>>.WithSuccess(FieldCandidate<string>.None(Stage));
 
             return Result<FieldCandidate<string>>.WithSuccess(
@@ -134,7 +133,13 @@ public sealed class HeaderImageOcrStage : IFieldResolutionStage<string>
     /// of the page height, and returns PNG-encoded crop bytes — or <see langword="null"/> when
     /// the page could not be rendered.
     /// </summary>
-    private static byte[]? RenderHeaderCrop(byte[] pdfBytes)
+    /// <remarks>
+    /// Internal (not private) so a T1 gated geometry test can drive this exact production
+    /// render/crop path directly and assert on the resulting crop's pixel dimensions — without
+    /// requiring native Tesseract (this method never touches OCR) — design doc
+    /// <c>veriqan-e7-s72-header-ocr-design-2026-07-08.md</c> §3.3 T1.
+    /// </remarks>
+    internal static byte[]? RenderHeaderCrop(byte[] pdfBytes)
     {
         using var pdfStream = new MemoryStream(pdfBytes);
 #pragma warning disable CA1416 // PDFtoImage is cross-platform (Windows, Linux, macOS)
@@ -178,4 +183,27 @@ public sealed class HeaderImageOcrStage : IFieldResolutionStage<string>
 
     private static string NormalizeOcrLine(string raw) =>
         WhitespaceRun.Replace(raw, " ").Trim();
+
+    /// <summary>
+    /// Regex-matches the product-heading shape against raw OCR text and normalizes the result —
+    /// the pure text→product-heading step of <see cref="TryResolveAsync"/>, factored out so it can
+    /// run without an OCR engine at all.
+    /// </summary>
+    /// <remarks>
+    /// Internal (not private) so a T1 gated snapshot test can feed a committed real-OCR text
+    /// snapshot through this exact production regex/normalize logic and assert the result resolves
+    /// to the expected catalog product — without invoking native Tesseract (design doc
+    /// <c>veriqan-e7-s72-header-ocr-design-2026-07-08.md</c> §3.3 T1).
+    /// </remarks>
+    /// <param name="ocrText">Raw OCR text already recognized by an <see cref="IHeaderProductOcrEngine"/>.</param>
+    /// <returns>The normalized product-heading text, or <see langword="null"/> when no match.</returns>
+    internal static string? TryMatchProductHeading(string ocrText)
+    {
+        var match = ProductHeadingPattern.Match(ocrText ?? string.Empty);
+        if (!match.Success)
+            return null;
+
+        var recognized = NormalizeOcrLine(match.Value);
+        return string.IsNullOrWhiteSpace(recognized) ? null : recognized;
+    }
 }

@@ -1,0 +1,13 @@
+{
+  "//provenance": "T1 gated-test snapshot (design doc docs/planning-artifacts/veriqan-e7-s72-header-ocr-design-2026-07-08.md SS3.3). Captured 2026-07-08 on a Linux dev box with native Tesseract 5.5.0 (leptonica 1.86.0, spa+eng+osd tessdata) by temporarily instrumenting TesseractHeaderProductOcrEngine.RecognizeAsync to dump its raw return value. Input: Prisma/Fixtures/PRP2/demo/good.pdf page 1, rendered via HeaderImageOcrStage.RenderHeaderCrop (PDFtoImage/SkiaSharp @150 DPI -> 1275x1650px page render, cropped to the top 30% header band = 1275x495px PNG), then OCR'd with PageSegMode.Auto (same call TesseractHeaderProductOcrEngine makes in production). rawOcrText is verbatim Tesseract output, never hand-edited. Consumed by HeaderImageOcrStageSnapshotTests (Veriqan.Infrastructure.Extraction.Tests) which feeds it through the PRODUCTION HeaderImageOcrStage.TryMatchProductHeading regex and the PRODUCTION ProductResolver to prove the regex/resolver path resolves to TC-COSTCO-BANAMEX without invoking native Tesseract in CI. Regenerate only if good.pdf's header layout changes (rerun the same capture and replace rawOcrText + expectedMatch below).",
+  "sourceFixture": "Prisma/Fixtures/PRP2/demo/good.pdf",
+  "sourcePage": 1,
+  "renderDpi": 150,
+  "headerCropFraction": 0.3,
+  "cropPixelDimensions": "1275x495",
+  "ocrEngine": "Tesseract 5.5.0 (spa), PageSegMode.Auto",
+  "capturedOn": "2026-07-08",
+  "rawOcrText": "BANCO DEMO INDIFUSION\n\nBanco Demo IndFusion, S.A.\n\nPágina 1de 9\n\nEstado de Cuenta Mensual\n\nTarjeta de Crédito\nCARLOS MENDOZA VARGAS COSTCO BANAMEX\nAND J REVUELTAS 202 201\nTINTERO EL\nQUERETARO QUERETARO 76134 TU PAGO REQUERIDO ESTE PERIODO\n76134  C.R. 76201 Periodo: 4-mar-2026 al 01-abr-2026\nFecha de corte: 01-abr-2026\nTarjeta de Crédito COSTCO BANAMEX Número de días en el periodo: 29 días\nBe de tarjeta OOOO! ! Fecha límite de pago: 1 jueves, 23-abr-2026\nNúmero de sucursal 0002 Pago para no generar intereses? $12,604.55\n\nNúmero de cliente — 00000002 i _e a\nCLABE Interbancaria 002180000000000025 Pago mínimo + compras y cargos diferidos a meses: 3. $6,562.90\n\nPano mínimo:* $980.00",
+  "expectedMatchedHeading": "Tarjeta de Crédito COSTCO BANAMEX",
+  "expectedProductId": "TC-COSTCO-BANAMEX"
+}
