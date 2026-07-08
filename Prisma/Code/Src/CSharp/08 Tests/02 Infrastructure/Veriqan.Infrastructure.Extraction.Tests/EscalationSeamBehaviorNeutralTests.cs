@@ -58,6 +58,7 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Tests;
 /// constructs the real singleton engine.
 /// </para>
 /// </remarks>
+[Trait("Category", "LiveOcr")]
 [Collection(VeriqanHeaderOcrCollection.Name)]
 public sealed class EscalationSeamBehaviorNeutralTests
 {

@@ -36,6 +36,7 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Tests;
 /// — this class belongs to <see cref="VeriqanHeaderOcrCollection"/>.
 /// </para>
 /// </remarks>
+[Trait("Category", "LiveOcr")]
 [Collection(VeriqanHeaderOcrCollection.Name)]
 public sealed class PaymentDueDateFuzzyRecoveryCanaryTests
 {

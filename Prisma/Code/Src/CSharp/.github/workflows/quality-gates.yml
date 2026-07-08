@@ -41,11 +41,18 @@ jobs:
       run: dotnet build --no-restore --verbosity normal
     
     - name: Run tests
-      run: dotnet test --no-build --verbosity normal
-    
+      # xUnit v3 runs on Microsoft.Testing.Platform (MTP) here, not VSTest (see global.json's
+      # "test": { "runner": "Microsoft.Testing.Platform" }), so trait filtering uses MTP's
+      # own simple-filter switches passed after `--` to the test host, not VSTest's
+      # `--filter "Category=..."` syntax. LiveOcr-tagged tests construct the real native
+      # Tesseract engine (TesseractHeaderProductOcrEngine) and must be excluded on runners
+      # without Tesseract installed — they are designed to fail LOUD, not skip, when run
+      # without it. See docs/planning-artifacts/veriqan-e7-s72-header-ocr-design-2026-07-08.md §6.
+      run: dotnet test --no-build --verbosity normal -- --filter-not-trait "Category=LiveOcr"
+
     - name: Check test coverage
       run: |
-        dotnet test --collect:"XPlat Code Coverage" --verbosity normal
+        dotnet test --collect:"XPlat Code Coverage" --verbosity normal -- --filter-not-trait "Category=LiveOcr"
         # Coverage threshold check will be added here
     
     - name: Validate XML documentation
@@ -108,9 +115,12 @@ jobs:
         sleep 30
     
     - name: Run E2E tests
+      # Same MTP-vs-VSTest filter-syntax class of bug as the main "Run tests" step above:
+      # the legacy VSTest `--filter "Category=E2E"` form is not honored under
+      # Microsoft.Testing.Platform. MTP's simple-filter switches go after `--`.
       run: |
         cd Prisma/Code/Src/CSharp/Tests
-        dotnet test --filter "Category=E2E" --verbosity normal
+        dotnet test --verbosity normal -- --filter-trait "Category=E2E"
 
   security-scan:
     runs-on: ubuntu-latest

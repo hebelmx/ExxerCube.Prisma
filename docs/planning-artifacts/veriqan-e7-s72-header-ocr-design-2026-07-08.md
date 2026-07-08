@@ -309,6 +309,24 @@ consumable once the OCR stage lands.
   (within a tolerance / after the same regex normalization). Non-gating in default CI runs; wired
   into whatever lane already has native Tesseract available (mirrors how `Extraction.Teseract`
   already runs 154/154 against real Tesseract per `CLAUDE.md`'s live-verification note).
+- **CI trait convention + exclusion (closed F1/M1, 2026-07-08)**: every test class that
+  constructs the real `TesseractHeaderProductOcrEngine` (directly, or by joining
+  `[Collection(VeriqanHeaderOcrCollection.Name)]`) carries `[Trait("Category", "LiveOcr")]`
+  alongside the `[Collection(...)]` attribute — currently `HeaderImageOcrStageLiveOcrCanaryTests`,
+  `SyntheticHeaderOcrProductTests`, `PaymentDueDateFuzzyRecoveryCanaryTests`,
+  `EscalationSeamBehaviorNeutralTests`, `EscalatingExtractorRebuildPathTests` (Extraction), plus
+  `VecChecklistDemoE2ETests` and `SyntheticDefectVerdictE2ETests` (Orchestration). Two classes were
+  audited and deliberately left **untagged** because they register the real engine via
+  `AddVeriqanExtraction()` but never actually invoke it — `HeaderImageOcrStage.TryResolveAsync`
+  only fires when stage-1 positional extraction abstains (`FieldResolutionOrchestrator.ShouldEscalate`
+  gated on `StatusGate`), and every specimen these two tests touch resolves the product from PDF
+  text at stage 1: `VerificationPipelineEndToEndTests` and `CalibrationDriverTests`/`CalibrationHarness`
+  (corpus-manifest.json specimens). `HeaderImageOcrStageSnapshotTests` (T1, above) stays trait-free
+  by design — it is the one Tesseract-free gate. CI (`quality-gates.yml`) excludes the trait from
+  both unfiltered `dotnet test` runs via `dotnet test ... -- --filter-not-trait "Category=LiveOcr"`
+  — this repo runs xUnit v3 on **Microsoft.Testing.Platform**, not VSTest, so the exclusion must use
+  MTP's own simple-filter switch (passed after `--`) rather than the legacy VSTest
+  `--filter "Category!=LiveOcr"` form, which MTP does not honor.
 - **Provenance assertion**: a dedicated test resolves `good.pdf`'s `Product` field and asserts
   `Provenance.Stage == StageId.HeaderImageOcr` and `Status == ExtractionStatus.ExtractedByInference`
   — proves the value came from the new stage, not a reintroduced positional shortcut (§4.D).

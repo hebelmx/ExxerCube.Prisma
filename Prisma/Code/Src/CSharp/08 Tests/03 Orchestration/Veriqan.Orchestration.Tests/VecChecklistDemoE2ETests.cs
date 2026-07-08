@@ -74,6 +74,7 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 /// before the corpus lands, and becomes live as soon as the owner drops the files in.
 /// </para>
 /// </remarks>
+[Trait("Category", "LiveOcr")]
 [Collection(MetricsIsolationCollection.Name)]
 public sealed class VecChecklistDemoE2ETests
 {

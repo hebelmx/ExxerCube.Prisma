@@ -47,6 +47,7 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 /// fixture (which halts before rules run) asserts on overall <see cref="VerdictSummary.Signal"/>.
 /// </para>
 /// </remarks>
+[Trait("Category", "LiveOcr")]
 [Collection(MetricsIsolationCollection.Name)]
 public sealed class SyntheticDefectVerdictE2ETests
 {
