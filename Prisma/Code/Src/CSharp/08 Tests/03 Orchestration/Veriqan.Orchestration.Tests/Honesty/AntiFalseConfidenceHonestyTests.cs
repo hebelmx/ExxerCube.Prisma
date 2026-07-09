@@ -1,0 +1,320 @@
+using ExxerCube.Prisma.Veriqan.Application.Ports;
+using ExxerCube.Prisma.Veriqan.Application.Verdict;
+using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Resolution;
+using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
+namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests.Honesty;
+
+/// <summary>
+/// S3.1 (Veriqan Epic E3) — the consolidated, deterministic, CI-gateable anti-false-confidence
+/// honesty suite: a false-confidence rate of ZERO on verdict-gating fields must survive the real
+/// production extraction stack, and a wrong extraction must never manufacture a false verdict on
+/// a check it has no causal link to.
+/// </summary>
+/// <remarks>
+/// <para>
+/// <b>Why this exists:</b> a prior regression (Product → ExtractionGap) hid inside 189 GREEN
+/// extractor-unit tests because none of them exercised the full escalation/verdict path. This
+/// suite runs the SAME production <see cref="IStatementFieldExtractor"/> DI registration
+/// (<c>AddVeriqanExtraction</c> — the escalating extractor, not the bare positional one the
+/// existing <c>SyntheticGoldenRoundTripTests</c> golden round-trip uses) and, for the verdict-flip
+/// guard, the real <see cref="IVerificationPipeline"/>.
+/// </para>
+/// <para>
+/// <b>Determinism / native-OCR exclusion (empirically verified 2026-07-08):</b> every specimen's
+/// Product field was probed once via the real DI-resolved extractor to record whether the
+/// header-image-OCR escalation rung (<see cref="StageId.HeaderImageOcr"/>, real Tesseract) fires.
+/// The 10 <c>s6211-*</c> "Dummie-VEC" specimens print the product name as ordinary page-1 text, so
+/// Product resolves positionally (<c>Stage=Positional</c>) for all of them except
+/// <c>s6211-scanned</c> (rasterized to an image-only PDF by design). The two "real-Banamex"-layout
+/// specimens (612×792) do NOT print the product name positionally in that layout family, so both
+/// trigger the real OCR rung — <c>s71-header-ocr-costco</c> by design (its own manifest declares
+/// <c>headerOcrProduct.assertionRoute = "resolved-ProductId/LiveOcr"</c>) and
+/// <c>s622-realbanamex-baseline</c> incidentally (the rung fires and returns <c>NotExtracted</c>,
+/// i.e. even an abstain still cost a real OCR call). All three are excluded from this suite via
+/// <see cref="NativeOcrExcludedSpecimenIds"/> so the suite stays deterministic and runs in the
+/// normal CI gate (no <c>Category=LiveOcr</c> tag needed) — see the S3.1 return report for the
+/// full diagnostic transcript.
+/// </para>
+/// </remarks>
+public sealed class AntiFalseConfidenceHonestyTests
+{
+    /// <summary>
+    /// Specimens whose Product field escalates to the real Tesseract-backed
+    /// <see cref="StageId.HeaderImageOcr"/> rung when run through the production extractor —
+    /// excluded from this suite to keep it deterministic and native-OCR-free. See the class
+    /// remarks for the empirical basis of each exclusion.
+    /// </summary>
+    private static readonly IReadOnlySet<string> NativeOcrExcludedSpecimenIds = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "s6211-scanned",             // image-only PDF; positional Product extraction finds nothing -> escalates to real OCR.
+        "s622-realbanamex-baseline", // real-Banamex 612x792 layout; Product not printed positionally -> escalates to real OCR (which itself abstains).
+        "s71-header-ocr-costco",     // by design a header-image-OCR-only LiveOcr proof specimen.
+    };
+
+    private static string FixturesDir => SyntheticCorpusIndexLoader.FindFixturesDir(AppContext.BaseDirectory);
+
+    private static IReadOnlyList<SyntheticCorpusSpecimen> DeterministicSpecimens() =>
+        SyntheticCorpusIndexLoader.Load(FixturesDir)
+            .Where(s => !NativeOcrExcludedSpecimenIds.Contains(s.Id))
+            .ToList();
+
+    // -----------------------------------------------------------------------
+    // Deliverable 5 (partial, structural): loud-loader / non-vacuity guard.
+    // Fails discovery-adjacent assumptions loudly rather than letting a Theory pass vacuously.
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void DeterministicCorpus_IsNonEmpty_AndExcludesExactlyTheKnownOcrSpecimens()
+    {
+        var all = SyntheticCorpusIndexLoader.Load(FixturesDir);
+        all.Count.ShouldBe(13, "corpus-manifest.json specimen count changed — re-run the OCR-provenance " +
+            "diagnostic (see class remarks) for any newly-added specimen before trusting this suite's exclusion list.");
+
+        var deterministic = DeterministicSpecimens();
+        deterministic.Count.ShouldBe(10, "expected exactly 10 deterministic (non-OCR) specimens (13 total minus the 3 excluded).");
+
+        foreach (var excludedId in NativeOcrExcludedSpecimenIds)
+            all.ShouldContain(s => s.Id == excludedId, $"excluded specimen id '{excludedId}' no longer exists in the corpus index — stale exclusion.");
+    }
+
+    // -----------------------------------------------------------------------
+    // Deliverable 1 — Abstention-preservation Theory over the corpus.
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// One theory case per (specimen, verdict-gating field) pair whose gold manifest records a
+    /// non-<c>Extracted</c> <see cref="ExtractionStatus"/> (an honest abstention or a degraded
+    /// <c>ExtractedInvalidFormat</c> read). Loud by construction: <see cref="SyntheticGoldManifestLoader.LoadSync"/>
+    /// throws (rather than silently yielding zero rows) on any malformed manifest, and
+    /// <see cref="AbstentionCases_IsNonEmpty_ProvingTheTheoryAboveIsNotVacuous"/> is a companion
+    /// [Fact] proving this MemberData actually yields a non-trivial case count.
+    /// </summary>
+    public static IEnumerable<object[]> AbstentionCases()
+    {
+        var fixturesDir = SyntheticCorpusIndexLoader.FindFixturesDir(AppContext.BaseDirectory);
+        foreach (var specimen in DeterministicSpecimens())
+        {
+            var manifest = SyntheticGoldManifestLoader.LoadSync(Path.Combine(fixturesDir, specimen.Manifest));
+            foreach (var (fieldName, expectation) in manifest.Fields)
+            {
+                if (!VerdictGatingFieldAccessors.Map.ContainsKey(fieldName))
+                    continue;
+                if (expectation.ExpectedStatus == nameof(ExtractionStatus.Extracted))
+                    continue;
+
+                yield return [specimen.Id, specimen.Pdf, specimen.Manifest, fieldName, expectation.ExpectedStatus];
+            }
+        }
+    }
+
+    [Fact]
+    public void AbstentionCases_IsNonEmpty_ProvingTheTheoryAboveIsNotVacuous()
+    {
+        var cases = AbstentionCases().ToList();
+        cases.Count.ShouldBeGreaterThanOrEqualTo(10,
+            $"AbstentionPreservation_SpecimenField_RemainsAbstained's [MemberData] yielded only {cases.Count} case(s) — " +
+            "a near-zero count would mean the Theory below is passing (almost) vacuously.");
+    }
+
+    [Theory]
+    [MemberData(nameof(AbstentionCases))]
+    public async Task AbstentionPreservation_SpecimenField_RemainsAbstained(
+        string specimenId, string pdfFile, string manifestFile, string fieldName, string expectedStatus)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var fixturesDir = FixturesDir;
+
+        var manifestResult = await SyntheticGoldManifestLoader.LoadAsync(Path.Combine(fixturesDir, manifestFile), ct);
+        manifestResult.IsSuccess.ShouldBeTrue(manifestResult.Error);
+        var bundle = HonestyPipelineHarness.BuildBundle(manifestResult.Value!);
+
+        await using var sp = HonestyPipelineHarness.BuildExtractionOnlyContainer();
+        var extractor = sp.GetRequiredService<IStatementFieldExtractor>();
+        var pdfBytes = await File.ReadAllBytesAsync(Path.Combine(fixturesDir, pdfFile), ct);
+        var extractResult = await extractor.ExtractFullAsync(pdfBytes, ct, bundle);
+        extractResult.IsSuccess.ShouldBeTrue($"Extraction must succeed for '{specimenId}'. Error: {extractResult.Error}");
+
+        var (value, status) = VerdictGatingFieldAccessors.Map[fieldName](extractResult.Value!);
+
+        // The headline anti-false-confidence assertion: the FINAL emitted field (after running
+        // through the full production escalation stack, not just PdfPigStatementFieldExtractor
+        // in isolation) must never be a confident value where gold says abstain/degrade.
+        status.ShouldNotBe(ExtractionStatus.Extracted,
+            $"FALSE CONFIDENCE: specimen '{specimenId}' field '{fieldName}' — gold expects '{expectedStatus}' " +
+            $"(an abstention) but the production extractor emitted a CONFIDENT value={value ?? "<null>"} " +
+            "(Status=Extracted). Honesty must survive the full escalation ladder, not just the positional pass.");
+
+        // Exact-status match — stronger than the "never Extracted" check above: proves the
+        // escalation ladder didn't shift an ExtractedInvalidFormat gold case into a bare
+        // NotExtracted (or vice versa) either, which would also misrepresent the honest outcome.
+        Enum.TryParse<ExtractionStatus>(expectedStatus, out var expectedEnum).ShouldBeTrue(
+            $"manifest expectedStatus '{expectedStatus}' for field '{fieldName}' is not a valid ExtractionStatus.");
+        status.ShouldBe(expectedEnum,
+            $"specimen '{specimenId}' field '{fieldName}': gold status is '{expectedStatus}' but production " +
+            $"extractor emitted '{status}' (value={value ?? "<null>"}).");
+    }
+
+    // -----------------------------------------------------------------------
+    // Deliverable 2 — False-confidence zero-ceiling across the whole corpus.
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public async Task FalseConfidenceRate_AcrossCorpus_OnVerdictGatingFields_IsZero()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var fixturesDir = FixturesDir;
+        var specimens = DeterministicSpecimens();
+        specimens.Count.ShouldBeGreaterThan(0, "corpus index must not be empty — loud loader guard.");
+
+        var offenders = new List<string>();
+        var classifiedCount = 0;
+
+        await using var sp = HonestyPipelineHarness.BuildExtractionOnlyContainer();
+        var extractor = sp.GetRequiredService<IStatementFieldExtractor>();
+
+        foreach (var specimen in specimens)
+        {
+            var manifestResult = await SyntheticGoldManifestLoader.LoadAsync(Path.Combine(fixturesDir, specimen.Manifest), ct);
+            manifestResult.IsSuccess.ShouldBeTrue(manifestResult.Error);
+            var manifest = manifestResult.Value!;
+            var bundle = HonestyPipelineHarness.BuildBundle(manifest);
+
+            var pdfBytes = await File.ReadAllBytesAsync(Path.Combine(fixturesDir, specimen.Pdf), ct);
+            var extractResult = await extractor.ExtractFullAsync(pdfBytes, ct, bundle);
+            extractResult.IsSuccess.ShouldBeTrue($"Extraction must succeed for '{specimen.Id}'. Error: {extractResult.Error}");
+            var model = extractResult.Value!;
+
+            foreach (var (fieldName, expectation) in manifest.Fields)
+            {
+                if (!VerdictGatingFieldAccessors.Map.TryGetValue(fieldName, out var accessor))
+                    continue; // Not a verdict-gating field per VerdictGatingFieldAccessors.Map.
+                if (expectation.ExpectedStatus == nameof(ExtractionStatus.Extracted))
+                    continue; // Gold says a confident value IS expected here — not an abstention case.
+
+                classifiedCount++;
+                var (value, status) = accessor(model);
+                if (status == ExtractionStatus.Extracted)
+                {
+                    offenders.Add(
+                        $"{specimen.Id}.{fieldName}: gold={expectation.ExpectedStatus}, actual=Extracted(value={value})");
+                }
+            }
+        }
+
+        // Non-vacuity proof: the rate below is only meaningful if it was computed over a
+        // non-trivial gold-abstention population.
+        classifiedCount.ShouldBeGreaterThanOrEqualTo(10,
+            $"False-confidence rate was computed over only {classifiedCount} gold-abstention case(s) — too few to be a meaningful metric.");
+
+        var falseConfidenceRate = (double)offenders.Count / classifiedCount;
+        falseConfidenceRate.ShouldBe(0.0,
+            $"False-confidence rate must be exactly 0 but was {falseConfidenceRate:P1} " +
+            $"({offenders.Count}/{classifiedCount} verdict-gating gold-abstention cases emitted a confident value). " +
+            $"Offenders:\n{string.Join("\n", offenders)}");
+    }
+
+    // -----------------------------------------------------------------------
+    // Deliverable 3 — Verdict-flip guard (full VerificationPipeline).
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Runs the real <see cref="IVerificationPipeline"/> twice over <c>s6211-baseline.pdf</c>:
+    /// once unmodified, once with <see cref="TasaOverridingFieldExtractor"/> injecting a
+    /// plausible-but-wrong Tasa value AFTER real extraction/escalation (the cleanest controllable
+    /// seam named in the S3.1 brief). Empirically (2026-07-08 run), <c>Tasa</c> IS causally read
+    /// by <c>Cl10CatRule</c>, so corrupting it legitimately flips CL-10 Pass→Fail — that is
+    /// CORRECT system behavior (a genuinely wrong rate should fail the one check that reads it),
+    /// not a false positive. What this guard actually proves is narrower and, per the brief's
+    /// closing sentence ("a wrong extraction must never manufacture a false GREEN or false RED"),
+    /// is the meaningful invariant: the corruption of ONE field must not manufacture a false
+    /// verdict on any OTHER, causally-UNRELATED check, and the overall traffic-light signal must
+    /// not swing beyond what the one causally-linked check's own flip justifies.
+    /// </summary>
+    [Fact]
+    public async Task VerdictFlipGuard_CorruptedTasa_OnlyCausallyLinkedCheckChanges()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var fixturesDir = FixturesDir;
+        const string specimenPdf = "s6211-baseline.pdf";
+        const string specimenManifest = "s6211-baseline.manifest.json";
+        const string causallyLinkedCheckId = "CL-10"; // Cl10CatRule.cs reads PeriodSummary.Tasa directly.
+        const decimal wrongTasa = 0.99m; // Baseline Tasa is 0.2736 (27.36%); 0.99 (99%) is a well-formed decimal fraction a mis-read digit could plausibly produce, but is not the true printed rate.
+
+        var manifestResult = await SyntheticGoldManifestLoader.LoadAsync(Path.Combine(fixturesDir, specimenManifest), ct);
+        manifestResult.IsSuccess.ShouldBeTrue(manifestResult.Error);
+        var bundle = HonestyPipelineHarness.BuildBundle(manifestResult.Value!);
+        var pdfBytes = await File.ReadAllBytesAsync(Path.Combine(fixturesDir, specimenPdf), ct);
+        var contextKey = new StatementContextKey(HonestyPipelineHarness.Institution);
+
+        VerdictSummary baseline;
+        await using (var sp = HonestyPipelineHarness.BuildFullPipelineContainer(bundle))
+        {
+            await using var scope = sp.CreateAsyncScope();
+            var pipeline = scope.ServiceProvider.GetRequiredService<IVerificationPipeline>();
+            var result = await pipeline.ProcessAsync(new StatementSubmission(pdfBytes, specimenPdf, contextKey), ct);
+            result.IsSuccess.ShouldBeTrue(result.Error);
+            baseline = result.Value!.Summary;
+        }
+
+        VerdictSummary corrupted;
+        await using (var sp = HonestyPipelineHarness.BuildFullPipelineContainer(
+            bundle,
+            extractorOverride: providerForOverride => new TasaOverridingFieldExtractor(
+                new EscalatingStatementFieldExtractor(
+                    providerForOverride.GetRequiredService<PdfPigStatementFieldExtractor>(),
+                    providerForOverride.GetRequiredService<FieldResolutionOrchestrator>(),
+                    providerForOverride.GetRequiredService<IProductResolver>(),
+                    providerForOverride.GetRequiredService<ILogger<EscalatingStatementFieldExtractor>>()),
+                wrongTasa)))
+        {
+            await using var scope = sp.CreateAsyncScope();
+            var pipeline = scope.ServiceProvider.GetRequiredService<IVerificationPipeline>();
+            var result = await pipeline.ProcessAsync(new StatementSubmission(pdfBytes, specimenPdf, contextKey), ct);
+            result.IsSuccess.ShouldBeTrue(result.Error);
+            corrupted = result.Value!.Summary;
+        }
+
+        // Sanity + non-vacuity: the injected corruption must have a REAL, grounded effect on the
+        // one check that actually reads Tasa — otherwise this guard would prove nothing.
+        baseline.FailCheckIds.ShouldNotContain(causallyLinkedCheckId,
+            "sanity precondition: baseline CL-10 (Cl10CatRule) must Pass BEFORE the Tasa corruption.");
+        corrupted.FailCheckIds.ShouldContain(causallyLinkedCheckId,
+            "corrupting Tasa must cause its own dependent check (CL-10) to legitimately fail — a genuinely " +
+            "wrong printed rate SHOULD flip the one check that reads it directly; this is honest, expected " +
+            "behavior, not the false-verdict failure mode this guard targets.");
+
+        // The actual verdict-flip guard: every OTHER check id present in either run's Fail or
+        // InsufficientData set must carry IDENTICAL verdict membership before and after —
+        // corrupting Tasa must never manufacture a false Fail/abstain, nor silently launder an
+        // existing Fail/abstain into a Pass, on a check that has no causal link to Tasa.
+        var baselineNonPass = new HashSet<string>(baseline.FailCheckIds.Concat(baseline.InsufficientDataCheckIds));
+        var corruptedNonPass = new HashSet<string>(corrupted.FailCheckIds.Concat(corrupted.InsufficientDataCheckIds));
+        baselineNonPass.Remove(causallyLinkedCheckId);
+        corruptedNonPass.Remove(causallyLinkedCheckId);
+
+        var spuriouslyAppeared = corruptedNonPass.Except(baselineNonPass).ToList();
+        var spuriouslyDisappeared = baselineNonPass.Except(corruptedNonPass).ToList();
+
+        spuriouslyAppeared.ShouldBeEmpty(
+            $"Corrupting Tasa manufactured a false Fail/InsufficientData on check(s) with no causal link to " +
+            $"Tasa: [{string.Join(",", spuriouslyAppeared)}]. A wrong extraction in one field must never " +
+            "manufacture a false verdict on an unrelated check.");
+        spuriouslyDisappeared.ShouldBeEmpty(
+            $"Corrupting Tasa silently turned previously-failing/abstaining unrelated check(s) into a Pass: " +
+            $"[{string.Join(",", spuriouslyDisappeared)}] — a fabricated false GREEN on an unrelated check.");
+
+        // Overall traffic-light: unaffected here because CL-10's Pass->Fail flip does not change
+        // an already-Red aggregate (this baseline is independently Red from unrelated structural
+        // findings). The assertion still has teeth: it fails if the corruption caused the signal
+        // to move in either direction beyond what CL-10's own flip justifies.
+        corrupted.Signal.ShouldBe(baseline.Signal,
+            $"Overall verdict signal flipped from {baseline.Signal} to {corrupted.Signal} — the aggregate " +
+            "traffic light must not swing on a single corrupted field beyond what that field's own " +
+            "causally-linked check legitimately warrants.");
+    }
+}
