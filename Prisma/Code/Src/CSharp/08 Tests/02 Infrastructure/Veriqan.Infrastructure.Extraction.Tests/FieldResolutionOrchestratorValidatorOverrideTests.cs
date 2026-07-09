@@ -90,7 +90,12 @@ public sealed class FieldResolutionOrchestratorValidatorOverrideTests
             Rungs: [new FieldEscalationRung(StageId.FuzzyLabel, EscalationTrigger.ValidatorFailure)],
             Validator: new AllowListValidator("B"));
 
-        var overrideValidator = new AllowListValidator("A");
+        // Accepts "A" (never seen) and "RECOVERED" (the rung's answer) — NOT "B", so the
+        // escalation gate still forces the rung to run. Also accepting "RECOVERED" means the
+        // Story 3.3a terminal-validator-abstain rule (FieldResolutionOrchestrator.ResolveAsync)
+        // does not reject the winning candidate — this test's job is to prove escalation was
+        // FORCED by the override, not to re-prove the terminal gate (that has its own coverage).
+        var overrideValidator = new AllowListValidator("A", "RECOVERED");
         var orchestrator = CreateOrchestrator(ladder);
 
         var recovered = FieldCandidate<string>.Found("RECOVERED", 0.9, StageId.FuzzyLabel, FieldLocator.PageHint(1));

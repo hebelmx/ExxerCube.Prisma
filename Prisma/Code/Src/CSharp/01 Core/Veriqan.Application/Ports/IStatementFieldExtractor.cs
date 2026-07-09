@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
 using IndQuestResults;
 
 namespace ExxerCube.Prisma.Veriqan.Application.Ports;
@@ -55,6 +56,15 @@ public interface IStatementFieldExtractor
     /// </summary>
     /// <param name="pdf">Raw bytes of the statement PDF.</param>
     /// <param name="cancellationToken">Cancellation token propagated to all async operations.</param>
+    /// <param name="referenceBundle">
+    /// Story 3.3a — optional tenant reference/catalog bundle. When supplied and its
+    /// <see cref="VecReferenceBundle.Products"/> catalog is non-empty, an OCR-recovered
+    /// <see cref="FieldKind.Product"/> value is gated by catalog membership (the same
+    /// <see cref="IProductResolver"/> match the downstream binder uses), so a terminal Product
+    /// candidate that does not resolve in the catalog abstains (<c>NotExtracted</c>) rather than
+    /// being returned. When <see langword="null"/> (the default — every caller as of this story),
+    /// Product resolution is completely unchanged from prior behavior.
+    /// </param>
     /// <returns>
     /// <see cref="Result{T}.IsSuccess"/> with a fully-populated <see cref="StatementModel"/> on success;
     /// a cancelled result when <paramref name="cancellationToken"/> is already triggered;
@@ -77,5 +87,6 @@ public interface IStatementFieldExtractor
     /// </remarks>
     Task<Result<StatementModel>> ExtractFullAsync(
         byte[] pdf,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        VecReferenceBundle? referenceBundle = null);
 }

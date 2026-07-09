@@ -97,8 +97,10 @@ public sealed class EscalatingExtractorRebuildPathTests
             new FieldEscalationLadderRegistry(),
             new DefaultFieldStageProvider(OcrEngine, NullLoggerFactory.Instance),
             XUnitLogger.CreateLogger<FieldResolutionOrchestrator>());
+        // No referenceBundle is ever passed by this test's ExtractFullAsync call, so the resolver
+        // is never invoked — a bare substitute is sufficient (Story 3.3a).
         var escalating = new EscalatingStatementFieldExtractor(
-            fakeInner, orchestrator, XUnitLogger.CreateLogger<EscalatingStatementFieldExtractor>());
+            fakeInner, orchestrator, Substitute.For<IProductResolver>(), XUnitLogger.CreateLogger<EscalatingStatementFieldExtractor>());
 
         var escalatedResult = await escalating.ExtractFullAsync(pdf, ct);
         escalatedResult.IsSuccess.ShouldBeTrue();

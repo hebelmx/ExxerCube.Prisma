@@ -73,9 +73,14 @@ public static class VeriqanExtractionExtensions
         services.TryAddSingleton<IFieldStageProvider, DefaultFieldStageProvider>();
         services.TryAddSingleton<FieldResolutionOrchestrator>();
 
+        // IProductResolver (Story 3.3a) must already be registered — callers compose this
+        // extraction registration alongside AddVeriqanBinding() (Application layer), which is
+        // where IProductResolver is registered as a singleton; this factory only runs once the
+        // full container is resolved, so registration order between the two calls does not matter.
         services.TryAddSingleton<IStatementFieldExtractor>(sp => new EscalatingStatementFieldExtractor(
             sp.GetRequiredService<PdfPigStatementFieldExtractor>(),
             sp.GetRequiredService<FieldResolutionOrchestrator>(),
+            sp.GetRequiredService<IProductResolver>(),
             sp.GetRequiredService<ILogger<EscalatingStatementFieldExtractor>>()));
 
         return services;

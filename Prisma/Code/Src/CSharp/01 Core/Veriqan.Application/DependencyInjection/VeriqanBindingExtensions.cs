@@ -28,7 +28,11 @@ public static class VeriqanBindingExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        services.AddScoped<IProductResolver, ProductResolver>();
+        // Singleton (Story 3.3a): ProductResolver is a pure, stateless function of its arguments
+        // (no per-request state), so one shared instance is safe — and required for it to inject
+        // cleanly into the singleton EscalatingStatementFieldExtractor (Infrastructure.Extraction)
+        // alongside the existing scoped BundleBinder consumer.
+        services.AddSingleton<IProductResolver, ProductResolver>();
         services.AddScoped<IBundleBinder, BundleBinder>();
 
         return services;

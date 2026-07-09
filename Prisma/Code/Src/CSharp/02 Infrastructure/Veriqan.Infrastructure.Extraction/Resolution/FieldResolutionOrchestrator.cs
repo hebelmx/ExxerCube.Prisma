@@ -167,6 +167,20 @@ public sealed class FieldResolutionOrchestrator
         }
 
         var best = candidates[^1];
+
+        // Story 3.3a — terminal-validator-abstain rule: a validator gates escalation and
+        // disagreement-credibility above, but neither of those stops a terminal value that FAILS
+        // the validator from being returned as-is (e.g. a lone OCR-recovered candidate that never
+        // triggers the disagreement gate because there is nothing to disagree with). Reject it
+        // here too, so a validator that exists always has the final say on the returned value —
+        // this only ever fires when a validator is present, so it is inert (behavior-neutral) for
+        // every field whose ladder/override carries no validator.
+        if (best.HasValue && validator is not null && !validator.IsValid(best.Value))
+        {
+            return Result<ExtractedField<TValue>>.WithSuccess(
+                ExtractedField<TValue>.Missing(best.Locator, new ExtractionProvenance(best.Stage)));
+        }
+
         if (HasDisagreement(candidates, ladder, validator))
         {
             // Honesty over recall: never pick a winner by fiat when stages disagree.

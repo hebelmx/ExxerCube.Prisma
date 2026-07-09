@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
 using IndQuestResults;
 using IndQuestResults.Operations;
 using Microsoft.Extensions.Logging;
@@ -41,6 +42,7 @@ public sealed class EscalatingStatementFieldExtractor : IStatementFieldExtractor
 {
     private readonly IStatementFieldExtractor _inner;
     private readonly FieldResolutionOrchestrator _orchestrator;
+    private readonly IProductResolver _productResolver;
     private readonly ILogger<EscalatingStatementFieldExtractor> _logger;
 
     /// <summary>
@@ -51,14 +53,22 @@ public sealed class EscalatingStatementFieldExtractor : IStatementFieldExtractor
     /// concrete <c>PdfPigStatementFieldExtractor</c>.
     /// </param>
     /// <param name="orchestrator">Per-field resolution pipeline walking each field's ladder.</param>
+    /// <param name="productResolver">
+    /// Story 3.3a — the same catalog matcher the downstream binder uses. Consulted only when a
+    /// caller's <see cref="ExtractFullAsync"/> call supplies a non-empty
+    /// <see cref="VecReferenceBundle.Products"/> catalog, to gate a resolved
+    /// <see cref="FieldKind.Product"/> value against tenant catalog membership.
+    /// </param>
     /// <param name="logger">Logger for escalation diagnostics.</param>
     public EscalatingStatementFieldExtractor(
         IStatementFieldExtractor inner,
         FieldResolutionOrchestrator orchestrator,
+        IProductResolver productResolver,
         ILogger<EscalatingStatementFieldExtractor> logger)
     {
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         _orchestrator = orchestrator ?? throw new ArgumentNullException(nameof(orchestrator));
+        _productResolver = productResolver ?? throw new ArgumentNullException(nameof(productResolver));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -68,22 +78,24 @@ public sealed class EscalatingStatementFieldExtractor : IStatementFieldExtractor
         CancellationToken cancellationToken = default)
     {
         var innerResult = await _inner.ExtractHeaderAsync(pdf, cancellationToken).ConfigureAwait(false);
-        return await EscalateAsync(innerResult, pdf, cancellationToken).ConfigureAwait(false);
+        return await EscalateAsync(innerResult, pdf, cancellationToken, referenceBundle: null).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
     public async Task<Result<StatementModel>> ExtractFullAsync(
         byte[] pdf,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        VecReferenceBundle? referenceBundle = null)
     {
-        var innerResult = await _inner.ExtractFullAsync(pdf, cancellationToken).ConfigureAwait(false);
-        return await EscalateAsync(innerResult, pdf, cancellationToken).ConfigureAwait(false);
+        var innerResult = await _inner.ExtractFullAsync(pdf, cancellationToken, referenceBundle).ConfigureAwait(false);
+        return await EscalateAsync(innerResult, pdf, cancellationToken, referenceBundle).ConfigureAwait(false);
     }
 
     private async Task<Result<StatementModel>> EscalateAsync(
         Result<StatementModel> innerResult,
         byte[] pdf,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        VecReferenceBundle? referenceBundle)
     {
         // The inner extractor's own failure/cancellation is passed straight through — escalation
         // never runs on a document the positional extractor could not even open.
@@ -157,7 +169,16 @@ public sealed class EscalatingStatementFieldExtractor : IStatementFieldExtractor
         var periodSummary = model.PeriodSummary;
         if (periodSummary is not null)
         {
-            var product = await ResolveAsync(FieldKind.Product, periodSummary.Product).ConfigureAwait(false);
+            // Story 3.3a: when the caller supplied a tenant reference bundle carrying a non-empty
+            // product catalog, gate the resolved Product value by catalog membership — via the
+            // SAME IProductResolver the downstream binder uses — so extraction accepts exactly
+            // what binding would accept. No bundle (the default, every caller as of this story) →
+            // no override → Product resolution is completely unchanged.
+            IFieldValidator? productValidator = null;
+            if (referenceBundle is not null && referenceBundle.Products is { Count: > 0 })
+                productValidator = new ProductCatalogMembershipValidator(_productResolver, referenceBundle);
+
+            var product = await ResolveAsync(FieldKind.Product, periodSummary.Product, productValidator).ConfigureAwait(false);
             var periodStart = await ResolveAsync(FieldKind.PeriodStart, periodSummary.PeriodStart).ConfigureAwait(false);
             var periodCutDate = await ResolveAsync(FieldKind.PeriodCutDate, periodSummary.PeriodCutDate).ConfigureAwait(false);
 

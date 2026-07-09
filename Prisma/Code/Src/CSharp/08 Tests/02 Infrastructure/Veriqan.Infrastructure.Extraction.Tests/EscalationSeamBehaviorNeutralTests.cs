@@ -1,3 +1,4 @@
+using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Ocr;
@@ -5,6 +6,7 @@ using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Resolution;
 using IndQuestResults;
 using Meziantou.Extensions.Logging.Xunit.v3;
 using Microsoft.Extensions.Logging.Abstractions;
+using NSubstitute;
 
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Tests;
 
@@ -107,8 +109,10 @@ public sealed class EscalationSeamBehaviorNeutralTests
         var stageProvider = new DefaultFieldStageProvider(OcrEngine, NullLoggerFactory.Instance);
         var orchestrator = new FieldResolutionOrchestrator(
             registry, stageProvider, XUnitLogger.CreateLogger<FieldResolutionOrchestrator>());
+        // No referenceBundle is ever passed by this harness's ExtractFullAsync calls, so the
+        // resolver is never invoked — a bare substitute is sufficient (Story 3.3a).
         return new EscalatingStatementFieldExtractor(
-            inner, orchestrator, XUnitLogger.CreateLogger<EscalatingStatementFieldExtractor>());
+            inner, orchestrator, Substitute.For<IProductResolver>(), XUnitLogger.CreateLogger<EscalatingStatementFieldExtractor>());
     }
 
     // -----------------------------------------------------------------------

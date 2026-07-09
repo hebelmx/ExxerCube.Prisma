@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
 using IndQuestResults;
 using IndQuestResults.Operations;
 using Microsoft.Extensions.Logging;
@@ -384,9 +385,16 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     // -----------------------------------------------------------------------
 
     /// <inheritdoc />
+    /// <remarks>
+    /// Story 3.3a: <paramref name="referenceBundle"/> is accepted (to satisfy the interface) but
+    /// intentionally unused here — stage 1 (positional) extraction is catalog-agnostic by design;
+    /// catalog-gated Product resolution is applied only by the higher-stage escalation seam
+    /// (<c>EscalatingStatementFieldExtractor</c>) once an OCR-recovered candidate exists to gate.
+    /// </remarks>
     public async Task<Result<StatementModel>> ExtractFullAsync(
         byte[] pdf,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        VecReferenceBundle? referenceBundle = null)
     {
         if (cancellationToken.IsCancellationRequested)
             return ResultExtensions.Cancelled<StatementModel>();

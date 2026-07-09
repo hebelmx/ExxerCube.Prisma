@@ -1,8 +1,10 @@
+using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Ocr;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Resolution;
 using Meziantou.Extensions.Logging.Xunit.v3;
 using Microsoft.Extensions.Logging.Abstractions;
+using NSubstitute;
 
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Tests;
 
@@ -70,8 +72,10 @@ public sealed class PaymentDueDateFuzzyRecoveryCanaryTests
         var stageProvider = new DefaultFieldStageProvider(OcrEngine, NullLoggerFactory.Instance);
         var orchestrator = new FieldResolutionOrchestrator(
             registry, stageProvider, XUnitLogger.CreateLogger<FieldResolutionOrchestrator>());
+        // No referenceBundle is ever passed by this canary's ExtractFullAsync call, so the
+        // resolver is never invoked — a bare substitute is sufficient (Story 3.3a).
         return new EscalatingStatementFieldExtractor(
-            inner, orchestrator, XUnitLogger.CreateLogger<EscalatingStatementFieldExtractor>());
+            inner, orchestrator, Substitute.For<IProductResolver>(), XUnitLogger.CreateLogger<EscalatingStatementFieldExtractor>());
     }
 
     [Theory]

@@ -58,6 +58,42 @@ ripple to positional-only fields.
 S3.2 → S3.3 (share the override seam; sequential to avoid registry/orchestrator conflict) → S3.1 (locks in
 the final behavior). Adversarial review at the phase boundary before closing E3.
 
+## S3.3 — owner ruling + design (2026-07-08)
+
+Owner ruled **BUILD the bundle threading** (twice, fully informed that the catalog gate already exists
+downstream in `BundleBinder`/`ProductResolver` and that threading needs pipeline reordering — accepted as
+genuine defense-in-depth: the extraction stage abstains *earlier*, pre-binding). Composition map
+(Explore, 2026-07-08): extraction (Stage 2) is process-wide **singleton** and runs **before** bundle
+binding (Stage 4); the seam carries only PDF bytes; `submission.ContextKey` (enough to load the bundle) is
+available before Stage 2; `IProductResolver.Resolve(token, bundle)→Result<VecProduct>` is the canonical
+OCR-token catalog matcher (FuzzySharp, threshold 85, margin 5, abstains→BLOCKED UnknownProduct).
+
+**Design decisions (orchestrator):**
+- Reuse `IProductResolver` as the single source of catalog-match truth (extraction accepts exactly what
+  `BundleBinder` accepts → E7 COSTCO demo stays green). Flip its DI lifetime **scoped→singleton** (pure
+  stateless fn) so the singleton extractor can inject it without a captive dependency.
+- **Terminal-validator-abstain rule** in `FieldResolutionOrchestrator`: after the rung loop, if the
+  terminal `best` has a value but fails the (override-or-ladder) validator → abstain (`Missing`). Needed
+  because the override only gated escalation/disagreement, not the returned value — so this also finally
+  activates S3.2's period-relative window end-to-end. Behavior-neutral for all current green suites (no
+  field emits a terminal validator-failing value today).
+- Thread the per-request bundle via an **optional** `VecReferenceBundle? referenceBundle = null` param on
+  `IStatementFieldExtractor.ExtractFullAsync` (optional → all existing test callers compile unchanged).
+
+**Split (de-risk):**
+- **S3.3a — extraction-side (behavior-neutral until a catalog is passed).** `ProductCatalogMembershipValidator`
+  (reuses `IProductResolver`); orchestrator terminal-abstain rule; optional bundle param on ExtractFullAsync;
+  `EscalatingStatementFieldExtractor` builds the catalog validator + passes it as the Product `validatorOverride`
+  when a bundle is supplied; DI `IProductResolver`→singleton. Unit-tested with a catalog passed directly. E7
+  demo unaffected (pipeline still passes no catalog until 3b). DoD: Extraction.Tests + Orchestration.Tests green.
+- **S3.3b — pipeline wiring.** `VerificationPipeline` resolves the bundle early (via ContextKey) and passes
+  it to `ExtractFullAsync`; thread the resolved bundle into `BundleBinder` to avoid double-resolution;
+  preserve existing BLOCKED ordering/behavior. Verified by the E7 Product-OCR E2E suite (COSTCO still
+  resolves → demo verdicts unchanged). DoD: full Orchestration + LiveOcr Product E2E green.
+
 ## Log
 
-- 2026-07-08 — E3 opened; ground-truth reconciliation done; owner scoped "Honesty gate + 2 TODOs".
+- 2026-07-08 — E3 opened; ground-truth reconciliation; owner scoped "Honesty gate + 2 TODOs".
+- 2026-07-08 — S3.2 DONE + verified (Extraction 314/314, build 0/0) + committed/pushed `cf5da855`.
+- 2026-07-08 — S3.3 composition-mapped; owner ruled build-the-threading (informed of redundancy); split
+  into S3.3a (extraction, behavior-neutral) + S3.3b (pipeline wiring). Terminal-abstain rule folded in.
