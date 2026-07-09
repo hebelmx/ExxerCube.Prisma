@@ -64,6 +64,15 @@ public sealed class FieldResolutionOrchestrator
     /// used as-is and the provider is not consulted — this preserves direct stage-injection for
     /// callers that construct their own <see cref="IFieldResolutionStage{TValue}"/> fakes.
     /// </param>
+    /// <param name="validatorOverride">
+    /// When non-<see langword="null"/>, supersedes the field's ladder-registered
+    /// <see cref="FieldEscalationLadder.Validator"/> for this call only — used for both the
+    /// <see cref="EscalationTrigger.ValidatorFailure"/> escalation gate and disagreement
+    /// credibility. When <see langword="null"/> (the normal production path), the ladder's own
+    /// validator is used unchanged. Intended for callers that can supply a tighter,
+    /// document-relative validator instance once earlier fields (e.g. a statement's period cut
+    /// date) have been resolved (E3, <see cref="PaymentDueDatePlausibilityValidator"/>).
+    /// </param>
     /// <param name="cancellationToken">Cancellation token propagated to every stage invocation.</param>
     /// <returns>
     /// <see cref="Result{T}.IsSuccess"/> with the resolved <see cref="ExtractedField{T}"/> — equal
@@ -78,6 +87,7 @@ public sealed class FieldResolutionOrchestrator
         LazyPdfCorpus corpus,
         StageBudget budget,
         IReadOnlyList<IFieldResolutionStage<TValue>>? higherStages = null,
+        IFieldValidator? validatorOverride = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(positionalField);
@@ -102,6 +112,10 @@ public sealed class FieldResolutionOrchestrator
         // keeps existing tests that inject stage fakes directly working unchanged.
         var stages = higherStages ?? _stageProvider.GetHigherStages<TValue>(fieldKind);
 
+        // Symmetric with higherStages: an explicit validatorOverride wins for this call only; a
+        // null override falls back to the ladder's own registered validator, unchanged.
+        var validator = validatorOverride ?? ladder.Validator;
+
         var stage1 = new PositionalStage<TValue>(positionalField);
         var stage1Context = new FieldResolutionContext<TValue>(
             fieldKind, pdfBytes, corpus, Array.Empty<FieldCandidate<TValue>>(), budget);
@@ -119,7 +133,7 @@ public sealed class FieldResolutionOrchestrator
                 return ResultExtensions.Cancelled<ExtractedField<TValue>>();
 
             var current = candidates[^1];
-            if (!ShouldEscalate(rung.Trigger, current, candidates, ladder))
+            if (!ShouldEscalate(rung.Trigger, current, candidates, ladder, validator))
                 break;
 
             if (rung.Stage == StageId.LlmExtraction && !budget.TryConsumeLlmCall())
@@ -153,7 +167,7 @@ public sealed class FieldResolutionOrchestrator
         }
 
         var best = candidates[^1];
-        if (HasDisagreement(candidates, ladder))
+        if (HasDisagreement(candidates, ladder, validator))
         {
             // Honesty over recall: never pick a winner by fiat when stages disagree.
             return Result<ExtractedField<TValue>>.WithSuccess(
@@ -167,7 +181,8 @@ public sealed class FieldResolutionOrchestrator
         EscalationTrigger trigger,
         FieldCandidate<TValue> current,
         IReadOnlyList<FieldCandidate<TValue>> candidatesSoFar,
-        FieldEscalationLadder ladder)
+        FieldEscalationLadder ladder,
+        IFieldValidator? validator)
     {
         if (trigger.HasFlag(EscalationTrigger.StatusGate) && !current.HasValue)
             return true;
@@ -177,19 +192,22 @@ public sealed class FieldResolutionOrchestrator
 
         if (trigger.HasFlag(EscalationTrigger.ValidatorFailure)
             && current.HasValue
-            && ladder.Validator is not null
-            && !ladder.Validator.IsValid(current.Value))
+            && validator is not null
+            && !validator.IsValid(current.Value))
         {
             return true;
         }
 
-        if (trigger.HasFlag(EscalationTrigger.Disagreement) && HasDisagreement(candidatesSoFar, ladder))
+        if (trigger.HasFlag(EscalationTrigger.Disagreement) && HasDisagreement(candidatesSoFar, ladder, validator))
             return true;
 
         return false;
     }
 
-    private static bool HasDisagreement<TValue>(IReadOnlyList<FieldCandidate<TValue>> candidates, FieldEscalationLadder ladder)
+    private static bool HasDisagreement<TValue>(
+        IReadOnlyList<FieldCandidate<TValue>> candidates,
+        FieldEscalationLadder ladder,
+        IFieldValidator? validator)
     {
         // Only CREDIBLE candidates count as disagreeing peers. A stage-1 value we escalated
         // past precisely because it failed the validator, fell below the confidence floor, or
@@ -198,7 +216,7 @@ public sealed class FieldResolutionOrchestrator
         // differs from the bad value it was recovering from). Excluding it lets a lone credible
         // recovery win, while genuine divergence between two credible reads still abstains
         // (honesty over recall, per the design's disagreement gate).
-        var values = candidates.Where(c => IsCredible(c, ladder)).Select(c => c.Value).ToList();
+        var values = candidates.Where(c => IsCredible(c, ladder, validator)).Select(c => c.Value).ToList();
         if (values.Count < 2)
             return false;
 
@@ -217,7 +235,7 @@ public sealed class FieldResolutionOrchestrator
     /// triggers use to reject a value: it was found, it is not self-reported invalid-format, it
     /// meets the ladder's confidence floor, and it passes the ladder's validator (when present).
     /// </summary>
-    private static bool IsCredible<TValue>(FieldCandidate<TValue> candidate, FieldEscalationLadder ladder)
+    private static bool IsCredible<TValue>(FieldCandidate<TValue> candidate, FieldEscalationLadder ladder, IFieldValidator? validator)
     {
         if (!candidate.HasValue)
             return false;
@@ -225,7 +243,7 @@ public sealed class FieldResolutionOrchestrator
             return false;
         if (candidate.Score < ladder.ConfidenceFloor)
             return false;
-        if (ladder.Validator is not null && !ladder.Validator.IsValid(candidate.Value))
+        if (validator is not null && !validator.IsValid(candidate.Value))
             return false;
 
         return true;

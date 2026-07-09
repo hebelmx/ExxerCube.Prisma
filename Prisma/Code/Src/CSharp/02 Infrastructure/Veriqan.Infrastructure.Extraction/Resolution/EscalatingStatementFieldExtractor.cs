@@ -100,7 +100,10 @@ public sealed class EscalatingStatementFieldExtractor : IStatementFieldExtractor
         Result<StatementModel>? abort = null;
         var anyEscalated = false;
 
-        async Task<ExtractedField<TValue>> ResolveAsync<TValue>(FieldKind fieldKind, ExtractedField<TValue> positional)
+        async Task<ExtractedField<TValue>> ResolveAsync<TValue>(
+            FieldKind fieldKind,
+            ExtractedField<TValue> positional,
+            IFieldValidator? validatorOverride = null)
         {
             // Once aborted (a stage failed/was cancelled), stop calling the orchestrator for the
             // remaining fields — the result is discarded by the caller regardless.
@@ -108,7 +111,7 @@ public sealed class EscalatingStatementFieldExtractor : IStatementFieldExtractor
                 return positional;
 
             var result = await _orchestrator
-                .ResolveAsync(fieldKind, positional, pdf, corpus, budget, higherStages: null, cancellationToken)
+                .ResolveAsync(fieldKind, positional, pdf, corpus, budget, higherStages: null, validatorOverride, cancellationToken)
                 .ConfigureAwait(false);
 
             if (result.IsCancelled())
@@ -157,7 +160,16 @@ public sealed class EscalatingStatementFieldExtractor : IStatementFieldExtractor
             var product = await ResolveAsync(FieldKind.Product, periodSummary.Product).ConfigureAwait(false);
             var periodStart = await ResolveAsync(FieldKind.PeriodStart, periodSummary.PeriodStart).ConfigureAwait(false);
             var periodCutDate = await ResolveAsync(FieldKind.PeriodCutDate, periodSummary.PeriodCutDate).ConfigureAwait(false);
-            var paymentDueDate = await ResolveAsync(FieldKind.PaymentDueDate, periodSummary.PaymentDueDate).ConfigureAwait(false);
+
+            // Once the statement's own period cut date is resolved, PaymentDueDate's ladder
+            // validator is superseded — for this call only — by a period-relative instance
+            // (tighter than the static [2020, 2035] sanity window). When the cut date is missing
+            // or not a real extracted value, no override is passed and the ladder falls back to
+            // its own static-window PaymentDueDatePlausibilityValidator instance unchanged.
+            var paymentDueDateValidator = periodCutDate.Status == ExtractionStatus.Extracted
+                ? new PaymentDueDatePlausibilityValidator(periodCutDate.Value)
+                : null;
+            var paymentDueDate = await ResolveAsync(FieldKind.PaymentDueDate, periodSummary.PaymentDueDate, paymentDueDateValidator).ConfigureAwait(false);
             var dayCountPrinted = await ResolveAsync(FieldKind.DayCountPrinted, periodSummary.DayCountPrinted).ConfigureAwait(false);
             var pagoParaNoGenerarIntereses = await ResolveAsync(FieldKind.PagoParaNoGenerarIntereses, periodSummary.PagoParaNoGenerarIntereses).ConfigureAwait(false);
             var pagoMinimo = await ResolveAsync(FieldKind.PagoMinimo, periodSummary.PagoMinimo).ConfigureAwait(false);
