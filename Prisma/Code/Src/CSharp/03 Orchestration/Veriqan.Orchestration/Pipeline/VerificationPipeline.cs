@@ -200,6 +200,12 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         var catalogResult = await _referenceDataProvider
             .GetBundleAsync(submission.ContextKey, ct)
             .ConfigureAwait(false);
+        if (catalogResult.IsCancelled())
+        {
+            _logger.LogWarning("Pipeline cancelled during catalog pre-resolve for {FileName}", submission.FileName);
+            return ResultExtensions.Cancelled<VerificationOutcome>();
+        }
+
         if (catalogResult is { IsSuccessNotNull: true })
             catalogBundle = catalogResult.Value;
 

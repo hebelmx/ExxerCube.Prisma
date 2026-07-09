@@ -97,3 +97,63 @@ OCR-token catalog matcher (FuzzySharp, threshold 85, margin 5, abstains→BLOCKE
 - 2026-07-08 — S3.2 DONE + verified (Extraction 314/314, build 0/0) + committed/pushed `cf5da855`.
 - 2026-07-08 — S3.3 composition-mapped; owner ruled build-the-threading (informed of redundancy); split
   into S3.3a (extraction, behavior-neutral) + S3.3b (pipeline wiring). Terminal-abstain rule folded in.
+- 2026-07-08 — S3.3a DONE + verified (Extraction 329/329, Orchestration 129/129, Application 158/158,
+  build 0/0), committed/pushed `8d38d563`. Verified the one modified S3.2 test preserves intent (not a
+  weakening). Terminal-validator-abstain rule reviewed clean.
+- 2026-07-08 — S3.3b DONE (self-implemented, VerificationPipeline pre-resolves catalog → ExtractFullAsync).
+  Caught a 21-test breakage from ground truth (pipeline unit tests mock IVecReferenceDataProvider without
+  stubbing GetBundleAsync → null Result → NRE); fixed with ONE defensive line (`is { IsSuccessNotNull: true }`,
+  port-robustness) rather than churning 21 tests. Re-verified Orchestration 129/129 INCLUDING
+  VecChecklistDemoE2ETests (real COSTCO full-pipeline live-OCR demo) → demo verdicts unchanged. Committed
+  /pushed `fb00c4d9`.
+- 2026-07-08 — S3.1 started. Gold source = `SyntheticGoldManifest`/`SyntheticGoldManifestLoader` (per-field
+  ExpectedStatus incl. abstentions) over `Fixtures/PRP2/synthetic` corpus; synthetic specimens are
+  text-layer (positional Product → no native OCR) → honesty suite is deterministic + CI-gateable (NOT
+  LiveOcr). Delegated to dev (the `qa` BMAD persona is advisory-only — won't write code).
+- 2026-07-08 — S3.1 DONE + verified (Honesty 17/17, full Orchestration 147/147, build 0/0), committed
+  /pushed `3f976c47`. Reviewed the verdict-flip test's narrowed assertion — legitimate (a wrong Tasa
+  SHOULD fail its own CL-10; test proves NO unrelated check flips + signal doesn't swing), not a gutting.
+
+## Adversarial review (2 skeptics, phase boundary, 2026-07-08)
+
+Two independent reviewers (correctness/inert-code + honesty/over-abstention) attacked the 4 committed E3
+commits against the design doc. **Verdict: E3 is substantially complete + correct — no functional bug,
+clean build, DI-lifetime safe, honesty suite non-tautological (god's-eye gold, real non-vacuity guards).**
+The terminal-abstain rule can only turn fail→Missing, never fabricate a value in. Findings + disposition:
+
+- **F1 (Major) — end-to-end wiring proven by simulation.** S3.2 period-window + S3.3 extraction-stage
+  Product abort were proven by a unit test that hand-builds the validator, not one driving the real
+  `EscalatingStatementFieldExtractor` wiring. → **#1(b) Product already covered** by
+  `EscalatingExtractorProductCatalogGateTests` (reviewer missed it). **#1(a) PaymentDueDate → FIXED** by
+  new `EscalatingExtractorPaymentDueDateWindowTests` (this closure pass).
+- **F2 (Minor) — Stage 1b missing cancellation check** (CLAUDE.md pattern). → **FIXED** (explicit
+  `IsCancelled()` after the catalog pre-resolve).
+- **F3 (Minor–Major) — PaymentDueDate excluded from the S3.1 false-confidence metric** (one of the 4
+  design-named gating fields; no synthetic manifest tracks its gold). → **DEFERRED** (owner/E6): needs a
+  synthetic fixture carrying PaymentDueDate/PeriodCutDate gold. Partially compensated by F1(a)'s new
+  direct end-to-end abstain test. Logged here per "no silent deferral."
+- **A1/A2 (Low–Mod, NEW, verdict-safe) — poisoned-cut-date false-abstention.** A *misread* cut date
+  (status Extracted, wrong value) builds a garbage [cut,cut+60] window that can abstain a correct
+  positional PaymentDueDate. Reviewer confirmed it CANNOT flip a verdict (PaymentDueDate gates no
+  arithmetic; typography consumers degrade to InsufficientData). Worst case = marginal extraction-coverage-
+  floor tip to ExtractionGap; also CI-invisible (see F3). → **ACCEPTED/LOGGED** (bounded, verdict-safe).
+  Revisit if PaymentDueDate ever becomes arithmetic-gating.
+- **B1 (Mod, conditional, amplified by E3) — Product abstain → null → context-key fallback.** A nulled
+  (catalog-abstained) Product lets `VerificationPipeline` productToken fall through to
+  `ContextKey.ProductId`; if a caller supplied a valid product *hint*, the verdict runs on the hint
+  product the document never confirmed. Bounded: ProductId null by default → productToken "" → BLOCK
+  (honest); does NOT affect the demo (COSTCO resolves). → **LOGGED for owner** — pre-existing fallback
+  semantics amplified by E3; a guard ("document-unconfirmed product must not silently adopt the hint")
+  is an owner decision, out of E3 scope.
+- **B2 (HIGH residual, PRE-EXISTING, out of E3 scope) — the 16 money/rate verdict-gating fields
+  (Tasa/Cat/RESUMEN/NIVEL totals) have NO validator and NO ladder**, so a misread digit still reaches the
+  arithmetic rules → a false RED, the exact cardinal-rule violation. E3 correctly did NOT add inert
+  validators to ladder-less fields (the reconciliation above). → **THIS IS THE NEXT TARGET (E4/E5)** —
+  give those fields ladders + validators/checksums so abstention discipline reaches them. The single most
+  important honesty lever remaining.
+
+## E3 status: COMPLETE (pending F1(a) test verify + close-out commit)
+
+DoD met: 5-verdict-bar green suites (Extraction, Orchestration incl. live COSTCO demo, Application), build
+0/0, honesty CI suite in place, all owner-scoped stories delivered + adversarially reviewed. Deferred
+items (F3, A1, B1) logged above; B2 handed to E4/E5.
