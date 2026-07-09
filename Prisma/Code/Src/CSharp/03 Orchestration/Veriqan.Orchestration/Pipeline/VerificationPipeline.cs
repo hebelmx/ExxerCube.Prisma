@@ -12,6 +12,7 @@ using ExxerCube.Prisma.Veriqan.Application.Verdict;
 using ExxerCube.Prisma.Veriqan.Domain.Entities;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
 using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
@@ -184,10 +185,28 @@ internal sealed class VerificationPipeline : IVerificationPipeline
             submission.FileName,
             job.Id);
 
+        // Stage 1b — pre-resolve the tenant product catalog for the extraction-side Product gate
+        // (E3 S3.3b). The bundle is keyed by submission.ContextKey (institution/tenant), not by the
+        // yet-to-be-extracted product, so it resolves here with the same key Stage 4 binding uses.
+        // On success it lets Stage 2 abstain on an OCR-recovered Product that is not a catalog member
+        // (via IProductResolver — the SAME matcher the binder applies), pre-binding. On failure we
+        // pass null: extraction is then completely unchanged and the existing Stage 4 flow produces
+        // the same BLOCKED/UnknownProduct outcome as today. Stage 4 binding is left untouched (it
+        // re-resolves the bundle itself); the extra CSV-backed lookup is cheap and deterministic.
+        // Defensive: IVecReferenceDataProvider is a swappable port; a degenerate null/failed result
+        // must degrade to "no catalog" (extraction then behaves exactly as pre-E3, and Stage 4
+        // binding still produces the BLOCKED/UnknownProduct outcome) rather than fault the pipeline.
+        VecReferenceBundle? catalogBundle = null;
+        var catalogResult = await _referenceDataProvider
+            .GetBundleAsync(submission.ContextKey, ct)
+            .ConfigureAwait(false);
+        if (catalogResult is { IsSuccessNotNull: true })
+            catalogBundle = catalogResult.Value;
+
         // Stage 2 — Field Extraction
         Result<StatementModel> extractResult;
         using (PipelineActivitySource.StartActivity("pipeline.stage.extract"))
-            extractResult = await _extractor.ExtractFullAsync(submission.Pdf, ct)
+            extractResult = await _extractor.ExtractFullAsync(submission.Pdf, ct, catalogBundle)
                 .ConfigureAwait(false);
 
         if (extractResult.IsCancelled())
