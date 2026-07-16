@@ -127,13 +127,28 @@ an implausible positional value is downgraded to `Missing` there, mirroring the 
 Inert for every existing field (all empty-ladder fields carry `null` validator today) → behavior-neutral.
 Then Tasa/Cat/RESUMEN ladders stay honestly `PositionalOnly` **+ a validator**, no fake rungs.
 
-## Status (tracker tasks mirrored in TaskCreate)
+## Status (tracker tasks mirrored in TaskCreate) — EPIC CLOSED 2026-07-16
 
 - [x] **S-B2.0** wiring spike — DONE (verdict above)
-- [ ] **S-B2.0.5** orchestrator: positional short-circuit honors a registered validator (Option B, inert)
-- [ ] **S-B2.1** `TasaPlausibilityValidator` (fraction ∈ [0, 2.0]) + Tasa ladder (validator, empty rungs). No rung (Q2 refuted).
-- [ ] **S-B2.2** `CatPlausibilityValidator` (fraction band; phone-homonym caught by upper bound) + Cat ladder. No rung.
-- [ ] **S-B2.3** RESUMEN/NIVEL/DESGLOSE magnitude-sanity validators (11 money fields), NOT identity-abstain, sign only where definitionally non-negative.
+- [x] **S-B2.0.5** orchestrator: positional short-circuit honors a registered validator (Option B, inert) — `b2ab849a`
+- [x] **S-B2.1** `TasaPlausibilityValidator` (fraction ∈ [0, 2.0]) + Tasa ladder (validator, empty rungs). No rung (Q2 refuted). — `b2ab849a`
+- [x] **S-B2.2** `CatPlausibilityValidator` (fraction ∈ [0, 3.0]; phone-homonym caught by upper bound) + Cat ladder. No rung. — `b2ab849a`
+- [x] **S-B2.3** `MoneyMagnitudeValidator` (one reusable |value| ≤ MXN $100M, no sign constraint) on 11 RESUMEN/NIVEL/DESGLOSE fields, NOT identity-abstain. — `b2ab849a`
+- [x] **F1 fix** guard downgrades to `ExtractedInvalidFormat` not `Missing` (prevents CL-21 false-GREEN via implied-zero) — `40d907c3`
+
+**Final verification (ground truth):** Extraction + Validation builds 0/0 · Extraction.Tests 366 ·
+Validation.Tests 532 · Orchestration 147 · Application 158 — all green. Commits `ee5dad9c` (open) →
+`b2ab849a` (impl) → `40d907c3` (F1), all pushed to `Liv`.
+
+### Residual / accepted limitations (honest)
+- **Magnitude validators only catch GROSS misreads.** A small in-range misread (single transposed digit
+  under the ceiling / inside the rate band) still passes with confidence 1.0 → could still feed a false
+  verdict. This is the accepted "marginal value" the owner ruled the full sweep knowing about. Closing it
+  needs per-digit/positional confidence, which the extractor does not produce today (`ExtractedField.Found`
+  hardcodes confidence 1.0) — a separate, larger lever.
+- **No redundancy cross-check rungs** — S-B2.0 Q2 refuted any recoverable second text source for Tasa/Cat
+  in the current corpus. If a future corpus renders the §19 Ordinarios rate as real text, a Levenshtein/
+  Fuzzy recovery rung + Disagreement gate becomes viable (would then need `StageId.Levenshtein` wired).
 
 ## Adversarial review (2026-07-16, 3 skeptics, commit b2ab849a)
 
