@@ -101,6 +101,7 @@
       "reason": "S6.2.1 does not populate a movements table; DESGLOSE totals deferred to a later slice"
     }
   },
+  "confidenceExpectations": {},
   "movements": [],
   "arithmeticChecks": [
     {

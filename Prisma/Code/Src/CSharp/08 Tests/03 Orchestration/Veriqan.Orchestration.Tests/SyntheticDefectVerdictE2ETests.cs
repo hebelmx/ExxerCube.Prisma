@@ -346,4 +346,66 @@ public sealed class SyntheticDefectVerdictE2ETests
         summary.BlockedOutcome.ShouldNotBeNull(dump);
         summary.BlockedOutcome!.Reason.ShouldBe(BlockReason.InsufficientExtractionCoverage, dump);
     }
+
+    // -----------------------------------------------------------------------
+    // C1.0a make-or-break gate — the geometric CAT/TASA swap
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Epic C1.0a's make-or-break proof: <c>ExtractTasaAndCat</c> (PdfPigStatementFieldExtractor.cs
+    /// ~1245-1288) disambiguates CAT vs TASA by pure X-order with no label/column cross-check.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The 's-c1-swap' fixture transposes the two percent tokens (keeping 'sin IVA' between them,
+    /// exactly like the real baseline) so the extractor reads <c>Cat=0.2736</c> / <c>Tasa=0.2886</c>
+    /// — TRANSPOSED — at confidence <c>1.0</c> (the field's true identity, per the fixture's
+    /// god's-eye manifest <c>geometryDefect.trueValue</c>, is <c>Cat=0.2886</c> / <c>Tasa=0.2736</c>,
+    /// unchanged from the s6211 baseline).
+    /// </para>
+    /// <para>
+    /// CL-10 (<see cref="Prisma.Veriqan.Infrastructure.Validation.Rules.Cl10CatRule"/>) computes
+    /// <c>CAT = ((creditLine × Tasa + annualCommission) / creditLine) × 100</c> and compares it to
+    /// the extracted CAT within a 0.50-percentage-point legal tolerance. With the TRUE values
+    /// (creditLine=78000, Tasa=0.2736, Cat=0.2886 from the demo bundle's TC-BSSB account) the
+    /// computed CAT is ≈29.28%, extracted CAT is 28.86% — diff ≈0.42pp, comfortably inside
+    /// tolerance, so the baseline fixture legitimately PASSES CL-10. With the SWAPPED extraction
+    /// (Cat=0.2736, Tasa=0.2886) the computed CAT becomes ≈30.78% against an extracted 27.36% —
+    /// diff ≈3.42pp, far outside tolerance — so CL-10 FAILS. Both reads are reported at confidence
+    /// <c>1.0</c> (nothing today makes the swapped read look any less certain than the correct one)
+    /// — this is the "confident-WRONG, worse than abstain" failure class C1 exists to close.
+    /// </para>
+    /// <para>
+    /// This test intentionally does NOT touch the extractor, <c>ExtractedField</c>, or any scorer —
+    /// it proves the defect exists TODAY, on the unmodified pipeline, as the prerequisite ground
+    /// truth for the C1.0b separation spike and the C1.2 geometric-plausibility scorer.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public async Task Synthetic_C1Swap_FlipsCl10ToConfidentWrongFail()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        // Control: the unmodified s6211 baseline (true, untransposed CAT/TASA) must PASS CL-10 —
+        // i.e. CL-10 is neither a Fail nor an InsufficientData abstention. If this control itself
+        // doesn't pass, the "swap flips it to Fail" comparison below would be meaningless.
+        var baseline = await RunSyntheticFixtureAsync("s6211-baseline.pdf", ct);
+        var baselineDump =
+            $"'s6211-baseline.pdf': FailCheckIds=[{string.Join(", ", baseline.FailCheckIds)}]. " +
+            $"InsufficientDataCheckIds=[{string.Join(", ", baseline.InsufficientDataCheckIds)}].";
+        baseline.FailCheckIds.ShouldNotContain("CL-10", baselineDump);
+        baseline.InsufficientDataCheckIds.ShouldNotContain("CL-10", baselineDump);
+
+        // The swap: identical fixture except the two TASA/CAT percent tokens are transposed.
+        // CL-10 must now FAIL — confidently, not abstain — proving the geometric misread drives a
+        // false verdict rather than an honest "cannot verify".
+        var swapped = await RunSyntheticFixtureAsync("s-c1-swap.pdf", ct);
+        var swappedDump =
+            $"'s-c1-swap.pdf': FailCheckIds=[{string.Join(", ", swapped.FailCheckIds)}]. " +
+            $"InsufficientDataCheckIds=[{string.Join(", ", swapped.InsufficientDataCheckIds)}].";
+        swapped.FailCheckIds.ShouldContain("CL-10", swappedDump);
+        swapped.InsufficientDataCheckIds.ShouldNotContain(
+            "CL-10",
+            "CL-10 must be a confident FAIL, not an honest abstention — " + swappedDump);
+    }
 }

@@ -113,6 +113,7 @@
       "reason": "Image-only (rasterized) PDF extracts zero fields; the extraction-coverage floor (Stage 2b) short-circuits first with BlockReason.InsufficientExtractionCoverage before the text-layer floor is reached (ExtractionGap)."
     }
   },
+  "confidenceExpectations": {},
   "movements": [],
   "arithmeticChecks": [],
   "knownFixtureDefects": [

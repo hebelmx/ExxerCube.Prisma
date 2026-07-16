@@ -103,6 +103,16 @@
       "expectedStatus": "Extracted"
     }
   },
+  "confidenceExpectations": {
+    "Cat": {
+      "band": "high",
+      "min": 0.8
+    },
+    "Tasa": {
+      "band": "high",
+      "min": 0.8
+    }
+  },
   "movements": [
     {
       "opDate": "2025-07-05",

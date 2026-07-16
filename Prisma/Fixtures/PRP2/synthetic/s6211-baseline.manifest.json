@@ -99,6 +99,16 @@
       "reason": "S6.2.1 does not populate a movements table; DESGLOSE totals deferred to a later slice"
     }
   },
+  "confidenceExpectations": {
+    "Cat": {
+      "band": "high",
+      "min": 0.8
+    },
+    "Tasa": {
+      "band": "high",
+      "min": 0.8
+    }
+  },
   "movements": [],
   "arithmeticChecks": [
     {

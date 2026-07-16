@@ -3,6 +3,33 @@
   "generator": "scripts/veriqan-corpus/synth_gen.py",
   "specimens": [
     {
+      "id": "decoy-percent",
+      "pdf": "decoy-percent.pdf",
+      "manifest": "decoy-percent.manifest.json",
+      "profile": "dummievec",
+      "slice": "C1.0a",
+      "defect": "geometry-decoy-percent",
+      "description": "Spurious 3rd percent token appended after the true CAT/TASA pair (3-way token competition; extraction unaffected, an ambiguity signal only)"
+    },
+    {
+      "id": "missing-order-marker",
+      "pdf": "missing-order-marker.pdf",
+      "manifest": "missing-order-marker.manifest.json",
+      "profile": "dummievec",
+      "slice": "C1.0a",
+      "defect": "geometry-missing-order-marker",
+      "description": "'sin IVA' sibling marker removed; CAT/TASA values stay in their true X-order (extraction unaffected) — proves the sibling-marker signal (#1) is independent of the token-competition-count signal (#2)"
+    },
+    {
+      "id": "s-c1-swap",
+      "pdf": "s-c1-swap.pdf",
+      "manifest": "s-c1-swap.manifest.json",
+      "profile": "dummievec",
+      "slice": "C1.0a",
+      "defect": "geometry-swap",
+      "description": "CAT/TASA percent tokens transposed (sin IVA kept between them); ExtractTasaAndCat's pure X-order pick reads them WRONG at confidence 1.0 (true values in geometryDefect.trueValue) — the C1 make-or-break specimen, see SyntheticDefectVerdictE2ETests for the live confident-wrong CL-10 proof"
+    },
+    {
       "id": "s6211-abstain",
       "pdf": "s6211-abstain.pdf",
       "manifest": "s6211-abstain.manifest.json",

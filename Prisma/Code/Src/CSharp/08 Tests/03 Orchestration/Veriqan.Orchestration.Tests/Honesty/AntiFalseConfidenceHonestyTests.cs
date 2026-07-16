@@ -40,6 +40,14 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests.Honesty;
 /// normal CI gate (no <c>Category=LiveOcr</c> tag needed) — see the S3.1 return report for the
 /// full diagnostic transcript.
 /// </para>
+/// <para>
+/// <b>C1.0a addition (2026-07-16):</b> three adversarial <c>dummievec</c>-profile specimens
+/// (<c>s-c1-swap</c>, <c>missing-order-marker</c>, <c>decoy-percent</c>) were added to the corpus
+/// index — they only perturb the TASA/CAT percent-value line and print the product name
+/// positionally exactly like every other <c>s6211-*</c> specimen, so they do NOT escalate to the
+/// real OCR rung and are NOT added to <see cref="NativeOcrExcludedSpecimenIds"/>. The corpus total
+/// moved 13 to 16; the deterministic subset moved 10 to 13 (still 3 excluded).
+/// </para>
 /// </remarks>
 public sealed class AntiFalseConfidenceHonestyTests
 {
@@ -72,11 +80,11 @@ public sealed class AntiFalseConfidenceHonestyTests
     public void DeterministicCorpus_IsNonEmpty_AndExcludesExactlyTheKnownOcrSpecimens()
     {
         var all = SyntheticCorpusIndexLoader.Load(FixturesDir);
-        all.Count.ShouldBe(13, "corpus-manifest.json specimen count changed — re-run the OCR-provenance " +
+        all.Count.ShouldBe(16, "corpus-manifest.json specimen count changed — re-run the OCR-provenance " +
             "diagnostic (see class remarks) for any newly-added specimen before trusting this suite's exclusion list.");
 
         var deterministic = DeterministicSpecimens();
-        deterministic.Count.ShouldBe(10, "expected exactly 10 deterministic (non-OCR) specimens (13 total minus the 3 excluded).");
+        deterministic.Count.ShouldBe(13, "expected exactly 13 deterministic (non-OCR) specimens (16 total minus the 3 excluded).");
 
         foreach (var excludedId in NativeOcrExcludedSpecimenIds)
             all.ShouldContain(s => s.Id == excludedId, $"excluded specimen id '{excludedId}' no longer exists in the corpus index — stale exclusion.");

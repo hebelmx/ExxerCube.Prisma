@@ -13,16 +13,24 @@ Money/rate fields are text-layer (no digit noise); the real misread is GEOMETRIC
 - Gap-distance signal (#4) is **CUT**. Column signal (#3) is **binary dual-pass disagreement**, not continuous distance.
 - Corpus has ZERO adversarial specimens today → generator (C1.0a) is a **prerequisite**, not the final increment.
 
+## Baseline test counts (post-C1.0a — new floor for "bit-identical" gates)
+Extraction **369** (was 366; +3 golden roundtrip cases) · Validation **532** · Orchestration **151** (was 147; +4) · Application **158**.
+
 ## Status
 | # | Story | Status | Verify gate |
 |---|---|---|---|
-| C1.0a | Generator adversarial specimens + manifest ground truth | ☐ | `s-c1-swap` exists + proven confident-WRONG verdict through live pipeline |
-| C1.0b | Separation spike (MAKE-OR-BREAK) | ☐ blocked by C1.0a | train/holdout, min(clean)≥0.8, max(ambiguous)<0.8, margin≥0.15, ±3pt perturbation |
-| C1.1 | `ExtractedField.Found` confidence overload | ☐ (parallel w/ C1.0a) | Extraction 366 / Validation 532 / Orchestration 147 / Application 158 — BIT-IDENTICAL |
-| C1.2 | `GeometricPlausibilityScorer` + signals in `ExtractTasaAndCat` (DARK) | ☐ blocked by C1.0b, C1.1 | scorer unit + calibration green; flag-off byte-identical |
+| C1.0a | Generator adversarial specimens + manifest ground truth | ✅ done (`<pending commit>`) | `s-c1-swap` proven confident-WRONG through live pipeline (CL-10 flips Pass→confident Fail) — VERIFIED |
+| C1.0b | Separation spike (MAKE-OR-BREAK) | ☐ IN PROGRESS NEXT | train/holdout, min(clean)≥0.8, max(ambiguous)<0.8, margin≥0.15, ±3pt perturbation |
+| C1.1 | `ExtractedField.Found` confidence overload | ✅ done (`4af169e5`) | bit-identical green — VERIFIED |
+| C1.2 | `GeometricPlausibilityScorer` + signals in `ExtractTasaAndCat` (DARK) | ☐ blocked by C1.0b | scorer unit + calibration green; flag-off byte-identical |
 | C1.3 | Arm Tasa/Cat via verdict-diff harness | ☐ blocked by C1.2 | 5 demo verdicts identical off/on; `s-c1-swap` 6th case flips → InsufficientData |
 | C1.4 | Extend to `ScanResumenColumn` (11 money fields) | ☐ blocked by C1.3 | decoy-resumen + realbanamex decoy calibrated-then-armed |
 | C1.5 | Architecture-enforcement test | ☐ blocked by C1.4 | every scored field ↔ calibration entry ↔ specimen; Confidence≥0.8 sweep |
+
+## ⚠️ CRITICAL FINDING from C1.0a (gates C1.0b design) — SEPARABILITY
+The `s-c1-swap` fixture as built = `"27.36% sin IVA 28.86%"` (numbers transposed, `sin IVA` kept BETWEEN the two `%` tokens — same structure as baseline `"28.86% sin IVA 27.36%"`). This **proves the confident-wrong VERDICT exists** (CL-10 flips), BUT the two layouts are **geometrically identical** — `sin IVA` is equidistant, token count is 2, columns align — so **NO geometric signal separates them.** The party's load-bearing signal (sibling `sin IVA`) can only catch a swap if the marker TRACKS the true CAT (i.e. a realistic swap displaces `sin IVA` off the mis-picked leftmost token). 
+**⇒ C1.0b's FIRST job:** decide whether a *realistic* CAT/TASA swap displaces the `sin IVA` marker (per the party's signal intent — `sin IVA` legally qualifies CAT). If yes, build/calibrate a marker-displaced swap variant (e.g. `"27.36% 28.86% sin IVA"`) that is BOTH faithful to real Banamex layout AND geometrically separable (margin≥0.15). If the only realistic swap is geometrically invisible → **STOP + escalate to owner** (lever not viable via geometry alone). Do NOT shop for a passing fixture; justify layout from the realbanamex reference. Keep the current central-`sin IVA` `s-c1-swap` as a negative control ("geometrically-invisible swaps exist").
+Deferred by C1.0a: `decoy-resumen-amount` (belongs in C1.4).
 
 ## Key file map
 - Generator: `scripts/veriqan-corpus/synth_gen.py` → `Prisma/Fixtures/PRP2/synthetic/corpus-manifest.json`

@@ -286,6 +286,15 @@ def build_manifest() -> dict[str, Any]:
                 "reason": "S6.2.1 does not populate a movements table; DESGLOSE totals deferred to a later slice",
             },
         },
+        # C1.0a — baseline confidence floor (design doc "C1 intended-solution design"
+        # decision 3): a clean, unambiguous positional pick must score >= 0.8 once the
+        # geometric-plausibility scorer (C1.2) is armed. Recorded here now so the C1.0b
+        # separation spike has a machine-readable floor for every clean specimen, not
+        # just the adversarial ones.
+        "confidenceExpectations": {
+            "Cat": {"band": "high", "min": 0.8},
+            "Tasa": {"band": "high", "min": 0.8},
+        },
         "movements": [],
         # arithmeticChecks reintroduced at S6.2.3 (design §6.2): the clean baseline
         # PASSES both arithmetic identities — the verdict-level test asserts CL-21/CL-22
@@ -489,6 +498,13 @@ def build_manifest_s622() -> dict[str, Any]:
                 "reason": "S6.2.2 does not populate a movements table; DESGLOSE totals deferred to a later slice (same as S6.2.1)",
             },
         },
+        # C1.0a — baseline confidence floor (Mary's non-negotiable: the realbanamex
+        # LEFT-COLUMN code path must calibrate on its own, not only via dummievec). See
+        # the matching comment on build_manifest() for the design authority.
+        "confidenceExpectations": {
+            "Cat": {"band": "high", "min": 0.8},
+            "Tasa": {"band": "high", "min": 0.8},
+        },
         "movements": [],
         "knownFixtureDefects": [],
     }
@@ -653,6 +669,9 @@ def build_manifest_s6211_variant(variant: str) -> dict[str, Any]:
                 "(Stage 2b) short-circuits first with BlockReason.InsufficientExtractionCoverage "
                 "before the text-layer floor is reached (ExtractionGap).")
         manifest["arithmeticChecks"] = []  # rules never run — no arithmetic outcome to assert
+        # C1.0a: a "high confidence expected" floor makes no sense for a field that's
+        # NotExtracted in this variant — drop it rather than carry a misleading claim.
+        manifest["confidenceExpectations"] = {}
         manifest["knownFixtureDefects"] = [
             {"checkId": None, "expectedOutcome": "ExtractionGap",
              "reason": "Image-only PDF extracts 0 fields → extraction-coverage floor (Stage 2b, "
@@ -663,6 +682,11 @@ def build_manifest_s6211_variant(variant: str) -> dict[str, Any]:
         # TASA/CAT block omitted → Tasa+Cat NotExtracted; CL-21/CL-22 operands untouched.
         manifest["fields"]["Tasa"] = not_extracted("TASA/CAT block deliberately omitted (synthetic-only honest-abstention test).")
         manifest["fields"]["Cat"] = not_extracted("TASA/CAT block deliberately omitted (synthetic-only honest-abstention test).")
+        # C1.0a: Tasa/Cat are NotExtracted here, so the baseline's "high confidence
+        # expected" floor for them no longer applies — drop those two entries.
+        manifest["confidenceExpectations"] = {
+            k: v for k, v in manifest["confidenceExpectations"].items() if k not in ("Tasa", "Cat")
+        }
         manifest["arithmeticChecks"] = [
             _arith("CL-21", "Pass", "Tasa/Cat are not CL-21 operands; arithmetic identity holds."),
             _arith("CL-22", "Pass", "Tasa/Cat are not CL-22 operands; arithmetic identity holds."),
@@ -1320,6 +1344,195 @@ def _write_s71_header_ocr(output_dir: Path) -> None:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# C1.0a — Adversarial GEOMETRY specimens for the TASA/CAT % band
+# ═══════════════════════════════════════════════════════════════════════════
+# Additive: nothing here mutates PAGE1_TOKENS / build_pdf() / build_manifest(), so the
+# S6.2.1 Dummie-VEC baseline geometry is unaffected. Each variant is a deterministic
+# single-token transform of the s6211 baseline's TASA/CAT value line (design authority:
+# docs/planning-artifacts/SCOPING-veriqan-c1-geometric-extraction-confidence.md, "C1
+# intended-solution design", story C1.0a).
+#
+# WHY these specimens exist: ExtractTasaAndCat (PdfPigStatementFieldExtractor.cs
+# ~1245-1288) disambiguates CAT vs TASA PURELY by X-order — the leftmost '%' token in
+# the value band below the labels is CAT, the next is TASA. There is no label/column
+# cross-check. On the text layer a digit can't be garbled (PdfPig reads exact glyphs),
+# so the only way this heuristic fails is GEOMETRIC: the wrong token sits leftmost.
+#
+# GOD'S-EYE `fields` CONTRACT (load-bearing — read before touching `fields` below):
+#   For 'missing-order-marker' and 'decoy-percent' the extractor's positional read is
+#   STILL CORRECT (Cat=0.2886 / Tasa=0.2736, matching the s6211 baseline) — these two
+#   specimens only make the read geometrically LESS TRUSTWORTHY (a future confidence
+#   scorer should mark them low-band); they do NOT flip today's extracted value.
+#   `fields.Cat` / `fields.Tasa` therefore hold the TRUE (== actually-extracted) value,
+#   exactly like every other specimen in this corpus.
+#
+#   For 'swap' the extractor's positional read is WRONG: it returns Cat=0.2736 /
+#   Tasa=0.2886 (transposed) at confidence 1.0 — a genuine extraction-fidelity defect of
+#   the CURRENT, unmodified extractor, NOT a printed-on-the-page data error (contrast
+#   with the S6.2.3 'math' variant, where the wrong number really is what's printed).
+#   `SyntheticGoldenRoundTripTests.AssertGoldenRoundTripAsync` (Extraction.Tests)
+#   asserts `fields.<name>.value` against the extractor's ACTUAL output for every
+#   specimen indexed in corpus-manifest.json — so `fields.Cat` / `fields.Tasa` here
+#   MUST hold the actually-extracted (transposed, WRONG) values, or registering this
+#   specimen in CORPUS_SPECIMENS would break that unrelated, already-green suite. The
+#   GOD'S-EYE TRUE value (what the document's real CAT/TASA are — matching the s6211
+#   baseline: Cat=0.2886 / Tasa=0.2736) is instead carried in the new
+#   `geometryDefect.trueValue` block below — never silently conflated with `fields`.
+#   The live-pipeline proof that this transposition is a CONFIDENT-WRONG verdict (not
+#   just a wrong number) lives in Orchestration.Tests
+#   (`SyntheticDefectVerdictE2ETests.Synthetic_C1Swap_FlipsCl10ToConfidentWrongFail`) —
+#   the golden round-trip only proves extraction fidelity, deliberately including its
+#   bugs; it is not, and cannot be, the make-or-break proof for this specimen.
+
+_C1_TASACAT_BASELINE_TEXT = "28.86% sin IVA 27.36%"
+
+C1_GEOMETRY_VARIANTS = ("swap", "missing-order-marker", "decoy-percent")
+
+_C1_TASACAT_VARIANT_TEXT: dict[str, str] = {
+    # True Cat=28.86% / Tasa=27.36% (unchanged from baseline) but the two percent
+    # tokens are transposed in X-order with 'sin IVA' kept between them —
+    # ExtractTasaAndCat's pure X-order pick reads Cat=27.36% / Tasa=28.86% (WRONG),
+    # both at confidence 1.0.
+    "swap": "27.36% sin IVA 28.86%",
+    # 'sin IVA' removed entirely; the two percent values stay in their TRUE X-order
+    # (Cat still leftmost, Tasa still rightmost) so extraction is UNCHANGED/correct —
+    # proves the sibling-marker signal is independent of the token-count signal
+    # (design decision 1: signal #1 sin IVA presence != signal #2 token count).
+    "missing-order-marker": "28.86% 27.36%",
+    # A spurious 3rd '%' token appended after the true pair (a plausible on-statement
+    # "IVA 16.00%" mention). pctTokens sorted by X are [28.86, 27.36, 16.00] — the
+    # extractor still picks index 0/1 correctly (Cat/Tasa unchanged), but a 3-way
+    # token competition is exactly what the competition-count signal should flag.
+    "decoy-percent": "28.86% sin IVA 27.36% IVA 16.00%",
+}
+
+_C1_DECOY_TOKEN: dict[str, str | None] = {
+    "swap": "sin IVA",
+    "missing-order-marker": None,
+    "decoy-percent": "16.00%",
+}
+
+_C1_GEOMETRY_DEFECT_TYPE: dict[str, str] = {
+    "swap": "cat-tasa-swap",
+    "missing-order-marker": "missing-order-marker",
+    "decoy-percent": "decoy-percent",
+}
+
+# Specimen id == pdf/manifest filename stem. 's-c1-swap' matches the id the C1 tracker
+# and the make-or-break Orchestration.Tests case both name explicitly; the other two
+# variants use their variant slug verbatim (no extra prefix needed — they are
+# unambiguous within the standing corpus index).
+_C1_VARIANT_ID: dict[str, str] = {
+    "swap": "s-c1-swap",
+    "missing-order-marker": "missing-order-marker",
+    "decoy-percent": "decoy-percent",
+}
+
+
+def _c1_variant_tokens(variant: str) -> list[tuple[float, float, str]]:
+    """Return the page-1 token list for a C1 geometry variant (transform of
+    PAGE1_TOKENS, substituting ONLY the TASA/CAT value line — every other baseline
+    token, including the CAT/TASA LABEL row itself, is untouched)."""
+    if variant not in C1_GEOMETRY_VARIANTS:
+        raise ValueError(f"Unknown C1 geometry variant {variant!r}; expected one of {C1_GEOMETRY_VARIANTS}")
+    text = _C1_TASACAT_VARIANT_TEXT[variant]
+    return [
+        (x, b, text if txt == _C1_TASACAT_BASELINE_TEXT else txt)
+        for (x, b, txt) in PAGE1_TOKENS
+    ]
+
+
+def build_pdf_c1_variant(variant: str) -> "fitz.Document":
+    """Build one C1.0a geometry-adversarial PDF off the s6211 Dummie-VEC baseline
+    layout (540x780, right-column) — same page-1 geometry as the baseline everywhere
+    except the single TASA/CAT value line."""
+    doc = fitz.open()
+    page1 = doc.new_page(width=PAGE_WIDTH_PT, height=PAGE_HEIGHT_PT)
+    for x, bottom, text in _c1_variant_tokens(variant):
+        put(page1, x, bottom, text)
+    for page_num in range(2, PAGE_COUNT + 1):
+        page = doc.new_page(width=PAGE_WIDTH_PT, height=PAGE_HEIGHT_PT)
+        put(page, 20.0, PAGE_HEIGHT_PT - 30.0, f"C1.0a synthetic filler — page {page_num}")
+    return doc
+
+
+def build_manifest_c1_variant(variant: str) -> dict[str, Any]:
+    """God's-eye manifest for one C1.0a geometry variant — baseline overlaid with the
+    geometry defect. See the module-level comment above this section for the
+    `fields` vs. `geometryDefect.trueValue` contract (load-bearing for 'swap' — do
+    NOT "fix" fields.Cat/Tasa to the true value without re-reading that comment)."""
+    if variant not in C1_GEOMETRY_VARIANTS:
+        raise ValueError(f"Unknown C1 geometry variant {variant!r}; expected one of {C1_GEOMETRY_VARIANTS}")
+
+    specimen_id = _C1_VARIANT_ID[variant]
+    true_cat = 0.2886
+    true_tasa = 0.2736
+
+    manifest = build_manifest()
+    manifest["pdf"] = dict(manifest["pdf"])
+    manifest["pdf"]["fileName"] = f"{specimen_id}.pdf"
+    manifest["fields"] = dict(manifest["fields"])
+
+    if variant == "swap":
+        # Extractor's ACTUAL (transposed, WRONG) read — see the module-level contract
+        # comment. This is NOT the document's true CAT/TASA; see geometryDefect.trueValue.
+        manifest["fields"]["Cat"] = {"value": true_tasa, "clrType": "decimal", "expectedStatus": "Extracted"}
+        manifest["fields"]["Tasa"] = {"value": true_cat, "clrType": "decimal", "expectedStatus": "Extracted"}
+    # else: 'missing-order-marker' / 'decoy-percent' — Cat/Tasa are already the true
+    # (== actually-extracted) baseline values inherited from build_manifest() above.
+
+    manifest["geometryDefect"] = {
+        "type": _C1_GEOMETRY_DEFECT_TYPE[variant],
+        "decoyToken": _C1_DECOY_TOKEN[variant],
+        "trueValue": {"Cat": true_cat, "Tasa": true_tasa},
+    }
+    # Every C1.0a variant is designed to be geometrically ambiguous — the future
+    # scorer (C1.2) should score Tasa/Cat low-band on all three, even though only
+    # 'swap' actually flips today's extracted value.
+    manifest["confidenceExpectations"] = {
+        "Cat": {"band": "low"},
+        "Tasa": {"band": "low"},
+    }
+    # Tasa/Cat play no role in CL-21/CL-22's operands (Pago/Saldo money fields); the
+    # geometry defect is confined to the % band, so the baseline's arithmetic outcome
+    # is unaffected by every C1 variant, including 'swap'.
+    manifest["arithmeticChecks"] = [
+        _arith("CL-21", "Pass", "Tasa/Cat geometry defect does not touch CL-21's money-field operands."),
+        _arith("CL-22", "Pass", "Tasa/Cat geometry defect does not touch CL-22's money-field operands."),
+    ]
+    manifest["knownFixtureDefects"] = [
+        {"field": "Cat", "reason": "ExtractTasaAndCat picks CAT/TASA by pure X-order with no label/"
+         "column disambiguation; this specimen transposes the two percent tokens (keeping 'sin IVA' "
+         "between them) so the extractor reads Cat=0.2736 (should be 0.2886) at confidence 1.0. See "
+         "geometryDefect.trueValue for the correct identity."},
+        {"field": "Tasa", "reason": "Same transposition: the extractor reads Tasa=0.2886 (should be "
+         "0.2736) at confidence 1.0. See geometryDefect.trueValue for the correct identity, and "
+         "SyntheticDefectVerdictE2ETests for the live-pipeline proof that this drives CL-10 from a "
+         "legitimate Pass to a confident-WRONG Fail."},
+    ] if variant == "swap" else []
+
+    return manifest
+
+
+def _write_c1_geometry_variants(output_dir: Path) -> None:
+    for variant in C1_GEOMETRY_VARIANTS:
+        specimen_id = _C1_VARIANT_ID[variant]
+
+        doc = build_pdf_c1_variant(variant)
+        pdf_path = output_dir / f"{specimen_id}.pdf"
+        doc.save(str(pdf_path), garbage=4, deflate=True)
+        doc.close()
+        print(f"Wrote {pdf_path} ({pdf_path.stat().st_size} bytes)")
+
+        manifest = build_manifest_c1_variant(variant)
+        manifest_path = output_dir / f"{specimen_id}.manifest.json"
+        with open(manifest_path, "w", encoding="utf-8") as f:
+            json.dump(manifest, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+        print(f"Wrote {manifest_path}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # S6.2.6 — Standing corpus index (batch runner + corpus-manifest.json)
 # ═══════════════════════════════════════════════════════════════════════════
 # A single hardcoded table is the source of truth for what the 13-specimen
@@ -1460,6 +1673,39 @@ CORPUS_SPECIMENS: list[dict[str, Any]] = [
                         "BANAMEX' banner in the top-30% header band (resolved-identity manifest "
                         "block headerOcrProduct, consumed by a LiveOcr test, not the fields gate)",
     },
+    {
+        "id": "s-c1-swap",
+        "pdf": "s-c1-swap.pdf",
+        "manifest": "s-c1-swap.manifest.json",
+        "profile": "dummievec",
+        "slice": "C1.0a",
+        "defect": "geometry-swap",
+        "description": "CAT/TASA percent tokens transposed (sin IVA kept between them); "
+                        "ExtractTasaAndCat's pure X-order pick reads them WRONG at confidence 1.0 "
+                        "(true values in geometryDefect.trueValue) — the C1 make-or-break specimen, "
+                        "see SyntheticDefectVerdictE2ETests for the live confident-wrong CL-10 proof",
+    },
+    {
+        "id": "missing-order-marker",
+        "pdf": "missing-order-marker.pdf",
+        "manifest": "missing-order-marker.manifest.json",
+        "profile": "dummievec",
+        "slice": "C1.0a",
+        "defect": "geometry-missing-order-marker",
+        "description": "'sin IVA' sibling marker removed; CAT/TASA values stay in their true X-order "
+                        "(extraction unaffected) — proves the sibling-marker signal (#1) is independent "
+                        "of the token-competition-count signal (#2)",
+    },
+    {
+        "id": "decoy-percent",
+        "pdf": "decoy-percent.pdf",
+        "manifest": "decoy-percent.manifest.json",
+        "profile": "dummievec",
+        "slice": "C1.0a",
+        "defect": "geometry-decoy-percent",
+        "description": "Spurious 3rd percent token appended after the true CAT/TASA pair (3-way "
+                        "token competition; extraction unaffected, an ambiguity signal only)",
+    },
 ]
 
 
@@ -1528,6 +1774,7 @@ def main() -> int:
         _write_s6211_variants(OUTPUT_DIR)  # S6.2.3 defect variants (math/font/scanned/abstain)
         _write_s6211_variance(OUTPUT_DIR)  # S6.2.4 variance variants (var-a/b/c + edge-band/label)
         _write_s6211_desglose(OUTPUT_DIR)  # S6.2.5 populated DESGLOSE movements table + totals
+        _write_c1_geometry_variants(OUTPUT_DIR)  # C1.0a adversarial TASA/CAT geometry specimens
     if args.profile in ("realbanamex", "all"):
         _write_realbanamex(OUTPUT_DIR)
         _write_s71_header_ocr(OUTPUT_DIR)  # S7.1: header-image OCR product fixture
