@@ -94,6 +94,37 @@ public sealed class FieldEscalationLadderRegistry : IFieldEscalationLadderRegist
             ConfidenceFloor: 0.0,
             Rungs: [new FieldEscalationRung(StageId.HeaderImageOcr, EscalationTrigger.StatusGate)]);
 
+        // B2 — plausibility validators on empty ladders; armed via the positional-short-circuit
+        // guard, no recovery rung (no recoverable second source, spike-refuted). Tasa/Cat and the
+        // 11 RESUMEN/NIVEL/DESGLOSE money fields each get a range/magnitude validator so a GROSS
+        // misread downgrades to Missing/InsufficientData instead of silently gating a compliance
+        // verdict on garbage.
+        table[FieldKind.Tasa] = new FieldEscalationLadder(
+            FieldKind.Tasa, ConfidenceFloor: 0.0, Rungs: [], Validator: new TasaPlausibilityValidator());
+
+        table[FieldKind.Cat] = new FieldEscalationLadder(
+            FieldKind.Cat, ConfidenceFloor: 0.0, Rungs: [], Validator: new CatPlausibilityValidator());
+
+        FieldKind[] moneyFields =
+        [
+            FieldKind.AdeudoPeriodoAnterior,
+            FieldKind.CargosRegularesNoMeses,
+            FieldKind.CargosComprasAMesesCapital,
+            FieldKind.MontoIntereses,
+            FieldKind.MontoComisiones,
+            FieldKind.IvaInteresesYComisiones,
+            FieldKind.PagosYAbonos,
+            FieldKind.SaldoCargosRegulares,
+            FieldKind.SaldoCargosAMeses,
+            FieldKind.TotalCargos,
+            FieldKind.TotalAbonos,
+        ];
+        foreach (var moneyField in moneyFields)
+        {
+            table[moneyField] = new FieldEscalationLadder(
+                moneyField, ConfidenceFloor: 0.0, Rungs: [], Validator: new MoneyMagnitudeValidator());
+        }
+
         return table;
     }
 }

@@ -17,9 +17,12 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Resolution;
 /// doc, "Architecture — per-field resolver pipeline").
 /// </summary>
 /// <remarks>
-/// With an empty ladder — the case for every <see cref="FieldKind"/> as of E1 — this returns the
-/// stage-1 field completely unchanged without constructing any candidate machinery, so E1 is
-/// behavior-neutral by construction rather than by coincidence.
+/// With an empty ladder and no registered validator — the case for every <see cref="FieldKind"/>
+/// as of E1 — this returns the stage-1 field completely unchanged without constructing any
+/// candidate machinery, so E1 is behavior-neutral by construction rather than by coincidence. B2
+/// adds one exception: an empty-rung ladder that DOES carry a validator (e.g. a money/rate
+/// plausibility gate) still lets that validator downgrade an implausible positional value to
+/// <see cref="ExtractedField{T}.Missing"/> — see the guard inside the empty-rung branch below.
 /// </remarks>
 public sealed class FieldResolutionOrchestrator
 {
@@ -104,6 +107,25 @@ public sealed class FieldResolutionOrchestrator
             // The dominant E1 path: no rung is registered for this field, so the positional
             // result is final. No candidate, context, or corpus machinery is constructed —
             // the PDF is never re-parsed for a field that never escalates.
+            //
+            // B2: a validator registered on this empty-rung ladder (validatorOverride ?? the
+            // ladder's own Validator) still gets the final say on the positional value, mirroring
+            // the terminal-validator-abstain rule below for the escalating path — there is no
+            // rung to recover through here, so an implausible positional value can only ever be
+            // downgraded to Missing, never replaced. This is the ONLY new behavior in this
+            // branch: when no validator is registered (every field before B2), the `validator is
+            // not null` guard keeps this completely inert and the branch returns
+            // positionalField unchanged, exactly as before.
+            var shortCircuitValidator = validatorOverride ?? ladder.Validator;
+            if (shortCircuitValidator is not null
+                && positionalField.Status != ExtractionStatus.NotExtracted
+                && !shortCircuitValidator.IsValid(positionalField.Value))
+            {
+                return Result<ExtractedField<TValue>>.WithSuccess(
+                    ExtractedField<TValue>.Missing(
+                        positionalField.Locator, new ExtractionProvenance(positionalField.Provenance.Stage)));
+            }
+
             return Result<ExtractedField<TValue>>.WithSuccess(positionalField);
         }
 

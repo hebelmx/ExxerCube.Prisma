@@ -103,12 +103,37 @@ or does `PdfPigStatementFieldExtractor` write straight onto `PeriodSummary`, byp
 bypasses, adding a ladder validator is theater and the abstain must be applied where the value is
 actually produced. Verdict + real repair point recorded before S-B2.1 starts.
 
+## S-B2.0 spike VERDICT (2026-07-16, Explore, code-cited) — DONE
+
+**Q1 — Tasa/Cat/RESUMEN DO flow through `FieldResolutionOrchestrator.ResolveAsync`.**
+`VeriqanExtractionExtensions.cs:80-84` registers the production `IStatementFieldExtractor` as
+`EscalatingStatementFieldExtractor` (wraps `PdfPigStatementFieldExtractor` as `_inner`); the only
+production consumer is `VerificationPipeline.cs:215` → its `PeriodSummary` is what every rule reads
+(§19 at `Section19InterestPerRowRule.cs:323`). The decorator routes ALL 16 fields through
+`ResolveAsync` (`EscalatingStatementFieldExtractor.cs:198-212`), not just PaymentDueDate/Product.
+**THE TRAP:** the terminal-abstain (line 178) is only reached when `ladder.Rungs.Count > 0`. Every
+target field is `PositionalOnly` (0 rungs) → short-circuits at `FieldResolutionOrchestrator.cs:102-108`
+and returns the positional value **UNCHECKED**. A validator alone on the ladder is theater.
+
+**Q2 — NO recoverable second text source for Tasa OR Cat.** §19 "Ordinarios" rate is `NA`/absent in
+every fixture (Dummie VEC, real Banamex, s6211); each rate + CAT appears exactly once (header only).
+Direct rerun of the E2.3 refutation. → **No recovery rungs. Plausibility validators only.**
+
+**DESIGN DECISION (orchestrator, 2026-07-16): Option B, not a phantom rung.** Registration-only would
+force a fake `StatusGate` rung on an unregistered `StageId` (warning-log noise, dishonest semantics).
+Instead: a ~6-line, inert-by-construction guard in the `Rungs.Count == 0` short-circuit
+(`FieldResolutionOrchestrator.cs:102-108`) that honors a registered validator (or per-call override) —
+an implausible positional value is downgraded to `Missing` there, mirroring the terminal-abstain rule.
+Inert for every existing field (all empty-ladder fields carry `null` validator today) → behavior-neutral.
+Then Tasa/Cat/RESUMEN ladders stay honestly `PositionalOnly` **+ a validator**, no fake rungs.
+
 ## Status (tracker tasks mirrored in TaskCreate)
 
-- [ ] **S-B2.0** wiring spike — real call path for Tasa/Cat/RESUMEN → compliance rules (BLOCKS all)
-- [ ] **S-B2.1** Tasa plausibility validator (+ recovery rung iff spike shows recoverable 2nd source)
-- [ ] **S-B2.2** Cat plausibility + homonym-disambiguation validator (+ recovery rung iff spike)
-- [ ] **S-B2.3** RESUMEN/NIVEL/DESGLOSE plausibility validators (non-negativity/magnitude, NOT identity-abstain)
+- [x] **S-B2.0** wiring spike — DONE (verdict above)
+- [ ] **S-B2.0.5** orchestrator: positional short-circuit honors a registered validator (Option B, inert)
+- [ ] **S-B2.1** `TasaPlausibilityValidator` (fraction ∈ [0, 2.0]) + Tasa ladder (validator, empty rungs). No rung (Q2 refuted).
+- [ ] **S-B2.2** `CatPlausibilityValidator` (fraction band; phone-homonym caught by upper bound) + Cat ladder. No rung.
+- [ ] **S-B2.3** RESUMEN/NIVEL/DESGLOSE magnitude-sanity validators (11 money fields), NOT identity-abstain, sign only where definitionally non-negative.
 
 ## Log
 
