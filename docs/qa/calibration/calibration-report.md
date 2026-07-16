@@ -1,6 +1,6 @@
 ﻿# Veriqan Corpus Calibration Report
 
-**Generated:** 2026-07-16 21:44 UTC  
+**Generated:** 2026-07-16 22:14 UTC  
 **Corpus size:** 3 specimen(s)  
 **KnownGood:** 0 · **KnownSynthetic:** 3 (non-compliant placeholders — NOT compliance evidence) · **KnownBroken:** 0
 

@@ -255,6 +255,17 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Fixtures\synthetic\decoy-percent.manifest.json</Link>
     </Content>
+    <!-- C1.0b separation-spike realistic swap: 'sin IVA' displaced off the extractor's
+         (wrong) CAT pick, unlike the geometrically-invisible 's-c1-swap' negative control
+         (scripts/veriqan-corpus/synth_gen.py). -->
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\s-c1-swap-displaced.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\s-c1-swap-displaced.pdf</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\s-c1-swap-displaced.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\s-c1-swap-displaced.manifest.json</Link>
+    </Content>
   </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">
     <ProjectCapability Include="DiagnoseCapabilities" />

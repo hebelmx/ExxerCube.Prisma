@@ -13,16 +13,20 @@ Money/rate fields are text-layer (no digit noise); the real misread is GEOMETRIC
 - Gap-distance signal (#4) is **CUT**. Column signal (#3) is **binary dual-pass disagreement**, not continuous distance.
 - Corpus has ZERO adversarial specimens today → generator (C1.0a) is a **prerequisite**, not the final increment.
 
-## Baseline test counts (post-C1.0a — new floor for "bit-identical" gates)
-Extraction **369** (was 366; +3 golden roundtrip cases) · Validation **532** · Orchestration **151** (was 147; +4) · Application **158**.
+## Baseline test counts (post-C1.0b — new floor for "bit-identical" gates)
+Extraction **370** (366 +4 golden roundtrip cases) · Validation **532** · Orchestration **165** (147 +4 C1.0a, +14 C1.0b spike) · Application **158**. Run via bare `net10.0/` DLL (freshest output dir), not `Debug/net10.0/`.
+
+## ✅ C1.0b SPIKE VERDICT = GO (settled mechanism for C1.2 to inherit)
+Margin **0.35** (min clean 1.000 − max ambiguous 0.650 ≥ 0.15), proven on a train/holdout split, robust to ±3pt jitter (50 trials). **Signals (multiplicative, independent):** #1 **sibling/order-marker rank-adjacency** — is `sin`+`IVA` the two words immediately after the CAT-picked token in Left-order, before the TASA pick? (LOAD-BEARING; catches the marker-displaced swap). #2 **competition count >2** (decoy only; inert for the swap). **Constants:** `SiblingAbsentPenalty=0.55`, `CompetitionExcessPenalty=0.65`. **Settled: penalty-factor, NOT gate** (decoy-percent's `band:low` ground truth rules out a gate). **C1.2 MUST use rank/ordinal adjacency, not edge-distance** (edge-gap ~2.2pt < ±3pt jitter → memorized/fragile). Prototype: `Calibration/GeometricPlausibilityScorerPrototype.cs` + `SpikeBandLocator.cs` + `C1_0b_SeparationSpikeTests.cs` (14 tests).
+**⚠️ CARRY-FORWARD for C1.3:** the lever catches *marker-displaced* swaps (`s-c1-swap-displaced`), NOT the geometrically-invisible central-marker swap (`s-c1-swap`) — an inherent, documented blind spot. C1.3's negative control MUST use **`s-c1-swap-displaced`** (which flips → InsufficientData when armed); `s-c1-swap` must NOT be expected to flip.
 
 ## Status
 | # | Story | Status | Verify gate |
 |---|---|---|---|
-| C1.0a | Generator adversarial specimens + manifest ground truth | ✅ done (`<pending commit>`) | `s-c1-swap` proven confident-WRONG through live pipeline (CL-10 flips Pass→confident Fail) — VERIFIED |
-| C1.0b | Separation spike (MAKE-OR-BREAK) | ☐ IN PROGRESS NEXT | train/holdout, min(clean)≥0.8, max(ambiguous)<0.8, margin≥0.15, ±3pt perturbation |
+| C1.0a | Generator adversarial specimens + manifest ground truth | ✅ done (`f37a60b2`) | `s-c1-swap` proven confident-WRONG through live pipeline (CL-10 flips Pass→confident Fail) — VERIFIED |
+| C1.0b | Separation spike (MAKE-OR-BREAK) | ✅ GO (`7deb4fb7`) | margin 0.35, train/holdout blind, ±3pt robust — VERIFIED (read prototype + reran 14 tests) |
 | C1.1 | `ExtractedField.Found` confidence overload | ✅ done (`4af169e5`) | bit-identical green — VERIFIED |
-| C1.2 | `GeometricPlausibilityScorer` + signals in `ExtractTasaAndCat` (DARK) | ☐ blocked by C1.0b | scorer unit + calibration green; flag-off byte-identical |
+| C1.2 | `GeometricPlausibilityScorer` + signals in `ExtractTasaAndCat` (DARK) | ☐ NEXT | scorer unit + calibration green; flag-off byte-identical |
 | C1.3 | Arm Tasa/Cat via verdict-diff harness | ☐ blocked by C1.2 | 5 demo verdicts identical off/on; `s-c1-swap` 6th case flips → InsufficientData |
 | C1.4 | Extend to `ScanResumenColumn` (11 money fields) | ☐ blocked by C1.3 | decoy-resumen + realbanamex decoy calibrated-then-armed |
 | C1.5 | Architecture-enforcement test | ☐ blocked by C1.4 | every scored field ↔ calibration entry ↔ specimen; Confidence≥0.8 sweep |
@@ -44,3 +48,4 @@ After C1.0a, after C1.0b (the gate itself is the review), after C1.3, after C1.5
 
 ## Log
 - 2026-07-16 — Tracker opened; tasks #1–#7 created. Scope confirmed = full C1 with C1.0b as hard internal gate. Starting C1.0a + C1.1 in parallel.
+- 2026-07-16 — C1.1 done (`4af169e5`, bit-identical green). C1.0a done (`f37a60b2`, swap→confident-wrong CL-10 verified) + surfaced the SEPARABILITY finding. C1.0b spike = **GO**, margin 0.35, verified from ground truth (read prototype/harness, reran 14 tests). Make-or-break gate PASSED → proceeding to C1.2. Carry-forward: C1.3 negative control = `s-c1-swap-displaced`.

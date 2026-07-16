@@ -30,6 +30,15 @@
       "description": "CAT/TASA percent tokens transposed (sin IVA kept between them); ExtractTasaAndCat's pure X-order pick reads them WRONG at confidence 1.0 (true values in geometryDefect.trueValue) — the C1 make-or-break specimen, see SyntheticDefectVerdictE2ETests for the live confident-wrong CL-10 proof"
     },
     {
+      "id": "s-c1-swap-displaced",
+      "pdf": "s-c1-swap-displaced.pdf",
+      "manifest": "s-c1-swap-displaced.manifest.json",
+      "profile": "dummievec",
+      "slice": "C1.0b",
+      "defect": "geometry-swap-marker-displaced",
+      "description": "REALISTIC CAT/TASA swap: TASA prints before CAT on the value line (template reordering) while 'sin IVA' keeps tracking the true CAT — displaces the sibling marker off the extractor's (wrong) CAT pick, unlike the geometrically-invisible 's-c1-swap' negative control. The C1.0b separation-spike's blind holdout ambiguous specimen."
+    },
+    {
       "id": "s6211-abstain",
       "pdf": "s6211-abstain.pdf",
       "manifest": "s6211-abstain.manifest.json",

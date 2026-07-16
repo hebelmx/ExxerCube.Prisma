@@ -1386,7 +1386,24 @@ def _write_s71_header_ocr(output_dir: Path) -> None:
 
 _C1_TASACAT_BASELINE_TEXT = "28.86% sin IVA 27.36%"
 
-C1_GEOMETRY_VARIANTS = ("swap", "missing-order-marker", "decoy-percent")
+# C1.0b — 'marker-displaced-swap' (the separation-spike's answer to the C1.0a CRITICAL
+# FINDING). The central-'sin IVA' 'swap' variant above is GEOMETRICALLY INVISIBLE — 'sin
+# IVA' sits equidistant between the two transposed tokens in both the clean baseline and
+# the swap, so no positional signal can tell them apart (proven in the C1.0b spike). This
+# variant is the REALISTIC counterpart: CONDUSEF/Banamex statements print 'sin IVA' as a
+# legal qualifier bound to CAT specifically ("Costo Anual Total, sin IVA" — the marker
+# always immediately follows CAT's printed value, see both the s6211 baseline "28.86% sin
+# IVA 27.36%" and the real-Banamex s622 baseline "26.10% sin IVA 19.75%": in BOTH profiles
+# the marker sits right after the FIRST (CAT) percent token, never after the second). A
+# realistic swap is therefore a statement TEMPLATE that reorders which figure prints first
+# on the value line (TASA before CAT) while the 'sin IVA' qualifier keeps tracking the true
+# CAT (now second/rightmost) — e.g. a different template revision, not a random shuffle.
+# ExtractTasaAndCat's fixed 'leftmost=CAT' heuristic misreads this exactly like 'swap'
+# (Cat/Tasa transposed at confidence 1.0), but UNLIKE 'swap' the marker is now displaced
+# off the extractor's CAT pick (pctTokens[0]) onto its TASA pick (pctTokens[1]) — a
+# geometric difference C1.0b's sibling-adjacency signal can and does detect (see the
+# GeometricPlausibilityScorerPrototype spike test).
+C1_GEOMETRY_VARIANTS = ("swap", "missing-order-marker", "decoy-percent", "marker-displaced-swap")
 
 _C1_TASACAT_VARIANT_TEXT: dict[str, str] = {
     # True Cat=28.86% / Tasa=27.36% (unchanged from baseline) but the two percent
@@ -1404,18 +1421,28 @@ _C1_TASACAT_VARIANT_TEXT: dict[str, str] = {
     # extractor still picks index 0/1 correctly (Cat/Tasa unchanged), but a 3-way
     # token competition is exactly what the competition-count signal should flag.
     "decoy-percent": "28.86% sin IVA 27.36% IVA 16.00%",
+    # True Cat=28.86% / Tasa=27.36%, TASA printed FIRST (leftmost) with CAT second —
+    # 'sin IVA' stays glued to the true CAT value (now rightmost), NOT centered between
+    # the two tokens. ExtractTasaAndCat reads Cat=27.36% / Tasa=28.86% (WRONG, transposed
+    # — same failure magnitude as 'swap'), but here the marker no longer sits between the
+    # extractor's CAT pick (pctTokens[0]=27.36%, the true TASA) and its TASA pick
+    # (pctTokens[1]=28.86%, the true CAT): it trails AFTER pctTokens[1] instead. That
+    # displacement is the geometric tell.
+    "marker-displaced-swap": "27.36% 28.86% sin IVA",
 }
 
 _C1_DECOY_TOKEN: dict[str, str | None] = {
     "swap": "sin IVA",
     "missing-order-marker": None,
     "decoy-percent": "16.00%",
+    "marker-displaced-swap": "sin IVA",
 }
 
 _C1_GEOMETRY_DEFECT_TYPE: dict[str, str] = {
     "swap": "cat-tasa-swap",
     "missing-order-marker": "missing-order-marker",
     "decoy-percent": "decoy-percent",
+    "marker-displaced-swap": "cat-tasa-swap-marker-displaced",
 }
 
 # Specimen id == pdf/manifest filename stem. 's-c1-swap' matches the id the C1 tracker
@@ -1426,7 +1453,13 @@ _C1_VARIANT_ID: dict[str, str] = {
     "swap": "s-c1-swap",
     "missing-order-marker": "missing-order-marker",
     "decoy-percent": "decoy-percent",
+    "marker-displaced-swap": "s-c1-swap-displaced",
 }
+
+# Variants whose extractor read is ACTUALLY WRONG (transposed Cat/Tasa at confidence
+# 1.0) — as opposed to 'missing-order-marker'/'decoy-percent', where extraction stays
+# correct and only the (future) confidence score should dip.
+_C1_TRANSPOSED_VARIANTS = frozenset({"swap", "marker-displaced-swap"})
 
 
 def _c1_variant_tokens(variant: str) -> list[tuple[float, float, str]]:
@@ -1473,9 +1506,12 @@ def build_manifest_c1_variant(variant: str) -> dict[str, Any]:
     manifest["pdf"]["fileName"] = f"{specimen_id}.pdf"
     manifest["fields"] = dict(manifest["fields"])
 
-    if variant == "swap":
+    if variant in _C1_TRANSPOSED_VARIANTS:
         # Extractor's ACTUAL (transposed, WRONG) read — see the module-level contract
         # comment. This is NOT the document's true CAT/TASA; see geometryDefect.trueValue.
+        # Same transposition magnitude for 'swap' and 'marker-displaced-swap' — they differ
+        # only in WHERE 'sin IVA' sits relative to the mis-picked tokens, not in the wrong
+        # value itself.
         manifest["fields"]["Cat"] = {"value": true_tasa, "clrType": "decimal", "expectedStatus": "Extracted"}
         manifest["fields"]["Tasa"] = {"value": true_cat, "clrType": "decimal", "expectedStatus": "Extracted"}
     # else: 'missing-order-marker' / 'decoy-percent' — Cat/Tasa are already the true
@@ -1486,30 +1522,48 @@ def build_manifest_c1_variant(variant: str) -> dict[str, Any]:
         "decoyToken": _C1_DECOY_TOKEN[variant],
         "trueValue": {"Cat": true_cat, "Tasa": true_tasa},
     }
-    # Every C1.0a variant is designed to be geometrically ambiguous — the future
-    # scorer (C1.2) should score Tasa/Cat low-band on all three, even though only
-    # 'swap' actually flips today's extracted value.
+    # Every C1.0a/C1.0b variant is designed to be geometrically ambiguous — the future
+    # scorer (C1.2) should score Tasa/Cat low-band on all four, even though only
+    # 'swap' and 'marker-displaced-swap' actually flip today's extracted value.
     manifest["confidenceExpectations"] = {
         "Cat": {"band": "low"},
         "Tasa": {"band": "low"},
     }
     # Tasa/Cat play no role in CL-21/CL-22's operands (Pago/Saldo money fields); the
     # geometry defect is confined to the % band, so the baseline's arithmetic outcome
-    # is unaffected by every C1 variant, including 'swap'.
+    # is unaffected by every C1 variant, including the transposed ones.
     manifest["arithmeticChecks"] = [
         _arith("CL-21", "Pass", "Tasa/Cat geometry defect does not touch CL-21's money-field operands."),
         _arith("CL-22", "Pass", "Tasa/Cat geometry defect does not touch CL-22's money-field operands."),
     ]
-    manifest["knownFixtureDefects"] = [
-        {"field": "Cat", "reason": "ExtractTasaAndCat picks CAT/TASA by pure X-order with no label/"
-         "column disambiguation; this specimen transposes the two percent tokens (keeping 'sin IVA' "
-         "between them) so the extractor reads Cat=0.2736 (should be 0.2886) at confidence 1.0. See "
-         "geometryDefect.trueValue for the correct identity."},
-        {"field": "Tasa", "reason": "Same transposition: the extractor reads Tasa=0.2886 (should be "
-         "0.2736) at confidence 1.0. See geometryDefect.trueValue for the correct identity, and "
-         "SyntheticDefectVerdictE2ETests for the live-pipeline proof that this drives CL-10 from a "
-         "legitimate Pass to a confident-WRONG Fail."},
-    ] if variant == "swap" else []
+    if variant == "swap":
+        manifest["knownFixtureDefects"] = [
+            {"field": "Cat", "reason": "ExtractTasaAndCat picks CAT/TASA by pure X-order with no label/"
+             "column disambiguation; this specimen transposes the two percent tokens (keeping 'sin IVA' "
+             "between them) so the extractor reads Cat=0.2736 (should be 0.2886) at confidence 1.0. See "
+             "geometryDefect.trueValue for the correct identity."},
+            {"field": "Tasa", "reason": "Same transposition: the extractor reads Tasa=0.2886 (should be "
+             "0.2736) at confidence 1.0. See geometryDefect.trueValue for the correct identity, and "
+             "SyntheticDefectVerdictE2ETests for the live-pipeline proof that this drives CL-10 from a "
+             "legitimate Pass to a confident-WRONG Fail. NOTE: this transposition is GEOMETRICALLY "
+             "INVISIBLE — 'sin IVA' sits equidistant between both tokens exactly like the clean "
+             "baseline, so no positional signal can separate it from a legitimate read. It is kept as "
+             "a negative control documenting that blind spot; see 's-c1-swap-displaced' for the "
+             "realistic, separable counterpart the C1.0b spike calibrates against."},
+        ]
+    elif variant == "marker-displaced-swap":
+        manifest["knownFixtureDefects"] = [
+            {"field": "Cat", "reason": "Realistic CAT/TASA swap (C1.0b): the statement prints TASA "
+             "before CAT on the value line (a template reordering, not a random shuffle) while 'sin "
+             "IVA' keeps tracking the true CAT. ExtractTasaAndCat's 'leftmost=CAT' heuristic reads "
+             "Cat=0.2736 (should be 0.2886) at confidence 1.0. UNLIKE 's-c1-swap', 'sin IVA' is "
+             "displaced off the extractor's CAT pick onto its TASA pick — a geometric tell the C1.0b "
+             "sibling-adjacency signal is calibrated to catch. See geometryDefect.trueValue."},
+            {"field": "Tasa", "reason": "Same transposition: the extractor reads Tasa=0.2886 (should be "
+             "0.2736) at confidence 1.0. See the Cat entry above for the displaced-marker rationale."},
+        ]
+    else:
+        manifest["knownFixtureDefects"] = []
 
     return manifest
 
@@ -1705,6 +1759,19 @@ CORPUS_SPECIMENS: list[dict[str, Any]] = [
         "defect": "geometry-decoy-percent",
         "description": "Spurious 3rd percent token appended after the true CAT/TASA pair (3-way "
                         "token competition; extraction unaffected, an ambiguity signal only)",
+    },
+    {
+        "id": "s-c1-swap-displaced",
+        "pdf": "s-c1-swap-displaced.pdf",
+        "manifest": "s-c1-swap-displaced.manifest.json",
+        "profile": "dummievec",
+        "slice": "C1.0b",
+        "defect": "geometry-swap-marker-displaced",
+        "description": "REALISTIC CAT/TASA swap: TASA prints before CAT on the value line (template "
+                        "reordering) while 'sin IVA' keeps tracking the true CAT — displaces the "
+                        "sibling marker off the extractor's (wrong) CAT pick, unlike the geometrically"
+                        "-invisible 's-c1-swap' negative control. The C1.0b separation-spike's blind "
+                        "holdout ambiguous specimen.",
     },
 ]
 
