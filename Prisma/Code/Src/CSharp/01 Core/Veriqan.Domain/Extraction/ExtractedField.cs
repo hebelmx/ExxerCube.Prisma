@@ -80,7 +80,18 @@ public sealed class ExtractedField<T>
     /// Creates a successfully-extracted field with full confidence and a known locator.
     /// </summary>
     public static ExtractedField<T> Found(T value, FieldLocator locator, ExtractionProvenance? provenance = null) =>
-        new(value, 1.0, locator, ExtractionStatus.Extracted, provenance);
+        Found(value, locator, 1.0, provenance);
+
+    /// <summary>
+    /// Creates a successfully-extracted field with an explicit confidence and a known locator.
+    /// Used to carry a geometric-plausibility confidence for positional extraction (the C1
+    /// lever) — e.g. a lower score when the extracted digits are geometrically implausible
+    /// even though the label/value pair matched. The default extraction path (<see cref="Found(T, FieldLocator, ExtractionProvenance?)"/>)
+    /// still reports full confidence (1.0); this overload is opt-in and behavior-neutral for
+    /// all existing callers.
+    /// </summary>
+    public static ExtractedField<T> Found(T value, FieldLocator locator, double confidence, ExtractionProvenance? provenance = null) =>
+        new(value, confidence, locator, ExtractionStatus.Extracted, provenance);
 
     /// <summary>
     /// Creates a field that was found but whose value violates a format rule.
