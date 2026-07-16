@@ -131,18 +131,136 @@ durable calibration harness. The Tesseract-mean-confidence capture is a separate
 - **C1.4 (Option B):** extend to `ScanResumenColumn` for the 11 money fields, same calibrate-then-arm cycle.
 - **Adversarial review** each increment: hunt false-abstain (Lens C) and any verdict that flips the wrong way.
 
-## Open owner decisions
+## Owner decisions (2026-07-16) — RULED
 
-1. **Appetite:** A only, A→B, or A→B→C? (Recommendation: A now, decide B after A's calibration lands.)
-2. **Dark-first vs. arm-immediately:** recommend dark-first + calibration gate (the cardinal risk).
-3. **Design depth:** the geometric-score function is a genuine design fork (which signals, how weighted,
-   how calibrated). Recommend a short **BMAD party** (architect + qa + analyst) to design + pressure-test
-   the scoring function and the calibration protocol BEFORE C1.1, given the false-abstain blast radius.
+1. **Appetite: A → B → C (full + harness).** Tasa/Cat + the 11 RESUMEN/NIVEL/DESGLOSE fields + the
+   E6.S6.2 synthetic-generator upgrade to emit ambiguous-geometry calibration specimens. This is now a
+   **medium epic**, not a slice.
+2. **Dark-first + calibration gate** — the cardinal-risk mitigation stands (non-negotiable).
+3. **Design depth: BMAD party FIRST.** Design + pressure-test the geometric-score function (signals,
+   weighting, calibration protocol) with architect + qa + analyst BEFORE any C1.1 code. Party output
+   becomes the intended-solution design appended below.
+
+> **Orchestrator scope note:** the party (design deliverable) is the immediate next action. The C1 A→B→C
+> *implementation* is a fresh medium epic (cardinal false-abstain risk + generator upgrade) and should run
+> as its own supervised orchestrator loop — ideally a fresh context — not a roll-on from the B2 session.
 
 ---
+
+---
+
+# C1 intended-solution design (BMAD party output, 2026-07-16)
+
+Party: Winston (architect) + Tessa (QA/calibration) + Mary (analyst), each code-grounded. The party
+**refuted the scoping doc's headline signal** and reordered the epic. This section is the design of record.
+
+## Design decision 1 — the signal set (REVISED; the doc's headline was wrong)
+
+The doc led with "token-competition count" as the signal for the CAT/TASA swap. Tessa + Mary independently
+proved it **cannot catch a swap**: `ExtractTasaAndCat` disambiguates purely by ordinal position
+`pctTokens[0]`=CAT/`[1]`=TASA, and **`pctTokens.Count` is structurally always 2** — a swap flips which token
+is at index 0, it does not change the count. Converged signal set:
+
+| # | Signal | Catches | Cost | Verdict |
+|---|---|---|---|---|
+| 1 | **Sibling / order-marker presence** (`sin IVA` between the two `%` tokens; label/`$` adjacency) | **The CAT/TASA swap** — `Count==2` but order reversed = confident-WRONG (worse than abstain). The ONLY signal that catches it. | New code (small) | **LOAD-BEARING for A** |
+| 2 | **Token-competition count** (count the candidates already built in `pctTokens` / `FindAmountInBand`'s `candidates` enumerable) | A *spurious extra* token — 3rd `%` token, decoy RESUMEN amount ("too many candidates") | ~free (stop discarding) | Ship, but for the DECOY failure, not the swap |
+| 3 | **Column dual-pass disagreement** (binary: did `ExtractResumenField`'s left- AND right-column pass both fire with different values?) — NOT a continuous distance-from-center score | Wrong-column RESUMEN pick | Small (expose existing discard) | **B only; binary not graded** |
+| 4 | ~~Label→value gap distance~~ | nothing real — detects label LENGTH, not error → false-abstain on long-labeled rows | — | **CUT (do not build)** |
+
+Cross-field agreement term: **cut** (S-B2.0 refuted; no phantom no-op terms).
+
+## Design decision 2 — architecture (Winston)
+
+- **Seam:** add `ExtractedField<T>.Found(value, locator, double confidence, provenance = null)`; existing
+  `Found(value, locator, provenance)` delegates with `1.0` — behavior-neutral by construction, ~40 call
+  sites untouched.
+- **Scorer:** a separate `internal static GeometricPlausibilityScorer.Score(Signals, FieldCalibration)` —
+  pure function of a `Signals` record, no PdfPig types, no I/O → unit-testable against synthetic structs,
+  fast calibration loop. Extractor does *selection*; scorer does *plausibility of the selection*.
+- **Formula: MULTIPLICATIVE penalty** (start 1.0, each signal multiplies a `≤1.0` penalty), NOT weighted
+  sum — a weighted sum lets one clean signal dilute a damning one into a passable average (the B2
+  false-confidence shape). Any single red flag must be able to drag the score below 0.8 on its own.
+  **Open (settle in C1.0, empirically): whether sibling-presence is a penalty factor or a GATE** that
+  skips the competition penalty entirely — `0.75×0.85≈0.64` may over-penalize a legit disambiguated 2-token
+  read (Winston risk #2). Do not pin constants by debate; the spike sets them.
+- **Constants:** a static `internal FieldCalibrationTable` (per-field records), NOT tenant config — these are
+  facts about template geometry, not tenant policy; tenant config invites "fixing" calibration by editing
+  JSON instead of re-running the spike. The **0.8 guard threshold is untouched** (no move, no per-field floor).
+- **Ship-dark switch lives at the extractor call site** (which `Found` overload is called), not in the scorer
+  or the guard. Score is always computed (cheap/pure); dark = call the 1.0 overload.
+- **Architecture-enforcement test:** every scored field has a `FieldCalibrationTable` entry exercised by ≥1
+  calibration specimen (drift guard, in the spirit of the existing 19/19 arch tests).
+
+## Design decision 3 — calibration protocol (Tessa) — and the epic REORDER
+
+**The corpus has ZERO adversarial specimens today → C1.0 is unrunnable as scoped.** The generator work is a
+**PREREQUISITE to C1.0, not the final increment.** Reordered epic:
+
+- **C1.0a (generator, FIRST):** emit adversarial specimens + god's-eye manifest ground truth. Mary's set:
+  `decoy-percent` (3rd `%` token), `missing-order-marker` (`sin IVA` removed — value still RIGHT but score
+  must dip; proves signal #1 ≠ #2), `decoy-resumen-amount`, and a **`realbanamex`-profile** decoy (Mary's
+  non-negotiable — the `dummievec` layout "does not occur in production"; the real left-column pass must be
+  calibrated on its own code path, or it's the "synthetic ≠ real" trap a third time). Annotate
+  `s6211-baseline` with `confidenceExpectations: {<field>: {band:"high", min:0.8}}`. New manifest fields:
+  `geometryDefect{type,decoyToken,trueValue}`, `confidenceExpectations{<field>:{band,min|max}}`.
+- **C1.0b (separation spike, MAKE-OR-BREAK):** **train/holdout split** — freeze weights on the design set,
+  gate on a *blind* holdout specimen (scoring against tuned points = curve-fitting, not proof). Pass bar:
+  `min(clean) ≥ 0.8` AND `max(ambiguous) < 0.8` AND **margin ≥ 0.15**. **Causal bar:** each signal states
+  why it differs clean-vs-swapped (the count signal fails this for the swap — it is decorative there).
+  **Perturbation stress:** jitter bounding boxes ±3pt, clean must stay ≥0.8 (a score surviving only exact
+  fixture coords is memorized). Target clean cluster **0.92–1.0**, not "just above 0.8." **STOP condition:**
+  margin < 0.15 or any clean < 0.8 → redesign the SIGNALS; NEVER lower the floor / shop the threshold /
+  shrink the margin post-hoc (that is B2-Lens-C laundered into the calibration layer).
+- **First artifact to build:** `s-c1-swap`, and prove it yields a confident WRONG verdict through the live
+  pipeline today. It is the thing every later gate depends on.
+
+## Design decision 4 — ship-dark arming gate (Tessa)
+
+1. C1.0b passes (holdout, stop condition not tripped).
+2. C1.1 (`Found` overload) → suites **bit-identical green** (matched counts: Extraction 366 / Validation 532
+   / Orchestration 147 / Application 158 — a shift to N−3 green is a silent regression, not a pass).
+3. C1.2 emits score behind flag; flag-off path byte-identical to pre-change.
+4. **Before flipping default:** run the 5-fixture demo `[Theory]` (`VecChecklistDemoE2ETests`) twice in one
+   process (flag off/on), diff `(fixture, field, confidence, verdict, failCheckIds)`. Assert **all 5
+   verdicts + failCheckId sets identical**. Any diff = automatic STOP (even if the new verdict "looks more
+   correct" — an unpredicted flip means the protocol didn't cover it). **Mandatory negative control:** add
+   `s-c1-swap` as a 6th case that MUST flip confident-wrong → `InsufficientData` (a harness that only proves
+   "nothing moved" can't distinguish a working fix from an inert one).
+5. Flip tenant default; keep the flag as a killswitch ≥1 release.
+
+**What a green suite does NOT prove (close each):** rule-unit tests hand-construct `ExtractedField` at conf
+1.0 → the new confidence never flows through them (only the verdict-diff harness exercises
+extractor→field→rule E2E); "behavior-neutral" ships with nobody checking the number is sane → add a
+`Confidence ≥ 0.8` completeness sweep over every clean field in every specimen; author-built `BoundingBox`
+fixtures ≠ real PdfPig tokenization → validate against `s622-realbanamex-baseline`; 5 demo fixtures are
+single-bank → state the limitation, don't silently generalize.
+
+## Revised story map (supersedes §"Proposed story breakdown")
+
+- **C1.0a** generator: adversarial specimens + manifest ground truth (`realbanamex` variant included). *(was C)*
+- **C1.0b** separation spike: train/holdout, margin ≥0.15, causal + perturbation bars, STOP condition. *MAKE-OR-BREAK.*
+- **C1.1** `ExtractedField.Found` confidence overload (behavior-neutral). Bit-identical-green gate.
+- **C1.2** `GeometricPlausibilityScorer` + sibling-marker(#1) & competition-count(#2) signals in
+  `ExtractTasaAndCat`; multiplicative formula; `FieldCalibrationTable`; emit DARK. Scorer unit + calibration tests.
+- **C1.3** arm Tasa/Cat: verdict-diff harness (5 demo + `s-c1-swap` negative control) → flip flag.
+- **C1.4 (B)** extend to `ScanResumenColumn` (#1 + #3 binary dual-pass); `decoy-resumen-amount` +
+  `realbanamex` decoy; calibrate-then-arm.
+- **C1.5** architecture-enforcement test (every scored field ↔ calibration entry ↔ specimen).
+- Adversarial review each increment (false-abstain / verdict-flip hunt).
+
+## Residual open question for the C1 orchestrator (not blocking scope)
+Sibling-presence as penalty-factor vs. gate (Winston risk #2) is deliberately LEFT to C1.0b to settle from
+data. Do not pre-pin it.
 
 ## Log
 - 2026-07-16 — Scoping opened. Framing spike reframed the lever from "per-digit confidence" (mis-scoped —
   fields are text-layer) to **geometric-plausibility confidence**. Consumption fully wired (0.8 guard, 15
   rules); production greenfield. Cardinal risk = false-abstain via mis-calibrated floor. Recommended:
   Option A, spike/calibration-gated, ship-dark. Owner decision pending.
+- 2026-07-16 — Owner ruled A→B→C + party-first. BMAD party (Winston/Tessa/Mary) produced the design of
+  record above. KEY: party refuted the doc's headline — token-competition count is structurally inert for
+  the CAT/TASA swap (count always 2); the `sin IVA` sibling/order-marker is the load-bearing signal.
+  Gap-distance signal CUT. Generator work REORDERED to a prerequisite (C1.0a) because the corpus has zero
+  adversarial specimens today. Multiplicative formula; constants settle empirically in the C1.0b spike
+  (train/holdout, margin ≥0.15). Epic ready to hand off to its own supervised orchestrator loop.
