@@ -22,7 +22,10 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Resolution;
 /// candidate machinery, so E1 is behavior-neutral by construction rather than by coincidence. B2
 /// adds one exception: an empty-rung ladder that DOES carry a validator (e.g. a money/rate
 /// plausibility gate) still lets that validator downgrade an implausible positional value to
-/// <see cref="ExtractedField{T}.Missing"/> — see the guard inside the empty-rung branch below.
+/// <see cref="ExtractionStatus.ExtractedInvalidFormat"/> (NOT <see cref="ExtractedField{T}.Missing"/>
+/// — a value that was present but rejected is "unusable," not "never on the statement," which
+/// matters to consumers like CL-21's guarded-implied-zero rule) — see the guard inside the
+/// empty-rung branch below.
 /// </remarks>
 public sealed class FieldResolutionOrchestrator
 {
@@ -112,18 +115,29 @@ public sealed class FieldResolutionOrchestrator
             // ladder's own Validator) still gets the final say on the positional value, mirroring
             // the terminal-validator-abstain rule below for the escalating path — there is no
             // rung to recover through here, so an implausible positional value can only ever be
-            // downgraded to Missing, never replaced. This is the ONLY new behavior in this
-            // branch: when no validator is registered (every field before B2), the `validator is
-            // not null` guard keeps this completely inert and the branch returns
-            // positionalField unchanged, exactly as before.
+            // downgraded, never replaced. This is the ONLY new behavior in this branch: when no
+            // validator is registered (every field before B2), the `validator is not null` guard
+            // keeps this completely inert and the branch returns positionalField unchanged,
+            // exactly as before.
+            //
+            // Downgrades to ExtractedInvalidFormat, NOT Missing/NotExtracted — this distinction is
+            // load-bearing for CL-21's guarded-implied-zero rule (Cl21PagoParaNoGenerarInteresesRule):
+            // AdeudoPeriodoAnterior/PagosYAbonos being NotExtracted means "the label was never
+            // typeset" (Banamex zero-row suppression) and CL-21 legitimately substitutes 0m for
+            // it, but a value that WAS positionally found and then rejected as implausible is "the
+            // label is typeset but the amount is unusable" — implying zero for that would be
+            // exactly the dishonest silent-zero-substitution the Epic 5/F1 honesty fix closed.
+            // ExtractedInvalidFormat forces CL-21 (and every other consuming rule, which treats
+            // both non-Extracted statuses identically as InsufficientData — see CL-17/CL-20) to
+            // abstain instead of computing a verdict on a fabricated zero.
             var shortCircuitValidator = validatorOverride ?? ladder.Validator;
             if (shortCircuitValidator is not null
                 && positionalField.Status != ExtractionStatus.NotExtracted
                 && !shortCircuitValidator.IsValid(positionalField.Value))
             {
                 return Result<ExtractedField<TValue>>.WithSuccess(
-                    ExtractedField<TValue>.Missing(
-                        positionalField.Locator, new ExtractionProvenance(positionalField.Provenance.Stage)));
+                    ExtractedField<TValue>.InvalidFormat(
+                        positionalField.Value!, positionalField.Locator, new ExtractionProvenance(positionalField.Provenance.Stage)));
             }
 
             return Result<ExtractedField<TValue>>.WithSuccess(positionalField);

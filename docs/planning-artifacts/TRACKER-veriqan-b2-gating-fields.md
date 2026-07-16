@@ -135,6 +135,31 @@ Then Tasa/Cat/RESUMEN ladders stay honestly `PositionalOnly` **+ a validator**, 
 - [ ] **S-B2.2** `CatPlausibilityValidator` (fraction band; phone-homonym caught by upper bound) + Cat ladder. No rung.
 - [ ] **S-B2.3** RESUMEN/NIVEL/DESGLOSE magnitude-sanity validators (11 money fields), NOT identity-abstain, sign only where definitionally non-negative.
 
+## Adversarial review (2026-07-16, 3 skeptics, commit b2ab849a)
+
+- **Lens A (false-GREEN / cardinal-rule): 1 HIGH finding — F1.** Two lenses SURVIVED; this one
+  refuted. See F1 below.
+- **Lens B (real-wiring + correctness): SURVIVES.** `ExtractedField.Provenance` is non-null by
+  constructor invariant (no NRE on the abstain path). The guard's fresh `Missing` instance flips
+  `EscalatingStatementFieldExtractor`'s `!ReferenceEquals` → `anyEscalated` → the downgrade IS
+  rebuilt into `PeriodSummary` and reaches the rules (NOT theater). Change confined to the empty-rung
+  branch; terminal-abstain/escalating path untouched.
+- **Lens C (false-abstain / bounds / units): SURVIVES.** Tasa/Cat provably stored as FRACTIONS
+  (`ParsePercent` → `pct/100m`, `PdfPigStatementFieldExtractor.cs:2211`). Corpus: Tasa 0.183–0.289,
+  Cat 0.226–0.305, money ≤ $67,796 — bands sit ~2–10× above worst real-world card values (highest
+  documented MX classic-card CAT ≈ 105.9%; extreme rate ≈ 151%). No false-abstain vector.
+
+### F1 (HIGH, CONFIRMED) — CL-21 implied-zero defeats the Missing downgrade
+
+The B2 guard downgraded to `Missing`/`NotExtracted`. CL-21 (`Cl21PagoParaNoGenerarInteresesRule.cs:136-157`)
+treats `NotExtracted` on `AdeudoPeriodoAnterior`/`PagosYAbonos` as an IMPLIED ZERO (Banamex zero-row
+suppression), NOT abstain — only `ExtractedInvalidFormat` abstains there. So a gross misread of either
+field → `Missing` → CL-21 computes on a fabricated `0` → false GREEN, reopening the dishonest-implied-zero
+hole the Epic-5 F1 honesty fix closed. **Fix: guard downgrades to `ExtractedInvalidFormat` (present-but-
+unusable), not `Missing` (never-on-statement).** Strictly correct for all 13 armed fields — every other
+consumer treats both non-Extracted statuses as `InsufficientData`, only the two implied-zero operands
+change (wrong implied-zero → honest abstain). Delegated to dev.
+
 ## Log
 
 - 2026-07-08 — B2 opened; ground-truth map (Explore) captured; engineering-correctness ruling recorded
@@ -142,3 +167,7 @@ Then Tasa/Cat/RESUMEN ladders stay honestly `PositionalOnly` **+ a validator**, 
 - 2026-07-16 — Owner ruled FULL 16-FIELD SWEEP. Orchestrator (this session) verified validator seams
   against code (IFieldValidator, PaymentDueDate/Product validators, ladder registry, terminal-abstain
   rule). Added S-B2.0 make-or-break wiring spike as a hard gate before any validator ships.
+- 2026-07-16 — S-B2.0 spike DONE (verdict above). Implementation (S-B2.0.5 guard + S-B2.1/2/3
+  validators) landed `b2ab849a`; ground-truth verified: Extraction build 0/0, Extraction.Tests 366,
+  Validation 531, Orchestration 147, Application 158 — all green. Adversarial review: 2 lenses SURVIVE,
+  F1 (HIGH) confirmed + delegated. Fix = downgrade to ExtractedInvalidFormat not Missing.

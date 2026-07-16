@@ -711,6 +711,59 @@ public sealed class ArithmeticRulesTests
             "a printed-but-unreadable PagosYAbonos must not be silently substituted by 0m");
     }
 
+    // -----------------------------------------------------------------------
+    // B2 regression: FieldResolutionOrchestrator's empty-rung validator guard
+    // (money/rate plausibility) must feed CL-21 an abstain signal, not an implied zero
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Adversarial-review regression (B2): before the fix, <c>FieldResolutionOrchestrator</c>'s
+    /// empty-rung validator guard downgraded a positionally-found-but-implausible value to
+    /// <see cref="ExtractionStatus.NotExtracted"/> (<c>Missing</c>). For
+    /// <see cref="PeriodSummary.PagosYAbonos"/>, CL-21's guarded-implied-zero rule treats
+    /// <c>NotExtracted</c> as "label never typeset" and silently substitutes <c>0m</c> — so a
+    /// gross misread (e.g. a 12-digit digit-concatenation artifact, rejected by
+    /// <see cref="ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Resolution.MoneyMagnitudeValidator"/>)
+    /// would compute a verdict on a fabricated zero instead of abstaining — a false PASS/FAIL
+    /// dressed as honest. The fix changes the guard's downgrade target to
+    /// <see cref="ExtractionStatus.ExtractedInvalidFormat"/> ("present but unusable"), which this
+    /// test proves CL-21 correctly treats as abstain, not implied-zero — even though the target
+    /// (PagoParaNoGenerarIntereses) exactly matches what the implied-zero formula would have
+    /// computed, so a regression back to the old (buggy) Missing/NotExtracted downgrade would
+    /// silently flip this to a false Pass instead of the correct InsufficientData.
+    /// </summary>
+    [Fact]
+    public void Cl21_PagosYAbonosGrossMisreadDowngradedToInvalidFormat_AbstainsInsteadOfImpliedZeroPass()
+    {
+        var rule = GetRule("CL-21");
+
+        // The raw out-of-band value MoneyMagnitudeValidator (default ceiling MXN $100,000,000)
+        // rejects — exactly what FieldResolutionOrchestrator's B2 guard would have received as
+        // positionalField.Value before downgrading it. ExtractedField<T>.InvalidFormat preserves
+        // this raw value (mirrors the orchestrator guard's own construction).
+        var grossMisreadPagos = ExtractedField<decimal>.InvalidFormat(123456789012m, P1());
+
+        // computed (if implied-zero were wrongly applied) = 0 + 5000 + 2500 + 1000 + 500 + 100 - 0
+        // = 9100.00, which exactly matches the target below — so the OLD (buggy) Missing/implied-
+        // zero path would have produced a false Pass here. The fix must abstain instead.
+        var ps = MakeSummary(
+            pagoParaNoGenerarIntereses: Found(9100.00m),
+            adeudoPeriodoAnterior: null,                  // ← absent → legitimately implied 0
+            cargosRegularesNoMeses: Found(5000.00m),
+            cargosComprasAMesesCapital: Found(2500.00m),
+            montoIntereses: Found(1000.00m),
+            montoComisiones: Found(500.00m),
+            ivaInteresesYComisiones: Found(100.00m),
+            pagosYAbonos: grossMisreadPagos);             // ← B2-guard-rejected gross misread
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "a B2-guard-rejected gross misread must abstain, not silently compute a Pass on an implied zero");
+    }
+
     /// <summary>
     /// Regression: genuinely absent Adeudo and Pagos (NotExtracted / null → Missing) must
     /// STILL apply implied-zero and allow the rule to yield Pass or Fail.

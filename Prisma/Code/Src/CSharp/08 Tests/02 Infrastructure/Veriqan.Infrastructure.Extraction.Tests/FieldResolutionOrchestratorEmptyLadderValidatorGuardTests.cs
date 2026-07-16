@@ -31,7 +31,7 @@ public sealed class FieldResolutionOrchestratorEmptyLadderValidatorGuardTests
     // ── 1. Implausible positional value abstains (the load-bearing assertion) ─────────────────
 
     [Fact]
-    public async Task ResolveAsync_EmptyLadderValidatorRejectsPositionalValue_Abstains()
+    public async Task ResolveAsync_EmptyLadderValidatorRejectsPositionalValue_DowngradesToInvalidFormat()
     {
         // 0.2736 (27.36%) misread with the decimal point dropped → 27.36, i.e. "2736%" — well
         // outside TasaPlausibilityValidator's [0, 2.0] fraction band.
@@ -51,9 +51,14 @@ public sealed class FieldResolutionOrchestratorEmptyLadderValidatorGuardTests
             cancellationToken: TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value!.Status.ShouldBe(ExtractionStatus.NotExtracted,
-            "A positionally-found value that fails the ladder's validator must abstain, not gate a compliance verdict.");
-        result.Value.Value.ShouldBe(0m, "Missing() carries the type's default value, not the rejected raw value.");
+        // ExtractedInvalidFormat, NOT Missing/NotExtracted: the value WAS present and rejected —
+        // "unusable," not "never on the statement." This distinction is load-bearing for
+        // Cl21PagoParaNoGenerarInteresesRule's guarded-implied-zero handling of
+        // AdeudoPeriodoAnterior/PagosYAbonos, which would otherwise silently substitute 0m for a
+        // rejected value (see FieldResolutionOrchestrator's empty-rung guard comment).
+        result.Value!.Status.ShouldBe(ExtractionStatus.ExtractedInvalidFormat,
+            "A positionally-found value that fails the ladder's validator must abstain as 'present but unusable', not imply it was never on the statement.");
+        result.Value.Value.ShouldBe(27.36m, "InvalidFormat preserves the raw rejected value so downstream checks can report it as a defect.");
         result.Value.Locator.ShouldBe(implausiblePositional.Locator,
             "The rejected value's locator hint is preserved so a reviewer can still find where it was read.");
     }
@@ -177,6 +182,7 @@ public sealed class FieldResolutionOrchestratorEmptyLadderValidatorGuardTests
             cancellationToken: TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value!.Status.ShouldBe(ExtractionStatus.NotExtracted);
+        result.Value!.Status.ShouldBe(ExtractionStatus.ExtractedInvalidFormat);
+        result.Value.Value.ShouldBe(1_000m);
     }
 }
