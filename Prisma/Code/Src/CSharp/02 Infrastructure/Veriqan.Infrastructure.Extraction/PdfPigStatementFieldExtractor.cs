@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Confidence;
 using IndQuestResults;
 using IndQuestResults.Operations;
 using Microsoft.Extensions.Logging;
@@ -149,6 +150,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     private readonly IPasswordProvider _passwordProvider;
     private readonly TimeProvider _timeProvider;
     private readonly bool _enableCatalogImageHashing;
+    private readonly bool _emitGeometricConfidence;
 
     /// <summary>Initializes a new <see cref="PdfPigStatementFieldExtractor"/>.</summary>
     /// <param name="logger">Logger.</param>
@@ -170,18 +172,32 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// threshold are available (VERIQAN-E5 / CPA-2 corpus gate).
     /// </para>
     /// </param>
+    /// <param name="emitGeometricConfidence">
+    /// When <see langword="true"/>, <c>ExtractTasaAndCat</c> reports the C1 geometric-
+    /// plausibility score (see <see cref="Confidence.GeometricPlausibilityScorer"/>) as the
+    /// Tasa/Cat fields' <see cref="ExtractedField{T}.Confidence"/> instead of the constant 1.0.
+    /// <para>
+    /// Default is <see langword="false"/> — the C1.2 ship-dark switch (VERIQAN C1 epic). The
+    /// score is always computed (cheap, pure); this flag only selects which
+    /// <see cref="ExtractedField{T}.Found(T, FieldLocator, ExtractionProvenance?)"/> overload is
+    /// called, so the flag-off path is byte-identical to pre-C1.2 behaviour. Arming (flipping
+    /// this default, or wiring it to tenant config) is C1.3 — do not flip it here.
+    /// </para>
+    /// </param>
     public PdfPigStatementFieldExtractor(
         ILogger<PdfPigStatementFieldExtractor> logger,
         IOptions<PdfExtractionOptions> options,
         IPasswordProvider passwordProvider,
         TimeProvider? timeProvider = null,
-        bool enableCatalogImageHashing = false)
+        bool enableCatalogImageHashing = false,
+        bool emitGeometricConfidence = false)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _options = (options ?? throw new ArgumentNullException(nameof(options))).Value;
         _passwordProvider = passwordProvider ?? throw new ArgumentNullException(nameof(passwordProvider));
         _timeProvider = timeProvider ?? TimeProvider.System;
         _enableCatalogImageHashing = enableCatalogImageHashing;
+        _emitGeometricConfidence = emitGeometricConfidence;
     }
 
     /// <summary>
@@ -775,7 +791,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         // The percentage values appear on a band below the heading labels.
         // In fixture #1: "28.86% sin IVA 27.36%" at Y=264.0
         // CAT = first percent token (28.86%), TASA ORDINARIA FIJA = second (27.36%)
-        var (tasa, cat) = ExtractTasaAndCat(sorted, bands);
+        var (tasa, cat) = ExtractTasaAndCat(sorted, bands, _emitGeometricConfidence);
 
         // ---- Saldo Deudor Total at Y≈161 --------------------------------
         var saldoDeudor = ExtractSaldoDeudorTotal(sorted, bands, amtFmt);
@@ -1205,7 +1221,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     // -----------------------------------------------------------------------
 
     private static (ExtractedField<decimal> tasa, ExtractedField<decimal> cat)
-        ExtractTasaAndCat(List<Word> sorted, Dictionary<double, List<Word>> bands)
+        ExtractTasaAndCat(List<Word> sorted, Dictionary<double, List<Word>> bands, bool emitGeometricConfidence)
     {
         // Layout (from fixture calibration):
         //   Y≈285.8: "CAT" (left label)
@@ -1262,11 +1278,31 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             if (pctTokens.Count == 0)
                 continue;
 
+            // ---- C1.2: geometric-plausibility confidence (ship-dark) --------
+            // The score is ALWAYS computed here — cheap, pure — per the party's architecture
+            // decision (docs/planning-artifacts/SCOPING-veriqan-c1-geometric-extraction-
+            // confidence.md, "C1 intended-solution design" decision 2). `emitGeometricConfidence`
+            // only gates which ExtractedField<T>.Found overload is called below, so the
+            // flag-off path (the default) is byte-identical to pre-C1.2 behaviour.
+            var catToken = new GeometricToken(pctTokens[0].Text, pctTokens[0].BoundingBox.Left, pctTokens[0].BoundingBox.Right);
+            GeometricToken? tasaToken = pctTokens.Count >= 2
+                ? new GeometricToken(pctTokens[1].Text, pctTokens[1].BoundingBox.Left, pctTokens[1].BoundingBox.Right)
+                : null;
+            var geometricBandTokens = bandWords
+                .Select(w => new GeometricToken(w.Text, w.BoundingBox.Left, w.BoundingBox.Right))
+                .ToList();
+            var siblingAdjacent = GeometricPlausibilityScorer.IsSiblingAdjacentToPick(
+                geometricBandTokens, catToken, tasaToken);
+            var geometricSignals = new GeometricSignals(siblingAdjacent, pctTokens.Count);
+            var geometricConfidence = GeometricPlausibilityScorer.Score(geometricSignals, FieldCalibrationTable.TasaCat);
+
             // CAT = first percent token, TASA ORDINARIA = second (if present).
             var catLocator = BoundingBoxOf([pctTokens[0]], 1);
             var catPct = ParsePercent(pctTokens[0].Text);
             var catField = catPct.HasValue
-                ? ExtractedField<decimal>.Found(catPct.Value, catLocator)
+                ? (emitGeometricConfidence
+                    ? ExtractedField<decimal>.Found(catPct.Value, catLocator, geometricConfidence)
+                    : ExtractedField<decimal>.Found(catPct.Value, catLocator))
                 : ExtractedField<decimal>.Missing(catLocator);
 
             ExtractedField<decimal> tasaField;
@@ -1275,7 +1311,9 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 var tasaLocator = BoundingBoxOf([pctTokens[1]], 1);
                 var tasaPct = ParsePercent(pctTokens[1].Text);
                 tasaField = tasaPct.HasValue
-                    ? ExtractedField<decimal>.Found(tasaPct.Value, tasaLocator)
+                    ? (emitGeometricConfidence
+                        ? ExtractedField<decimal>.Found(tasaPct.Value, tasaLocator, geometricConfidence)
+                        : ExtractedField<decimal>.Found(tasaPct.Value, tasaLocator))
                     : ExtractedField<decimal>.Missing(tasaLocator);
             }
             else
