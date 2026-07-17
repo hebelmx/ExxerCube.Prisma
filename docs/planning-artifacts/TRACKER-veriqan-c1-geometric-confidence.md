@@ -48,9 +48,12 @@ Margin **0.35** (min clean 1.000 − max ambiguous 0.650 ≥ 0.15), proven on a 
 | C1.0b | Separation spike (MAKE-OR-BREAK) | ✅ GO (`9e6c9e03`) | margin 0.35, train/holdout blind, ±3pt robust — VERIFIED (read prototype + reran 14 tests) |
 | C1.1 | `ExtractedField.Found` confidence overload | ✅ done (`4af169e5`) | bit-identical green — VERIFIED |
 | C1.2 | `GeometricPlausibilityScorer` + signals in `ExtractTasaAndCat` (DARK) | ✅ done (`64f40192`) | scorer unit (28 new) + calibration green; flag-off byte-identical (398/532/165/158) — VERIFIED |
-| C1.3 | Verdict-diff harness + killswitch seam; SHIPPED DARK (owner) | ✅ done (`8dbb5cb4`) | harness 6 tests green; default OFF; gate vacuous on real Tasa/Cat (synthetic-only proof) — VERIFIED (clean rebuild 398/532/171/158) |
-| C1.4 | Extend to `ScanResumenColumn` (7 of 11 money fields — scope note below) | ✅ done | decoy-resumen (both profiles) calibrated (margin 0.45); 5-demo gate NON-VACUOUS (5/7 fields extract clean on real data, no flip); negative control flips CL-21 — VERIFIED |
-| C1.5 | Architecture-enforcement test | ☐ NEXT | every scored field ↔ calibration entry ↔ specimen; Confidence≥0.8 sweep |
+| C1.3 | Verdict-diff harness + killswitch seam; SHIPPED DARK (owner) | ✅ done (`4aac943e`) | harness 6 tests green; default OFF; gate vacuous on real Tasa/Cat (synthetic-only proof) — VERIFIED (clean rebuild) |
+| C1.4 | Extend to `ScanResumenColumn` (7 of 11 money fields — scope note below) | ✅ done (`704cfc80`) | decoy-resumen (both profiles) calibrated (margin 0.45); 5-demo gate NON-VACUOUS (5/7 fields extract clean on real data, no flip); negative control flips CL-21 — VERIFIED |
+| C1.5 | Architecture-enforcement / drift-guard test | ✅ done (`c8cb2ea2`) | coverage (scored field ↔ calibration ↔ specimen, walks `FieldCalibrationTable.Resumen.Keys` live) + clean-field Conf≥0.8 sweep — VERIFIED (434/532/178/158) |
+
+## ✅ EPIC COMPLETE (2026-07-16) — all 7 stories done, verified from ground truth, committed on `Liv`
+Everything ships **DARK** (`EmitGeometricConfidence` default false). Test floor: Extraction **434** · Validation **532** · Orchestration **178** · Application **158**, build 0/0. **OPEN owner-gated decision:** arming — one flag couples BOTH slices; RESUMEN arming is validated on real demo data (non-vacuous, no flip) but Tasa/Cat is synthetic-only. Options: keep dark / arm both (one flag) / split the flag to arm RESUMEN only. Commits local, not pushed.
 
 ## ⚠️ CRITICAL FINDING from C1.0a (gates C1.0b design) — SEPARABILITY
 The `s-c1-swap` fixture as built = `"27.36% sin IVA 28.86%"` (numbers transposed, `sin IVA` kept BETWEEN the two `%` tokens — same structure as baseline `"28.86% sin IVA 27.36%"`). This **proves the confident-wrong VERDICT exists** (CL-10 flips), BUT the two layouts are **geometrically identical** — `sin IVA` is equidistant, token count is 2, columns align — so **NO geometric signal separates them.** The party's load-bearing signal (sibling `sin IVA`) can only catch a swap if the marker TRACKS the true CAT (i.e. a realistic swap displaces `sin IVA` off the mis-picked leftmost token). 
