@@ -53,6 +53,20 @@ internal sealed record SyntheticArithmeticCheck(
     string? Note);
 
 /// <summary>
+/// One field's declared confidence-band ground truth, as recorded in a synthetic gold
+/// manifest's optional top-level <c>confidenceExpectations</c> object (C1.0a/C1.4 —
+/// <c>docs/planning-artifacts/SCOPING-veriqan-c1-geometric-extraction-confidence.md</c>,
+/// "Design decision 3"). Consumed by the C1.5 architecture-enforcement/drift-guard suite
+/// (<c>GeometricPlausibilityCoverageTests</c>), not by the extraction-fidelity round-trip test.
+/// </summary>
+/// <param name="Band">
+/// <c>"high"</c> (clean pick — the C1 geometric-plausibility score must clear the 0.8 guard
+/// floor when armed) or <c>"low"</c> (ambiguous/adversarial pick — must abstain-gate below it).
+/// </param>
+/// <param name="Min">The declared minimum confidence for a <c>"high"</c> band, when present.</param>
+internal sealed record SyntheticConfidenceExpectation(string Band, double? Min);
+
+/// <summary>
 /// God's-eye gold manifest for a single synthetic estado-de-cuenta PDF (E6.S6.2.1).
 /// Loaded from the sibling <c>*.manifest.json</c> file next to the synthetic PDF fixture.
 /// </summary>
@@ -67,7 +81,9 @@ internal sealed record SyntheticGoldManifest(
     string SourceProvenance,
     string? Defect,
     IReadOnlyDictionary<string, SyntheticFieldExpectation> Fields,
-    IReadOnlyList<SyntheticArithmeticCheck> ArithmeticChecks);
+    IReadOnlyList<SyntheticArithmeticCheck> ArithmeticChecks,
+    IReadOnlyDictionary<string, SyntheticConfidenceExpectation> ConfidenceExpectations,
+    bool HasGeometryDefect);
 
 /// <summary>
 /// Loads a <see cref="SyntheticGoldManifest"/> from disk. Never throws — malformed or missing
@@ -157,7 +173,33 @@ internal static class SyntheticGoldManifestLoader
                 }
             }
 
-            var manifest = new SyntheticGoldManifest(schemaVersion, sourceProvenance, defect, fields, arithmeticChecks);
+            var confidenceExpectations = new Dictionary<string, SyntheticConfidenceExpectation>(StringComparer.Ordinal);
+            if (root.TryGetProperty("confidenceExpectations", out var ceEl) && ceEl.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var prop in ceEl.EnumerateObject())
+                {
+                    var band = prop.Value.TryGetProperty("band", out var bandEl)
+                        ? bandEl.GetString() ?? string.Empty
+                        : string.Empty;
+                    double? min = prop.Value.TryGetProperty("min", out var minEl)
+                        && minEl.ValueKind == JsonValueKind.Number
+                            ? minEl.GetDouble()
+                            : null;
+
+                    confidenceExpectations[prop.Name] = new SyntheticConfidenceExpectation(band, min);
+                }
+            }
+
+            // C1.0a/C1.4 adversarial specimens carry a `geometryDefect` object describing the
+            // injected decoy/swap/marker-removal; its mere presence — not its content — is what
+            // the C1.5 drift guard uses to exclude a specimen from the "clean, must be >=0.8"
+            // sweep (see GeometricPlausibilityCoverageTests).
+            var hasGeometryDefect = root.TryGetProperty("geometryDefect", out var gdEl)
+                && gdEl.ValueKind != JsonValueKind.Null;
+
+            var manifest = new SyntheticGoldManifest(
+                schemaVersion, sourceProvenance, defect, fields, arithmeticChecks,
+                confidenceExpectations, hasGeometryDefect);
             return Result<SyntheticGoldManifest>.WithSuccess(manifest);
         }
         catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
