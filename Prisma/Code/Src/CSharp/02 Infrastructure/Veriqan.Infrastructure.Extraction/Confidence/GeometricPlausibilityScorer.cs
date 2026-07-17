@@ -178,6 +178,75 @@ internal sealed record TotalRowFieldCalibration(
     double CompetitionPenalty,
     int MaxLabelToPickRankGap);
 
+// ---------------------------------------------------------------------------
+// C2.1b — recompute-operand HeaderMoney slice (SaldoCargosRegulares /
+// PagoParaNoGenerarIntereses). Promotes the C2.0b/C2.1a make-or-break
+// separation-spike prototype
+// (Veriqan.Orchestration.Tests/Calibration/HeaderMoneyPlausibilityScorerPrototype.cs,
+// spike verdict: margin 0.64, blind holdout, jitter-robust; AC1 footnote
+// false-abstain closed at spike level) verbatim: same two signals
+// (label-rank-adjacency / competing-amount count), same MULTIPLICATIVE
+// formula, same constants. Structurally the SAME class of pick as C1.6's
+// DESGLOSE total-row slice — a single-pass label→value scan
+// (ExtractPagoParaNoGenerarIntereses / ExtractNivelDeUsoField's
+// rightmost-in-band positional heuristic) — so it reuses
+// GeometricPlausibilityScorer.IsValueRankAdjacentToLabel verbatim, exactly as
+// C1.6 does. Separate types from GeometricSignals (Tasa/Cat),
+// ResumenGeometricSignals (RESUMEN dual-pass), and TotalRowGeometricSignals
+// (DESGLOSE total row) — deliberately: none of those paths is touched by this
+// slice. See
+// docs/planning-artifacts/SCOPING-veriqan-c2-recompute-operand-confidence.md
+// and docs/planning-artifacts/TRACKER-veriqan-c2-recompute-operand-confidence.md
+// for the design authority this file implements.
+// ---------------------------------------------------------------------------
+
+/// <summary>
+/// The precomputed signal readings <see cref="GeometricPlausibilityScorer.ScoreHeaderMoneyField"/>
+/// consumes for one recompute-operand HeaderMoney (<c>SaldoCargosRegulares</c> /
+/// <c>PagoParaNoGenerarIntereses</c>) pick.
+/// </summary>
+/// <param name="LabelRankAdjacent">
+/// Signal #1 (identical concept/mechanism to <see cref="TotalRowGeometricSignals.LabelRankAdjacent"/>,
+/// via the same <see cref="GeometricPlausibilityScorer.IsValueRankAdjacentToLabel"/> helper): is
+/// the picked amount token within <see cref="HeaderMoneyFieldCalibration.MaxLabelToPickRankGap"/>
+/// ordinal ranks of the label's own last token? Bare "$" sign tokens AND single-digit footnote
+/// markers (e.g. the superscript "2" in "Pago para no generar intereses 2 $32,446.69" — the C2.1a
+/// AC1 finding) are excluded from the rank count before this signal is computed — both are
+/// typesetting/annotation noise, not geometric content (mirrors the C2.0b "$" exclusion and the
+/// C2.1a reuse of the existing <c>IsSingleDigit</c> domain rule, NOT a new predicate).
+/// </param>
+/// <param name="HasCompetingAmount">
+/// Signal #2: did MORE THAN ONE amount-pattern token (after the same "$"/single-digit exclusion)
+/// appear in the field's own value window? A clean pick has exactly one; a second (decoy) amount
+/// competing for the slot means the extractor's rightmost-wins pick may have picked the wrong one.
+/// </param>
+internal readonly record struct HeaderMoneyGeometricSignals(bool LabelRankAdjacent, bool HasCompetingAmount);
+
+/// <summary>
+/// Per-field calibration constants for the C2.1b recompute-operand HeaderMoney slice. See
+/// <see cref="FieldCalibrationTable.HeaderMoney"/> for the frozen values.
+/// </summary>
+/// <param name="RankNotAdjacentPenalty">
+/// Multiplicative penalty applied when <see cref="HeaderMoneyGeometricSignals.LabelRankAdjacent"/>
+/// is <see langword="false"/>.
+/// </param>
+/// <param name="CompetingAmountPenalty">
+/// Multiplicative penalty applied when <see cref="HeaderMoneyGeometricSignals.HasCompetingAmount"/>
+/// is <see langword="true"/>.
+/// </param>
+/// <param name="MaxLabelToPickRankGap">
+/// The maximum ordinal-rank distance (see <see cref="HeaderMoneyGeometricSignals.LabelRankAdjacent"/>)
+/// between the label's last token and the picked amount token that still counts as adjacent, after
+/// excluding "$" and single-digit footnote-marker tokens from the rank count. Frozen at 1 by the
+/// C2.0b spike (<c>HeaderMoneyPlausibilityScorerPrototype.RankAdjacencyThreshold</c>) — once that
+/// exclusion is applied, a clean pick's label-end and amount are always exactly 1 content-rank
+/// apart on both fields.
+/// </param>
+internal sealed record HeaderMoneyFieldCalibration(
+    double RankNotAdjacentPenalty,
+    double CompetingAmountPenalty,
+    int MaxLabelToPickRankGap);
+
 /// <summary>
 /// Static table of per-field <see cref="FieldCalibration"/> constants. A field only needs an
 /// entry once a call site actually emits a geometric-plausibility confidence for it (today: Tasa
@@ -262,6 +331,49 @@ internal static class FieldCalibrationTable
         {
             [FieldKind.TotalCargos] = TotalRowDefault,
             [FieldKind.TotalAbonos] = TotalRowDefault,
+        };
+
+    /// <summary>
+    /// Constants for the C2.1b recompute-operand HeaderMoney slice, covering
+    /// <see cref="FieldKind.SaldoCargosRegulares"/> and
+    /// <see cref="FieldKind.PagoParaNoGenerarIntereses"/> ONLY.
+    /// <see cref="FieldKind.SaldoCargosAMeses"/> is DELIBERATELY EXCLUDED — it shares
+    /// <c>ExtractNivelDeUsoField</c>'s mechanism but is scoped to a later story; the
+    /// <c>TryGetValue</c> miss at its call site leaves it unscored (plain <c>Found</c>,
+    /// constant confidence 1.0), exactly like every other not-yet-wired field in this table.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>AC5 — honesty about provenance:</b> both penalty constants (0.55 / 0.65) are NOT
+    /// independently corpus-derived for this slice. They are inherited VERBATIM from the C1.0b
+    /// Tasa/Cat spike's <see cref="TasaCat"/> calibration (<c>SiblingAbsentPenalty</c> /
+    /// <c>CompetitionExcessPenalty</c>) — the C2.0b/C2.1a make-or-break spike
+    /// (<c>HeaderMoneyPlausibilityScorerPrototype</c>) reused them unchanged and only VALIDATED,
+    /// never FITTED, that they still produce a wide separation margin (0.64, blind holdout,
+    /// jitter-robust) on this slice's own corpus. Do not read "spike-proven" as "corpus-tuned" —
+    /// if a future corpus shows these constants need adjusting for this field family, that is a
+    /// new calibration exercise, not a regression in this one.
+    /// </para>
+    /// <para>
+    /// <b>AC4 — known residual blind spot (not silently capped):</b> a decoy that REPLACES the
+    /// true value as the SOLE rank-1 candidate (rather than adding a second, farther-rank
+    /// candidate) is indistinguishable from a clean pick by both signals and scores 1.0
+    /// confident-wrong. Catching that shape requires a cross-column/cross-row leak check, which
+    /// is out of scope for this slice (C2.1b) — a future story would need a third signal (e.g.
+    /// cross-checking the picked value against a sibling/expected-magnitude range) to close it.
+    /// </para>
+    /// </remarks>
+    public static readonly IReadOnlyDictionary<FieldKind, HeaderMoneyFieldCalibration> HeaderMoney =
+        new Dictionary<FieldKind, HeaderMoneyFieldCalibration>
+        {
+            [FieldKind.SaldoCargosRegulares] = new HeaderMoneyFieldCalibration(
+                RankNotAdjacentPenalty: 0.55,
+                CompetingAmountPenalty: 0.65,
+                MaxLabelToPickRankGap: 1),
+            [FieldKind.PagoParaNoGenerarIntereses] = new HeaderMoneyFieldCalibration(
+                RankNotAdjacentPenalty: 0.55,
+                CompetingAmountPenalty: 0.65,
+                MaxLabelToPickRankGap: 1),
         };
 }
 
@@ -470,6 +582,37 @@ internal static class GeometricPlausibilityScorer
 
         if (signals.HasCompetingAmount)
             score *= calibration.CompetitionPenalty;
+
+        return score;
+    }
+
+    // -----------------------------------------------------------------------
+    // C2.1b — recompute-operand HeaderMoney slice (SaldoCargosRegulares /
+    // PagoParaNoGenerarIntereses).
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Scores a recompute-operand HeaderMoney pick from its precomputed <paramref name="signals"/>
+    /// against <paramref name="calibration"/>. Same MULTIPLICATIVE shape as <see cref="Score"/>,
+    /// <see cref="ScoreResumen"/> and <see cref="ScoreTotalRow"/> (party architecture decision 2,
+    /// reused verbatim): clean picks (both signals pass) score exactly 1.0; any failing signal
+    /// multiplies in its own penalty independently of the other.
+    /// </summary>
+    /// <param name="signals">The precomputed signal readings for this pick.</param>
+    /// <param name="calibration">The per-field calibration constants to apply.</param>
+    /// <returns>A score in [0, 1].</returns>
+    public static double ScoreHeaderMoneyField(
+        HeaderMoneyGeometricSignals signals, HeaderMoneyFieldCalibration calibration)
+    {
+        ArgumentNullException.ThrowIfNull(calibration);
+
+        var score = 1.0;
+
+        if (!signals.LabelRankAdjacent)
+            score *= calibration.RankNotAdjacentPenalty;
+
+        if (signals.HasCompetingAmount)
+            score *= calibration.CompetingAmountPenalty;
 
         return score;
     }

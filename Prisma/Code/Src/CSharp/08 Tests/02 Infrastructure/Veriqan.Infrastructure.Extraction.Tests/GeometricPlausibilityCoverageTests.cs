@@ -29,14 +29,17 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Tests;
 /// extracts must score &gt;= 0.8 when the C1 flag is armed. It fails loudly if a future
 /// signal/constant change in the scorer drags a legitimately-clean field below the 0.8 guard
 /// floor. "Clean" is determined structurally, not by a hand-maintained id list: a specimen is
-/// adversarial iff its manifest carries a <c>geometryDefect</c> block (the C1.0a/C1.4/C1.6
+/// adversarial iff its manifest carries a <c>geometryDefect</c> block (the C1.0a/C1.4/C1.6/C2.1b
 /// contract — today exactly <c>s-c1-swap</c>, <c>s-c1-swap-displaced</c>,
 /// <c>missing-order-marker</c>, <c>decoy-percent</c>, <c>decoy-resumen-amount</c>,
 /// <c>decoy-resumen-amount-realbanamex</c>, <c>decoy-total-amount</c>,
-/// <c>decoy-total-amount-realbanamex</c>); those 8 are SUPPOSED to score low and are covered
-/// instead by <see cref="GeometricPlausibilityCalibrationTests"/> /
+/// <c>decoy-total-amount-realbanamex</c>, <c>decoy-nivel-uso-amount</c> (+ <c>-realbanamex</c>,
+/// <c>-moneyfmt</c>, <c>-moneyfmt-realbanamex</c>), <c>decoy-pago-sin-intereses-amount</c> (+
+/// <c>-realbanamex</c>); those are SUPPOSED to score low and are covered instead by
+/// <see cref="GeometricPlausibilityCalibrationTests"/> /
 /// <see cref="GeometricPlausibilityResumenCalibrationTests"/> /
-/// <c>GeometricPlausibilityTotalRowCalibrationTests</c>.
+/// <c>GeometricPlausibilityTotalRowCalibrationTests</c> /
+/// <c>GeometricPlausibilityHeaderMoneyCalibrationTests</c>.
 /// </para>
 /// <para>
 /// No production code is touched by this story; the C1 flag stays DARK
@@ -72,6 +75,7 @@ public sealed class GeometricPlausibilityCoverageTests
         new[] { FieldKind.Tasa, FieldKind.Cat }
             .Concat(FieldCalibrationTable.Resumen.Keys)
             .Concat(FieldCalibrationTable.TotalRow.Keys)
+            .Concat(FieldCalibrationTable.HeaderMoney.Keys)
             .Distinct()
             .ToList();
 
@@ -99,6 +103,8 @@ public sealed class GeometricPlausibilityCoverageTests
             [FieldKind.PagosYAbonos] = ps => ps.PagosYAbonos,
             [FieldKind.TotalCargos] = ps => ps.TotalCargos,
             [FieldKind.TotalAbonos] = ps => ps.TotalAbonos,
+            [FieldKind.SaldoCargosRegulares] = ps => ps.SaldoCargosRegulares,
+            [FieldKind.PagoParaNoGenerarIntereses] = ps => ps.PagoParaNoGenerarIntereses,
         };
 
     // -----------------------------------------------------------------------
@@ -128,6 +134,11 @@ public sealed class GeometricPlausibilityCoverageTests
             {
                 FieldCalibrationTable.TotalRow.Keys.ShouldContain(field,
                     $"{field}: missing a FieldCalibrationTable.TotalRow entry.");
+            }
+            else if (field is FieldKind.SaldoCargosRegulares or FieldKind.PagoParaNoGenerarIntereses)
+            {
+                FieldCalibrationTable.HeaderMoney.Keys.ShouldContain(field,
+                    $"{field}: missing a FieldCalibrationTable.HeaderMoney entry.");
             }
             else
             {

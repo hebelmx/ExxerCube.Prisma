@@ -783,7 +783,10 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         var paymentDueDate = ExtractFechaLimiteDePago(sorted, bands);
 
         // ---- Summary amounts (left column, Y≈555, 544, 523) ----
-        var pagoNoInt = ExtractPagoParaNoGenerarIntereses(sorted, bands, amtFmt);
+        // C2.1b: fieldKind + _emitGeometricConfidence thread the geometric-plausibility
+        // confidence (armed by default — see PdfExtractionOptions.EmitGeometricConfidence).
+        var pagoNoInt = ExtractPagoParaNoGenerarIntereses(sorted, bands, amtFmt,
+            FieldKind.PagoParaNoGenerarIntereses, _emitGeometricConfidence);
         var pagoMinMeses = ExtractPagoMinimoMasMeses(sorted, bands, amtFmt);
         var pagoMin = ExtractPagoMinimo(sorted, bands, amtFmt);
 
@@ -827,10 +830,16 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
         // ---- NIVEL DE USO DE TU TARJETA (Story 4.2) ---------------------
         // Right-side block at Y ≈ 171–183.
+        // C2.1b: fieldKind + _emitGeometricConfidence thread the geometric-plausibility
+        // confidence for SaldoCargosRegulares only — SaldoCargosAMeses has no
+        // FieldCalibrationTable.HeaderMoney entry (deliberately excluded, a later story) and
+        // stays unscored regardless of the flag.
         var saldoCargosRegulares = ExtractNivelDeUsoField(sorted, bands,
-            ["Saldo", "cargos", "regulares:"], amtFmt);
+            ["Saldo", "cargos", "regulares:"], amtFmt,
+            FieldKind.SaldoCargosRegulares, _emitGeometricConfidence);
         var saldoCargosAMeses = ExtractNivelDeUsoField(sorted, bands,
-            ["Saldo", "cargos", "a", "meses:"], amtFmt);
+            ["Saldo", "cargos", "a", "meses:"], amtFmt,
+            FieldKind.SaldoCargosAMeses, _emitGeometricConfidence);
 
         // ---- Day-count verification -------------------------------------
         var dayCount = DayCountVerification.Compute(periodStart, periodCutDate, dayCountPrinted);
@@ -1107,10 +1116,29 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     // Pago para no generar intereses
     // -----------------------------------------------------------------------
 
+    /// <summary>
+    /// Extracts "Pago para no generar intereses" from the summary block.
+    /// </summary>
+    /// <param name="sorted">All page-1 words sorted top-to-bottom, left-to-right.</param>
+    /// <param name="bands">Band dictionary for same-line extraction.</param>
+    /// <param name="amtFmt">Session-scoped number-format detector.</param>
+    /// <param name="fieldKind">
+    /// C2.1b calibration key (<see cref="FieldKind.PagoParaNoGenerarIntereses"/>) — looked up in
+    /// <see cref="FieldCalibrationTable.HeaderMoney"/> to score the pick.
+    /// </param>
+    /// <param name="emitGeometricConfidence">
+    /// C2.1b ship/arm switch (mirrors <c>ExtractTasaAndCat</c>/<c>ExtractResumenField</c>/
+    /// <c>TryParseTotalRow</c>'s parameter of the same name). When <see langword="true"/>, the
+    /// returned <see cref="ExtractedField{T}.Confidence"/> is the C2.1b geometric-plausibility
+    /// score for the picked amount instead of the constant 1.0. Default path
+    /// (<see langword="false"/>) is byte-identical to pre-C2.1b behaviour.
+    /// </param>
     private static ExtractedField<decimal> ExtractPagoParaNoGenerarIntereses(
         List<Word> sorted,
         Dictionary<double, List<Word>> bands,
-        AmountNumberFormatSession amtFmt)
+        AmountNumberFormatSession amtFmt,
+        FieldKind fieldKind,
+        bool emitGeometricConfidence)
     {
         // "Pago para no generar intereses 2 $32,446.69"
         // The "2" is a footnote marker — skip it; find the amount token.
@@ -1140,7 +1168,45 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
             // maxX=300 keeps us in the left column — avoids picking up right-column
             // values (e.g. CLABE "9876543210123") that merged into this band.
-            return FindAmountInBand(band, locator, amtFmt, maxX: 300);
+            var result = FindAmountInBand(band, locator, amtFmt, maxX: 300);
+
+            // ---- C2.1b: geometric-plausibility confidence (armed) --------------
+            // Always computed when a calibration entry exists for this field (cheap, pure) —
+            // emitGeometricConfidence only gates which ExtractedField<T>.Found overload is
+            // called, exactly like C1.2/C1.4/C1.6's pattern.
+            if (result.Status != ExtractionStatus.Extracted
+                || !FieldCalibrationTable.HeaderMoney.TryGetValue(fieldKind, out var calibration))
+                return result;
+
+            // The same maxX=300 window the pick itself is constrained to (see above) — so a
+            // right-column value (e.g. a CLABE digit run) that merged into this Y-band via
+            // tolerance never enters the geometric signals either. "$" sign tokens and
+            // single-digit footnote markers are excluded, same as the C2.1a AC1 fix.
+            var geometricBandTokens = band
+                .Where(w => w.BoundingBox.Left <= 300 && w.Text != "$" && !IsSingleDigit(w.Text))
+                .Select(w => new GeometricToken(w.Text, w.BoundingBox.Left, w.BoundingBox.Right))
+                .ToList();
+
+            var labelEndWord = sorted[i + 4];
+            var labelEndToken = new GeometricToken(
+                labelEndWord.Text, labelEndWord.BoundingBox.Left, labelEndWord.BoundingBox.Right);
+
+            var amountCandidates = geometricBandTokens
+                .Where(t => AmountPattern.IsMatch(t.Text))
+                .ToList();
+            if (amountCandidates.Count == 0)
+                return result; // defensive; should not happen given result.Status == Extracted.
+
+            var pickToken = amountCandidates.OrderByDescending(t => t.Left).First();
+
+            var labelRankAdjacent = GeometricPlausibilityScorer.IsValueRankAdjacentToLabel(
+                geometricBandTokens, labelEndToken, pickToken, calibration.MaxLabelToPickRankGap);
+            var signals = new HeaderMoneyGeometricSignals(labelRankAdjacent, amountCandidates.Count > 1);
+            var geometricConfidence = GeometricPlausibilityScorer.ScoreHeaderMoneyField(signals, calibration);
+
+            return emitGeometricConfidence
+                ? ExtractedField<decimal>.Found(result.Value, result.Locator, geometricConfidence)
+                : result;
         }
 
         return ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
@@ -1643,11 +1709,27 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// Leading token sequence (e.g. <c>["Saldo", "cargos", "regulares:"]</c>).
     /// </param>
     /// <param name="amtFmt">Session-scoped number-format detector.</param>
+    /// <param name="fieldKind">
+    /// C2.1b calibration key — looked up in <see cref="FieldCalibrationTable.HeaderMoney"/> to
+    /// score the pick. A <see cref="FieldKind"/> with no entry (today:
+    /// <see cref="FieldKind.SaldoCargosAMeses"/>) stays unscored — plain <c>Found</c>, constant
+    /// confidence 1.0 — exactly like pre-C2.1b behaviour.
+    /// </param>
+    /// <param name="emitGeometricConfidence">
+    /// C2.1b ship/arm switch (mirrors <c>ExtractTasaAndCat</c>/<c>ExtractResumenField</c>/
+    /// <c>TryParseTotalRow</c>/<c>ExtractPagoParaNoGenerarIntereses</c>'s parameter of the same
+    /// name). When <see langword="true"/> AND a calibration entry exists for
+    /// <paramref name="fieldKind"/>, the returned <see cref="ExtractedField{T}.Confidence"/> is
+    /// the C2.1b geometric-plausibility score instead of the constant 1.0. Default path
+    /// (<see langword="false"/>) is byte-identical to pre-C2.1b behaviour.
+    /// </param>
     private static ExtractedField<decimal> ExtractNivelDeUsoField(
         List<Word> sorted,
         Dictionary<double, List<Word>> bands,
         string[] labelTokens,
-        AmountNumberFormatSession amtFmt)
+        AmountNumberFormatSession amtFmt,
+        FieldKind fieldKind,
+        bool emitGeometricConfidence)
     {
         // NIVEL-DE-USO rows are in the right column (X ≥ ~283) at Y ≈ 171–183.
         for (var i = 0; i + labelTokens.Length - 1 < sorted.Count; i++)
@@ -1685,7 +1767,45 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 continue;
 
             var locator = BoundingBoxOf(band, 1);
-            return FindAmountInBandSplitDollar(band, locator, amtFmt);
+            var result = FindAmountInBandSplitDollar(band, locator, amtFmt);
+
+            // ---- C2.1b: geometric-plausibility confidence (armed) --------------
+            // Always computed when a calibration entry exists for this field (cheap, pure) —
+            // emitGeometricConfidence only gates which ExtractedField<T>.Found overload is
+            // called, exactly like C1.2/C1.4/C1.6's pattern. SaldoCargosAMeses has no entry
+            // (deliberately excluded — a later story) so this is a no-op miss for it.
+            if (result.Status != ExtractionStatus.Extracted
+                || !FieldCalibrationTable.HeaderMoney.TryGetValue(fieldKind, out var calibration))
+                return result;
+
+            // Open bounds, matching FindAmountInBandSplitDollar's own call above (no maxX) — "$"
+            // sign tokens and single-digit footnote markers are excluded, same as the C2.1a AC1
+            // fix and ExtractPagoParaNoGenerarIntereses's sibling wiring.
+            var geometricBandTokens = band
+                .Where(w => w.Text != "$" && !IsSingleDigit(w.Text))
+                .Select(w => new GeometricToken(w.Text, w.BoundingBox.Left, w.BoundingBox.Right))
+                .ToList();
+
+            var labelEndWord = bandSorted[labelStart + labelTokens.Length - 1];
+            var labelEndToken = new GeometricToken(
+                labelEndWord.Text, labelEndWord.BoundingBox.Left, labelEndWord.BoundingBox.Right);
+
+            var amountCandidates = geometricBandTokens
+                .Where(t => AmountPattern.IsMatch(t.Text))
+                .ToList();
+            if (amountCandidates.Count == 0)
+                return result; // defensive; should not happen given result.Status == Extracted.
+
+            var pickToken = amountCandidates.OrderByDescending(t => t.Left).First();
+
+            var labelRankAdjacent = GeometricPlausibilityScorer.IsValueRankAdjacentToLabel(
+                geometricBandTokens, labelEndToken, pickToken, calibration.MaxLabelToPickRankGap);
+            var signals = new HeaderMoneyGeometricSignals(labelRankAdjacent, amountCandidates.Count > 1);
+            var geometricConfidence = GeometricPlausibilityScorer.ScoreHeaderMoneyField(signals, calibration);
+
+            return emitGeometricConfidence
+                ? ExtractedField<decimal>.Found(result.Value, result.Locator, geometricConfidence)
+                : result;
         }
 
         return ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
