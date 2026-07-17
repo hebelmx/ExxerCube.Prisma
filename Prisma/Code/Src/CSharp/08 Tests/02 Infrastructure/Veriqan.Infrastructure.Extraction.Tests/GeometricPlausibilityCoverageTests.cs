@@ -7,9 +7,19 @@ using Meziantou.Extensions.Logging.Xunit.v3;
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Tests;
 
 /// <summary>
-/// Story <b>C1.5</b> — architecture-enforcement / drift-guard test for the C1 geometric-
-/// plausibility lever (<see cref="GeometricPlausibilityScorer"/> / <see cref="FieldCalibrationTable"/>).
-/// Two independent guards, both self-maintaining (no hand-updated fixture lists):
+/// Story <b>C1.5</b> (extended by <b>C2.5</b>) — architecture-enforcement / drift-guard test for the
+/// geometric-plausibility lever (<see cref="GeometricPlausibilityScorer"/> /
+/// <see cref="FieldCalibrationTable"/>). Three independent guards, all self-maintaining (no
+/// hand-updated fixture lists):
+/// <list type="number">
+/// <item>Guard #1 — every field the scorer scores has a calibration-table entry, a PeriodSummary
+/// accessor, and &gt;=1 corpus specimen.</item>
+/// <item>Guard #2 — every scored field that extracts on a CLEAN specimen clears the 0.8 guard floor
+/// (false-abstain drift).</item>
+/// <item>Guard #3 (C2.5) — the four recompute operands proven VACUOUS/UNSAFE to score on the real
+/// demo (<see cref="DeliberatelyUnscoredRecomputeOperands"/>) must STAY out of every calibration
+/// table, so a future dev can't silently re-introduce the C1 Tasa/Cat trap.</item>
+/// </list>
 /// </summary>
 /// <remarks>
 /// <para>
@@ -262,5 +272,74 @@ public sealed class GeometricPlausibilityCoverageTests
         using var doc = JsonDocument.Parse(File.ReadAllText(manifestPath));
         return doc.RootElement.TryGetProperty("geometryDefect", out var el)
             && el.ValueKind != JsonValueKind.Null;
+    }
+
+    // -----------------------------------------------------------------------
+    // Guard #3 (C2.5) — the deliberately-unscored recompute operands must STAY unscored
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// The four confidence-guarded recompute-operand money fields that were investigated for a
+    /// geometric-confidence slice (C2) and deliberately LEFT UNSCORED — the inverse of Guard #1's
+    /// "every scored field is covered" contract. Each is confidence-guarded by a rule (so today it
+    /// asserts confidence 1.0), but arming it would be vacuous or actively unsafe on the real demo
+    /// <c>good.pdf</c>, per the C2.3 non-vacuity + false-RED scouts (2026-07-17). If a future dev
+    /// adds any of these to a <see cref="FieldCalibrationTable"/> dictionary, Guard #3 trips and
+    /// points them back at that analysis — silently arming one re-introduces exactly the C1
+    /// Tasa/Cat "vacuous / confident-wrong" trap this epic exists to refuse.
+    /// <list type="bullet">
+    /// <item><b>SaldoDeudorTotal</b> — a DERIVED total the document never prints in its text layer
+    /// (correct value = SaldoCargosRegulares + SaldoCargosAMeses, absent as a token). Force-
+    /// extracting it grabs a foreign page-1 amount → false Critical RED on the compliant reference
+    /// via CL-24/CL-25. Same hazard class as the Tasa/CAT code strip.</item>
+    /// <item><b>CreditoDisponible</b> — DOES extract (26,791.00) but its only live consumer CL-25
+    /// already abstains on SaldoDeudorTotal's <c>NotExtracted</c> status BEFORE the 0.8 guard runs;
+    /// its other consumer CL-26 is a dead <c>InsufficientData</c> stub → arming cannot flip any real
+    /// verdict (vacuous).</item>
+    /// <item><b>SaldoCargosAMeses</b> — DOES extract (38,604.69) and already runs the HeaderMoney
+    /// scorer path (<c>ExtractNivelDeUsoField</c>), but is intentionally kept out of
+    /// <c>FieldCalibrationTable.HeaderMoney</c> via a TryGetValue-miss: its only live consumer CL-24
+    /// abstains on SaldoDeudorTotal; CL-23 is a dead stub → currently vacuous. (Scoreable in
+    /// principle if SaldoDeudorTotal ever becomes safely extractable — which the scout showed it is
+    /// not on this bank.)</item>
+    /// <item><b>PagoMinimo</b> — its only guard consumer §6 gates on <c>Tasa</c>, which is
+    /// <c>NotExtracted</c> on <c>good.pdf</c>, so §6 abstains unconditionally → vacuous on the real
+    /// demo (C2 mini-party).</item>
+    /// </list>
+    /// </summary>
+    private static readonly IReadOnlyList<FieldKind> DeliberatelyUnscoredRecomputeOperands =
+        new[]
+        {
+            FieldKind.SaldoDeudorTotal,
+            FieldKind.CreditoDisponible,
+            FieldKind.SaldoCargosAMeses,
+            FieldKind.PagoMinimo,
+        };
+
+    [Fact]
+    public void DeliberatelyUnscoredRecomputeOperand_StaysOutOfEveryCalibrationTable()
+    {
+        var armed = new List<string>();
+
+        foreach (var field in DeliberatelyUnscoredRecomputeOperands)
+        {
+            if (FieldCalibrationTable.Resumen.ContainsKey(field))
+                armed.Add($"{field}: found in FieldCalibrationTable.Resumen");
+            if (FieldCalibrationTable.TotalRow.ContainsKey(field))
+                armed.Add($"{field}: found in FieldCalibrationTable.TotalRow");
+            if (FieldCalibrationTable.HeaderMoney.ContainsKey(field))
+                armed.Add($"{field}: found in FieldCalibrationTable.HeaderMoney");
+        }
+
+        armed.ShouldBeEmpty(
+            "C2.5 Guard #3: a recompute operand that the C2.3 non-vacuity / false-RED scouts "
+            + "(2026-07-17) proved is VACUOUS or UNSAFE to score on the real demo good.pdf has "
+            + "been added to a FieldCalibrationTable. Arming it re-introduces the C1 Tasa/Cat "
+            + "vacuous/confident-wrong trap this epic refuses. Before scoring any of these, redo "
+            + "the per-field non-vacuity scout (does it extract on good.pdf, and does its guard "
+            + "actually gate a real verdict?) and a false-RED check — see the "
+            + "GeometricPlausibilityCoverageTests.DeliberatelyUnscoredRecomputeOperands remarks "
+            + "and TRACKER-veriqan-c2-recompute-operand-confidence.md (C2.3/C2.4). Offenders:\n"
+            + string.Join("\n", armed));
     }
 }

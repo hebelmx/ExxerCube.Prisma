@@ -12,7 +12,7 @@ Reuses the C1.6 mechanism + `EmitGeometricConfidence` killswitch + C1.4/C1.6 arm
 No rule changes.
 
 ## Test floor to hold (bare `net10.0/` DLL, run the DLL directly — NOT `dotnet test <csproj>`)
-Extraction **483** (post-C2.1b: 462 + 21 HeaderMoney) · Validation **532** · Orchestration **225** · Application **158** (all 0-fail, armed).
+Extraction **484** (post-C2.1b 483 + 1 C2.5 Guard #3) · Validation **532** · Orchestration **225** · Application **158** (all 0-fail, armed).
 Any drop to N−k green is a silent regression, not a pass.
 
 ## Status
@@ -42,9 +42,9 @@ Any drop to N−k green is a silent regression, not a pass.
 - **AC4 (Finding #2): log the wrong-row blind spot** — a decoy that REPLACES the true value (sole candidate, rank-1, wrong value) scores 1.0 confident-wrong; out of scope for this cross-column-leak slice but must be recorded as a residual limitation (no silent caps).
 - **AC5 (Findings #3/#5): reconsider signal #2's net value** before inheriting it (it produces AC1's false positive), and disclose that constants are C1.0b-reuse, not corpus-derived.
 | C2.2 | Verify CL-21/22 slice: rule-unit (non-vacuous) + calibration + armed demo-diff (CL-22 Pass/Fail is real) | ✅ **DONE `87f56aca`** | Armed full floor from ground truth: **Orchestration 225/225 — 5 real demo verdicts UNCHANGED** (false-abstain cardinal risk cleared) · Extraction 483/483 (+21) · Validation 532/532 · Application 158/158. ⚠️ Real-demo NON-vacuity of the 2 fields = under adversarial review (the load-bearing claim vs the C1 Tasa/Cat vacuous trap). |
-| C2.3 | Extend to `SaldoDeudorTotal`/`CreditoDisponible`/`SaldoCargosAMeses` (CL-24/25); calibrate-then-arm | TODO | |
-| C2.4 | `PagoMinimo` slice — spike-gated; arm ONLY if C2.0b separates; else permanent-dark + logged caveat | TODO | Vacuous on real demo |
-| C2.5 | Extend C1.5 architecture-enforcement drift-guard to new scored fields | TODO | |
+| C2.3 | Extend to `SaldoDeudorTotal`/`CreditoDisponible`/`SaldoCargosAMeses` (CL-24/25); calibrate-then-arm | ❌ **NO-GO (vacuous-by-design, 2026-07-17)** | TWO scouts + a live probe. **`SaldoDeudorTotal` = `NotExtracted, Value=0` on real `good.pdf`** (probe-pinned) → CL-24 **and** CL-25 short-circuit to `InsufficientData` on `Status != Extracted` **before** the 0.8 guard runs. The two fields that DO extract (`CreditoDisponible`=26791.00, `SaldoCargosAMeses`=38604.69) have no other live consumer — CL-23/CL-26 are dead `InsufficientData` stubs. **Net: arming any of the 3 cannot flip a real verdict.** Owner asked "fix extraction first" → 2nd scout refuted it as UNSAFE: `SaldoDeudorTotal` is a **derived total the document never prints** (correct 51209.24 = 12604.55+38604.69, absent from the 9-page text layer; only page-4 glossary prose names it). Force-extraction grabs a foreign page-1 amount → **false Critical RED on the compliant reference** via CL-24/CL-25 = same hazard class as Tasa/CAT. Defining it as the computed sum makes CL-24 tautological (sum-vs-sum, fake green). **Honest terminus: unachievable + unsafe to arm on this bank; abstain is correct.** |
+| C2.4 | `PagoMinimo` slice — spike-gated; arm ONLY if C2.0b separates; else permanent-dark + logged caveat | ❌ **NO-GO (vacuous)** | Parked with C2.3. Only guard consumer §6 gates on `Tasa` (`NotExtracted` on `good.pdf`) → §6 abstains unconditionally → vacuous on the real demo (C2 mini-party finding). No spike run — vacuity is dispositive. |
+| C2.5 | Extend C1.5 architecture-enforcement drift-guard | ✅ **DONE** | Guard #3 added (`GeometricPlausibilityCoverageTests.cs`): tripwire asserts the 4 deliberately-unscored operands (SaldoDeudorTotal/CreditoDisponible/SaldoCargosAMeses/PagoMinimo) stay out of every `FieldCalibrationTable`, with the C2.3 NO-GO rationale + "redo the non-vacuity scout" instruction in the failure message. **Mutation-tested** (armed SaldoDeudorTotal → Guard #3 fails as designed → reverted). Extraction 483→**484**/484 green, build 0/0, test-only (zero production surface). C1.5's Guards #1/#2 were already self-maintaining + extended to the C2.1b armed pair — no further extension needed. |
 | C2.C | Cl42/Cl49 date-window guard-gap — evaluate; log honestly if inert (do not build for scope's sake) | TODO | Slice C (weak; owner authorized but skeptical) |
 | review | Adversarial review each increment (false-abstain / verdict-flip hunt) | ONGOING | anti-drift gate |
 
@@ -60,6 +60,15 @@ calibrate-then-arm-dark discipline; STOP at C2.0b if no clean separation.
   single-digit footnote-marker transparency (mirrors production's own `IsSingleDigit` domain rule);
   proved orthogonal to money-format via a new harder decoy. Margin 0.643 held on train+holdout+jitter.
   Spike-only — C2.1b (production wiring, AC2–AC5) is still TODO and unblocked by this result.
+- 2026-07-17 — **C2.3 + C2.4 NO-GO (vacuous-by-design) + C2.5 DONE.** Two read-only scouts + a live
+  probe closed C2.3: `SaldoDeudorTotal` is `NotExtracted` on real `good.pdf` (probe-pinned) and is a
+  DERIVED total the document never prints — its absence already forces CL-24/CL-25 to abstain before the
+  0.8 guard, and force-extracting it would fabricate a false Critical RED on the compliant reference (same
+  hazard class as Tasa/CAT). Owner's "fix extraction first" path refuted on SAFETY grounds. The other two
+  fields are vacuous downstream of the same abstain; C2.4/PagoMinimo already vacuous via the Tasa gate.
+  The armable non-vacuous surface on this bank was exhausted at C2.1b. **C2.5 = Guard #3** (drift tripwire
+  keeping the 4 unscored operands out of every calibration table, mutation-tested). Extraction **484**/484,
+  build 0/0, test-only. Remaining C2.C (dates) untouched — owner-skeptical. **Epic C2 handed off here.**
 - 2026-07-17 — **C2.1b + C2.2 DONE + ARMED + pushed (`87f56aca`).** Mechanism promoted to production
   (`HeaderMoneyGeometricSignals`/`ScoreHeaderMoneyField`/`FieldCalibrationTable.HeaderMoney`), a verbatim
   mirror of C1.6 TotalRow; `ExtractNivelDeUsoField`+`ExtractPagoParaNoGenerarIntereses` wired and emitting
