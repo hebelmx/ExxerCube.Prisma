@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.DependencyInjection;
 
@@ -51,7 +52,25 @@ public static class VeriqanExtractionExtensions
         // Stage 1 (positional) — registered as its own concrete singleton so the strangler-fig
         // decorator below can wrap it directly without resolving IStatementFieldExtractor
         // recursively through itself.
-        services.TryAddSingleton<PdfPigStatementFieldExtractor>();
+        //
+        // VERIQAN C1.3: the geometric-plausibility confidence killswitch
+        // (PdfExtractionOptions.EmitGeometricConfidence, default true) is threaded through here
+        // explicitly rather than relying on the extractor ctor's own `emitGeometricConfidence =
+        // false` default — that ctor default stays behaviour-neutral for direct/test
+        // construction; arming for production happens at this composition root by reading
+        // configuration, so the flag can be switched off (killswitch) via
+        // Veriqan:PdfExtraction:EmitGeometricConfidence without a code change or redeploy.
+        services.TryAddSingleton(sp =>
+        {
+            var pdfOptions = sp.GetRequiredService<IOptions<PdfExtractionOptions>>();
+            return new PdfPigStatementFieldExtractor(
+                sp.GetRequiredService<ILogger<PdfPigStatementFieldExtractor>>(),
+                pdfOptions,
+                sp.GetRequiredService<IPasswordProvider>(),
+                timeProvider: null,
+                enableCatalogImageHashing: false,
+                emitGeometricConfidence: pdfOptions.Value.EmitGeometricConfidence);
+        });
 
         // Per-field progressive fallback-extraction chain (E1): every FieldKind ladder is empty
         // (positional-only) until a later epic registers higher stages, so the decorator below is
