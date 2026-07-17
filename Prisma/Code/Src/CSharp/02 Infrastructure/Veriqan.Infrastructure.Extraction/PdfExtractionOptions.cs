@@ -46,18 +46,28 @@ public sealed class PdfExtractionOptions
     /// <see langword="false"/> (via <c>Veriqan:PdfExtraction:EmitGeometricConfidence</c> — e.g. the
     /// <c>Veriqan__PdfExtraction__EmitGeometricConfidence</c> environment variable) as a runtime
     /// KILLSWITCH to restore the byte-identical pre-C1 behaviour without a code change or redeploy.
-    /// ONE flag arms/disarms all three slices together.
+    /// ONE flag arms/disarms all four slices together.
     /// <para>
     /// <b>Arming evidence + the honest caveat:</b> arming was gated on the demo verdict-diff harnesses
     /// (<c>GeometricConfidence*ArmingGateE2ETests</c>): on the 5 real demo fixtures no clean verdict or
-    /// confidence changes off→on. The RESUMEN slice is a genuinely NON-vacuous proof (5 of its 7 fields
-    /// extract on the real demo and score at ceiling armed). The Tasa/Cat and Total slices, by contrast,
-    /// are <c>NotExtracted</c> on this demo bank's layout, so their false-abstain safety is proven on the
-    /// SYNTHETIC corpus only (`GeometricPlausibility*CalibrationTests`, margin ≥0.35) — arming is harmless
-    /// for them on this bank but unvalidated on other banks whose layout extracts those fields; the
-    /// killswitch is the mitigation. Single-bank limitation applies. See the design of record,
+    /// confidence changes off→on. TWO slices are genuinely NON-vacuous on the real demo: the RESUMEN
+    /// slice (5 of its 7 fields extract and score at ceiling armed) and the C2.1b recompute-operand
+    /// HeaderMoney slice (<c>SaldoCargosRegulares</c> / <c>PagoParaNoGenerarIntereses</c> — both extract
+    /// on the real <c>good.pdf</c> and their confidence gates LIVE CL-21/CL-22 verdicts via the 0.8
+    /// guard). The Tasa/Cat and Total slices, by contrast, are <c>NotExtracted</c> on this demo bank's
+    /// layout, so their false-abstain safety is proven on the SYNTHETIC corpus only
+    /// (`GeometricPlausibility*CalibrationTests`, margin ≥0.35) — arming is harmless for them on this
+    /// bank but unvalidated on other banks whose layout extracts those fields; the killswitch is the
+    /// mitigation. Single-bank limitation applies. Two HeaderMoney-specific residuals (no silent caps):
+    /// (a) on the real demo the geometric PENALTY never fires — every real pick is a clean single-token
+    /// band scoring 1.0 — so the scorer's *discriminating* power (dragging a WRONG pick below 0.8) is
+    /// proven only on the synthetic corpus, though the guard itself IS exercised on real verdicts;
+    /// (b) <c>ExtractNivelDeUsoField</c>'s competing-amount scan uses open X-bounds (matching that
+    /// extractor's own open-bounds pick window) — correct on the demo, but a second amount sharing the
+    /// NIVEL-DE-USO Y-band on another bank's layout could trip a false-abstain. See the design of record,
     /// <c>docs/planning-artifacts/SCOPING-veriqan-c1-geometric-extraction-confidence.md</c>
-    /// §"Design decision 4 — ship-dark arming gate".
+    /// §"Design decision 4 — ship-dark arming gate" and
+    /// <c>docs/planning-artifacts/TRACKER-veriqan-c2-recompute-operand-confidence.md</c>.
     /// </para>
     /// <para>
     /// This is the production/config-driven counterpart of
