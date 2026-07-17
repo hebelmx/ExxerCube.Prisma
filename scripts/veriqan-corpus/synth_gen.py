@@ -1814,6 +1814,306 @@ def _write_c14_resumen_decoy(output_dir: Path) -> None:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# C1.6 — Adversarial GEOMETRY specimen for the DESGLOSE total-row slice
+# ═══════════════════════════════════════════════════════════════════════════
+# An addendum closing a coverage gap an adversarial review of C1.4 found:
+# TotalCargos/TotalAbonos are NOT computed from a table sum with "no geometry"
+# (the C1.4 tracker note's original, wrong, claim) -- they come from
+# PdfPigStatementFieldExtractor.TryParseTotalRow, a genuine positional
+# label-to-value pick (locate the "Total cargos"/"Total abonos" label band,
+# return the FIRST amount-pattern token to its right) -- the same wrong-token
+# mis-pick risk as ScanResumenColumn, just a SINGLE pass (no left/right split).
+# Design authority: docs/planning-artifacts/TRACKER-veriqan-c1-geometric-
+# confidence.md ("C1.4 CORRECTION" note, story C1.6).
+#
+# WHY this specimen exists: TryParseTotalRow's amount pick is
+# `amountWords.OrderBy(Left)` then the FIRST token matching the amount regex
+# (X >= DesgloseAmountXMin=436) -- exactly analogous to ScanResumenColumn's
+# findLeftmost. If a second, decoy amount-pattern token sits in the SAME
+# total-row band to the left of the true amount, the leftmost-match pick
+# grabs the decoy instead -- a real number, in range, wrong slot, at
+# confidence 1.0 today.
+#
+# ISOLATES SIGNAL #2 (competition), not #1 (rank-adjacency): unlike C1.4's
+# RESUMEN decoy (which pushed the label-to-pick rank gap past its threshold
+# via junk tokens to isolate signal #1, already proven by
+# IsValueRankAdjacentToLabel's exhaustive unit tests), this specimen places
+# the decoy IMMEDIATELY after the "cargos"/"abonos" label (rank gap 1, the
+# same as a clean pick -- MaxLabelToPickRankGap=1) so signal #1 stays TRUE.
+# Only the NEW competition signal (more than one amount-pattern token in the
+# band) fires, giving GeometricPlausibilityTotalRowCalibrationTests an
+# isolated proof that signal #2 alone -- not merely signal #1 reused from
+# C1.4 -- catches a real mis-pick.
+#
+# GOD'S-EYE `fields` CONTRACT (same shape as C1.0a/C1.4 -- read before
+# touching `fields` below): TotalAbonos's `fields` entry holds the
+# extractor's ACTUAL (decoy, WRONG) output -- the value the golden
+# round-trip suite (index-driven, SyntheticGoldenRoundTripTests) must
+# observe -- while the true printed value lives in `geometryDefect.trueValue`.
+#
+# BOTH PROFILES (dummievec + realbanamex), per the repo's established C1.0a/
+# C1.4 practice of proving a lever on both layout families -- BUT, unlike
+# C1.4's RESUMEN pair, TryParseTotalRow has ONE code path shared by both
+# profiles (the X-band constants -- DesgloseDescriptionXMin/
+# DesgloseAmountXMin/DesgloseSignXMin -- are already profile-agnostic
+# absolute pt values, not a dual left/right pass split the way
+# ScanResumenColumn is). The realbanamex specimen below still adds real
+# value (proves the signal generalizes to the real-Banamex page width/label
+# geometry actually shipped to production) but is NOT a "genuinely different
+# code path" the way decoy-resumen-amount-realbanamex is -- documented
+# honestly here rather than overclaiming C1.4's exact framing.
+#
+# Both specimens include 3 REAL movement rows (not just header + totals):
+# Cl44DesgloseTotalsMatchRule requires model.MovementsStatus == Extracted &&
+# Movements.Count > 0 BEFORE it ever reaches the confidence guard, so the
+# Orchestration verdict-diff negative control needs genuine movement rows to
+# produce a real CL-44 Fail (flag off) that the C1.6 signal then converts to
+# an honest abstain (flag on) -- see the page-2 token list comments below.
+
+PDF_FILENAME_C16_DECOY_TOTAL = "decoy-total-amount.pdf"
+MANIFEST_FILENAME_C16_DECOY_TOTAL = "decoy-total-amount.manifest.json"
+
+PDF_FILENAME_C16_DECOY_TOTAL_REALBANAMEX = "decoy-total-amount-realbanamex.pdf"
+MANIFEST_FILENAME_C16_DECOY_TOTAL_REALBANAMEX = "decoy-total-amount-realbanamex.manifest.json"
+
+# True total values (unchanged from each profile's own baseline RESUMEN figures).
+_C16_TRUE_TOTAL_CARGOS_DUMMIEVEC = 32446.69   # baseline CargosRegularesNoMeses + CargosComprasAMesesCapital
+_C16_TRUE_TOTAL_ABONOS_DUMMIEVEC = 67796.35   # baseline PagosYAbonos == AdeudoPeriodoAnterior
+_C16_TRUE_TOTAL_CARGOS_REALBANAMEX = 19950.25  # s622 CargosRegularesNoMeses + CargosComprasAMesesCapital
+_C16_TRUE_TOTAL_ABONOS_REALBANAMEX = 45320.10  # s622 PagosYAbonos == AdeudoPeriodoAnterior
+
+# The decoy's own (wrong, but in-range/parseable) amount value -- distinct from every
+# other value in each fixture so a mis-pick is unambiguous.
+_C16_DECOY_AMOUNT_DUMMIEVEC = 99.99
+_C16_DECOY_AMOUNT_REALBANAMEX = 7.77
+
+# Page-2 DESGLOSE table tokens (PdfPig space). Three REAL movement rows (same
+# shape/geometry as _S6211_DESGLOSE_PAGE2_TOKENS, S6.2.5) are included -- not
+# just the header + totals -- so Cl44DesgloseTotalsMatchRule (which requires
+# model.MovementsStatus == Extracted && Movements.Count > 0 BEFORE it ever
+# reaches the confidence guard) can actually evaluate these fixtures; the
+# Orchestration verdict-diff negative control needs a real CL-44 Fail (flag
+# off) to prove the C1.6 signal converts it to an honest abstain (flag on).
+# "Total cargos" stays a clean pick (no decoy in its row); "Total abonos" gets
+# the decoy, placed at X=440 -- inside the amount column (X >=
+# DesgloseAmountXMin=436) and to the LEFT of the true amount at X=485, so
+# amountWords' ascending-Left order reaches it first -- but immediately after
+# the "abonos" label by ordinal rank (no intervening junk tokens), keeping
+# rank-adjacency (signal #1) TRUE and isolating competition (signal #2) as the
+# sole catch (see module comment above).
+_C16_DECOY_PAGE2_TOKENS_DUMMIEVEC: list[tuple[float, float, str]] = [
+    (18.3, 663.0, "DESGLOSE"),
+    (20.0, 640.0, "05-jul-2025"),
+    (100.0, 640.0, "06-jul-2025"),
+    (150.0, 640.0, "COMPRA REGULAR"),
+    (425.0, 640.0, "+"),
+    (485.0, 640.0, "$31,461.30"),
+    (20.0, 626.0, "05-jul-2025"),
+    (100.0, 626.0, "06-jul-2025"),
+    (150.0, 626.0, "COMPRA A MESES"),
+    (425.0, 626.0, "+"),
+    (485.0, 626.0, "$985.39"),
+    (20.0, 612.0, "05-jul-2025"),
+    (100.0, 612.0, "06-jul-2025"),
+    (150.0, 612.0, "PAGO RECIBIDO"),
+    (425.0, 612.0, "-"),  # ASCII hyphen-minus (see S6.2.5's identical comment: helv has no U+2212 glyph).
+    (485.0, 612.0, "$67,796.35"),
+    (150.0, 594.0, "Total"),
+    (195.0, 594.0, "cargos"),
+    (485.0, 594.0, "$32,446.69"),
+    (150.0, 580.0, "Total"),
+    (195.0, 580.0, "abonos"),
+    (440.0, 580.0, "$99.99"),
+    (485.0, 580.0, "$67,796.35"),
+]
+
+# Same shape, realbanamex profile: movement amounts tie to the s622 baseline's own
+# CargosRegularesNoMeses/CargosComprasAMesesCapital/PagosYAbonos figures so the
+# fixture is internally consistent, not just individually plausible.
+_C16_DECOY_PAGE2_TOKENS_REALBANAMEX: list[tuple[float, float, str]] = [
+    (18.3, 663.0, "DESGLOSE"),
+    (20.0, 640.0, "05-mar-2026"),
+    (100.0, 640.0, "06-mar-2026"),
+    (150.0, 640.0, "COMPRA REGULAR"),
+    (425.0, 640.0, "+"),
+    (485.0, 640.0, "$18,750.25"),
+    (20.0, 626.0, "05-mar-2026"),
+    (100.0, 626.0, "06-mar-2026"),
+    (150.0, 626.0, "COMPRA A MESES"),
+    (425.0, 626.0, "+"),
+    (485.0, 626.0, "$1,200.00"),
+    (20.0, 612.0, "05-mar-2026"),
+    (100.0, 612.0, "06-mar-2026"),
+    (150.0, 612.0, "PAGO RECIBIDO"),
+    (425.0, 612.0, "-"),
+    (485.0, 612.0, "$45,320.10"),
+    (150.0, 594.0, "Total"),
+    (195.0, 594.0, "cargos"),
+    (485.0, 594.0, "$19,950.25"),
+    (150.0, 580.0, "Total"),
+    (195.0, 580.0, "abonos"),
+    (440.0, 580.0, "$7.77"),
+    (485.0, 580.0, "$45,320.10"),
+]
+
+
+def build_pdf_c16_decoy_total() -> "fitz.Document":
+    """S6.2.1 baseline page 1 (unchanged canary) + a 2-row DESGLOSE totals table on
+    page 2 (see module comment above for the full geometry rationale)."""
+    doc = fitz.open()
+    page1 = doc.new_page(width=PAGE_WIDTH_PT, height=PAGE_HEIGHT_PT)
+    for x, bottom, text in PAGE1_TOKENS:
+        put(page1, x, bottom, text)
+    page2 = doc.new_page(width=PAGE_WIDTH_PT, height=PAGE_HEIGHT_PT)
+    for x, bottom, text in _C16_DECOY_PAGE2_TOKENS_DUMMIEVEC:
+        put(page2, x, bottom, text)
+    for page_num in range(3, PAGE_COUNT + 1):
+        page = doc.new_page(width=PAGE_WIDTH_PT, height=PAGE_HEIGHT_PT)
+        put(page, 20.0, PAGE_HEIGHT_PT - 30.0, f"C1.6 synthetic filler — page {page_num}")
+    return doc
+
+
+def build_manifest_c16_decoy_total() -> dict[str, Any]:
+    """God's-eye manifest for the dummievec DESGLOSE total-row decoy. TotalCargos
+    stays a clean pick (confidenceExpectations band 'high'); TotalAbonos's `fields`
+    entry holds the extractor's ACTUAL (decoy) output -- see the module-level
+    contract comment above."""
+    manifest = build_manifest()
+    manifest["pdf"] = dict(manifest["pdf"])
+    manifest["pdf"]["fileName"] = PDF_FILENAME_C16_DECOY_TOTAL
+    manifest["fields"] = dict(manifest["fields"])
+    manifest["fields"]["TotalCargos"] = {
+        "value": _C16_TRUE_TOTAL_CARGOS_DUMMIEVEC, "clrType": "decimal", "expectedStatus": "Extracted",
+    }
+    manifest["fields"]["TotalAbonos"] = {
+        "value": _C16_DECOY_AMOUNT_DUMMIEVEC, "clrType": "decimal", "expectedStatus": "Extracted",
+    }
+    manifest["geometryDefect"] = {
+        "type": "decoy-total-amount",
+        "decoyToken": f"${_C16_DECOY_AMOUNT_DUMMIEVEC:,.2f}",
+        "trueValue": {"TotalAbonos": _C16_TRUE_TOTAL_ABONOS_DUMMIEVEC},
+    }
+    manifest["confidenceExpectations"] = {
+        "TotalAbonos": {"band": "low"},
+        "TotalCargos": {"band": "high", "min": 0.8},
+    }
+    # Extraction-fidelity `fields`/`geometryDefect` are asserted here; the mis-pick's downstream
+    # verdict impact (CL-44) is proven separately by the Orchestration verdict-diff negative
+    # control (GeometricConfidenceTotalRowArmingGateE2ETests), not by arithmeticChecks in this
+    # extraction-fidelity manifest (same discipline as C1.4's decoy-resumen-amount). `movements`
+    # IS populated (god's-eye documentation, not consumed by the loader) since these 3 rows are
+    # real DESGLOSE data rows the PDF actually contains -- required so CL-44 has movements to sum
+    # against at all (see the module comment above).
+    manifest["movements"] = [
+        {"opDate": "2025-07-05", "chargeDate": "2025-07-06",
+         "description": "COMPRA REGULAR", "sign": "charge", "amount": 31461.30},
+        {"opDate": "2025-07-05", "chargeDate": "2025-07-06",
+         "description": "COMPRA A MESES", "sign": "charge", "amount": 985.39},
+        {"opDate": "2025-07-05", "chargeDate": "2025-07-06",
+         "description": "PAGO RECIBIDO", "sign": "credit", "amount": 67796.35},
+    ]
+    manifest["arithmeticChecks"] = []
+    manifest["knownFixtureDefects"] = [
+        {"field": "TotalAbonos", "reason": "A decoy amount ('$99.99') leaks into the 'Total "
+         "abonos' row's amount column, to the left of the true amount; TryParseTotalRow's "
+         "leftmost-match pick grabs the decoy instead of the true $67,796.35, at confidence "
+         "1.0 today. See geometryDefect.trueValue for the correct identity, and "
+         "GeometricPlausibilityTotalRowCalibrationTests for the C1.6 competition signal that "
+         "catches it once armed."},
+    ]
+    return manifest
+
+
+def build_pdf_c16_decoy_total_realbanamex() -> "fitz.Document":
+    """s622 baseline page 1 (unchanged canary) + the SAME DESGLOSE total-row decoy
+    shape as build_pdf_c16_decoy_total(), on the real-Banamex page geometry
+    (612x792, 9 pages) -- see the module comment above for why this is NOT a
+    distinct TryParseTotalRow code path the way the C1.4 RESUMEN pair is, unlike
+    what an earlier draft of this comment assumed."""
+    doc = fitz.open()
+    page1 = doc.new_page(width=PAGE_WIDTH_PT_S622, height=PAGE_HEIGHT_PT_S622)
+    for x, bottom, text in PAGE1_TOKENS_S622:
+        put(page1, x, bottom, text, page_height=PAGE_HEIGHT_PT_S622)
+    page2 = doc.new_page(width=PAGE_WIDTH_PT_S622, height=PAGE_HEIGHT_PT_S622)
+    for x, bottom, text in _C16_DECOY_PAGE2_TOKENS_REALBANAMEX:
+        put(page2, x, bottom, text, page_height=PAGE_HEIGHT_PT_S622)
+    for page_num in range(3, PAGE_COUNT_S622 + 1):
+        page = doc.new_page(width=PAGE_WIDTH_PT_S622, height=PAGE_HEIGHT_PT_S622)
+        put(page, 20.0, PAGE_HEIGHT_PT_S622 - 30.0, f"C1.6 synthetic filler — page {page_num}",
+            page_height=PAGE_HEIGHT_PT_S622)
+    return doc
+
+
+def build_manifest_c16_decoy_total_realbanamex() -> dict[str, Any]:
+    """God's-eye manifest for the realbanamex DESGLOSE total-row decoy -- same
+    contract as build_manifest_c16_decoy_total(), off the s622 baseline instead."""
+    manifest = build_manifest_s622()
+    manifest["pdf"] = dict(manifest["pdf"])
+    manifest["pdf"]["fileName"] = PDF_FILENAME_C16_DECOY_TOTAL_REALBANAMEX
+    manifest["fields"] = dict(manifest["fields"])
+    manifest["fields"]["TotalCargos"] = {
+        "value": _C16_TRUE_TOTAL_CARGOS_REALBANAMEX, "clrType": "decimal", "expectedStatus": "Extracted",
+    }
+    manifest["fields"]["TotalAbonos"] = {
+        "value": _C16_DECOY_AMOUNT_REALBANAMEX, "clrType": "decimal", "expectedStatus": "Extracted",
+    }
+    manifest["geometryDefect"] = {
+        "type": "decoy-total-amount",
+        "decoyToken": f"${_C16_DECOY_AMOUNT_REALBANAMEX:,.2f}",
+        "trueValue": {"TotalAbonos": _C16_TRUE_TOTAL_ABONOS_REALBANAMEX},
+    }
+    manifest["confidenceExpectations"] = {
+        "TotalAbonos": {"band": "low"},
+        "TotalCargos": {"band": "high", "min": 0.8},
+    }
+    manifest["movements"] = [
+        {"opDate": "2026-03-05", "chargeDate": "2026-03-06",
+         "description": "COMPRA REGULAR", "sign": "charge", "amount": 18750.25},
+        {"opDate": "2026-03-05", "chargeDate": "2026-03-06",
+         "description": "COMPRA A MESES", "sign": "charge", "amount": 1200.00},
+        {"opDate": "2026-03-05", "chargeDate": "2026-03-06",
+         "description": "PAGO RECIBIDO", "sign": "credit", "amount": 45320.10},
+    ]
+    manifest["knownFixtureDefects"] = [
+        {"field": "TotalAbonos", "reason": "Same decoy-leak defect as 'decoy-total-amount' "
+         "(dummievec), on the real-Banamex page geometry instead: a decoy amount ('$7.77') "
+         "leaks into the 'Total abonos' row's amount column, to the left of the true amount; "
+         "TryParseTotalRow's leftmost-match pick grabs the decoy instead of the true "
+         "$45,320.10, at confidence 1.0 today. See geometryDefect.trueValue for the correct "
+         "identity."},
+    ]
+    return manifest
+
+
+def _write_c16_total_decoy(output_dir: Path) -> None:
+    doc = build_pdf_c16_decoy_total()
+    pdf_path = output_dir / PDF_FILENAME_C16_DECOY_TOTAL
+    doc.save(str(pdf_path), garbage=4, deflate=True)
+    doc.close()
+    print(f"Wrote {pdf_path} ({pdf_path.stat().st_size} bytes)")
+
+    manifest = build_manifest_c16_decoy_total()
+    manifest_path = output_dir / MANIFEST_FILENAME_C16_DECOY_TOTAL
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    print(f"Wrote {manifest_path}")
+
+    doc2 = build_pdf_c16_decoy_total_realbanamex()
+    pdf_path2 = output_dir / PDF_FILENAME_C16_DECOY_TOTAL_REALBANAMEX
+    doc2.save(str(pdf_path2), garbage=4, deflate=True)
+    doc2.close()
+    print(f"Wrote {pdf_path2} ({pdf_path2.stat().st_size} bytes)")
+
+    manifest2 = build_manifest_c16_decoy_total_realbanamex()
+    manifest_path2 = output_dir / MANIFEST_FILENAME_C16_DECOY_TOTAL_REALBANAMEX
+    with open(manifest_path2, "w", encoding="utf-8") as f:
+        json.dump(manifest2, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    print(f"Wrote {manifest_path2}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # S6.2.6 — Standing corpus index (batch runner + corpus-manifest.json)
 # ═══════════════════════════════════════════════════════════════════════════
 # A single hardcoded table is the source of truth for what the 13-specimen
@@ -2024,6 +2324,30 @@ CORPUS_SPECIMENS: list[dict[str, Any]] = [
                         "path (labelMinX/labelMaxX/amtMaxX bounds differ); findLeftmost grabs "
                         "$0.85 instead of the true $45,320.10 at confidence 1.0 today",
     },
+    {
+        "id": "decoy-total-amount",
+        "pdf": "decoy-total-amount.pdf",
+        "manifest": "decoy-total-amount.manifest.json",
+        "profile": "dummievec",
+        "slice": "C1.6",
+        "defect": "geometry-decoy-total-amount",
+        "description": "A decoy amount ('$99.99') leaks into the 'Total abonos' DESGLOSE row's "
+                        "amount column, to the left of the true amount; TryParseTotalRow's "
+                        "leftmost-match pick grabs the decoy instead of the true $67,796.35, at "
+                        "confidence 1.0 today (true value in geometryDefect.trueValue)",
+    },
+    {
+        "id": "decoy-total-amount-realbanamex",
+        "pdf": "decoy-total-amount-realbanamex.pdf",
+        "manifest": "decoy-total-amount-realbanamex.manifest.json",
+        "profile": "realbanamex",
+        "slice": "C1.6",
+        "defect": "geometry-decoy-total-amount",
+        "description": "Same decoy-leak defect as 'decoy-total-amount', on the real-Banamex page "
+                        "geometry instead (TryParseTotalRow has one shared code path, not a "
+                        "dual-pass split — see the generator module comment); leftmost-match pick "
+                        "grabs $7.77 instead of the true $45,320.10 at confidence 1.0 today",
+    },
 ]
 
 
@@ -2101,6 +2425,7 @@ def main() -> int:
         # call (Mary's non-negotiable — both profiles, one code path each) so a single-profile
         # `--profile dummievec` or `--profile realbanamex` run doesn't silently omit half the pair.
         _write_c14_resumen_decoy(OUTPUT_DIR)
+        _write_c16_total_decoy(OUTPUT_DIR)  # C1.6: both profiles' decoy-total-amount specimens
         _write_corpus_index(OUTPUT_DIR)  # S6.2.6: (re)write the standing-corpus index
 
     return 0

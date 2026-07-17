@@ -286,6 +286,27 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Fixtures\synthetic\decoy-resumen-amount-realbanamex.manifest.json</Link>
     </Content>
+    <!-- C1.6 adversarial DESGLOSE total-row geometry specimens (scripts/veriqan-corpus/synth_gen.py).
+         Both profiles: 'decoy-total-amount' (dummievec) and 'decoy-total-amount-realbanamex'
+         (real-Banamex page geometry) — TryParseTotalRow has ONE shared code path (unlike the
+         C1.4 RESUMEN dual-pass pair above), so this pair proves generalization, not a distinct
+         code path. -->
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-total-amount.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-total-amount.pdf</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-total-amount.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-total-amount.manifest.json</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-total-amount-realbanamex.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-total-amount-realbanamex.pdf</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-total-amount-realbanamex.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-total-amount-realbanamex.manifest.json</Link>
+    </Content>
   </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">
     <ProjectCapability Include="DiagnoseCapabilities" />

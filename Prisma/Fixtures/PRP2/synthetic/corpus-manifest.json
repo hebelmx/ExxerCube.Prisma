@@ -30,6 +30,24 @@
       "description": "Same decoy-leak defect as 'decoy-resumen-amount', on the real-Banamex LEFT-column pass instead — a genuinely different ScanResumenColumn code path (labelMinX/labelMaxX/amtMaxX bounds differ); findLeftmost grabs $0.85 instead of the true $45,320.10 at confidence 1.0 today"
     },
     {
+      "id": "decoy-total-amount",
+      "pdf": "decoy-total-amount.pdf",
+      "manifest": "decoy-total-amount.manifest.json",
+      "profile": "dummievec",
+      "slice": "C1.6",
+      "defect": "geometry-decoy-total-amount",
+      "description": "A decoy amount ('$99.99') leaks into the 'Total abonos' DESGLOSE row's amount column, to the left of the true amount; TryParseTotalRow's leftmost-match pick grabs the decoy instead of the true $67,796.35, at confidence 1.0 today (true value in geometryDefect.trueValue)"
+    },
+    {
+      "id": "decoy-total-amount-realbanamex",
+      "pdf": "decoy-total-amount-realbanamex.pdf",
+      "manifest": "decoy-total-amount-realbanamex.manifest.json",
+      "profile": "realbanamex",
+      "slice": "C1.6",
+      "defect": "geometry-decoy-total-amount",
+      "description": "Same decoy-leak defect as 'decoy-total-amount', on the real-Banamex page geometry instead (TryParseTotalRow has one shared code path, not a dual-pass split — see the generator module comment); leftmost-match pick grabs $7.77 instead of the true $45,320.10 at confidence 1.0 today"
+    },
+    {
       "id": "missing-order-marker",
       "pdf": "missing-order-marker.pdf",
       "manifest": "missing-order-marker.manifest.json",

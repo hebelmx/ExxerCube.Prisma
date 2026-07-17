@@ -51,9 +51,94 @@ Margin **0.35** (min clean 1.000 − max ambiguous 0.650 ≥ 0.15), proven on a 
 | C1.3 | Verdict-diff harness + killswitch seam; SHIPPED DARK (owner) | ✅ done (`4aac943e`) | harness 6 tests green; default OFF; gate vacuous on real Tasa/Cat (synthetic-only proof) — VERIFIED (clean rebuild) |
 | C1.4 | Extend to `ScanResumenColumn` (7 of 11 money fields — scope note below) | ✅ done (`704cfc80`) | decoy-resumen (both profiles) calibrated (margin 0.45); 5-demo gate NON-VACUOUS (5/7 fields extract clean on real data, no flip); negative control flips CL-21 — VERIFIED |
 | C1.5 | Architecture-enforcement / drift-guard test | ✅ done (`c8cb2ea2`) | coverage (scored field ↔ calibration ↔ specimen, walks `FieldCalibrationTable.Resumen.Keys` live) + clean-field Conf≥0.8 sweep — VERIFIED (434/532/178/158) |
+| C1.6 | Addendum: extend to `TryParseTotalRow` (TotalCargos/TotalAbonos) | ✅ done (uncommitted) | decoy-total-amount (both profiles) calibrated (margin 0.45); 5-demo gate VACUOUS (both fields NotExtracted on all 5 real demo fixtures, like C1.3's Tasa/Cat); negative control flips CL-44 — VERIFIED (448/532/184/158) |
 
 ## ✅ EPIC COMPLETE (2026-07-16) — all 7 stories done, verified from ground truth, committed on `Liv`
 Everything ships **DARK** (`EmitGeometricConfidence` default false). Test floor: Extraction **434** · Validation **532** · Orchestration **178** · Application **158**, build 0/0. **OPEN owner-gated decision:** arming — one flag couples BOTH slices; RESUMEN arming is validated on real demo data (non-vacuous, no flip) but Tasa/Cat is synthetic-only. Options: keep dark / arm both (one flag) / split the flag to arm RESUMEN only. Commits local, not pushed.
+
+## C1.6 — addendum: TotalCargos/TotalAbonos coverage gap (2026-07-17), SHIPPED DARK
+Adversarial review of C1.4 found its "no geometry" claim for `TotalCargos`/`TotalAbonos` was WRONG
+(see the "C1.4 CORRECTION" note above) — they come from `TryParseTotalRow`
+(`PdfPigStatementFieldExtractor.cs:~1894-1988`), a genuine positional label→value pick (locate the
+"Total cargos"/"Total abonos" label band, return the first amount-pattern token to its right),
+same wrong-token mis-pick risk as `ScanResumenColumn`, but a SINGLE pass (no left/right dual-pass
+split). Gave it a geometric-plausibility confidence, same MULTIPLICATIVE shape, still gated behind
+the SAME shared `emitGeometricConfidence`/`EmitGeometricConfidence` flag (still `false` by default
+— NOT armed).
+
+**Signal design** (`Confidence/GeometricPlausibilityScorer.cs`, extended not replaced): new
+`TotalRowGeometricSignals(LabelRankAdjacent, HasCompetingAmount)` /
+`TotalRowFieldCalibration(LabelNotAdjacentPenalty, CompetitionPenalty, MaxLabelToPickRankGap)` /
+`ScoreTotalRow` / `FieldCalibrationTable.TotalRow` (`FieldKind.TotalCargos`/`TotalAbonos`, shared
+constants `0.55`/`0.55`, `MaxLabelToPickRankGap=1` — a clean total row has EXACTLY one rank between
+the label's last token and the amount, since `TryParseTotalRow` rejects any band with a sign token
+at all). Signal #1 reuses `IsValueRankAdjacentToLabel` VERBATIM (first production call site — C1.4
+built it but never called it from production code, only from unit tests). Signal #2 (competition —
+NEW, replaces C1.4's dual-pass-disagreement since there is no dual pass here) = did more than one
+amount-pattern token appear in the total row's amount column.
+
+**Specimens** (`decoy-total-amount` dummievec + `decoy-total-amount-realbanamex`): both mis-pick
+`TotalAbonos` to an in-range decoy amount placed immediately after the "abonos" label (rank gap 1
+— signal #1 stays TRUE) while a second, true amount also sits in the band (signal #2 fires alone)
+— deliberately isolates the NEW competition signal, complementing C1.4's isolation of the (reused)
+rank-adjacency signal. **HONEST FINDING (deviation from the story's premise):** unlike
+`ScanResumenColumn`'s genuine left/right dual-pass split, `TryParseTotalRow` has ONE shared code
+path for both profiles (the X-band constants are already profile-agnostic absolute pt values) — so
+the realbanamex specimen proves generalization to real-Banamex page geometry, not a "genuinely
+different code path" the way C1.4's RESUMEN pair was. Documented in the generator's module comment
+rather than overclaiming. Both specimens carry 3 real DESGLOSE movement rows (not just header +
+totals) because `Cl44DesgloseTotalsMatchRule` abstains before its confidence guard whenever
+`MovementsStatus != Extracted` — needed for the Orchestration negative control to produce a real
+CL-44 Fail to flip. Registered in `CORPUS_SPECIMENS` (19→21), `--write-index` regenerated
+(purely additive diff — did NOT use `--profile all`, learning C1.4's byte-churn lesson from the
+start this time).
+
+**Calibration** (`GeometricPlausibilityTotalRowCalibrationTests.cs`, new, Extraction.Tests):
+flag-off byte-identical; flag-on clean baseline (`s6211-desglose.pdf`, pre-existing S6.2.5
+specimen — both fields already extract there) at ceiling 1.0; flag-on decoy fixtures (both
+profiles) — `TotalAbonos` < 0.8, `TotalCargos` sibling stays 1.0 — **min(clean)=1.0,
+max(decoy)=0.55, margin=0.45** (same margin as C1.4, no threshold-shopping, STOP condition never
+approached). **Caveat documented in the test file:** no standalone realbanamex "clean total row"
+baseline exists independently — that profile's only clean data point is the undisturbed
+`TotalCargos` sibling inside its own decoy specimen.
+
+**Drift guard** (`GeometricPlausibilityCoverageTests.cs`, C1.5 suite extended not replaced):
+`ScoredFieldKinds()` now also walks `FieldCalibrationTable.TotalRow.Keys`; `FieldAccessors` gained
+`TotalCargos`/`TotalAbonos`; Guard #1's `else` branch split to check `TotalRow` vs `Resumen`
+correctly. Both fields are picked up by Guard #2's clean-specimen 0.8 sweep automatically
+(exercises `s6211-desglose.pdf` for free, no new specimen needed for that guard).
+
+**Verdict-diff harness** (`GeometricConfidenceTotalRowArmingGateE2ETests.cs`, new,
+Orchestration.Tests, `[Category=LiveOcr]`): 5-demo `[Theory]` + `decoy-total-amount` negative
+control targeting **CL-44** (`Cl44DesgloseTotalsMatchRule`) — unlike C1.4's RESUMEN gate, which
+targeted CL-21. **THE C1.6 FINDING: `TotalCargos`/`TotalAbonos` are `NotExtracted` on ALL 5 real
+demo fixtures** (verified via a throwaway diagnostic, then removed) — `TryParseTotalRow` never
+matches this bank's real DESGLOSE layout's total row at all. So this gate is **VACUOUS on real
+data, same as C1.3's Tasa/Cat gate** (NOT non-vacuous like C1.4's RESUMEN gate) — the
+false-abstain-on-a-clean-pick claim for this slice is proven ONLY on the synthetic corpus.
+Negative control: flag-off CL-44 FAILs (decoy $99.99 vs real movement-row sum $67,796.35, both at
+confidence 1.0); flag-on CL-44 abstains (`InsufficientData`, `TotalAbonos` confidence < 0.8);
+`TotalCargos` sibling stays at ceiling, proven un-collateral — both green.
+
+**Housekeeping:** `AntiFalseConfidenceHonestyTests.cs` counts updated (19→21 total, 15→16
+deterministic, now 5 excluded — `decoy-total-amount-realbanamex` added to
+`NativeOcrExcludedSpecimenIds`, `decoy-total-amount` NOT excluded, same reasoning as C1.4's pair).
+
+**Verified counts (rebuilt DLLs, bare `net10.0/`):** Extraction **448** (434+14: 5
+`GeometricPlausibilityScorerTests` unit cases + 7 `GeometricPlausibilityTotalRowCalibrationTests` +
+2 index-driven golden-roundtrip `[Theory]` cases for the 2 new specimens) · Validation **532**
+(unchanged) · Application **158** (unchanged) · Orchestration **184** (178+6 new) — all green.
+Solution build 0/0. `calibration-report.md` regenerated as a side effect twice — reverted both
+times before finishing.
+
+**Shipped DARK, confirmed:** `PdfExtractionOptions.EmitGeometricConfidence` default is still
+`false`; no config/DI default flipped. `TryParseTotalRow`'s new `emitGeometricConfidence` parameter
+threads from the SAME `_emitGeometricConfidence` field the constructor already exposes — no new
+flag, no new arming surface. Commits NOT made — left in the working tree for the orchestrator to
+review/commit (per instruction).
+
+Next (not done here): C1.7 — the owner-gated arming decision, now covering THREE slices
+(Tasa/Cat, RESUMEN, total-row) behind the one shared flag.
 
 ## ⚠️ CRITICAL FINDING from C1.0a (gates C1.0b design) — SEPARABILITY
 The `s-c1-swap` fixture as built = `"27.36% sin IVA 28.86%"` (numbers transposed, `sin IVA` kept BETWEEN the two `%` tokens — same structure as baseline `"28.86% sin IVA 27.36%"`). This **proves the confident-wrong VERDICT exists** (CL-10 flips), BUT the two layouts are **geometrically identical** — `sin IVA` is equidistant, token count is 2, columns align — so **NO geometric signal separates them.** The party's load-bearing signal (sibling `sin IVA`) can only catch a swap if the marker TRACKS the true CAT (i.e. a realistic swap displaces `sin IVA` off the mis-picked leftmost token). 

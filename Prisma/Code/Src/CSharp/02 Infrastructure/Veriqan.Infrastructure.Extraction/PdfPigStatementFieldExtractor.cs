@@ -1847,7 +1847,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
                 // Check for "Total cargos" / "Total abonos" summary rows.
                 // These have description text starting at X≈346 and NO sign token.
-                var totalResult = TryParseTotalRow(bandWords, pageIndex, amtFmt);
+                var totalResult = TryParseTotalRow(bandWords, pageIndex, amtFmt, _emitGeometricConfidence);
                 if (totalResult.HasValue)
                 {
                     if (totalResult.Value.isCharge)
@@ -1887,12 +1887,23 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// <param name="bandWords">Words on the candidate band.</param>
     /// <param name="pageNumber">Page number for the locator.</param>
     /// <param name="amtFmt">Session-scoped number-format detector.</param>
+    /// <param name="emitGeometricConfidence">
+    /// C1.6 ship-dark switch (mirrors <c>ExtractTasaAndCat</c>/<c>ExtractResumenField</c>'s
+    /// parameter of the same name). When <see langword="true"/>, the returned
+    /// <see cref="ExtractedField{T}.Confidence"/> is the C1.6 geometric-plausibility score for the
+    /// picked amount instead of the constant 1.0. Default path (<see langword="false"/>) is
+    /// byte-identical to pre-C1.6 behaviour.
+    /// </param>
     /// <returns>
     /// A tuple of (isCharge, <see cref="ExtractedField{T}"/> amount) when the band matches
     /// a total row; <see langword="null"/> otherwise.
     /// </returns>
     private static (bool isCharge, ExtractedField<decimal> amount)?
-        TryParseTotalRow(List<Word> bandWords, int pageNumber, AmountNumberFormatSession amtFmt)
+        TryParseTotalRow(
+            List<Word> bandWords,
+            int pageNumber,
+            AmountNumberFormatSession amtFmt,
+            bool emitGeometricConfidence)
     {
         // A "Total" row has:
         //  - A "Total" token in the description column (X 158–422)
@@ -1945,13 +1956,45 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
         var locator = BoundingBoxOf(bandWords, pageNumber);
 
+        // C1.6: how many amount-pattern tokens compete for the slot — computed once, up front,
+        // regardless of emitGeometricConfidence (cheap, pure; mirrors ExtractResumenField's
+        // always-compute-the-diagnostic discipline). A clean total row has exactly one; more than
+        // one means a decoy competed for TryParseTotalRow's leftmost-match pick below.
+        var competingAmountCount = amountWords.Count(w => DesgloseAmountPattern.IsMatch(w.Text));
+
         foreach (var aw in amountWords)
         {
             var m = DesgloseAmountPattern.Match(aw.Text);
             if (!m.Success)
                 continue;
             if (TryParseAmount(m.Groups[1].Value, amtFmt, out var parsed))
-                return (isCharge.Value, ExtractedField<decimal>.Found(parsed, locator));
+            {
+                // ---- C1.6: geometric-plausibility confidence (ship-dark) --------------
+                // Always computed when a calibration entry exists for this field (cheap, pure) —
+                // emitGeometricConfidence only gates which ExtractedField<T>.Found overload is
+                // called, exactly like C1.2/C1.4's pattern.
+                var fieldKind = isCharge.Value ? FieldKind.TotalCargos : FieldKind.TotalAbonos;
+                if (!FieldCalibrationTable.TotalRow.TryGetValue(fieldKind, out var calibration))
+                    return (isCharge.Value, ExtractedField<decimal>.Found(parsed, locator));
+
+                var geometricBandTokens = bandWords
+                    .Select(w => new GeometricToken(w.Text, w.BoundingBox.Left, w.BoundingBox.Right))
+                    .ToList();
+                var labelEndToken = new GeometricToken(
+                    descWords[totalIdx + 1].Text,
+                    descWords[totalIdx + 1].BoundingBox.Left,
+                    descWords[totalIdx + 1].BoundingBox.Right);
+                var pickToken = new GeometricToken(aw.Text, aw.BoundingBox.Left, aw.BoundingBox.Right);
+
+                var labelRankAdjacent = GeometricPlausibilityScorer.IsValueRankAdjacentToLabel(
+                    geometricBandTokens, labelEndToken, pickToken, calibration.MaxLabelToPickRankGap);
+                var signals = new TotalRowGeometricSignals(labelRankAdjacent, competingAmountCount > 1);
+                var geometricConfidence = GeometricPlausibilityScorer.ScoreTotalRow(signals, calibration);
+
+                return (isCharge.Value, emitGeometricConfidence
+                    ? ExtractedField<decimal>.Found(parsed, locator, geometricConfidence)
+                    : ExtractedField<decimal>.Found(parsed, locator));
+            }
         }
 
         return null;

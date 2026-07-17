@@ -334,4 +334,69 @@ public sealed class GeometricPlausibilityScorerTests
 
         result.ShouldBeTrue();
     }
+
+    // -----------------------------------------------------------------------
+    // C1.6 — DESGLOSE total-row slice: ScoreTotalRow
+    // -----------------------------------------------------------------------
+    // Rank-adjacency itself (IsValueRankAdjacentToLabel) is already exhaustively unit-tested
+    // above (C1.4, reused verbatim by TryParseTotalRow) — these cases exercise ScoreTotalRow's
+    // own multiplicative combination and its NEW signal, competition, not the rank helper again.
+
+    private static readonly TotalRowFieldCalibration TotalRowCalibration = FieldCalibrationTable.TotalRow[FieldKind.TotalCargos];
+
+    [Fact]
+    public void ScoreTotalRow_CleanPick_BothSignalsPass_ReturnsCeiling()
+    {
+        var signals = new TotalRowGeometricSignals(LabelRankAdjacent: true, HasCompetingAmount: false);
+
+        var score = GeometricPlausibilityScorer.ScoreTotalRow(signals, TotalRowCalibration);
+
+        score.ShouldBe(1.0);
+    }
+
+    [Fact]
+    public void ScoreTotalRow_LabelNotRankAdjacent_AppliesPenaltyOnly()
+    {
+        var signals = new TotalRowGeometricSignals(LabelRankAdjacent: false, HasCompetingAmount: false);
+
+        var score = GeometricPlausibilityScorer.ScoreTotalRow(signals, TotalRowCalibration);
+
+        score.ShouldBe(0.55);
+        score.ShouldBeLessThan(0.8, "a label-displaced pick must abstain-gate below the 0.8 guard floor");
+    }
+
+    [Fact]
+    public void ScoreTotalRow_CompetingAmount_AppliesPenaltyOnly()
+    {
+        var signals = new TotalRowGeometricSignals(LabelRankAdjacent: true, HasCompetingAmount: true);
+
+        var score = GeometricPlausibilityScorer.ScoreTotalRow(signals, TotalRowCalibration);
+
+        score.ShouldBe(0.55);
+        score.ShouldBeLessThan(0.8, "a decoy-competed total-row pick must abstain-gate below the 0.8 guard floor");
+    }
+
+    [Fact]
+    public void ScoreTotalRow_BothSignalsFail_MultipliesPenaltiesIndependently()
+    {
+        var signals = new TotalRowGeometricSignals(LabelRankAdjacent: false, HasCompetingAmount: true);
+
+        var score = GeometricPlausibilityScorer.ScoreTotalRow(signals, TotalRowCalibration);
+
+        // 0.55 * 0.55 = 0.3025 — the product, not an average (same B2 false-confidence shape
+        // the multiplicative formula rules out throughout C1).
+        score.ShouldBe(0.3025, 0.0001);
+    }
+
+    [Fact]
+    public void FieldCalibrationTable_TotalRow_TotalCargosAndTotalAbonos_ShareTheSameConstants()
+    {
+        // Both fields are read via the identical single-pass TryParseTotalRow mechanism — a
+        // future dev who intentionally differentiates one must update this test, not silently
+        // drift the two apart.
+        var cargos = FieldCalibrationTable.TotalRow[FieldKind.TotalCargos];
+        var abonos = FieldCalibrationTable.TotalRow[FieldKind.TotalAbonos];
+
+        cargos.ShouldBe(abonos);
+    }
 }

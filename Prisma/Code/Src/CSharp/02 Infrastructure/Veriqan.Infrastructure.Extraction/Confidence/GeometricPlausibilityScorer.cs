@@ -115,6 +115,69 @@ internal sealed record ResumenFieldCalibration(
     double DualPassDisagreementPenalty,
     int MaxLabelToPickRankGap);
 
+// ---------------------------------------------------------------------------
+// C1.6 — DESGLOSE total-row slice (TotalCargos / TotalAbonos). Extends the C1
+// mechanism to PdfPigStatementFieldExtractor.TryParseTotalRow, a genuine
+// positional label→value pick (locates the "Total cargos"/"Total abonos"
+// label band, then returns the FIRST amount-pattern token to its right) —
+// structurally the same class of pick as ScanResumenColumn, with the same
+// wrong-token mis-pick risk, but a SINGLE pass (no left/right dual-column
+// split), so it borrows signal #1 (label-to-pick rank adjacency, reusing
+// GeometricPlausibilityScorer.IsValueRankAdjacentToLabel verbatim) and swaps
+// C1.4's dual-pass-disagreement signal #3 for a token-competition signal (the
+// same shape as C1.2's Tasa/Cat signal #2 — was the picked amount the ONLY
+// amount-pattern token in the band, or did a decoy also compete for the
+// slot?). Separate types from both GeometricSignals (Tasa/Cat) and
+// ResumenGeometricSignals (RESUMEN dual-pass) — deliberately: neither of
+// those paths is touched by this addendum. See
+// docs/planning-artifacts/TRACKER-veriqan-c1-geometric-confidence.md
+// ("C1.4 CORRECTION" note) for the design authority / gap this closes.
+// ---------------------------------------------------------------------------
+
+/// <summary>
+/// The precomputed signal readings <see cref="GeometricPlausibilityScorer.ScoreTotalRow"/>
+/// consumes for one DESGLOSE total-row (<c>TotalCargos</c>/<c>TotalAbonos</c>) pick.
+/// </summary>
+/// <param name="LabelRankAdjacent">
+/// Signal #1 (identical concept/mechanism to <see cref="ResumenGeometricSignals.LabelRankAdjacent"/>,
+/// via the same <see cref="GeometricPlausibilityScorer.IsValueRankAdjacentToLabel"/> helper): is
+/// the picked amount token within <see cref="TotalRowFieldCalibration.MaxLabelToPickRankGap"/>
+/// ordinal ranks of the label's own last token (the "cargos"/"abonos" token immediately after
+/// "Total")?
+/// </param>
+/// <param name="HasCompetingAmount">
+/// Signal #2: did MORE THAN ONE amount-pattern token appear in the total row's amount column
+/// (<c>TryParseTotalRow</c>'s <c>amountWords</c>)? A clean total row has exactly one; a second
+/// (decoy) amount competing for the slot means <c>TryParseTotalRow</c>'s leftmost-match loop may
+/// have picked the wrong one.
+/// </param>
+internal readonly record struct TotalRowGeometricSignals(bool LabelRankAdjacent, bool HasCompetingAmount);
+
+/// <summary>
+/// Per-field calibration constants for the C1.6 DESGLOSE total-row slice. See
+/// <see cref="FieldCalibrationTable.TotalRow"/> for the frozen values.
+/// </summary>
+/// <param name="LabelNotAdjacentPenalty">
+/// Multiplicative penalty applied when <see cref="TotalRowGeometricSignals.LabelRankAdjacent"/>
+/// is <see langword="false"/>.
+/// </param>
+/// <param name="CompetitionPenalty">
+/// Multiplicative penalty applied when <see cref="TotalRowGeometricSignals.HasCompetingAmount"/>
+/// is <see langword="true"/>.
+/// </param>
+/// <param name="MaxLabelToPickRankGap">
+/// The maximum ordinal-rank distance (see <see cref="TotalRowGeometricSignals.LabelRankAdjacent"/>)
+/// between the label's last token and the picked amount token that still counts as adjacent. A
+/// clean total row has exactly one intervening rank (label's last token → amount, nothing between
+/// — <c>TryParseTotalRow</c> requires NO sign token on a total-row band), so this is deliberately
+/// tight (1), unlike the RESUMEN slice's 4 (which must tolerate a sign/"$" token and, for two
+/// fields, unmatched trailing label words).
+/// </param>
+internal sealed record TotalRowFieldCalibration(
+    double LabelNotAdjacentPenalty,
+    double CompetitionPenalty,
+    int MaxLabelToPickRankGap);
+
 /// <summary>
 /// Static table of per-field <see cref="FieldCalibration"/> constants. A field only needs an
 /// entry once a call site actually emits a geometric-plausibility confidence for it (today: Tasa
@@ -172,6 +235,33 @@ internal static class FieldCalibrationTable
             [FieldKind.MontoComisiones] = ResumenDefault,
             [FieldKind.IvaInteresesYComisiones] = ResumenDefault,
             [FieldKind.PagosYAbonos] = ResumenDefault,
+        };
+
+    /// <summary>
+    /// Shared constants backing every entry in <see cref="TotalRow"/>. <c>MaxLabelToPickRankGap
+    /// = 1</c> — measured against <c>TryParseTotalRow</c>: a clean total row's band contains
+    /// exactly <c>["Total", "cargos"|"abonos", &lt;amount&gt;]</c> (the function's own
+    /// <c>hasSignToken</c> guard REJECTS any band carrying a sign token, so there is never an
+    /// intervening "+"/"-"/"=" token the way a RESUMEN row can have), so the label's last token
+    /// and a clean amount pick are always exactly 1 rank apart.
+    /// </summary>
+    private static readonly TotalRowFieldCalibration TotalRowDefault = new(
+        LabelNotAdjacentPenalty: 0.55,
+        CompetitionPenalty: 0.55,
+        MaxLabelToPickRankGap: 1);
+
+    /// <summary>
+    /// Constants for the C1.6 DESGLOSE total-row slice, frozen by the
+    /// <c>GeometricPlausibilityTotalRowCalibrationTests</c> calibration cases (margin ≥ 0.15
+    /// against the <c>decoy-total-amount</c> specimens). Both fields share the same constants —
+    /// they are read via the identical single-pass <c>TryParseTotalRow</c> mechanism, just picking
+    /// between "cargos" and "abonos" labels.
+    /// </summary>
+    public static readonly IReadOnlyDictionary<FieldKind, TotalRowFieldCalibration> TotalRow =
+        new Dictionary<FieldKind, TotalRowFieldCalibration>
+        {
+            [FieldKind.TotalCargos] = TotalRowDefault,
+            [FieldKind.TotalAbonos] = TotalRowDefault,
         };
 }
 
@@ -351,5 +441,36 @@ internal static class GeometricPlausibilityScorer
             return false;
 
         return pickIndex - labelIndex <= maxAllowedRankGap;
+    }
+
+    // -----------------------------------------------------------------------
+    // C1.6 — DESGLOSE total-row slice (TotalCargos / TotalAbonos).
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Scores a DESGLOSE total-row pick from its precomputed <paramref name="signals"/> against
+    /// <paramref name="calibration"/>. Same MULTIPLICATIVE shape as <see cref="Score"/> and
+    /// <see cref="ScoreResumen"/> (party architecture decision 2, reused verbatim): clean picks
+    /// (both signals pass) score exactly 1.0; any failing signal multiplies in its own penalty
+    /// independently of the other. Rank-adjacency (signal #1) is computed by
+    /// <see cref="IsValueRankAdjacentToLabel"/> — no separate helper needed, the mechanism is
+    /// identical to the RESUMEN slice's.
+    /// </summary>
+    /// <param name="signals">The precomputed signal readings for this pick.</param>
+    /// <param name="calibration">The per-field calibration constants to apply.</param>
+    /// <returns>A score in [0, 1].</returns>
+    public static double ScoreTotalRow(TotalRowGeometricSignals signals, TotalRowFieldCalibration calibration)
+    {
+        ArgumentNullException.ThrowIfNull(calibration);
+
+        var score = 1.0;
+
+        if (!signals.LabelRankAdjacent)
+            score *= calibration.LabelNotAdjacentPenalty;
+
+        if (signals.HasCompetingAmount)
+            score *= calibration.CompetitionPenalty;
+
+        return score;
     }
 }

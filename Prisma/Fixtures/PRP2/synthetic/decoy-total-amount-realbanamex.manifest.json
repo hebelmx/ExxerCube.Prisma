@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "sourceProvenance": "synthetic",
+  "generator": {
+    "tool": "synth_gen.py",
+    "toolVersion": "0.1.0",
+    "seed": 20260706,
+    "generatedAtUtc": "2026-07-06T00:00:00Z"
+  },
+  "pdf": {
+    "fileName": "decoy-total-amount-realbanamex.pdf",
+    "pageWidthPt": 612.0,
+    "pageHeightPt": 792.0,
+    "pageCount": 9
+  },
+  "defect": null,
+  "bundle": {
+    "productId": "TC-BSSB-VISA",
+    "productName": "Tarjeta de Crédito Banamex Visa (real-layout clone)",
+    "periodStart": "2026-03-04",
+    "periodEnd": "2026-04-01",
+    "creditLine": 60000.0
+  },
+  "fields": {
+    "Tasa": {
+      "value": 0.1975,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "Cat": {
+      "value": 0.261,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "PagoParaNoGenerarIntereses": {
+      "value": 20471.96,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "AdeudoPeriodoAnterior": {
+      "value": 45320.1,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "CargosRegularesNoMeses": {
+      "value": 18750.25,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "CargosComprasAMesesCapital": {
+      "value": 1200.0,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "MontoIntereses": {
+      "value": 350.75,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "MontoComisiones": {
+      "value": 99.0,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "IvaInteresesYComisiones": {
+      "value": 71.96,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "PagosYAbonos": {
+      "value": 45320.1,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "SaldoCargosRegulares": {
+      "value": 22150.4,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "SaldoCargosAMeses": {
+      "value": 3400.0,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "SaldoDeudorTotal": {
+      "value": 25550.4,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "CreditoDisponible": {
+      "value": 34449.6,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "TotalCargos": {
+      "value": 19950.25,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "TotalAbonos": {
+      "value": 7.77,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    }
+  },
+  "confidenceExpectations": {
+    "TotalAbonos": {
+      "band": "low"
+    },
+    "TotalCargos": {
+      "band": "high",
+      "min": 0.8
+    }
+  },
+  "movements": [
+    {
+      "opDate": "2026-03-05",
+      "chargeDate": "2026-03-06",
+      "description": "COMPRA REGULAR",
+      "sign": "charge",
+      "amount": 18750.25
+    },
+    {
+      "opDate": "2026-03-05",
+      "chargeDate": "2026-03-06",
+      "description": "COMPRA A MESES",
+      "sign": "charge",
+      "amount": 1200.0
+    },
+    {
+      "opDate": "2026-03-05",
+      "chargeDate": "2026-03-06",
+      "description": "PAGO RECIBIDO",
+      "sign": "credit",
+      "amount": 45320.1
+    }
+  ],
+  "knownFixtureDefects": [
+    {
+      "field": "TotalAbonos",
+      "reason": "Same decoy-leak defect as 'decoy-total-amount' (dummievec), on the real-Banamex page geometry instead: a decoy amount ('$7.77') leaks into the 'Total abonos' row's amount column, to the left of the true amount; TryParseTotalRow's leftmost-match pick grabs the decoy instead of the true $45,320.10, at confidence 1.0 today. See geometryDefect.trueValue for the correct identity."
+    }
+  ],
+  "geometryDefect": {
+    "type": "decoy-total-amount",
+    "decoyToken": "$7.77",
+    "trueValue": {
+      "TotalAbonos": 45320.1
+    }
+  }
+}

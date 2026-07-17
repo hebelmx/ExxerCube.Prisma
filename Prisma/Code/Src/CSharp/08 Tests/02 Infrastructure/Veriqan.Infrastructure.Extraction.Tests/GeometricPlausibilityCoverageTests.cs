@@ -29,11 +29,14 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Tests;
 /// extracts must score &gt;= 0.8 when the C1 flag is armed. It fails loudly if a future
 /// signal/constant change in the scorer drags a legitimately-clean field below the 0.8 guard
 /// floor. "Clean" is determined structurally, not by a hand-maintained id list: a specimen is
-/// adversarial iff its manifest carries a <c>geometryDefect</c> block (the C1.0a/C1.4 contract —
-/// today exactly <c>s-c1-swap</c>, <c>s-c1-swap-displaced</c>, <c>missing-order-marker</c>,
-/// <c>decoy-percent</c>, <c>decoy-resumen-amount</c>, <c>decoy-resumen-amount-realbanamex</c>);
-/// those 6 are SUPPOSED to score low and are covered instead by
-/// <see cref="GeometricPlausibilityCalibrationTests"/> / <see cref="GeometricPlausibilityResumenCalibrationTests"/>.
+/// adversarial iff its manifest carries a <c>geometryDefect</c> block (the C1.0a/C1.4/C1.6
+/// contract — today exactly <c>s-c1-swap</c>, <c>s-c1-swap-displaced</c>,
+/// <c>missing-order-marker</c>, <c>decoy-percent</c>, <c>decoy-resumen-amount</c>,
+/// <c>decoy-resumen-amount-realbanamex</c>, <c>decoy-total-amount</c>,
+/// <c>decoy-total-amount-realbanamex</c>); those 8 are SUPPOSED to score low and are covered
+/// instead by <see cref="GeometricPlausibilityCalibrationTests"/> /
+/// <see cref="GeometricPlausibilityResumenCalibrationTests"/> /
+/// <c>GeometricPlausibilityTotalRowCalibrationTests</c>.
 /// </para>
 /// <para>
 /// No production code is touched by this story; the C1 flag stays DARK
@@ -61,11 +64,14 @@ public sealed class GeometricPlausibilityCoverageTests
     /// <see cref="FieldCalibrationTable.TasaCat"/> record) plus whatever
     /// <see cref="FieldCalibrationTable.Resumen"/> currently holds (<c>ExtractResumenField</c>
     /// looks a field's calibration up BY <see cref="FieldKind"/>, so walking <c>.Keys</c> here
-    /// means a future entry added there grows this set automatically).
+    /// means a future entry added there grows this set automatically) plus whatever
+    /// <see cref="FieldCalibrationTable.TotalRow"/> currently holds (C1.6 — <c>TryParseTotalRow</c>
+    /// looks a field's calibration up the same way).
     /// </summary>
     private static IReadOnlyList<FieldKind> ScoredFieldKinds() =>
         new[] { FieldKind.Tasa, FieldKind.Cat }
             .Concat(FieldCalibrationTable.Resumen.Keys)
+            .Concat(FieldCalibrationTable.TotalRow.Keys)
             .Distinct()
             .ToList();
 
@@ -91,6 +97,8 @@ public sealed class GeometricPlausibilityCoverageTests
             [FieldKind.MontoComisiones] = ps => ps.MontoComisiones,
             [FieldKind.IvaInteresesYComisiones] = ps => ps.IvaInteresesYComisiones,
             [FieldKind.PagosYAbonos] = ps => ps.PagosYAbonos,
+            [FieldKind.TotalCargos] = ps => ps.TotalCargos,
+            [FieldKind.TotalAbonos] = ps => ps.TotalAbonos,
         };
 
     // -----------------------------------------------------------------------
@@ -115,6 +123,11 @@ public sealed class GeometricPlausibilityCoverageTests
             {
                 FieldCalibrationTable.TasaCat.ShouldNotBeNull(
                     $"{field}: FieldCalibrationTable.TasaCat must exist to back this scored field.");
+            }
+            else if (field is FieldKind.TotalCargos or FieldKind.TotalAbonos)
+            {
+                FieldCalibrationTable.TotalRow.Keys.ShouldContain(field,
+                    $"{field}: missing a FieldCalibrationTable.TotalRow entry.");
             }
             else
             {

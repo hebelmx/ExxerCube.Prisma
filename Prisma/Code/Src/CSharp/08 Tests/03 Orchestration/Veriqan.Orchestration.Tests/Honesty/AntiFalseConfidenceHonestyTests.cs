@@ -66,6 +66,15 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests.Honesty;
 /// escalates to the real OCR rung exactly like that baseline and IS added to the exclusion set.
 /// The corpus total moved 17 to 19; the deterministic subset moved 14 to 15 (now 4 excluded).
 /// </para>
+/// <para>
+/// <b>C1.6 addition (2026-07-17):</b> two DESGLOSE total-row decoy specimens were added, same
+/// split as C1.4's pair. <c>decoy-total-amount</c> (dummievec) reuses <c>PAGE1_TOKENS</c>
+/// verbatim (only page 2's DESGLOSE table differs) — product still resolves positionally, NOT
+/// added to <see cref="NativeOcrExcludedSpecimenIds"/>. <c>decoy-total-amount-realbanamex</c>
+/// reuses <c>PAGE1_TOKENS_S622</c> — same Product-not-positional gap as the s622 baseline — IS
+/// added to the exclusion set. The corpus total moved 19 to 21; the deterministic subset moved 15
+/// to 16 (now 5 excluded).
+/// </para>
 /// </remarks>
 public sealed class AntiFalseConfidenceHonestyTests
 {
@@ -81,6 +90,7 @@ public sealed class AntiFalseConfidenceHonestyTests
         "s622-realbanamex-baseline", // real-Banamex 612x792 layout; Product not printed positionally -> escalates to real OCR (which itself abstains).
         "s71-header-ocr-costco",     // by design a header-image-OCR-only LiveOcr proof specimen.
         "decoy-resumen-amount-realbanamex", // real-Banamex layout (PAGE1_TOKENS_S622); same Product-not-positional gap as the s622 baseline.
+        "decoy-total-amount-realbanamex", // real-Banamex layout (PAGE1_TOKENS_S622); same Product-not-positional gap as the s622 baseline.
     };
 
     private static string FixturesDir => SyntheticCorpusIndexLoader.FindFixturesDir(AppContext.BaseDirectory);
@@ -99,11 +109,11 @@ public sealed class AntiFalseConfidenceHonestyTests
     public void DeterministicCorpus_IsNonEmpty_AndExcludesExactlyTheKnownOcrSpecimens()
     {
         var all = SyntheticCorpusIndexLoader.Load(FixturesDir);
-        all.Count.ShouldBe(19, "corpus-manifest.json specimen count changed — re-run the OCR-provenance " +
+        all.Count.ShouldBe(21, "corpus-manifest.json specimen count changed — re-run the OCR-provenance " +
             "diagnostic (see class remarks) for any newly-added specimen before trusting this suite's exclusion list.");
 
         var deterministic = DeterministicSpecimens();
-        deterministic.Count.ShouldBe(15, "expected exactly 15 deterministic (non-OCR) specimens (19 total minus the 4 excluded).");
+        deterministic.Count.ShouldBe(16, "expected exactly 16 deterministic (non-OCR) specimens (21 total minus the 5 excluded).");
 
         foreach (var excludedId in NativeOcrExcludedSpecimenIds)
             all.ShouldContain(s => s.Id == excludedId, $"excluded specimen id '{excludedId}' no longer exists in the corpus index — stale exclusion.");
