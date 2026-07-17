@@ -2114,6 +2114,315 @@ def _write_c16_total_decoy(output_dir: Path) -> None:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# C2.0a — Calibration specimens for the CL-21/CL-22 recompute-operand money
+# fields (SaldoCargosRegulares / PagoParaNoGenerarIntereses)
+# ═══════════════════════════════════════════════════════════════════════════
+# Prereq fixtures for the C2 epic (extends C1's GeometricPlausibilityScorer to
+# the six recompute-operand fields guarded-but-not-yet-scored; these two are
+# the non-vacuous, demo-provable CL-21/CL-22 operands — see
+# docs/planning-artifacts/SCOPING-veriqan-c2-recompute-operand-confidence.md
+# and TRACKER-veriqan-c2-recompute-operand-confidence.md, story C2.0a).
+#
+# Per Tessa's C2 design-of-record finding ("the vacuous-gate test trap"): the
+# corpus has ZERO specimens for these two fields today (not even a clean one
+# with a recorded confidenceExpectations floor) — so this slice ships BOTH a
+# CLEAN specimen (per profile) AND a DECOY specimen per field per profile,
+# never folding a field's clean/decoy pair into one file (the C1.4/C1.6
+# discipline: isolate one signal/field per specimen so the C2.0b separation
+# spike's calibration stays attributable).
+#
+# THE MECHANISM (verified against the real extractor, not assumed):
+#   - PagoParaNoGenerarIntereses (ExtractPagoParaNoGenerarIntereses, :1110)
+#     calls FindAmountInBand(band, locator, amtFmt, maxX: 300) directly
+#     (findLeftmost=false) -> RIGHTMOST amount-pattern token with Left<=300
+#     wins. maxX=300 is the guard the extractor's own comment documents
+#     against exactly this hazard ("avoids picking up right-column values
+#     (e.g. CLABE) that merged into this band", :1141) -- confirmed empirically:
+#     the dummievec baseline's own "Número de Tarjeta"/"CLABE Interbancaria"
+#     right-column rows band-merge (within YBandTolerance=5.0pt) into this same
+#     band today, and maxX=300 is what keeps them from being picked.
+#   - SaldoCargosRegulares (ExtractNivelDeUsoField, :1646) calls
+#     FindAmountInBandSplitDollar(band, locator, amtFmt) with NO minX/maxX at
+#     all. AmountPattern's leading "$" is OPTIONAL, so a bare digit-group (a
+#     masked-card/account/CLABE-tail shape, no "$" needed) already matches and
+#     out-ranks the true value if placed further right anywhere in the band --
+#     open bounds, easiest case to build.
+#
+# GEOMETRY VERIFIED (PyMuPDF get_text("words") word-box dump on the actual
+# baseline docs, a throwaway diagnostic mirroring the C1.4 module comment's own
+# technique -- reverted, not committed): every decoy below is confirmed to (a)
+# render as its OWN distinct PdfPig-tokenizable word (no merge with the true
+# amount token -- >=5pt gaps used, comfortably above the corpus's own proven
+# 2.22pt safe-gap baseline), (b) sit strictly right of the true amount's Left,
+# and (c) for the two Pago specimens, stay within maxX=300 with margin to
+# spare (measured true-amount-end-to-maxX-300 room: dummievec 126.2pt,
+# realbanamex 39.97pt -- BOTH comfortably fit a realistic short digit-fragment
+# decoy; no wrong-row fallback was needed for either profile):
+#   dummievec   SaldoCargosRegulares:        true "32,446.69" Left=442.37 Right=477.96 (page width 540)
+#   realbanamex SaldoCargosRegulares:        true "22,150.40" Left=467.50 Right=503.08 (page width 612)
+#   dummievec   PagoParaNoGenerarIntereses:  true "$32,446.69" Left=133.73 Right=173.76 (maxX=300)
+#   realbanamex PagoParaNoGenerarIntereses:  true "$20,471.96" Left=220.00 Right=260.03 (maxX=300)
+
+PDF_FILENAME_C2_CLEAN_NIVEL_PAGO = "clean-nivel-pago.pdf"
+MANIFEST_FILENAME_C2_CLEAN_NIVEL_PAGO = "clean-nivel-pago.manifest.json"
+PDF_FILENAME_C2_CLEAN_NIVEL_PAGO_REALBANAMEX = "clean-nivel-pago-realbanamex.pdf"
+MANIFEST_FILENAME_C2_CLEAN_NIVEL_PAGO_REALBANAMEX = "clean-nivel-pago-realbanamex.manifest.json"
+
+PDF_FILENAME_C2_DECOY_NIVEL = "decoy-nivel-uso-amount.pdf"
+MANIFEST_FILENAME_C2_DECOY_NIVEL = "decoy-nivel-uso-amount.manifest.json"
+PDF_FILENAME_C2_DECOY_NIVEL_REALBANAMEX = "decoy-nivel-uso-amount-realbanamex.pdf"
+MANIFEST_FILENAME_C2_DECOY_NIVEL_REALBANAMEX = "decoy-nivel-uso-amount-realbanamex.manifest.json"
+
+PDF_FILENAME_C2_DECOY_PAGO = "decoy-pago-sin-intereses-amount.pdf"
+MANIFEST_FILENAME_C2_DECOY_PAGO = "decoy-pago-sin-intereses-amount.manifest.json"
+PDF_FILENAME_C2_DECOY_PAGO_REALBANAMEX = "decoy-pago-sin-intereses-amount-realbanamex.pdf"
+MANIFEST_FILENAME_C2_DECOY_PAGO_REALBANAMEX = "decoy-pago-sin-intereses-amount-realbanamex.manifest.json"
+
+# True values (unchanged from each profile's own baseline).
+_C2_TRUE_SALDO_CARGOS_REGULARES_DUMMIEVEC = 32446.69
+_C2_TRUE_PAGO_PARA_NO_GENERAR_DUMMIEVEC = 32446.69
+_C2_TRUE_SALDO_CARGOS_REGULARES_REALBANAMEX = 22150.40
+_C2_TRUE_PAGO_PARA_NO_GENERAR_REALBANAMEX = 20471.96
+
+# Decoy tokens -- bare digit-groups (no "$", no decimal point: a realistic
+# masked-card/account-number/CLABE-tail fragment shape, matching AmountPattern
+# ^\$?([\d,]+(?:\.\d+)?)$ without needing a currency prefix), each distinct
+# from every other value in its fixture so a mis-pick is unambiguous.
+_C2_DECOY_NIVEL_AMOUNT_DUMMIEVEC = 500091.0
+_C2_DECOY_NIVEL_AMOUNT_REALBANAMEX = 480033.0
+_C2_DECOY_PAGO_AMOUNT_DUMMIEVEC = 7654.0
+_C2_DECOY_PAGO_AMOUNT_REALBANAMEX = 9871.0
+
+
+def build_manifest_c2_clean_nivel_pago() -> dict[str, Any]:
+    """God's-eye manifest for the dummievec clean far-right specimen (C2.0a,
+    Tessa's finding: a clean floor must exist BEFORE any decoy is added, else
+    'clean >= 0.8' has nothing to run against but the single real fixture).
+    Page-1 geometry is byte-identical to s6211-baseline.pdf -- only the
+    confidenceExpectations floor is new, recorded in a NEW manifest (the
+    baseline's own manifest is never touched)."""
+    manifest = build_manifest()
+    manifest["pdf"] = dict(manifest["pdf"])
+    manifest["pdf"]["fileName"] = PDF_FILENAME_C2_CLEAN_NIVEL_PAGO
+    manifest["confidenceExpectations"] = dict(manifest["confidenceExpectations"])
+    manifest["confidenceExpectations"]["SaldoCargosRegulares"] = {"band": "high", "min": 0.8}
+    manifest["confidenceExpectations"]["PagoParaNoGenerarIntereses"] = {"band": "high", "min": 0.8}
+    return manifest
+
+
+def build_manifest_c2_clean_nivel_pago_realbanamex() -> dict[str, Any]:
+    """Same contract as build_manifest_c2_clean_nivel_pago(), off the s622
+    baseline instead (page-1 geometry byte-identical to
+    s622-realbanamex-baseline.pdf)."""
+    manifest = build_manifest_s622()
+    manifest["pdf"] = dict(manifest["pdf"])
+    manifest["pdf"]["fileName"] = PDF_FILENAME_C2_CLEAN_NIVEL_PAGO_REALBANAMEX
+    manifest["confidenceExpectations"] = dict(manifest["confidenceExpectations"])
+    manifest["confidenceExpectations"]["SaldoCargosRegulares"] = {"band": "high", "min": 0.8}
+    manifest["confidenceExpectations"]["PagoParaNoGenerarIntereses"] = {"band": "high", "min": 0.8}
+    return manifest
+
+
+def build_pdf_c2_decoy_nivel() -> "fitz.Document":
+    """s6211 baseline + a bare-digit decoy leaking into the SaldoCargosRegulares
+    row's Y-band (open bounds -- ExtractNivelDeUsoField's FindAmountInBandSplitDollar
+    has no minX/maxX at all). Decoy at X=495 sits well right of the true
+    amount's Right=477.96 and well clear of the page-width-540 edge (verified
+    via PyMuPDF word-box dump)."""
+    tokens = list(PAGE1_TOKENS)
+    tokens.append((495.0, 180.1, "500091"))
+    return _build_s6211_doc(tokens)
+
+
+def build_manifest_c2_decoy_nivel() -> dict[str, Any]:
+    """God's-eye manifest for the dummievec SaldoCargosRegulares decoy.
+    PagoParaNoGenerarIntereses (same PDF, untouched row) stays a clean pick --
+    recorded high-band, C1.6-style co-located corroboration -- while
+    SaldoCargosRegulares's `fields` entry holds the extractor's ACTUAL (decoy)
+    output; the true printed value lives in geometryDefect.trueValue only."""
+    manifest = build_manifest()
+    manifest["pdf"] = dict(manifest["pdf"])
+    manifest["pdf"]["fileName"] = PDF_FILENAME_C2_DECOY_NIVEL
+    manifest["fields"] = dict(manifest["fields"])
+    manifest["fields"]["SaldoCargosRegulares"] = {
+        "value": _C2_DECOY_NIVEL_AMOUNT_DUMMIEVEC, "clrType": "decimal", "expectedStatus": "Extracted",
+    }
+    manifest["geometryDefect"] = {
+        "type": "decoy-nivel-uso-amount",
+        "decoyToken": "500091",
+        "trueValue": {"SaldoCargosRegulares": _C2_TRUE_SALDO_CARGOS_REGULARES_DUMMIEVEC},
+    }
+    manifest["confidenceExpectations"] = {
+        "SaldoCargosRegulares": {"band": "low"},
+        "PagoParaNoGenerarIntereses": {"band": "high", "min": 0.8},
+    }
+    manifest["arithmeticChecks"] = []
+    manifest["knownFixtureDefects"] = [
+        {"field": "SaldoCargosRegulares", "reason": "A bare-digit decoy ('500091', a masked-account/"
+         "CLABE-tail shape) leaks into the row's Y-band to the right of the true amount; "
+         "ExtractNivelDeUsoField's FindAmountInBandSplitDollar has no X ceiling, so the rightmost-wins "
+         "pick grabs the decoy instead of the true 32446.69, at confidence 1.0 today. See "
+         "geometryDefect.trueValue for the correct identity."},
+    ]
+    return manifest
+
+
+def build_pdf_c2_decoy_nivel_realbanamex() -> "fitz.Document":
+    """s622 baseline + the same bare-digit decoy shape as build_pdf_c2_decoy_nivel(),
+    on the real-Banamex page geometry (open bounds here too -- ExtractNivelDeUsoField
+    has no X ceiling on either profile). Decoy at X=530 sits right of the true
+    amount's Right=503.08, well clear of the page-width-612 edge."""
+    tokens = list(PAGE1_TOKENS_S622)
+    tokens.append((530.0, 200.0, "480033"))
+    return _build_s622_doc(tokens)
+
+
+def build_manifest_c2_decoy_nivel_realbanamex() -> dict[str, Any]:
+    """Same contract as build_manifest_c2_decoy_nivel(), off the s622 baseline."""
+    manifest = build_manifest_s622()
+    manifest["pdf"] = dict(manifest["pdf"])
+    manifest["pdf"]["fileName"] = PDF_FILENAME_C2_DECOY_NIVEL_REALBANAMEX
+    manifest["fields"] = dict(manifest["fields"])
+    manifest["fields"]["SaldoCargosRegulares"] = {
+        "value": _C2_DECOY_NIVEL_AMOUNT_REALBANAMEX, "clrType": "decimal", "expectedStatus": "Extracted",
+    }
+    manifest["geometryDefect"] = {
+        "type": "decoy-nivel-uso-amount",
+        "decoyToken": "480033",
+        "trueValue": {"SaldoCargosRegulares": _C2_TRUE_SALDO_CARGOS_REGULARES_REALBANAMEX},
+    }
+    manifest["confidenceExpectations"] = {
+        "SaldoCargosRegulares": {"band": "low"},
+        "PagoParaNoGenerarIntereses": {"band": "high", "min": 0.8},
+    }
+    manifest["knownFixtureDefects"] = [
+        {"field": "SaldoCargosRegulares", "reason": "Same decoy-leak defect as 'decoy-nivel-uso-amount' "
+         "(dummievec), on the real-Banamex page geometry instead: a bare-digit decoy ('480033') leaks "
+         "into the row's Y-band right of the true amount; FindAmountInBandSplitDollar's open-bounds "
+         "rightmost-wins pick grabs it instead of the true 22150.40, at confidence 1.0 today. See "
+         "geometryDefect.trueValue for the correct identity."},
+    ]
+    return manifest
+
+
+def build_pdf_c2_decoy_pago() -> "fitz.Document":
+    """s6211 baseline + a bare-digit decoy leaking into the PagoParaNoGenerarIntereses
+    row's Y-band, Left=220 -- comfortably right of the true amount's Right=173.76
+    and comfortably inside ExtractPagoParaNoGenerarIntereses's maxX=300 ceiling
+    (126.2pt of measured room; verified via PyMuPDF word-box dump)."""
+    tokens = list(PAGE1_TOKENS)
+    tokens.append((220.0, 553.2, "7654"))
+    return _build_s6211_doc(tokens)
+
+
+def build_manifest_c2_decoy_pago() -> dict[str, Any]:
+    """God's-eye manifest for the dummievec PagoParaNoGenerarIntereses decoy.
+    SaldoCargosRegulares (same PDF, untouched row) stays a clean pick (high band);
+    PagoParaNoGenerarIntereses's `fields` entry holds the extractor's ACTUAL
+    (decoy) output -- true value in geometryDefect.trueValue only."""
+    manifest = build_manifest()
+    manifest["pdf"] = dict(manifest["pdf"])
+    manifest["pdf"]["fileName"] = PDF_FILENAME_C2_DECOY_PAGO
+    manifest["fields"] = dict(manifest["fields"])
+    manifest["fields"]["PagoParaNoGenerarIntereses"] = {
+        "value": _C2_DECOY_PAGO_AMOUNT_DUMMIEVEC, "clrType": "decimal", "expectedStatus": "Extracted",
+    }
+    manifest["geometryDefect"] = {
+        "type": "decoy-pago-sin-intereses-amount",
+        "decoyToken": "7654",
+        "trueValue": {"PagoParaNoGenerarIntereses": _C2_TRUE_PAGO_PARA_NO_GENERAR_DUMMIEVEC},
+    }
+    manifest["confidenceExpectations"] = {
+        "PagoParaNoGenerarIntereses": {"band": "low"},
+        "SaldoCargosRegulares": {"band": "high", "min": 0.8},
+    }
+    manifest["arithmeticChecks"] = []
+    manifest["knownFixtureDefects"] = [
+        {"field": "PagoParaNoGenerarIntereses", "reason": "A bare-digit decoy ('7654') leaks into the "
+         "row's Y-band, right of the true amount and inside ExtractPagoParaNoGenerarIntereses's "
+         "maxX=300 left-column ceiling; FindAmountInBand's rightmost-wins pick (no findLeftmost) grabs "
+         "the decoy instead of the true 32446.69, at confidence 1.0 today. See geometryDefect.trueValue "
+         "for the correct identity."},
+    ]
+    return manifest
+
+
+def build_pdf_c2_decoy_pago_realbanamex() -> "fitz.Document":
+    """s622 baseline + the same bare-digit decoy shape as build_pdf_c2_decoy_pago(),
+    on the real-Banamex page geometry. Left=268 -- the tightest of the four C2.0a
+    decoys (true amount's Right=260.03 to maxX=300 is only 39.97pt of room) but a
+    realistic short digit-fragment fits comfortably: verified via PyMuPDF word-box
+    dump to render as its own distinct word (8pt gap from the true amount, well
+    above the corpus's proven 2.22pt safe-gap baseline) with 14.2pt of margin
+    still left before the maxX=300 wall. No wrong-row fallback was needed."""
+    tokens = list(PAGE1_TOKENS_S622)
+    tokens.append((268.0, 450.0, "9871"))
+    return _build_s622_doc(tokens)
+
+
+def build_manifest_c2_decoy_pago_realbanamex() -> dict[str, Any]:
+    """Same contract as build_manifest_c2_decoy_pago(), off the s622 baseline."""
+    manifest = build_manifest_s622()
+    manifest["pdf"] = dict(manifest["pdf"])
+    manifest["pdf"]["fileName"] = PDF_FILENAME_C2_DECOY_PAGO_REALBANAMEX
+    manifest["fields"] = dict(manifest["fields"])
+    manifest["fields"]["PagoParaNoGenerarIntereses"] = {
+        "value": _C2_DECOY_PAGO_AMOUNT_REALBANAMEX, "clrType": "decimal", "expectedStatus": "Extracted",
+    }
+    manifest["geometryDefect"] = {
+        "type": "decoy-pago-sin-intereses-amount",
+        "decoyToken": "9871",
+        "trueValue": {"PagoParaNoGenerarIntereses": _C2_TRUE_PAGO_PARA_NO_GENERAR_REALBANAMEX},
+    }
+    manifest["confidenceExpectations"] = {
+        "PagoParaNoGenerarIntereses": {"band": "low"},
+        "SaldoCargosRegulares": {"band": "high", "min": 0.8},
+    }
+    manifest["knownFixtureDefects"] = [
+        {"field": "PagoParaNoGenerarIntereses", "reason": "Same decoy-leak defect as "
+         "'decoy-pago-sin-intereses-amount' (dummievec), on the real-Banamex page geometry instead, "
+         "in the tightest of the four C2.0a maxX windows (39.97pt of room): a bare-digit decoy "
+         "('9871') leaks into the row's Y-band, right of the true amount and inside "
+         "ExtractPagoParaNoGenerarIntereses's maxX=300 ceiling; FindAmountInBand's rightmost-wins pick "
+         "grabs it instead of the true 20471.96, at confidence 1.0 today. See geometryDefect.trueValue "
+         "for the correct identity."},
+    ]
+    return manifest
+
+
+def _write_c2_operand_specimens(output_dir: Path) -> None:
+    """Writes all 6 C2.0a specimens: 2 clean far-right floors + 4 single-field
+    decoys (one field decoyed per file, both profiles per field -- the C1.4/C1.6
+    isolation discipline, per owner ruling 2026-07-17: do NOT fold both fields
+    into one decoy PDF)."""
+    jobs: list[tuple["fitz.Document", Path, dict[str, Any], Path]] = [
+        (build_pdf(), output_dir / PDF_FILENAME_C2_CLEAN_NIVEL_PAGO,
+         build_manifest_c2_clean_nivel_pago(), output_dir / MANIFEST_FILENAME_C2_CLEAN_NIVEL_PAGO),
+        (build_pdf_s622(), output_dir / PDF_FILENAME_C2_CLEAN_NIVEL_PAGO_REALBANAMEX,
+         build_manifest_c2_clean_nivel_pago_realbanamex(),
+         output_dir / MANIFEST_FILENAME_C2_CLEAN_NIVEL_PAGO_REALBANAMEX),
+        (build_pdf_c2_decoy_nivel(), output_dir / PDF_FILENAME_C2_DECOY_NIVEL,
+         build_manifest_c2_decoy_nivel(), output_dir / MANIFEST_FILENAME_C2_DECOY_NIVEL),
+        (build_pdf_c2_decoy_nivel_realbanamex(), output_dir / PDF_FILENAME_C2_DECOY_NIVEL_REALBANAMEX,
+         build_manifest_c2_decoy_nivel_realbanamex(),
+         output_dir / MANIFEST_FILENAME_C2_DECOY_NIVEL_REALBANAMEX),
+        (build_pdf_c2_decoy_pago(), output_dir / PDF_FILENAME_C2_DECOY_PAGO,
+         build_manifest_c2_decoy_pago(), output_dir / MANIFEST_FILENAME_C2_DECOY_PAGO),
+        (build_pdf_c2_decoy_pago_realbanamex(), output_dir / PDF_FILENAME_C2_DECOY_PAGO_REALBANAMEX,
+         build_manifest_c2_decoy_pago_realbanamex(),
+         output_dir / MANIFEST_FILENAME_C2_DECOY_PAGO_REALBANAMEX),
+    ]
+    for doc, pdf_path, manifest, manifest_path in jobs:
+        doc.save(str(pdf_path), garbage=4, deflate=True)
+        doc.close()
+        print(f"Wrote {pdf_path} ({pdf_path.stat().st_size} bytes)")
+        with open(manifest_path, "w", encoding="utf-8") as f:
+            json.dump(manifest, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+        print(f"Wrote {manifest_path}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # S6.2.6 — Standing corpus index (batch runner + corpus-manifest.json)
 # ═══════════════════════════════════════════════════════════════════════════
 # A single hardcoded table is the source of truth for what the 13-specimen
@@ -2348,6 +2657,76 @@ CORPUS_SPECIMENS: list[dict[str, Any]] = [
                         "dual-pass split — see the generator module comment); leftmost-match pick "
                         "grabs $7.77 instead of the true $45,320.10 at confidence 1.0 today",
     },
+    {
+        "id": "clean-nivel-pago",
+        "pdf": "clean-nivel-pago.pdf",
+        "manifest": "clean-nivel-pago.manifest.json",
+        "profile": "dummievec",
+        "slice": "C2.0a",
+        "defect": None,
+        "description": "Baseline page 1 (byte-identical to s6211-baseline) + a recorded high-band "
+                        "confidenceExpectations floor for SaldoCargosRegulares/PagoParaNoGenerarIntereses "
+                        "(the CL-21/CL-22 recompute operands) — the clean calibration floor C2.0b's "
+                        "separation spike needs before any decoy can be judged",
+    },
+    {
+        "id": "clean-nivel-pago-realbanamex",
+        "pdf": "clean-nivel-pago-realbanamex.pdf",
+        "manifest": "clean-nivel-pago-realbanamex.manifest.json",
+        "profile": "realbanamex",
+        "slice": "C2.0a",
+        "defect": None,
+        "description": "Same clean-floor purpose as 'clean-nivel-pago', on the real-Banamex page "
+                        "geometry (byte-identical to s622-realbanamex-baseline)",
+    },
+    {
+        "id": "decoy-nivel-uso-amount",
+        "pdf": "decoy-nivel-uso-amount.pdf",
+        "manifest": "decoy-nivel-uso-amount.manifest.json",
+        "profile": "dummievec",
+        "slice": "C2.0a",
+        "defect": "geometry-decoy-nivel-uso-amount",
+        "description": "A bare-digit decoy ('500091', a masked-account/CLABE-tail shape) leaks into "
+                        "the SaldoCargosRegulares row's Y-band; ExtractNivelDeUsoField's open-bounds "
+                        "rightmost-wins pick grabs it instead of the true 32446.69, at confidence 1.0 "
+                        "today (true value in geometryDefect.trueValue)",
+    },
+    {
+        "id": "decoy-nivel-uso-amount-realbanamex",
+        "pdf": "decoy-nivel-uso-amount-realbanamex.pdf",
+        "manifest": "decoy-nivel-uso-amount-realbanamex.manifest.json",
+        "profile": "realbanamex",
+        "slice": "C2.0a",
+        "defect": "geometry-decoy-nivel-uso-amount",
+        "description": "Same decoy-leak defect as 'decoy-nivel-uso-amount', on the real-Banamex page "
+                        "geometry instead; rightmost-wins pick grabs 480033 instead of the true "
+                        "22150.40 at confidence 1.0 today",
+    },
+    {
+        "id": "decoy-pago-sin-intereses-amount",
+        "pdf": "decoy-pago-sin-intereses-amount.pdf",
+        "manifest": "decoy-pago-sin-intereses-amount.manifest.json",
+        "profile": "dummievec",
+        "slice": "C2.0a",
+        "defect": "geometry-decoy-pago-sin-intereses-amount",
+        "description": "A bare-digit decoy ('7654') leaks into the PagoParaNoGenerarIntereses row's "
+                        "Y-band, inside the extractor's maxX=300 left-column ceiling; "
+                        "ExtractPagoParaNoGenerarIntereses's rightmost-wins pick grabs it instead of "
+                        "the true 32446.69, at confidence 1.0 today (true value in "
+                        "geometryDefect.trueValue)",
+    },
+    {
+        "id": "decoy-pago-sin-intereses-amount-realbanamex",
+        "pdf": "decoy-pago-sin-intereses-amount-realbanamex.pdf",
+        "manifest": "decoy-pago-sin-intereses-amount-realbanamex.manifest.json",
+        "profile": "realbanamex",
+        "slice": "C2.0a",
+        "defect": "geometry-decoy-pago-sin-intereses-amount",
+        "description": "Same decoy-leak defect as 'decoy-pago-sin-intereses-amount', on the "
+                        "real-Banamex page geometry instead, in the tightest of the four C2.0a maxX "
+                        "windows (39.97pt of room); rightmost-wins pick grabs 9871 instead of the true "
+                        "20471.96 at confidence 1.0 today",
+    },
 ]
 
 
@@ -2426,6 +2805,7 @@ def main() -> int:
         # `--profile dummievec` or `--profile realbanamex` run doesn't silently omit half the pair.
         _write_c14_resumen_decoy(OUTPUT_DIR)
         _write_c16_total_decoy(OUTPUT_DIR)  # C1.6: both profiles' decoy-total-amount specimens
+        _write_c2_operand_specimens(OUTPUT_DIR)  # C2.0a: CL-21/CL-22 operand clean + decoy specimens
         _write_corpus_index(OUTPUT_DIR)  # S6.2.6: (re)write the standing-corpus index
 
     return 0

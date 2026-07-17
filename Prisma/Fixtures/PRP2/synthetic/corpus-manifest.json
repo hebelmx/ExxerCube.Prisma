@@ -3,6 +3,60 @@
   "generator": "scripts/veriqan-corpus/synth_gen.py",
   "specimens": [
     {
+      "id": "clean-nivel-pago",
+      "pdf": "clean-nivel-pago.pdf",
+      "manifest": "clean-nivel-pago.manifest.json",
+      "profile": "dummievec",
+      "slice": "C2.0a",
+      "defect": null,
+      "description": "Baseline page 1 (byte-identical to s6211-baseline) + a recorded high-band confidenceExpectations floor for SaldoCargosRegulares/PagoParaNoGenerarIntereses (the CL-21/CL-22 recompute operands) — the clean calibration floor C2.0b's separation spike needs before any decoy can be judged"
+    },
+    {
+      "id": "clean-nivel-pago-realbanamex",
+      "pdf": "clean-nivel-pago-realbanamex.pdf",
+      "manifest": "clean-nivel-pago-realbanamex.manifest.json",
+      "profile": "realbanamex",
+      "slice": "C2.0a",
+      "defect": null,
+      "description": "Same clean-floor purpose as 'clean-nivel-pago', on the real-Banamex page geometry (byte-identical to s622-realbanamex-baseline)"
+    },
+    {
+      "id": "decoy-nivel-uso-amount",
+      "pdf": "decoy-nivel-uso-amount.pdf",
+      "manifest": "decoy-nivel-uso-amount.manifest.json",
+      "profile": "dummievec",
+      "slice": "C2.0a",
+      "defect": "geometry-decoy-nivel-uso-amount",
+      "description": "A bare-digit decoy ('500091', a masked-account/CLABE-tail shape) leaks into the SaldoCargosRegulares row's Y-band; ExtractNivelDeUsoField's open-bounds rightmost-wins pick grabs it instead of the true 32446.69, at confidence 1.0 today (true value in geometryDefect.trueValue)"
+    },
+    {
+      "id": "decoy-nivel-uso-amount-realbanamex",
+      "pdf": "decoy-nivel-uso-amount-realbanamex.pdf",
+      "manifest": "decoy-nivel-uso-amount-realbanamex.manifest.json",
+      "profile": "realbanamex",
+      "slice": "C2.0a",
+      "defect": "geometry-decoy-nivel-uso-amount",
+      "description": "Same decoy-leak defect as 'decoy-nivel-uso-amount', on the real-Banamex page geometry instead; rightmost-wins pick grabs 480033 instead of the true 22150.40 at confidence 1.0 today"
+    },
+    {
+      "id": "decoy-pago-sin-intereses-amount",
+      "pdf": "decoy-pago-sin-intereses-amount.pdf",
+      "manifest": "decoy-pago-sin-intereses-amount.manifest.json",
+      "profile": "dummievec",
+      "slice": "C2.0a",
+      "defect": "geometry-decoy-pago-sin-intereses-amount",
+      "description": "A bare-digit decoy ('7654') leaks into the PagoParaNoGenerarIntereses row's Y-band, inside the extractor's maxX=300 left-column ceiling; ExtractPagoParaNoGenerarIntereses's rightmost-wins pick grabs it instead of the true 32446.69, at confidence 1.0 today (true value in geometryDefect.trueValue)"
+    },
+    {
+      "id": "decoy-pago-sin-intereses-amount-realbanamex",
+      "pdf": "decoy-pago-sin-intereses-amount-realbanamex.pdf",
+      "manifest": "decoy-pago-sin-intereses-amount-realbanamex.manifest.json",
+      "profile": "realbanamex",
+      "slice": "C2.0a",
+      "defect": "geometry-decoy-pago-sin-intereses-amount",
+      "description": "Same decoy-leak defect as 'decoy-pago-sin-intereses-amount', on the real-Banamex page geometry instead, in the tightest of the four C2.0a maxX windows (39.97pt of room); rightmost-wins pick grabs 9871 instead of the true 20471.96 at confidence 1.0 today"
+    },
+    {
       "id": "decoy-percent",
       "pdf": "decoy-percent.pdf",
       "manifest": "decoy-percent.manifest.json",

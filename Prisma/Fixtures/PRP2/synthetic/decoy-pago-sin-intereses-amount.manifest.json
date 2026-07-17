@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "sourceProvenance": "synthetic",
+  "generator": {
+    "tool": "synth_gen.py",
+    "toolVersion": "0.1.0",
+    "seed": 20260706,
+    "generatedAtUtc": "2026-07-06T00:00:00Z"
+  },
+  "pdf": {
+    "fileName": "decoy-pago-sin-intereses-amount.pdf",
+    "pageWidthPt": 540.0,
+    "pageHeightPt": 780.0,
+    "pageCount": 8
+  },
+  "defect": null,
+  "bundle": {
+    "productId": "TC-BSSB",
+    "productName": "Tarjeta de Crédito BSSB",
+    "periodStart": "2025-07-05",
+    "periodEnd": "2025-08-04",
+    "creditLine": 100000.0
+  },
+  "fields": {
+    "Tasa": {
+      "value": 0.2736,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "Cat": {
+      "value": 0.2886,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "PagoParaNoGenerarIntereses": {
+      "value": 7654.0,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "AdeudoPeriodoAnterior": {
+      "value": 67796.35,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "CargosRegularesNoMeses": {
+      "value": 31461.3,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "CargosComprasAMesesCapital": {
+      "value": 985.39,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "MontoIntereses": {
+      "value": 0.0,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "MontoComisiones": {
+      "value": 0.0,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "IvaInteresesYComisiones": {
+      "value": 0.0,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "PagosYAbonos": {
+      "value": 67796.35,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "SaldoCargosRegulares": {
+      "value": 32446.69,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "SaldoCargosAMeses": {
+      "value": 19941.16,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "SaldoDeudorTotal": {
+      "value": 52387.85,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "CreditoDisponible": {
+      "value": 47612.15,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "TotalCargos": {
+      "value": null,
+      "clrType": "decimal",
+      "expectedStatus": "NotExtracted",
+      "reason": "S6.2.1 does not populate a movements table; DESGLOSE totals deferred to a later slice"
+    }
+  },
+  "confidenceExpectations": {
+    "PagoParaNoGenerarIntereses": {
+      "band": "low"
+    },
+    "SaldoCargosRegulares": {
+      "band": "high",
+      "min": 0.8
+    }
+  },
+  "movements": [],
+  "arithmeticChecks": [],
+  "knownFixtureDefects": [
+    {
+      "field": "PagoParaNoGenerarIntereses",
+      "reason": "A bare-digit decoy ('7654') leaks into the row's Y-band, right of the true amount and inside ExtractPagoParaNoGenerarIntereses's maxX=300 left-column ceiling; FindAmountInBand's rightmost-wins pick (no findLeftmost) grabs the decoy instead of the true 32446.69, at confidence 1.0 today. See geometryDefect.trueValue for the correct identity."
+    }
+  ],
+  "geometryDefect": {
+    "type": "decoy-pago-sin-intereses-amount",
+    "decoyToken": "7654",
+    "trueValue": {
+      "PagoParaNoGenerarIntereses": 32446.69
+    }
+  }
+}

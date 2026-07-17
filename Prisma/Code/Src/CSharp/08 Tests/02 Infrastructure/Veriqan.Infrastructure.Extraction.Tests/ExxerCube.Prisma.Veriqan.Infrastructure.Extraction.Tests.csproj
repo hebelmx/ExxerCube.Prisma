@@ -307,6 +307,58 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Fixtures\synthetic\decoy-total-amount-realbanamex.manifest.json</Link>
     </Content>
+    <!-- C2.0a calibration specimens for the CL-21/CL-22 recompute-operand money fields
+         (SaldoCargosRegulares / PagoParaNoGenerarIntereses) — scripts/veriqan-corpus/synth_gen.py.
+         2 clean far-right floors + 4 single-field decoys (one field decoyed per file, both
+         profiles per field). -->
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\clean-nivel-pago.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\clean-nivel-pago.pdf</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\clean-nivel-pago.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\clean-nivel-pago.manifest.json</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\clean-nivel-pago-realbanamex.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\clean-nivel-pago-realbanamex.pdf</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\clean-nivel-pago-realbanamex.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\clean-nivel-pago-realbanamex.manifest.json</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-nivel-uso-amount.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-nivel-uso-amount.pdf</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-nivel-uso-amount.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-nivel-uso-amount.manifest.json</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-nivel-uso-amount-realbanamex.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-nivel-uso-amount-realbanamex.pdf</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-nivel-uso-amount-realbanamex.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-nivel-uso-amount-realbanamex.manifest.json</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-pago-sin-intereses-amount.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-pago-sin-intereses-amount.pdf</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-pago-sin-intereses-amount.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-pago-sin-intereses-amount.manifest.json</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-pago-sin-intereses-amount-realbanamex.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-pago-sin-intereses-amount-realbanamex.pdf</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-pago-sin-intereses-amount-realbanamex.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-pago-sin-intereses-amount-realbanamex.manifest.json</Link>
+    </Content>
   </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">
     <ProjectCapability Include="DiagnoseCapabilities" />

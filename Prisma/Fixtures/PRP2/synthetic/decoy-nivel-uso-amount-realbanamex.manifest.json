@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "sourceProvenance": "synthetic",
+  "generator": {
+    "tool": "synth_gen.py",
+    "toolVersion": "0.1.0",
+    "seed": 20260706,
+    "generatedAtUtc": "2026-07-06T00:00:00Z"
+  },
+  "pdf": {
+    "fileName": "decoy-nivel-uso-amount-realbanamex.pdf",
+    "pageWidthPt": 612.0,
+    "pageHeightPt": 792.0,
+    "pageCount": 9
+  },
+  "defect": null,
+  "bundle": {
+    "productId": "TC-BSSB-VISA",
+    "productName": "Tarjeta de Crédito Banamex Visa (real-layout clone)",
+    "periodStart": "2026-03-04",
+    "periodEnd": "2026-04-01",
+    "creditLine": 60000.0
+  },
+  "fields": {
+    "Tasa": {
+      "value": 0.1975,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "Cat": {
+      "value": 0.261,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "PagoParaNoGenerarIntereses": {
+      "value": 20471.96,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "AdeudoPeriodoAnterior": {
+      "value": 45320.1,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "CargosRegularesNoMeses": {
+      "value": 18750.25,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "CargosComprasAMesesCapital": {
+      "value": 1200.0,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "MontoIntereses": {
+      "value": 350.75,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "MontoComisiones": {
+      "value": 99.0,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "IvaInteresesYComisiones": {
+      "value": 71.96,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "PagosYAbonos": {
+      "value": 45320.1,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "SaldoCargosRegulares": {
+      "value": 480033.0,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "SaldoCargosAMeses": {
+      "value": 3400.0,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "SaldoDeudorTotal": {
+      "value": 25550.4,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "CreditoDisponible": {
+      "value": 34449.6,
+      "clrType": "decimal",
+      "expectedStatus": "Extracted"
+    },
+    "TotalCargos": {
+      "value": null,
+      "clrType": "decimal",
+      "expectedStatus": "NotExtracted",
+      "reason": "S6.2.2 does not populate a movements table; DESGLOSE totals deferred to a later slice (same as S6.2.1)"
+    }
+  },
+  "confidenceExpectations": {
+    "SaldoCargosRegulares": {
+      "band": "low"
+    },
+    "PagoParaNoGenerarIntereses": {
+      "band": "high",
+      "min": 0.8
+    }
+  },
+  "movements": [],
+  "knownFixtureDefects": [
+    {
+      "field": "SaldoCargosRegulares",
+      "reason": "Same decoy-leak defect as 'decoy-nivel-uso-amount' (dummievec), on the real-Banamex page geometry instead: a bare-digit decoy ('480033') leaks into the row's Y-band right of the true amount; FindAmountInBandSplitDollar's open-bounds rightmost-wins pick grabs it instead of the true 22150.40, at confidence 1.0 today. See geometryDefect.trueValue for the correct identity."
+    }
+  ],
+  "geometryDefect": {
+    "type": "decoy-nivel-uso-amount",
+    "decoyToken": "480033",
+    "trueValue": {
+      "SaldoCargosRegulares": 22150.4
+    }
+  }
+}
