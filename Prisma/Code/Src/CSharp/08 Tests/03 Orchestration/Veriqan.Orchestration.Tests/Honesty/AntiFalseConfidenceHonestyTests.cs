@@ -75,6 +75,20 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests.Honesty;
 /// added to the exclusion set. The corpus total moved 19 to 21; the deterministic subset moved 15
 /// to 16 (now 5 excluded).
 /// </para>
+/// <para>
+/// <b>C2.0a addition (2026-07-17, found while running C2.0b):</b> six CL-21/22 recompute-operand
+/// specimens (<c>clean-nivel-pago</c>, <c>decoy-nivel-uso-amount</c>,
+/// <c>decoy-pago-sin-intereses-amount</c>, and their <c>-realbanamex</c> counterparts) were added
+/// in commit <c>98540e38</c> without a corresponding update here — this suite's hardcoded counts
+/// went stale (21/16 vs the corpus's actual 27/19) and this Fact started failing; fixed as part of
+/// C2.0b's "existing tests stay green" gate, same reasoning as every prior addition above. The
+/// three dummievec-profile specimens (<c>clean-nivel-pago</c>, <c>decoy-nivel-uso-amount</c>,
+/// <c>decoy-pago-sin-intereses-amount</c>) reuse <c>PAGE1_TOKENS</c> verbatim — product still
+/// resolves positionally, NOT added to <see cref="NativeOcrExcludedSpecimenIds"/>. The three
+/// <c>-realbanamex</c> counterparts reuse <c>PAGE1_TOKENS_S622</c> — same Product-not-positional
+/// gap as the s622 baseline — ARE added to the exclusion set. The corpus total moved 21 to 27; the
+/// deterministic subset moved 16 to 19 (now 8 excluded).
+/// </para>
 /// </remarks>
 public sealed class AntiFalseConfidenceHonestyTests
 {
@@ -91,6 +105,9 @@ public sealed class AntiFalseConfidenceHonestyTests
         "s71-header-ocr-costco",     // by design a header-image-OCR-only LiveOcr proof specimen.
         "decoy-resumen-amount-realbanamex", // real-Banamex layout (PAGE1_TOKENS_S622); same Product-not-positional gap as the s622 baseline.
         "decoy-total-amount-realbanamex", // real-Banamex layout (PAGE1_TOKENS_S622); same Product-not-positional gap as the s622 baseline.
+        "clean-nivel-pago-realbanamex", // real-Banamex layout (PAGE1_TOKENS_S622); same Product-not-positional gap as the s622 baseline.
+        "decoy-nivel-uso-amount-realbanamex", // real-Banamex layout (PAGE1_TOKENS_S622); same Product-not-positional gap as the s622 baseline.
+        "decoy-pago-sin-intereses-amount-realbanamex", // real-Banamex layout (PAGE1_TOKENS_S622); same Product-not-positional gap as the s622 baseline.
     };
 
     private static string FixturesDir => SyntheticCorpusIndexLoader.FindFixturesDir(AppContext.BaseDirectory);
@@ -109,11 +126,11 @@ public sealed class AntiFalseConfidenceHonestyTests
     public void DeterministicCorpus_IsNonEmpty_AndExcludesExactlyTheKnownOcrSpecimens()
     {
         var all = SyntheticCorpusIndexLoader.Load(FixturesDir);
-        all.Count.ShouldBe(21, "corpus-manifest.json specimen count changed — re-run the OCR-provenance " +
+        all.Count.ShouldBe(27, "corpus-manifest.json specimen count changed — re-run the OCR-provenance " +
             "diagnostic (see class remarks) for any newly-added specimen before trusting this suite's exclusion list.");
 
         var deterministic = DeterministicSpecimens();
-        deterministic.Count.ShouldBe(16, "expected exactly 16 deterministic (non-OCR) specimens (21 total minus the 5 excluded).");
+        deterministic.Count.ShouldBe(19, "expected exactly 19 deterministic (non-OCR) specimens (27 total minus the 8 excluded).");
 
         foreach (var excludedId in NativeOcrExcludedSpecimenIds)
             all.ShouldContain(s => s.Id == excludedId, $"excluded specimen id '{excludedId}' no longer exists in the corpus index — stale exclusion.");
