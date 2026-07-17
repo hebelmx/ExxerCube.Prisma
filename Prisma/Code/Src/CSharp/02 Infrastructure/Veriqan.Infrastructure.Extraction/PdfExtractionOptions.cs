@@ -36,36 +36,36 @@ public sealed class PdfExtractionOptions
     public int ParseTimeoutSeconds { get; set; } = DefaultParseTimeoutSeconds;
 
     /// <summary>
-    /// <b>VERIQAN C1 killswitch — ships DARK (default <see langword="false"/>).</b> When
-    /// <see langword="true"/>, <see cref="PdfPigStatementFieldExtractor"/>'s <c>ExtractTasaAndCat</c>
-    /// AND (as of C1.4) <c>ExtractResumenField</c> report the geometric-plausibility confidence
-    /// (see <c>Confidence.GeometricPlausibilityScorer</c>) on the Tasa/Cat fields and the 7
-    /// RESUMEN money fields respectively, instead of the pre-C1 constant <c>1.0</c>; when
-    /// <see langword="false"/> (the default) the pre-C1 behaviour is byte-identical for both slices
-    /// — ONE flag arms/disarms both.
+    /// <b>VERIQAN C1 killswitch — ARMED (default <see langword="true"/>, owner ruling 2026-07-17).</b>
+    /// When <see langword="true"/> (the default), <see cref="PdfPigStatementFieldExtractor"/>'s
+    /// <c>ExtractTasaAndCat</c>, <c>ExtractResumenField</c> AND <c>TryParseTotalRow</c> report the
+    /// geometric-plausibility confidence (see <c>Confidence.GeometricPlausibilityScorer</c>) on the
+    /// Tasa/Cat fields, the 7 dual-pass RESUMEN money fields, and TotalCargos/TotalAbonos respectively,
+    /// so the already-wired 0.8 guard converts a low-plausibility geometric pick into an honest
+    /// <c>InsufficientData</c> abstention instead of a confident-wrong verdict. Set to
+    /// <see langword="false"/> (via <c>Veriqan:PdfExtraction:EmitGeometricConfidence</c> — e.g. the
+    /// <c>Veriqan__PdfExtraction__EmitGeometricConfidence</c> environment variable) as a runtime
+    /// KILLSWITCH to restore the byte-identical pre-C1 behaviour without a code change or redeploy.
+    /// ONE flag arms/disarms all three slices together.
     /// <para>
-    /// <b>Why dark by default (owner ruling 2026-07-16):</b> the C1.3 arming gate proved the Tasa/Cat
-    /// scorer separates clean from swapped picks only on the <em>synthetic</em> corpus — on the real
-    /// demo bank's layout, <c>ExtractTasaAndCat</c> does not match and Tasa/Cat are
-    /// <c>NotExtracted</c>, so that 5-demo verdict-diff never exercised the scorer's false-abstain
-    /// claim on real data. <b>C1.4 update:</b> unlike Tasa/Cat, 5 of the 7 RESUMEN fields DO extract
-    /// on the real demo fixtures (confirmed via <c>GeometricConfidenceResumenArmingGateE2ETests</c>)
-    /// and score at ceiling with the flag on — a genuinely non-vacuous proof — but the flag was
-    /// deliberately NOT flipped as part of C1.4; arming remains an owner-gated decision presented
-    /// with this new evidence, not an automatic follow-on. Set this to <see langword="true"/> (via
-    /// <c>Veriqan:PdfExtraction:EmitGeometricConfidence</c> — e.g. the
-    /// <c>Veriqan__PdfExtraction__EmitGeometricConfidence</c> environment variable) to arm both
-    /// slices together. See the design of record,
+    /// <b>Arming evidence + the honest caveat:</b> arming was gated on the demo verdict-diff harnesses
+    /// (<c>GeometricConfidence*ArmingGateE2ETests</c>): on the 5 real demo fixtures no clean verdict or
+    /// confidence changes off→on. The RESUMEN slice is a genuinely NON-vacuous proof (5 of its 7 fields
+    /// extract on the real demo and score at ceiling armed). The Tasa/Cat and Total slices, by contrast,
+    /// are <c>NotExtracted</c> on this demo bank's layout, so their false-abstain safety is proven on the
+    /// SYNTHETIC corpus only (`GeometricPlausibility*CalibrationTests`, margin ≥0.35) — arming is harmless
+    /// for them on this bank but unvalidated on other banks whose layout extracts those fields; the
+    /// killswitch is the mitigation. Single-bank limitation applies. See the design of record,
     /// <c>docs/planning-artifacts/SCOPING-veriqan-c1-geometric-extraction-confidence.md</c>
     /// §"Design decision 4 — ship-dark arming gate".
     /// </para>
     /// <para>
     /// This is the production/config-driven counterpart of
     /// <see cref="PdfPigStatementFieldExtractor"/>'s <c>emitGeometricConfidence</c> constructor
-    /// parameter, whose own default also stays <see langword="false"/> for behaviour-neutral direct
+    /// parameter, whose own default stays <see langword="false"/> for behaviour-neutral direct
     /// construction (e.g. in tests) — arming happens here, at the composition root
     /// (<c>VeriqanExtractionExtensions.AddVeriqanExtraction</c>), not by flipping the ctor default.
     /// </para>
     /// </summary>
-    public bool EmitGeometricConfidence { get; set; }
+    public bool EmitGeometricConfidence { get; set; } = true;
 }
