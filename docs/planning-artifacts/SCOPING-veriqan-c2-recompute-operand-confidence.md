@@ -257,6 +257,14 @@ most likely permanent-dark candidate (vacuous on real demo + hardest calibration
 - Adversarial review each increment (false-abstain / verdict-flip hunt).
 
 ## Log
+- 2026-07-17 (later) — **C2.0a + C2.0b shipped + adversarially reviewed.** C2.0a (`98540e38`) 6 specimens; C2.0b
+  (`dfe9673b`) separation spike = **GO** (margin 0.64, blind holdout, ±3pt-robust). Two-lens adversarial review:
+  honesty lens SOUND (empirical); **spike lens confirmed the GO + prototype/production fidelity but found a MAJOR
+  false-abstain vector** — the scorer scores a CLEAN pick 0.3575 (= decoy) when a footnote digit sits in the band
+  (`PdfPigStatementFieldExtractor.cs:1115`), untested by the 6 specimens. **C2.1 is no longer a verbatim promote** —
+  it carries acceptance criteria AC1–AC5 (see TRACKER): fix the footnote false-abstain + new `clean-*-footnote`
+  specimen (blocking), tighten decoy `expectedStatus` on arming, close the `GetBand` fidelity gap, log the
+  wrong-row blind spot, reconsider signal #2. Recommended: hand C2.1 to a fresh session (design-touching + live-arm).
 - 2026-07-17 — Scoping opened from a two-spike framing pass. Spike 1 refuted (and flagged as dangerous) the
   "harden C1 Tasa/Cat single-bank gap" lever. Spike 2 surfaced the recompute-operand delta (6 guarded-but-
   unscored fields, all non-vacuous on the real demo). Orchestrator re-verified the two load-bearing claims
