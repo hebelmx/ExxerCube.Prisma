@@ -801,20 +801,29 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
         // ---- RESUMEN DE CARGOS Y ABONOS DEL PERIODO (Story 4.2) ---------
         // Right-side block at Y ≈ 292–357.
+        // C1.4: fieldKind + _emitGeometricConfidence thread the geometric-plausibility
+        // confidence (dark by default — see PdfExtractionOptions.EmitGeometricConfidence).
         var adeudoPeriodoAnterior = ExtractResumenField(sorted, bands,
-            ["Adeudo", "del", "periodo", "anterior"], amtFmt);
+            ["Adeudo", "del", "periodo", "anterior"], amtFmt,
+            FieldKind.AdeudoPeriodoAnterior, _emitGeometricConfidence);
         var cargosRegularesNoMeses = ExtractResumenField(sorted, bands,
-            ["Cargos", "regulares", "(no"], amtFmt);
+            ["Cargos", "regulares", "(no"], amtFmt,
+            FieldKind.CargosRegularesNoMeses, _emitGeometricConfidence);
         var cargosComprasAMesesCapital = ExtractResumenField(sorted, bands,
-            ["Cargos", "compras", "a", "meses", "(capital)"], amtFmt);
+            ["Cargos", "compras", "a", "meses", "(capital)"], amtFmt,
+            FieldKind.CargosComprasAMesesCapital, _emitGeometricConfidence);
         var montoIntereses = ExtractResumenField(sorted, bands,
-            ["Monto", "de", "Intereses"], amtFmt);
+            ["Monto", "de", "Intereses"], amtFmt,
+            FieldKind.MontoIntereses, _emitGeometricConfidence);
         var montoComisiones = ExtractResumenField(sorted, bands,
-            ["Monto", "de", "comisiones"], amtFmt);
+            ["Monto", "de", "comisiones"], amtFmt,
+            FieldKind.MontoComisiones, _emitGeometricConfidence);
         var ivaInteresesYComisiones = ExtractResumenField(sorted, bands,
-            ["IVA", "de", "Intereses"], amtFmt);
+            ["IVA", "de", "Intereses"], amtFmt,
+            FieldKind.IvaInteresesYComisiones, _emitGeometricConfidence);
         var pagosYAbonos = ExtractResumenField(sorted, bands,
-            ["Pagos", "y", "abonos"], amtFmt);
+            ["Pagos", "y", "abonos"], amtFmt,
+            FieldKind.PagosYAbonos, _emitGeometricConfidence);
 
         // ---- NIVEL DE USO DE TU TARJETA (Story 4.2) ---------------------
         // Right-side block at Y ≈ 171–183.
@@ -1416,11 +1425,24 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// or <see cref="ExtractedField{T}.Missing"/> only when the label was not found in
     /// either column.
     /// </returns>
+    /// <param name="fieldKind">
+    /// C1.4: identifies which <see cref="Confidence.FieldCalibrationTable.Resumen"/> entry to
+    /// score against. Only used when <paramref name="emitGeometricConfidence"/> is <see langword="true"/>.
+    /// </param>
+    /// <param name="emitGeometricConfidence">
+    /// C1.4 ship-dark switch (mirrors <c>ExtractTasaAndCat</c>'s <c>emitGeometricConfidence</c>
+    /// parameter). When <see langword="true"/>, an Extracted result's
+    /// <see cref="ExtractedField{T}.Confidence"/> is the C1.4 geometric-plausibility score
+    /// instead of the constant 1.0. Default path (<see langword="false"/>) is byte-identical to
+    /// pre-C1.4 behaviour.
+    /// </param>
     private static ExtractedField<decimal> ExtractResumenField(
         List<Word> sorted,
         Dictionary<double, List<Word>> bands,
         string[] labelTokens,
-        AmountNumberFormatSession amtFmt)
+        AmountNumberFormatSession amtFmt,
+        FieldKind fieldKind,
+        bool emitGeometricConfidence)
     {
         // RESUMEN rows appear in either the right column (Dummie VEC, label X ≥ ~280,
         // amount X ≥ 430) or the left column (real Banamex Visa layout, label X ≈ 25,
@@ -1432,32 +1454,73 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         //            capped at X ≤ 280 so we don't accidentally pick up a right-column amount
         //            that leaked into the band via Y-band tolerance.
         //
-        // Result precedence (F1 honesty fix):
-        //   Extracted         → return immediately (short-circuit after pass 1).
+        // C1.4: BOTH passes are now ALWAYS run (no more short-circuit after pass 1) so the
+        // dual-column-pass-disagreement geometric signal
+        // (Confidence.ResumenGeometricSignals.DualPassDisagreement) can see whether the OTHER
+        // pass also fired with a DIFFERENT value. ScanResumenColumn is a pure function of its
+        // inputs, so running it twice cannot change which value wins — the precedence below is
+        // byte-identical to pre-C1.4 behaviour; only the (unused-when-flag-off) rank-gap
+        // diagnostic is new.
+        //
+        // Result precedence (F1 honesty fix), unchanged:
+        //   Extracted         → right wins over left.
         //   ExtractedInvalidFormat → label was seen but amount unparseable; remember and continue.
         //   NotExtracted      → label absent in this column; continue to next pass.
         //   If EITHER pass produced ExtractedInvalidFormat and NEITHER was Extracted, return
         //   the InvalidFormat result so the caller knows "label found, amount unreadable" —
         //   distinct from "label never appeared" (NotExtracted/Missing).
 
-        var rightResult = ScanResumenColumn(sorted, bands, labelTokens, amtFmt,
+        var (rightResult, rightRankGap) = ScanResumenColumn(sorted, bands, labelTokens, amtFmt,
             labelMinX: 280.0, labelMaxX: double.MaxValue, amtMaxX: double.MaxValue);
-        if (rightResult.Status == ExtractionStatus.Extracted)
-            return rightResult;
-
-        var leftResult = ScanResumenColumn(sorted, bands, labelTokens, amtFmt,
+        var (leftResult, leftRankGap) = ScanResumenColumn(sorted, bands, labelTokens, amtFmt,
             labelMinX: 0.0, labelMaxX: 280.0, amtMaxX: 280.0);
-        if (leftResult.Status == ExtractionStatus.Extracted)
-            return leftResult;
 
-        // Neither pass produced a clean Extracted value.  Prefer InvalidFormat over Missing
-        // so the distinction is not lost: "label present, amount unreadable" ≠ "label absent".
-        if (rightResult.Status == ExtractionStatus.ExtractedInvalidFormat)
+        ExtractedField<decimal> winning;
+        int? winningRankGap;
+        if (rightResult.Status == ExtractionStatus.Extracted)
+        {
+            winning = rightResult;
+            winningRankGap = rightRankGap;
+        }
+        else if (leftResult.Status == ExtractionStatus.Extracted)
+        {
+            winning = leftResult;
+            winningRankGap = leftRankGap;
+        }
+        else if (rightResult.Status == ExtractionStatus.ExtractedInvalidFormat)
+        {
+            // Neither pass produced a clean Extracted value. Prefer InvalidFormat over Missing
+            // so the distinction is not lost: "label present, amount unreadable" ≠ "label absent".
             return rightResult;
-        if (leftResult.Status == ExtractionStatus.ExtractedInvalidFormat)
+        }
+        else if (leftResult.Status == ExtractionStatus.ExtractedInvalidFormat)
+        {
             return leftResult;
+        }
+        else
+        {
+            return ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
+        }
 
-        return ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
+        // ---- C1.4: geometric-plausibility confidence (ship-dark) --------------
+        // Always computed when a calibration entry exists for this field (cheap, pure) —
+        // `emitGeometricConfidence` only gates which ExtractedField<T>.Found overload is
+        // called, exactly like C1.2's ExtractTasaAndCat pattern.
+        if (!FieldCalibrationTable.Resumen.TryGetValue(fieldKind, out var calibration))
+            return winning;
+
+        var dualPassDisagreement =
+            rightResult.Status == ExtractionStatus.Extracted
+            && leftResult.Status == ExtractionStatus.Extracted
+            && rightResult.Value != leftResult.Value;
+        var labelRankAdjacent =
+            winningRankGap is not null && winningRankGap.Value <= calibration.MaxLabelToPickRankGap;
+        var signals = new ResumenGeometricSignals(labelRankAdjacent, dualPassDisagreement);
+        var geometricConfidence = GeometricPlausibilityScorer.ScoreResumen(signals, calibration);
+
+        return emitGeometricConfidence
+            ? ExtractedField<decimal>.Found(winning.Value, winning.Locator, geometricConfidence)
+            : winning;
     }
 
     /// <summary>
@@ -1466,14 +1529,22 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// in [labelRight, amtMaxX].
     /// </summary>
     /// <returns>
-    /// <see cref="ExtractionStatus.Extracted"/> when the label and a parseable amount were found.
-    /// <see cref="ExtractionStatus.ExtractedInvalidFormat"/> when the label was matched at least
-    /// once but no parseable amount was found in any matching band — the raw value is <c>0m</c>
-    /// (not consumed by callers in this path; chosen to satisfy the non-null type constraint).
-    /// <see cref="ExtractionStatus.NotExtracted"/> (<see cref="ExtractedField{T}.Missing"/>) when
-    /// the label did not appear in this column at all.
+    /// <b>Field</b>: <see cref="ExtractionStatus.Extracted"/> when the label and a parseable
+    /// amount were found. <see cref="ExtractionStatus.ExtractedInvalidFormat"/> when the label
+    /// was matched at least once but no parseable amount was found in any matching band — the
+    /// raw value is <c>0m</c> (not consumed by callers in this path; chosen to satisfy the
+    /// non-null type constraint). <see cref="ExtractionStatus.NotExtracted"/>
+    /// (<see cref="ExtractedField{T}.Missing"/>) when the label did not appear in this column at all.
+    /// <b>LabelToPickRankGap</b> (C1.4): only set when Field is Extracted — the ordinal-rank
+    /// distance (see <see cref="Confidence.GeometricPlausibilityScorer.IsValueRankAdjacentToLabel"/>)
+    /// from the label's own last token to the first value-shaped token (an <c>AmountPattern</c>
+    /// match, excluding single-digit footnote markers, or a bare "$") at or after it — an
+    /// independent re-derivation for the geometric-plausibility signal, computed regardless of
+    /// <c>emitGeometricConfidence</c> (cheap, pure, does not affect which value <c>Field</c> carries).
+    /// <see langword="null"/> when Field is not Extracted, or when no such token could be located
+    /// (defensive — should not happen when Field.Status is Extracted).
     /// </returns>
-    private static ExtractedField<decimal> ScanResumenColumn(
+    private static (ExtractedField<decimal> Field, int? LabelToPickRankGap) ScanResumenColumn(
         List<Word> sorted,
         Dictionary<double, List<Word>> bands,
         string[] labelTokens,
@@ -1528,13 +1599,24 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // findLeftmost=true: picks the amount nearest to the label, not the one
             // farthest right, so cross-column amounts that leaked in via Y-band tolerance
             // are naturally skipped (they're farther right).
-            var labelRight = bandSorted[labelStart + labelTokens.Length - 1].BoundingBox.Right;
+            var labelEndIdx = labelStart + labelTokens.Length - 1;
+            var labelRight = bandSorted[labelEndIdx].BoundingBox.Right;
             var locator = BoundingBoxOf(band, 1);
 
             var result = FindAmountInBandSplitDollar(band, locator, amtFmt,
                 minX: labelRight, maxX: amtMaxX, findLeftmost: true);
             if (result.Status == ExtractionStatus.Extracted)
-                return result;
+            {
+                // C1.4: independently re-derive the rank of the first value-shaped token at or
+                // after the label (mirrors FindAmountInBand's findLeftmost candidate shape:
+                // an AmountPattern match that isn't a single-digit footnote marker, or the "$"
+                // that starts a split-dollar pair) — diagnostic only, does not change `result`.
+                var pickIdx = bandSorted.FindIndex(labelEndIdx + 1, x =>
+                    x.BoundingBox.Left >= labelRight && x.BoundingBox.Left <= amtMaxX
+                    && ((AmountPattern.IsMatch(x.Text) && !IsSingleDigit(x.Text)) || x.Text == "$"));
+                var rankGap = pickIdx >= 0 ? pickIdx - labelEndIdx : (int?)null;
+                return (result, rankGap);
+            }
 
             // Label matched but amount did not parse.  Remember the locator so we can
             // return InvalidFormat at the end rather than Missing (F1 honesty fix).
@@ -1545,9 +1627,9 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         // The raw value 0m is a placeholder — callers (CL-21 rule) check Status first and
         // abstain on InvalidFormat before ever reading the value.
         if (invalidFormatLocator is not null)
-            return ExtractedField<decimal>.InvalidFormat(0m, invalidFormatLocator);
+            return (ExtractedField<decimal>.InvalidFormat(0m, invalidFormatLocator), null);
 
-        return ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
+        return (ExtractedField<decimal>.Missing(FieldLocator.PageHint(1)), null);
     }
 
     /// <summary>

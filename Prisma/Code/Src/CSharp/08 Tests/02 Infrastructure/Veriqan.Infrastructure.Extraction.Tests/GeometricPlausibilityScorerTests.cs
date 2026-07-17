@@ -1,3 +1,4 @@
+using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Confidence;
 
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Tests;
@@ -175,6 +176,161 @@ public sealed class GeometricPlausibilityScorerTests
         };
 
         var result = GeometricPlausibilityScorer.IsSiblingAdjacentToPick(bandTokens, catPick, tasaPick);
+
+        result.ShouldBeTrue();
+    }
+
+    // -----------------------------------------------------------------------
+    // C1.4 — RESUMEN/NIVEL money-field slice: ScoreResumen + IsValueRankAdjacentToLabel
+    // -----------------------------------------------------------------------
+
+    private static readonly ResumenFieldCalibration ResumenCalibration = FieldCalibrationTable.Resumen[FieldKind.MontoIntereses];
+
+    [Fact]
+    public void ScoreResumen_CleanPick_BothSignalsPass_ReturnsCeiling()
+    {
+        var signals = new ResumenGeometricSignals(LabelRankAdjacent: true, DualPassDisagreement: false);
+
+        var score = GeometricPlausibilityScorer.ScoreResumen(signals, ResumenCalibration);
+
+        score.ShouldBe(1.0);
+    }
+
+    [Fact]
+    public void ScoreResumen_LabelNotRankAdjacent_AppliesPenaltyOnly()
+    {
+        var signals = new ResumenGeometricSignals(LabelRankAdjacent: false, DualPassDisagreement: false);
+
+        var score = GeometricPlausibilityScorer.ScoreResumen(signals, ResumenCalibration);
+
+        score.ShouldBe(0.55);
+        score.ShouldBeLessThan(0.8, "a label-displaced pick must abstain-gate below the 0.8 guard floor");
+    }
+
+    [Fact]
+    public void ScoreResumen_DualPassDisagreement_AppliesPenaltyOnly()
+    {
+        var signals = new ResumenGeometricSignals(LabelRankAdjacent: true, DualPassDisagreement: true);
+
+        var score = GeometricPlausibilityScorer.ScoreResumen(signals, ResumenCalibration);
+
+        score.ShouldBe(0.55);
+        score.ShouldBeLessThan(0.8, "disagreeing left/right column passes must abstain-gate below the 0.8 guard floor");
+    }
+
+    [Fact]
+    public void ScoreResumen_BothSignalsFail_MultipliesPenaltiesIndependently()
+    {
+        var signals = new ResumenGeometricSignals(LabelRankAdjacent: false, DualPassDisagreement: true);
+
+        var score = GeometricPlausibilityScorer.ScoreResumen(signals, ResumenCalibration);
+
+        // 0.55 * 0.55 = 0.3025 — the product, not an average (same B2 false-confidence shape
+        // the multiplicative formula rules out, per the Tasa/Cat Score tests above).
+        score.ShouldBe(0.3025, 0.0001);
+    }
+
+    [Fact]
+    public void IsValueRankAdjacentToLabel_PickImmediatelyAfterLabel_ReturnsTrue()
+    {
+        var labelEnd = new GeometricToken("anterior", Left: 20, Right: 45);
+        var pick = new GeometricToken("$1,234.56", Left: 50, Right: 80);
+        var bandTokens = new[] { labelEnd, pick };
+
+        var result = GeometricPlausibilityScorer.IsValueRankAdjacentToLabel(
+            bandTokens, labelEnd, pick, maxAllowedRankGap: 2);
+
+        result.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void IsValueRankAdjacentToLabel_SignTokenBetweenLabelAndPick_StillWithinGap_ReturnsTrue()
+    {
+        // "Adeudo del periodo anterior  +  $ 1,234.56" — a sign token then "$" then the amount
+        // sit between the label end and the parsed-amount pick token; rank gap = 2 (sign, then
+        // "$"), within MaxLabelToPickRankGap = 2 when the pick IS the "$" (the split-dollar
+        // amount starts there).
+        var labelEnd = new GeometricToken("anterior", Left: 20, Right: 45);
+        var sign = new GeometricToken("+", Left: 47, Right: 50);
+        var dollar = new GeometricToken("$", Left: 52, Right: 56);
+        var number = new GeometricToken("1,234.56", Left: 58, Right: 80);
+        var bandTokens = new[] { labelEnd, sign, dollar, number };
+
+        var result = GeometricPlausibilityScorer.IsValueRankAdjacentToLabel(
+            bandTokens, labelEnd, dollar, maxAllowedRankGap: 2);
+
+        result.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void IsValueRankAdjacentToLabel_UnrelatedTokensIntervene_ExceedsGap_ReturnsFalse()
+    {
+        // A decoy: an adjacent row's description text leaked into the band between this row's
+        // label and the picked amount (the wrong-row/wrong-column geometry C1.4's calibration
+        // corpus injects) — several unrelated tokens push the rank gap past the threshold.
+        var labelEnd = new GeometricToken("anterior", Left: 20, Right: 45);
+        var decoyWord1 = new GeometricToken("Cargos", Left: 47, Right: 60);
+        var decoyWord2 = new GeometricToken("regulares", Left: 62, Right: 85);
+        var pick = new GeometricToken("$999.00", Left: 90, Right: 110);
+        var bandTokens = new[] { labelEnd, decoyWord1, decoyWord2, pick };
+
+        var result = GeometricPlausibilityScorer.IsValueRankAdjacentToLabel(
+            bandTokens, labelEnd, pick, maxAllowedRankGap: 2);
+
+        result.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void IsValueRankAdjacentToLabel_PickAtExactlyMaxAllowedGap_ReturnsTrue()
+    {
+        var labelEnd = new GeometricToken("anterior", Left: 20, Right: 45);
+        var a = new GeometricToken("+", Left: 47, Right: 50);
+        var b = new GeometricToken("$", Left: 52, Right: 56);
+        var bandTokens = new[] { labelEnd, a, b };
+
+        var result = GeometricPlausibilityScorer.IsValueRankAdjacentToLabel(
+            bandTokens, labelEnd, b, maxAllowedRankGap: 2);
+
+        result.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void IsValueRankAdjacentToLabel_PickOneRankBeyondMaxAllowedGap_ReturnsFalse()
+    {
+        var labelEnd = new GeometricToken("anterior", Left: 20, Right: 45);
+        var a = new GeometricToken("+", Left: 47, Right: 50);
+        var b = new GeometricToken("8", Left: 52, Right: 55); // footnote digit
+        var pick = new GeometricToken("$", Left: 57, Right: 60);
+        var bandTokens = new[] { labelEnd, a, b, pick };
+
+        var result = GeometricPlausibilityScorer.IsValueRankAdjacentToLabel(
+            bandTokens, labelEnd, pick, maxAllowedRankGap: 2);
+
+        result.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void IsValueRankAdjacentToLabel_PickNotFoundInBand_ReturnsFalse()
+    {
+        var labelEnd = new GeometricToken("anterior", Left: 20, Right: 45);
+        var pick = new GeometricToken("$1,234.56", Left: 50, Right: 80);
+        var bandTokens = new[] { labelEnd }; // pick absent from the band
+
+        var result = GeometricPlausibilityScorer.IsValueRankAdjacentToLabel(
+            bandTokens, labelEnd, pick, maxAllowedRankGap: 2);
+
+        result.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void IsValueRankAdjacentToLabel_JitteredCoordinates_RankSurvivesSmallPositionNoise()
+    {
+        var labelEnd = new GeometricToken("anterior", Left: 21.3, Right: 44.8);
+        var pick = new GeometricToken("$1,234.56", Left: 49.6, Right: 81.2);
+        var bandTokens = new[] { labelEnd, pick };
+
+        var result = GeometricPlausibilityScorer.IsValueRankAdjacentToLabel(
+            bandTokens, labelEnd, pick, maxAllowedRankGap: 2);
 
         result.ShouldBeTrue();
     }

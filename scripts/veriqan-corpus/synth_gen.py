@@ -1587,6 +1587,233 @@ def _write_c1_geometry_variants(output_dir: Path) -> None:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# C1.4 — Adversarial GEOMETRY specimen for the RESUMEN money-field slice
+# ═══════════════════════════════════════════════════════════════════════════
+# Extends the C1.0a/C1.0b TASA/CAT geometry-adversarial pattern above to the 7
+# RESUMEN DE CARGOS Y ABONOS DEL PERIODO money fields
+# (PdfPigStatementFieldExtractor.ExtractResumenField / ScanResumenColumn). Design
+# authority: docs/planning-artifacts/SCOPING-veriqan-c1-geometric-extraction-
+# confidence.md ("C1 intended-solution design", story C1.4) — signal #1
+# (label-to-pick rank adjacency).
+#
+# WHY this specimen exists: ScanResumenColumn's `findLeftmost=true` amount pick
+# selects the LEFTMOST value-shaped token at or after the matched label, within
+# the pass's column bound. If an unrelated word/number (e.g. a footnote or an
+# adjacent row's own content) lands within YBandTolerance=5.0pt of the target
+# row's Y and its own X sits BEFORE the row's true amount, `findLeftmost` grabs
+# the DECOY instead of the true value — a real number, in range, wrong slot, at
+# confidence 1.0 today (exactly the CAT/TASA swap's failure shape, one column
+# over). Mary's non-negotiable (C1 tracker): build this on BOTH the dummievec
+# (right-column) AND realbanamex (left-column) profiles — ScanResumenColumn's
+# two passes are genuinely different code paths (`labelMinX`/`labelMaxX`/
+# `amtMaxX` bounds differ) and "dummievec does not occur in production".
+#
+# GOD'S-EYE `fields` CONTRACT (same shape as C1.0a's 'swap' — read before
+# touching `fields` below): AdeudoPeriodoAnterior's `fields` entry holds the
+# extractor's ACTUAL (decoy, WRONG) output — the value the golden round-trip
+# suite (index-driven, SyntheticGoldenRoundTripTests) must observe — while the
+# true printed value lives in `geometryDefect.trueValue`, never conflated with
+# `fields`.
+#
+# SEPARABILITY (the C1.0a/C1.0b lesson, re-applied, TWICE): the decoy sits
+# BEFORE the true amount in X (so `findLeftmost` picks it) but is separated
+# from the label by FOUR intervening junk tokens (single digits — real
+# footnote-marker shapes, excluded from being picked as the amount by the same
+# `IsSingleDigit` check `FindAmountInBand` already applies, but each still
+# occupies its own ordinal rank) — a real, structural label-to-pick RANK gap of
+# 5, exceeding `MaxLabelToPickRankGap`=4. That threshold (not 2, as an earlier
+# draft of this specimen assumed) is itself measured, not guessed — see
+# `FieldCalibrationTable.ResumenDefault`'s remarks: two RESUMEN labelTokens
+# arrays (`CargosRegularesNoMeses`, `IvaInteresesYComisiones`) deliberately
+# match only a PREFIX of the printed label, leaving 2 trailing label words
+# before the sign+amount, a real clean-pick rank gap of 4. A first attempt at
+# this specimen used only 2 junk tokens ("Nota", "1") rendered close enough
+# that PdfPig's own word-tokenizer MERGED them into one token ("Nota1") — an
+# empirical lesson (verified via a throwaway PdfPig word-dump diagnostic, then
+# reverted) that separate `put()` calls do NOT guarantee separate PdfPig words;
+# each junk token below is spaced >= the observed safe gap (the corpus's own
+# "sin"/"IVA" tokens stay separate at a measured 2.22pt gap — Helvetica 8pt's
+# space-character advance width) to avoid the same trap.
+
+PDF_FILENAME_C14_DECOY_RESUMEN = "decoy-resumen-amount.pdf"
+MANIFEST_FILENAME_C14_DECOY_RESUMEN = "decoy-resumen-amount.manifest.json"
+
+PDF_FILENAME_C14_DECOY_RESUMEN_REALBANAMEX = "decoy-resumen-amount-realbanamex.pdf"
+MANIFEST_FILENAME_C14_DECOY_RESUMEN_REALBANAMEX = "decoy-resumen-amount-realbanamex.manifest.json"
+
+# True Adeudo values (unchanged from each profile's own baseline).
+_C14_TRUE_ADEUDO_DUMMIEVEC = 67796.35
+_C14_TRUE_ADEUDO_REALBANAMEX = 45320.10
+
+# The decoy's own (wrong, but in-range/parseable) amount value — distinct from
+# every other field's value in each baseline so a mis-pick is unambiguous.
+_C14_DECOY_AMOUNT_DUMMIEVEC = 5.00
+_C14_DECOY_AMOUNT_REALBANAMEX = 0.85
+
+# Four single-digit junk tokens (footnote-marker shapes) placed between the
+# label and the decoy amount, each its own separate PdfPig word (>=2.3pt gaps
+# — safely above the corpus's own measured 2.22pt "sin"/"IVA" safe-gap
+# baseline) — see the module comment above for why this replaced an earlier,
+# too-close 2-token design that PdfPig's tokenizer silently merged.
+_C14_JUNK_DIGITS = ("1", "2", "3", "4")
+
+_C14_RESUMEN_CLEAN_FIELDS = (
+    "CargosRegularesNoMeses",
+    "CargosComprasAMesesCapital",
+    "MontoIntereses",
+    "MontoComisiones",
+    "IvaInteresesYComisiones",
+    "PagosYAbonos",
+)
+
+
+def build_pdf_c14_decoy_resumen() -> "fitz.Document":
+    """s6211 baseline + a decoy amount leaking into the AdeudoPeriodoAnterior
+    row's Y-band (right-column pass: labelMinX=280, amtMaxX=unconstrained;
+    Y=350.9, 3.0pt from the true row's 353.9 — within YBandTolerance=5.0pt).
+    Four single-digit junk tokens sit between the label ('anterior' ends at
+    X=382.32 in the baseline) and the decoy amount, each individually spaced
+    (>=2.3pt gaps, verified via a PdfPig word-dump diagnostic — see the
+    module comment above) so PdfPig tokenizes them as four SEPARATE words — a
+    label-to-pick RANK gap of 5 (> MaxLabelToPickRankGap=4). The decoy amount
+    itself sits at X=412.7 (ends ~432.7), left of the true amount's X=442.6,
+    so ScanResumenColumn's findLeftmost pick grabs the decoy."""
+    tokens = list(PAGE1_TOKENS)
+    junk_x = [385.5, 392.3, 399.1, 405.9]
+    for x, digit in zip(junk_x, _C14_JUNK_DIGITS):
+        tokens.append((x, 350.9, digit))
+    tokens.append((412.7, 350.9, f"${_C14_DECOY_AMOUNT_DUMMIEVEC:,.2f}"))
+    return _build_s6211_doc(tokens)
+
+
+def build_manifest_c14_decoy_resumen() -> dict[str, Any]:
+    """God's-eye manifest for the dummievec RESUMEN decoy. Every RESUMEN field
+    except AdeudoPeriodoAnterior stays at its true baseline value (clean picks,
+    confidenceExpectations band 'high'); AdeudoPeriodoAnterior's `fields` entry
+    holds the extractor's ACTUAL (decoy) output — see the module-level
+    contract comment above this section."""
+    manifest = build_manifest()
+    manifest["pdf"] = dict(manifest["pdf"])
+    manifest["pdf"]["fileName"] = PDF_FILENAME_C14_DECOY_RESUMEN
+    manifest["fields"] = dict(manifest["fields"])
+    manifest["fields"]["AdeudoPeriodoAnterior"] = {
+        "value": _C14_DECOY_AMOUNT_DUMMIEVEC, "clrType": "decimal", "expectedStatus": "Extracted",
+    }
+    manifest["geometryDefect"] = {
+        "type": "decoy-resumen-amount",
+        "decoyToken": f"${_C14_DECOY_AMOUNT_DUMMIEVEC:,.2f}",
+        "trueValue": {"AdeudoPeriodoAnterior": _C14_TRUE_ADEUDO_DUMMIEVEC},
+    }
+    manifest["confidenceExpectations"] = {
+        "AdeudoPeriodoAnterior": {"band": "low"},
+        **{name: {"band": "high", "min": 0.8} for name in _C14_RESUMEN_CLEAN_FIELDS},
+    }
+    # Extraction-only slice (same discipline as S6.2.4's variance manifest): the mis-pick's
+    # downstream verdict impact (e.g. CL-21) is not asserted here — that belongs to a
+    # verdict-level Orchestration test, not this extraction-fidelity fixture.
+    manifest["arithmeticChecks"] = []
+    manifest["knownFixtureDefects"] = [
+        {"field": "AdeudoPeriodoAnterior", "reason": "A decoy amount ('1 2 3 4 $5.00') leaks "
+         "into the label's Y-band (within YBandTolerance=5.0pt) at an X left of the true "
+         "amount; ScanResumenColumn's findLeftmost pick (right-column pass) grabs the decoy "
+         "instead of the true $67,796.35, at confidence 1.0 today. See geometryDefect.trueValue "
+         "for the correct identity, and GeometricPlausibilityResumenCalibrationTests for the "
+         "C1.4 rank-adjacency signal that catches it once armed."},
+    ]
+    return manifest
+
+
+def _build_s622_doc(page1_tokens: list[tuple[float, float, str]]) -> "fitz.Document":
+    """9-page real-Banamex-geometry doc from an explicit page-1 token list
+    (mirrors _build_s6211_doc for the s622/realbanamex profile)."""
+    doc = fitz.open()
+    page1 = doc.new_page(width=PAGE_WIDTH_PT_S622, height=PAGE_HEIGHT_PT_S622)
+    for x, bottom, text in page1_tokens:
+        put(page1, x, bottom, text, page_height=PAGE_HEIGHT_PT_S622)
+    for page_num in range(2, PAGE_COUNT_S622 + 1):
+        page = doc.new_page(width=PAGE_WIDTH_PT_S622, height=PAGE_HEIGHT_PT_S622)
+        put(page, 20.0, PAGE_HEIGHT_PT_S622 - 30.0, f"C1.4 synthetic filler — page {page_num}",
+            page_height=PAGE_HEIGHT_PT_S622)
+    return doc
+
+
+def build_pdf_c14_decoy_resumen_realbanamex() -> "fitz.Document":
+    """s622 baseline + a decoy amount leaking into the AdeudoPeriodoAnterior
+    row's Y-band (LEFT-column pass: labelMinX=0/labelMaxX=280, amtMaxX=280,
+    Y=397.0, 3.0pt from the true row's 400.0) — a genuinely different code
+    path from the dummievec right-column variant above (Mary's
+    non-negotiable). Same four-single-digit-junk-token construction as the
+    dummievec variant (rank gap 5 > MaxLabelToPickRankGap=4), offset to this
+    profile's label geometry ('anterior' ends at X~124.2 here vs. dummievec's
+    382.32 — same word, same font, different label start X=25.5 vs. 283.6);
+    the decoy amount sits at X=154.7, left of the true amount's X=207.7."""
+    tokens = list(PAGE1_TOKENS_S622)
+    junk_x = [127.5, 134.3, 141.1, 147.9]
+    for x, digit in zip(junk_x, _C14_JUNK_DIGITS):
+        tokens.append((x, 397.0, digit))
+    tokens.append((154.7, 397.0, f"${_C14_DECOY_AMOUNT_REALBANAMEX:,.2f}"))
+    return _build_s622_doc(tokens)
+
+
+def build_manifest_c14_decoy_resumen_realbanamex() -> dict[str, Any]:
+    """God's-eye manifest for the realbanamex RESUMEN decoy — same contract as
+    build_manifest_c14_decoy_resumen(), off the s622 baseline instead."""
+    manifest = build_manifest_s622()
+    manifest["pdf"] = dict(manifest["pdf"])
+    manifest["pdf"]["fileName"] = PDF_FILENAME_C14_DECOY_RESUMEN_REALBANAMEX
+    manifest["fields"] = dict(manifest["fields"])
+    manifest["fields"]["AdeudoPeriodoAnterior"] = {
+        "value": _C14_DECOY_AMOUNT_REALBANAMEX, "clrType": "decimal", "expectedStatus": "Extracted",
+    }
+    manifest["geometryDefect"] = {
+        "type": "decoy-resumen-amount",
+        "decoyToken": f"${_C14_DECOY_AMOUNT_REALBANAMEX:,.2f}",
+        "trueValue": {"AdeudoPeriodoAnterior": _C14_TRUE_ADEUDO_REALBANAMEX},
+    }
+    manifest["confidenceExpectations"] = {
+        "AdeudoPeriodoAnterior": {"band": "low"},
+        **{name: {"band": "high", "min": 0.8} for name in _C14_RESUMEN_CLEAN_FIELDS},
+    }
+    manifest["movements"] = []
+    manifest["knownFixtureDefects"] = [
+        {"field": "AdeudoPeriodoAnterior", "reason": "Same decoy-leak defect as "
+         "'decoy-resumen-amount' (dummievec), on the LEFT-column pass instead: a decoy amount "
+         "leaks into the label's Y-band at an X left of the true amount; ScanResumenColumn's "
+         "findLeftmost pick grabs $0.85 instead of the true $45,320.10 at confidence 1.0 today. "
+         "See geometryDefect.trueValue for the correct identity."},
+    ]
+    return manifest
+
+
+def _write_c14_resumen_decoy(output_dir: Path) -> None:
+    doc = build_pdf_c14_decoy_resumen()
+    pdf_path = output_dir / PDF_FILENAME_C14_DECOY_RESUMEN
+    doc.save(str(pdf_path), garbage=4, deflate=True)
+    doc.close()
+    print(f"Wrote {pdf_path} ({pdf_path.stat().st_size} bytes)")
+
+    manifest = build_manifest_c14_decoy_resumen()
+    manifest_path = output_dir / MANIFEST_FILENAME_C14_DECOY_RESUMEN
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    print(f"Wrote {manifest_path}")
+
+    doc2 = build_pdf_c14_decoy_resumen_realbanamex()
+    pdf_path2 = output_dir / PDF_FILENAME_C14_DECOY_RESUMEN_REALBANAMEX
+    doc2.save(str(pdf_path2), garbage=4, deflate=True)
+    doc2.close()
+    print(f"Wrote {pdf_path2} ({pdf_path2.stat().st_size} bytes)")
+
+    manifest2 = build_manifest_c14_decoy_resumen_realbanamex()
+    manifest_path2 = output_dir / MANIFEST_FILENAME_C14_DECOY_RESUMEN_REALBANAMEX
+    with open(manifest_path2, "w", encoding="utf-8") as f:
+        json.dump(manifest2, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    print(f"Wrote {manifest_path2}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # S6.2.6 — Standing corpus index (batch runner + corpus-manifest.json)
 # ═══════════════════════════════════════════════════════════════════════════
 # A single hardcoded table is the source of truth for what the 13-specimen
@@ -1773,6 +2000,30 @@ CORPUS_SPECIMENS: list[dict[str, Any]] = [
                         "-invisible 's-c1-swap' negative control. The C1.0b separation-spike's blind "
                         "holdout ambiguous specimen.",
     },
+    {
+        "id": "decoy-resumen-amount",
+        "pdf": "decoy-resumen-amount.pdf",
+        "manifest": "decoy-resumen-amount.manifest.json",
+        "profile": "dummievec",
+        "slice": "C1.4",
+        "defect": "geometry-decoy-resumen-amount",
+        "description": "A decoy amount ('1 2 3 4 $5.00') leaks into the AdeudoPeriodoAnterior "
+                        "row's Y-band on the RIGHT-column pass; ScanResumenColumn's findLeftmost "
+                        "pick grabs the decoy instead of the true $67,796.35, at confidence 1.0 "
+                        "today (true value in geometryDefect.trueValue)",
+    },
+    {
+        "id": "decoy-resumen-amount-realbanamex",
+        "pdf": "decoy-resumen-amount-realbanamex.pdf",
+        "manifest": "decoy-resumen-amount-realbanamex.manifest.json",
+        "profile": "realbanamex",
+        "slice": "C1.4",
+        "defect": "geometry-decoy-resumen-amount",
+        "description": "Same decoy-leak defect as 'decoy-resumen-amount', on the real-Banamex "
+                        "LEFT-column pass instead — a genuinely different ScanResumenColumn code "
+                        "path (labelMinX/labelMaxX/amtMaxX bounds differ); findLeftmost grabs "
+                        "$0.85 instead of the true $45,320.10 at confidence 1.0 today",
+    },
 ]
 
 
@@ -1845,8 +2096,11 @@ def main() -> int:
     if args.profile in ("realbanamex", "all"):
         _write_realbanamex(OUTPUT_DIR)
         _write_s71_header_ocr(OUTPUT_DIR)  # S7.1: header-image OCR product fixture
-
     if args.profile == "all":
+        # C1.4: writes BOTH the dummievec and realbanamex decoy-resumen-amount specimens in one
+        # call (Mary's non-negotiable — both profiles, one code path each) so a single-profile
+        # `--profile dummievec` or `--profile realbanamex` run doesn't silently omit half the pair.
+        _write_c14_resumen_decoy(OUTPUT_DIR)
         _write_corpus_index(OUTPUT_DIR)  # S6.2.6: (re)write the standing-corpus index
 
     return 0

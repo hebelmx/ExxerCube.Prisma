@@ -12,6 +12,24 @@
       "description": "Spurious 3rd percent token appended after the true CAT/TASA pair (3-way token competition; extraction unaffected, an ambiguity signal only)"
     },
     {
+      "id": "decoy-resumen-amount",
+      "pdf": "decoy-resumen-amount.pdf",
+      "manifest": "decoy-resumen-amount.manifest.json",
+      "profile": "dummievec",
+      "slice": "C1.4",
+      "defect": "geometry-decoy-resumen-amount",
+      "description": "A decoy amount ('1 2 3 4 $5.00') leaks into the AdeudoPeriodoAnterior row's Y-band on the RIGHT-column pass; ScanResumenColumn's findLeftmost pick grabs the decoy instead of the true $67,796.35, at confidence 1.0 today (true value in geometryDefect.trueValue)"
+    },
+    {
+      "id": "decoy-resumen-amount-realbanamex",
+      "pdf": "decoy-resumen-amount-realbanamex.pdf",
+      "manifest": "decoy-resumen-amount-realbanamex.manifest.json",
+      "profile": "realbanamex",
+      "slice": "C1.4",
+      "defect": "geometry-decoy-resumen-amount",
+      "description": "Same decoy-leak defect as 'decoy-resumen-amount', on the real-Banamex LEFT-column pass instead — a genuinely different ScanResumenColumn code path (labelMinX/labelMaxX/amtMaxX bounds differ); findLeftmost grabs $0.85 instead of the true $45,320.10 at confidence 1.0 today"
+    },
+    {
       "id": "missing-order-marker",
       "pdf": "missing-order-marker.pdf",
       "manifest": "missing-order-marker.manifest.json",

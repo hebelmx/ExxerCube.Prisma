@@ -266,6 +266,26 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Fixtures\synthetic\s-c1-swap-displaced.manifest.json</Link>
     </Content>
+    <!-- C1.4 adversarial RESUMEN geometry specimens (scripts/veriqan-corpus/synth_gen.py).
+         Both profiles: 'decoy-resumen-amount' (dummievec right-column pass) and
+         'decoy-resumen-amount-realbanamex' (real-Banamex left-column pass) — the two
+         ScanResumenColumn code paths are genuinely different (Mary's non-negotiable). -->
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-resumen-amount.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-resumen-amount.pdf</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-resumen-amount.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-resumen-amount.manifest.json</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-resumen-amount-realbanamex.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-resumen-amount-realbanamex.pdf</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-resumen-amount-realbanamex.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-resumen-amount-realbanamex.manifest.json</Link>
+    </Content>
   </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">
     <ProjectCapability Include="DiagnoseCapabilities" />

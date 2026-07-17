@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Confidence;
 
@@ -63,6 +64,57 @@ internal readonly record struct GeometricSignals(bool SiblingAdjacentToPick, int
 /// </param>
 internal sealed record FieldCalibration(double SiblingAbsentPenalty, double CompetitionExcessPenalty);
 
+// ---------------------------------------------------------------------------
+// C1.4 — RESUMEN/NIVEL money-field slice. Extends the C1.2 mechanism to the
+// dual left/right column pick in PdfPigStatementFieldExtractor.ScanResumenColumn.
+// Separate types from GeometricSignals/FieldCalibration (Tasa/Cat) — deliberately:
+// the Tasa/Cat scorer path is untouched by design (SCOPING doc, "constraints").
+// See docs/planning-artifacts/SCOPING-veriqan-c1-geometric-extraction-confidence.md
+// ("Design decision 1 — the signal set", row #1 and #3) for the design authority.
+// ---------------------------------------------------------------------------
+
+/// <summary>
+/// The precomputed signal readings <see cref="GeometricPlausibilityScorer.ScoreResumen"/>
+/// consumes for one RESUMEN/NIVEL money-field pick.
+/// </summary>
+/// <param name="LabelRankAdjacent">
+/// Signal #1 (adapted from the Tasa/Cat sibling-adjacency concept): is the picked amount
+/// token within <see cref="ResumenFieldCalibration.MaxLabelToPickRankGap"/> ordinal ranks of
+/// the label's own last token — i.e. only an expected sign/"$" marker (not an unrelated
+/// intervening token, e.g. another row's description text that leaked into the band via
+/// Y-tolerance) sits between the label and the pick? RANK-based, not raw edge-distance (the
+/// C1.0b perturbation-stress lesson) — and measured from the label's END, not its start, so
+/// it does NOT degrade into the CUT gap-distance signal #4 (label LENGTH is irrelevant here).
+/// </param>
+/// <param name="DualPassDisagreement">
+/// Signal #3: did <c>ExtractResumenField</c>'s right-column AND left-column
+/// <c>ScanResumenColumn</c> passes BOTH fire (<see cref="ExtractionStatus.Extracted"/>)
+/// with DIFFERENT values for the same field? Binary — fired-and-disagree is a penalty; there
+/// is no continuous distance-from-center term (signal #4 is cut).
+/// </param>
+internal readonly record struct ResumenGeometricSignals(bool LabelRankAdjacent, bool DualPassDisagreement);
+
+/// <summary>
+/// Per-field calibration constants for the RESUMEN/NIVEL money-field slice. See
+/// <see cref="FieldCalibrationTable.Resumen"/> for the frozen values.
+/// </summary>
+/// <param name="LabelNotAdjacentPenalty">
+/// Multiplicative penalty applied when <see cref="ResumenGeometricSignals.LabelRankAdjacent"/>
+/// is <see langword="false"/>.
+/// </param>
+/// <param name="DualPassDisagreementPenalty">
+/// Multiplicative penalty applied when <see cref="ResumenGeometricSignals.DualPassDisagreement"/>
+/// is <see langword="true"/>.
+/// </param>
+/// <param name="MaxLabelToPickRankGap">
+/// The maximum ordinal-rank distance (see <see cref="ResumenGeometricSignals.LabelRankAdjacent"/>)
+/// between the label's last token and the picked amount token that still counts as adjacent.
+/// </param>
+internal sealed record ResumenFieldCalibration(
+    double LabelNotAdjacentPenalty,
+    double DualPassDisagreementPenalty,
+    int MaxLabelToPickRankGap);
+
 /// <summary>
 /// Static table of per-field <see cref="FieldCalibration"/> constants. A field only needs an
 /// entry once a call site actually emits a geometric-plausibility confidence for it (today: Tasa
@@ -81,6 +133,46 @@ internal static class FieldCalibrationTable
     public static readonly FieldCalibration TasaCat = new(
         SiblingAbsentPenalty: 0.55,
         CompetitionExcessPenalty: 0.65);
+
+    /// <summary>
+    /// Shared constants backing every entry in <see cref="Resumen"/> (see that member's
+    /// remarks). <c>MaxLabelToPickRankGap = 4</c> — measured empirically (not guessed) against
+    /// every clean specimen: most RESUMEN labels match their <c>labelTokens</c> array in full
+    /// (rank gap 2: a sign token "+"/"-"/"=" then the amount), but two call sites
+    /// (<c>CargosRegularesNoMeses</c> = <c>["Cargos","regulares","(no"]</c> against the printed
+    /// "Cargos regulares (no a meses)"; <c>IvaInteresesYComisiones</c> =
+    /// <c>["IVA","de","Intereses"]</c> against "IVA de Intereses y comisiones") deliberately match
+    /// only a PREFIX of the printed label, leaving 2 trailing label words unmatched before the
+    /// sign+amount — a real, structural rank gap of 4 on an entirely clean pick. The threshold
+    /// must clear that 4, or a legitimate pick on those two fields would abstain-gate.
+    /// </summary>
+    private static readonly ResumenFieldCalibration ResumenDefault = new(
+        LabelNotAdjacentPenalty: 0.55,
+        DualPassDisagreementPenalty: 0.55,
+        MaxLabelToPickRankGap: 4);
+
+    /// <summary>
+    /// Constants for the C1.4 RESUMEN/NIVEL money-field slice, frozen by the
+    /// <c>GeometricPlausibilityCalibrationTests</c> RESUMEN calibration cases (margin ≥ 0.15
+    /// against the <c>decoy-resumen-amount</c> specimens). One entry per <see cref="FieldKind"/>
+    /// so the C1.5 architecture-enforcement test can walk every scored field and assert a
+    /// calibration entry exists — today all 7 fields wired in
+    /// <c>PdfPigStatementFieldExtractor.ExtractResumenField</c> share the same constants because
+    /// they are all read via the identical dual-column-pass/label-relative-pick mechanism
+    /// (<c>ScanResumenColumn</c>); a field only needs its own entry if it is later found to need
+    /// different constants.
+    /// </summary>
+    public static readonly IReadOnlyDictionary<FieldKind, ResumenFieldCalibration> Resumen =
+        new Dictionary<FieldKind, ResumenFieldCalibration>
+        {
+            [FieldKind.AdeudoPeriodoAnterior] = ResumenDefault,
+            [FieldKind.CargosRegularesNoMeses] = ResumenDefault,
+            [FieldKind.CargosComprasAMesesCapital] = ResumenDefault,
+            [FieldKind.MontoIntereses] = ResumenDefault,
+            [FieldKind.MontoComisiones] = ResumenDefault,
+            [FieldKind.IvaInteresesYComisiones] = ResumenDefault,
+            [FieldKind.PagosYAbonos] = ResumenDefault,
+        };
 }
 
 /// <summary>
@@ -189,5 +281,75 @@ internal static class GeometricPlausibilityScorer
         // The marker must precede the sibling pick (not trail after it) — otherwise it is
         // qualifying a DIFFERENT value than the one this extractor picked.
         return siblingPick is null || nextNext.Left < siblingPick.Value.Left;
+    }
+
+    // -----------------------------------------------------------------------
+    // C1.4 — RESUMEN/NIVEL money-field slice.
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Scores a RESUMEN/NIVEL money-field pick from its precomputed
+    /// <paramref name="signals"/> against <paramref name="calibration"/>. Same MULTIPLICATIVE
+    /// shape as <see cref="Score"/> (party architecture decision 2, reused verbatim for C1.4):
+    /// clean picks (both signals pass) score exactly 1.0; any failing signal multiplies in its
+    /// own penalty independently of the other.
+    /// </summary>
+    /// <param name="signals">The precomputed signal readings for this pick.</param>
+    /// <param name="calibration">The per-field calibration constants to apply.</param>
+    /// <returns>A score in [0, 1].</returns>
+    public static double ScoreResumen(ResumenGeometricSignals signals, ResumenFieldCalibration calibration)
+    {
+        ArgumentNullException.ThrowIfNull(calibration);
+
+        var score = 1.0;
+
+        if (!signals.LabelRankAdjacent)
+            score *= calibration.LabelNotAdjacentPenalty;
+
+        if (signals.DualPassDisagreement)
+            score *= calibration.DualPassDisagreementPenalty;
+
+        return score;
+    }
+
+    /// <summary>
+    /// Signal #1 for RESUMEN/NIVEL fields: is <paramref name="pick"/> within
+    /// <paramref name="maxAllowedRankGap"/> ordinal ranks — by <see cref="GeometricToken.Left"/>
+    /// within <paramref name="bandTokens"/>, NOT raw edge-distance (same C1.0b lesson
+    /// <see cref="IsSiblingAdjacentToPick"/> encodes) — of <paramref name="labelEnd"/> (the
+    /// label's own last token)?
+    /// </summary>
+    /// <remarks>
+    /// Measured from the label's END rank, not its START — so, unlike the CUT gap-distance
+    /// signal #4, this does NOT vary with how many words are IN the label (a longer label's own
+    /// tokens all sit at ranks BEFORE <paramref name="labelEnd"/> and never enter the gap being
+    /// measured). What it does catch: an unrelated token (e.g. another RESUMEN row's
+    /// description text that leaked into the same band via Y-tolerance banding) sitting between
+    /// the label and the pick — a real structural symptom of a wrong-row/wrong-column decoy,
+    /// not a label-length artifact.
+    /// </remarks>
+    /// <param name="bandTokens">Every token in the already-isolated value band.</param>
+    /// <param name="labelEnd">The label's own last token (e.g. "anterior" in "Adeudo del periodo anterior").</param>
+    /// <param name="pick">The token this extractor picked as the field's value (or its leading "$" token).</param>
+    /// <param name="maxAllowedRankGap">
+    /// The maximum rank distance from <paramref name="labelEnd"/> to <paramref name="pick"/>
+    /// that still counts as adjacent (see <see cref="ResumenFieldCalibration.MaxLabelToPickRankGap"/>).
+    /// </param>
+    public static bool IsValueRankAdjacentToLabel(
+        IReadOnlyList<GeometricToken> bandTokens,
+        GeometricToken labelEnd,
+        GeometricToken pick,
+        int maxAllowedRankGap)
+    {
+        ArgumentNullException.ThrowIfNull(bandTokens);
+
+        var ordered = bandTokens.OrderBy(t => t.Left).ToList();
+        var labelIndex = ordered.IndexOf(labelEnd);
+        var pickIndex = ordered.IndexOf(pick);
+
+        if (labelIndex < 0 || pickIndex < 0 || pickIndex <= labelIndex)
+            return false;
+
+        return pickIndex - labelIndex <= maxAllowedRankGap;
     }
 }

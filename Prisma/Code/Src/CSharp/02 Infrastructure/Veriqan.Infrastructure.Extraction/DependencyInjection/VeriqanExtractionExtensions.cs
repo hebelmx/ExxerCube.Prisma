@@ -53,13 +53,15 @@ public static class VeriqanExtractionExtensions
         // decorator below can wrap it directly without resolving IStatementFieldExtractor
         // recursively through itself.
         //
-        // VERIQAN C1.3: the geometric-plausibility confidence killswitch
-        // (PdfExtractionOptions.EmitGeometricConfidence, default true) is threaded through here
+        // VERIQAN C1.3/C1.4: the geometric-plausibility confidence killswitch
+        // (PdfExtractionOptions.EmitGeometricConfidence, default FALSE — ships DARK per the
+        // owner's 2026-07-16 ruling, see that property's remarks) is threaded through here
         // explicitly rather than relying on the extractor ctor's own `emitGeometricConfidence =
         // false` default — that ctor default stays behaviour-neutral for direct/test
-        // construction; arming for production happens at this composition root by reading
-        // configuration, so the flag can be switched off (killswitch) via
-        // Veriqan:PdfExtraction:EmitGeometricConfidence without a code change or redeploy.
+        // construction; arming for production (both the Tasa/Cat slice and, as of C1.4, the 7
+        // RESUMEN money fields share this ONE flag) happens at this composition root by reading
+        // configuration, so it can be flipped on via Veriqan:PdfExtraction:EmitGeometricConfidence
+        // without a code change or redeploy.
         services.TryAddSingleton(sp =>
         {
             var pdfOptions = sp.GetRequiredService<IOptions<PdfExtractionOptions>>();

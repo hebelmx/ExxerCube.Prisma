@@ -38,19 +38,24 @@ public sealed class PdfExtractionOptions
     /// <summary>
     /// <b>VERIQAN C1 killswitch — ships DARK (default <see langword="false"/>).</b> When
     /// <see langword="true"/>, <see cref="PdfPigStatementFieldExtractor"/>'s <c>ExtractTasaAndCat</c>
-    /// reports the geometric-plausibility confidence (see <c>Confidence.GeometricPlausibilityScorer</c>)
-    /// on the Tasa/Cat fields instead of the pre-C1.2 constant <c>1.0</c>; when <see langword="false"/>
-    /// (the default) the pre-C1 behaviour is byte-identical.
+    /// AND (as of C1.4) <c>ExtractResumenField</c> report the geometric-plausibility confidence
+    /// (see <c>Confidence.GeometricPlausibilityScorer</c>) on the Tasa/Cat fields and the 7
+    /// RESUMEN money fields respectively, instead of the pre-C1 constant <c>1.0</c>; when
+    /// <see langword="false"/> (the default) the pre-C1 behaviour is byte-identical for both slices
+    /// — ONE flag arms/disarms both.
     /// <para>
-    /// <b>Why dark by default (owner ruling 2026-07-16):</b> the C1.3 arming gate proved the scorer
-    /// separates clean from swapped picks only on the <em>synthetic</em> corpus — on the real demo
-    /// bank's layout, <c>ExtractTasaAndCat</c> does not match and Tasa/Cat are <c>NotExtracted</c>, so
-    /// the 5-demo verdict-diff never exercised the scorer's false-abstain claim on real data. Arming
-    /// therefore has no benefit on the current demo and the cardinal false-abstain risk is unproven on
-    /// any bank whose layout <em>does</em> extract Tasa/Cat. The full scorer + this config seam stay in
-    /// place: set this to <see langword="true"/> (via <c>Veriqan:PdfExtraction:EmitGeometricConfidence</c>
-    /// — e.g. the <c>Veriqan__PdfExtraction__EmitGeometricConfidence</c> environment variable) to arm,
-    /// once real Tasa/Cat data validates no clean-pick mis-rating. See the design of record,
+    /// <b>Why dark by default (owner ruling 2026-07-16):</b> the C1.3 arming gate proved the Tasa/Cat
+    /// scorer separates clean from swapped picks only on the <em>synthetic</em> corpus — on the real
+    /// demo bank's layout, <c>ExtractTasaAndCat</c> does not match and Tasa/Cat are
+    /// <c>NotExtracted</c>, so that 5-demo verdict-diff never exercised the scorer's false-abstain
+    /// claim on real data. <b>C1.4 update:</b> unlike Tasa/Cat, 5 of the 7 RESUMEN fields DO extract
+    /// on the real demo fixtures (confirmed via <c>GeometricConfidenceResumenArmingGateE2ETests</c>)
+    /// and score at ceiling with the flag on — a genuinely non-vacuous proof — but the flag was
+    /// deliberately NOT flipped as part of C1.4; arming remains an owner-gated decision presented
+    /// with this new evidence, not an automatic follow-on. Set this to <see langword="true"/> (via
+    /// <c>Veriqan:PdfExtraction:EmitGeometricConfidence</c> — e.g. the
+    /// <c>Veriqan__PdfExtraction__EmitGeometricConfidence</c> environment variable) to arm both
+    /// slices together. See the design of record,
     /// <c>docs/planning-artifacts/SCOPING-veriqan-c1-geometric-extraction-confidence.md</c>
     /// §"Design decision 4 — ship-dark arming gate".
     /// </para>
