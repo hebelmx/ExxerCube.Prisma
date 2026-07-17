@@ -2423,6 +2423,223 @@ def _write_c2_operand_specimens(output_dir: Path) -> None:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# C2.1a — AC1 de-risk: footnote false-abstain + a harder money-formatted decoy
+# ═══════════════════════════════════════════════════════════════════════════
+# Adversarial review of C2.0b's prototype scorer (HeaderMoneyPlausibilityScorerPrototype)
+# found it FALSE-ABSTAINS on a clean, correctly-extracted pick when a harmless footnote
+# digit sits in the value band -- PdfPigStatementFieldExtractor.cs:1115 documents this
+# exact real shape: "Pago para no generar intereses 2 $32,446.69" (the "2" is a
+# superscript footnote-reference marker, printed by real Banamex statements; see the
+# extractor's own IsSingleDigit() helper and its three call sites, which already treat
+# single-digit tokens as footnote noise, not amount candidates -- e.g. the C1.4 rank-gap
+# diagnostic at :1610-1616).
+#
+# clean-nivel-pago-footnote(-realbanamex): mirrors that EXACT layout on the Pago row --
+# the footnote sits LEFT of the true amount, so FindAmountInBand's rightmost-wins pick
+# is UNAFFECTED (production still extracts the correct value); only the C2.0b scorer's
+# geometry reading was wrong. SaldoCargosRegulares (same PDF, untouched row) stays clean.
+#
+# decoy-nivel-uso-amount-moneyfmt(-realbanamex): a HARDER decoy than C2.0a's bare-digit
+# ones -- the leak token is itself money-FORMATTED ("$"-prefixed + decimal + thousands
+# separator), placed right of the true amount so it still wins rightmost-pick. Exists to
+# prove the AC1 fix does NOT lean on "the pick isn't money-formatted" as its
+# discriminator (that would be defeated by this specimen) -- the real discriminator is
+# single-digit-ness (footnote marker shape), which is orthogonal to money-format and
+# still fires correctly here.
+
+PDF_FILENAME_C21A_CLEAN_PAGO_FOOTNOTE = "clean-nivel-pago-footnote.pdf"
+MANIFEST_FILENAME_C21A_CLEAN_PAGO_FOOTNOTE = "clean-nivel-pago-footnote.manifest.json"
+PDF_FILENAME_C21A_CLEAN_PAGO_FOOTNOTE_REALBANAMEX = "clean-nivel-pago-footnote-realbanamex.pdf"
+MANIFEST_FILENAME_C21A_CLEAN_PAGO_FOOTNOTE_REALBANAMEX = "clean-nivel-pago-footnote-realbanamex.manifest.json"
+
+PDF_FILENAME_C21A_DECOY_NIVEL_MONEYFMT = "decoy-nivel-uso-amount-moneyfmt.pdf"
+MANIFEST_FILENAME_C21A_DECOY_NIVEL_MONEYFMT = "decoy-nivel-uso-amount-moneyfmt.manifest.json"
+PDF_FILENAME_C21A_DECOY_NIVEL_MONEYFMT_REALBANAMEX = "decoy-nivel-uso-amount-moneyfmt-realbanamex.pdf"
+MANIFEST_FILENAME_C21A_DECOY_NIVEL_MONEYFMT_REALBANAMEX = "decoy-nivel-uso-amount-moneyfmt-realbanamex.manifest.json"
+
+# Money-formatted decoy values (distinct from every other value in their fixture so a
+# mis-pick is unambiguous). Placement verified via fitz.get_text_length (see the C2.1a
+# spike report): dummievec true "32,446.69" Right=477.96, decoy at X=485.0 (7.04pt gap,
+# ends X=525.03, 14.97pt clear of page width 540); realbanamex true "22,150.40"
+# Right=503.08, decoy at X=510.0 (6.92pt gap, ends X=550.03, 61.97pt clear of page width 612).
+_C21A_DECOY_NIVEL_MONEYFMT_DUMMIEVEC = 88888.88
+_C21A_DECOY_NIVEL_MONEYFMT_REALBANAMEX = 77777.00
+
+
+def build_pdf_c21a_clean_pago_footnote() -> "fitz.Document":
+    """s6211 baseline with a single-digit footnote marker ('2') inserted between the
+    Pago label and its amount -- byte-for-byte the real :1115 layout ("Pago para no
+    generar intereses 2 $32,446.69"). Achieved by substituting the ONE existing
+    concatenated label+amount string (PAGE1_TOKENS's single insert_text call) so
+    PyMuPDF's natural word-spacing pushes the amount right by the footnote's width,
+    exactly like the real fixture -- not a hand-placed extra token. Verified
+    (fitz.get_text_length dump): 'intereses' ends X=131.50, footnote '2' lands
+    X=[133.73, 138.18] (coincidentally the ORIGINAL amount's pre-footnote start X),
+    amount shifts to X=[140.40, 180.43] -- still comfortably inside
+    ExtractPagoParaNoGenerarIntereses's maxX=300 ceiling."""
+    tokens = [
+        (x, bottom, text.replace(
+            "Pago para no generar intereses $32,446.69",
+            "Pago para no generar intereses 2 $32,446.69"))
+        for x, bottom, text in PAGE1_TOKENS
+    ]
+    return _build_s6211_doc(tokens)
+
+
+def build_manifest_c21a_clean_pago_footnote() -> dict[str, Any]:
+    """God's-eye manifest: a CLEAN specimen -- PagoParaNoGenerarIntereses still extracts
+    the TRUE 32446.69 (footnote sits left of the amount; rightmost-wins is unaffected),
+    and SaldoCargosRegulares (untouched row) stays clean too. Both get a high-band
+    confidenceExpectations floor -- this is the AC1 de-risk's central claim."""
+    manifest = build_manifest()
+    manifest["pdf"] = dict(manifest["pdf"])
+    manifest["pdf"]["fileName"] = PDF_FILENAME_C21A_CLEAN_PAGO_FOOTNOTE
+    manifest["confidenceExpectations"] = dict(manifest["confidenceExpectations"])
+    manifest["confidenceExpectations"]["SaldoCargosRegulares"] = {"band": "high", "min": 0.8}
+    manifest["confidenceExpectations"]["PagoParaNoGenerarIntereses"] = {"band": "high", "min": 0.8}
+    manifest["knownFixtureDefects"] = [
+        {"field": "PagoParaNoGenerarIntereses", "reason": "Not a defect -- a harmless single-digit "
+         "superscript footnote marker ('2') sits between the label and the true amount, mirroring "
+         "PdfPigStatementFieldExtractor.cs:1115's documented real-Banamex layout. Extraction is "
+         "UNAFFECTED (rightmost-wins still picks the true 32446.69); this specimen exists to prove "
+         "the C2.0b geometric-plausibility scorer's AC1 false-abstain finding is fixed, not to "
+         "record an extraction defect."},
+    ]
+    return manifest
+
+
+def build_pdf_c21a_clean_pago_footnote_realbanamex() -> "fitz.Document":
+    """s622 baseline + a single-digit footnote marker ('2') inserted as its own token
+    between the (already-separate) Pago label and amount tokens. Verified (fitz dump):
+    label 'Pago para no generar intereses' ends X=138.00, amount '$20,471.96' starts
+    X=220.0 -- footnote placed at X=145.0 (7.0pt clear of the label, comfortably left
+    of the amount, both well inside maxX=300)."""
+    tokens = list(PAGE1_TOKENS_S622)
+    tokens.append((145.0, 450.0, "2"))
+    return _build_s622_doc(tokens)
+
+
+def build_manifest_c21a_clean_pago_footnote_realbanamex() -> dict[str, Any]:
+    """Same contract as build_manifest_c21a_clean_pago_footnote(), off the s622 baseline."""
+    manifest = build_manifest_s622()
+    manifest["pdf"] = dict(manifest["pdf"])
+    manifest["pdf"]["fileName"] = PDF_FILENAME_C21A_CLEAN_PAGO_FOOTNOTE_REALBANAMEX
+    manifest["confidenceExpectations"] = dict(manifest["confidenceExpectations"])
+    manifest["confidenceExpectations"]["SaldoCargosRegulares"] = {"band": "high", "min": 0.8}
+    manifest["confidenceExpectations"]["PagoParaNoGenerarIntereses"] = {"band": "high", "min": 0.8}
+    manifest["knownFixtureDefects"] = [
+        {"field": "PagoParaNoGenerarIntereses", "reason": "Same footnote shape as "
+         "'clean-nivel-pago-footnote' (dummievec), on the real-Banamex page geometry instead -- not "
+         "a defect; extraction is unaffected, this de-risks the AC1 fix on the holdout layout too."},
+    ]
+    return manifest
+
+
+def build_pdf_c21a_decoy_nivel_moneyfmt() -> "fitz.Document":
+    """s6211 baseline + a MONEY-FORMATTED decoy ('$88,888.88', not a bare digit-group
+    like C2.0a's decoys) leaking into the SaldoCargosRegulares row's Y-band, right of
+    the true amount. Harder than decoy-nivel-uso-amount: proves the AC1 fix cannot be
+    relying on 'the pick isn't money-formatted' as its discriminator."""
+    tokens = list(PAGE1_TOKENS)
+    tokens.append((485.0, 180.1, f"${_C21A_DECOY_NIVEL_MONEYFMT_DUMMIEVEC:,.2f}"))
+    return _build_s6211_doc(tokens)
+
+
+def build_manifest_c21a_decoy_nivel_moneyfmt() -> dict[str, Any]:
+    """God's-eye manifest for the dummievec money-formatted SaldoCargosRegulares decoy.
+    PagoParaNoGenerarIntereses (same PDF, untouched row) stays clean (high band)."""
+    manifest = build_manifest()
+    manifest["pdf"] = dict(manifest["pdf"])
+    manifest["pdf"]["fileName"] = PDF_FILENAME_C21A_DECOY_NIVEL_MONEYFMT
+    manifest["fields"] = dict(manifest["fields"])
+    manifest["fields"]["SaldoCargosRegulares"] = {
+        "value": _C21A_DECOY_NIVEL_MONEYFMT_DUMMIEVEC, "clrType": "decimal", "expectedStatus": "Extracted",
+    }
+    manifest["geometryDefect"] = {
+        "type": "geometry-decoy-nivel-uso-amount-moneyfmt",
+        "decoyToken": f"${_C21A_DECOY_NIVEL_MONEYFMT_DUMMIEVEC:,.2f}",
+        "trueValue": {"SaldoCargosRegulares": _C2_TRUE_SALDO_CARGOS_REGULARES_DUMMIEVEC},
+    }
+    manifest["confidenceExpectations"] = {
+        "SaldoCargosRegulares": {"band": "low"},
+        "PagoParaNoGenerarIntereses": {"band": "high", "min": 0.8},
+    }
+    manifest["arithmeticChecks"] = []
+    manifest["knownFixtureDefects"] = [
+        {"field": "SaldoCargosRegulares", "reason": "C2.1a harder decoy: a MONEY-FORMATTED decoy "
+         "('$88,888.88') leaks into the row's Y-band to the right of the true amount; "
+         "ExtractNivelDeUsoField's open-bounds rightmost-wins pick grabs it instead of the true "
+         "32446.69, at confidence 1.0 today. Unlike C2.0a's bare-digit decoys, this one carries a "
+         "'$' and a decimal -- proves the AC1 fix's discriminator is not merely 'lacks money format'."},
+    ]
+    return manifest
+
+
+def build_pdf_c21a_decoy_nivel_moneyfmt_realbanamex() -> "fitz.Document":
+    """s622 baseline + the same money-formatted decoy shape, on the real-Banamex page
+    geometry. Decoy at X=510 sits right of the true amount's Right=503.08, well clear
+    of the page-width-612 edge."""
+    tokens = list(PAGE1_TOKENS_S622)
+    tokens.append((510.0, 200.0, f"${_C21A_DECOY_NIVEL_MONEYFMT_REALBANAMEX:,.2f}"))
+    return _build_s622_doc(tokens)
+
+
+def build_manifest_c21a_decoy_nivel_moneyfmt_realbanamex() -> dict[str, Any]:
+    """Same contract as build_manifest_c21a_decoy_nivel_moneyfmt(), off the s622 baseline."""
+    manifest = build_manifest_s622()
+    manifest["pdf"] = dict(manifest["pdf"])
+    manifest["pdf"]["fileName"] = PDF_FILENAME_C21A_DECOY_NIVEL_MONEYFMT_REALBANAMEX
+    manifest["fields"] = dict(manifest["fields"])
+    manifest["fields"]["SaldoCargosRegulares"] = {
+        "value": _C21A_DECOY_NIVEL_MONEYFMT_REALBANAMEX, "clrType": "decimal", "expectedStatus": "Extracted",
+    }
+    manifest["geometryDefect"] = {
+        "type": "geometry-decoy-nivel-uso-amount-moneyfmt",
+        "decoyToken": f"${_C21A_DECOY_NIVEL_MONEYFMT_REALBANAMEX:,.2f}",
+        "trueValue": {"SaldoCargosRegulares": _C2_TRUE_SALDO_CARGOS_REGULARES_REALBANAMEX},
+    }
+    manifest["confidenceExpectations"] = {
+        "SaldoCargosRegulares": {"band": "low"},
+        "PagoParaNoGenerarIntereses": {"band": "high", "min": 0.8},
+    }
+    manifest["knownFixtureDefects"] = [
+        {"field": "SaldoCargosRegulares", "reason": "Same money-formatted decoy shape as "
+         "'decoy-nivel-uso-amount-moneyfmt' (dummievec), on the real-Banamex page geometry instead: "
+         "'$77,777.00' leaks into the row's Y-band right of the true amount; the rightmost-wins pick "
+         "grabs it instead of the true 22150.40, at confidence 1.0 today."},
+    ]
+    return manifest
+
+
+def _write_c21a_footnote_and_harddecoy_specimens(output_dir: Path) -> None:
+    """Writes all 4 C2.1a AC1 de-risk specimens: 2 clean footnote floors (Pago-row
+    footnote, mirroring :1115) + 2 money-formatted SaldoCargosRegulares decoys (both
+    profiles per pair, same C1.4/C1.6 isolation discipline as C2.0a)."""
+    jobs: list[tuple["fitz.Document", Path, dict[str, Any], Path]] = [
+        (build_pdf_c21a_clean_pago_footnote(), output_dir / PDF_FILENAME_C21A_CLEAN_PAGO_FOOTNOTE,
+         build_manifest_c21a_clean_pago_footnote(), output_dir / MANIFEST_FILENAME_C21A_CLEAN_PAGO_FOOTNOTE),
+        (build_pdf_c21a_clean_pago_footnote_realbanamex(),
+         output_dir / PDF_FILENAME_C21A_CLEAN_PAGO_FOOTNOTE_REALBANAMEX,
+         build_manifest_c21a_clean_pago_footnote_realbanamex(),
+         output_dir / MANIFEST_FILENAME_C21A_CLEAN_PAGO_FOOTNOTE_REALBANAMEX),
+        (build_pdf_c21a_decoy_nivel_moneyfmt(), output_dir / PDF_FILENAME_C21A_DECOY_NIVEL_MONEYFMT,
+         build_manifest_c21a_decoy_nivel_moneyfmt(), output_dir / MANIFEST_FILENAME_C21A_DECOY_NIVEL_MONEYFMT),
+        (build_pdf_c21a_decoy_nivel_moneyfmt_realbanamex(),
+         output_dir / PDF_FILENAME_C21A_DECOY_NIVEL_MONEYFMT_REALBANAMEX,
+         build_manifest_c21a_decoy_nivel_moneyfmt_realbanamex(),
+         output_dir / MANIFEST_FILENAME_C21A_DECOY_NIVEL_MONEYFMT_REALBANAMEX),
+    ]
+    for doc, pdf_path, manifest, manifest_path in jobs:
+        doc.save(str(pdf_path), garbage=4, deflate=True)
+        doc.close()
+        print(f"Wrote {pdf_path} ({pdf_path.stat().st_size} bytes)")
+        with open(manifest_path, "w", encoding="utf-8") as f:
+            json.dump(manifest, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+        print(f"Wrote {manifest_path}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # S6.2.6 — Standing corpus index (batch runner + corpus-manifest.json)
 # ═══════════════════════════════════════════════════════════════════════════
 # A single hardcoded table is the source of truth for what the 13-specimen
@@ -2727,6 +2944,51 @@ CORPUS_SPECIMENS: list[dict[str, Any]] = [
                         "windows (39.97pt of room); rightmost-wins pick grabs 9871 instead of the true "
                         "20471.96 at confidence 1.0 today",
     },
+    {
+        "id": "clean-nivel-pago-footnote",
+        "pdf": "clean-nivel-pago-footnote.pdf",
+        "manifest": "clean-nivel-pago-footnote.manifest.json",
+        "profile": "dummievec",
+        "slice": "C2.1a",
+        "defect": None,
+        "description": "AC1 de-risk: baseline page 1 + a single-digit footnote marker ('2') between "
+                        "the Pago label and its amount, mirroring PdfPigStatementFieldExtractor.cs:1115's "
+                        "real-Banamex layout. Extraction is unaffected (rightmost-wins skips the "
+                        "footnote); proves the C2.0b scorer's false-abstain finding is fixed",
+    },
+    {
+        "id": "clean-nivel-pago-footnote-realbanamex",
+        "pdf": "clean-nivel-pago-footnote-realbanamex.pdf",
+        "manifest": "clean-nivel-pago-footnote-realbanamex.manifest.json",
+        "profile": "realbanamex",
+        "slice": "C2.1a",
+        "defect": None,
+        "description": "Same footnote shape as 'clean-nivel-pago-footnote', on the real-Banamex page "
+                        "geometry (byte-identical to s622-realbanamex-baseline plus the footnote token)",
+    },
+    {
+        "id": "decoy-nivel-uso-amount-moneyfmt",
+        "pdf": "decoy-nivel-uso-amount-moneyfmt.pdf",
+        "manifest": "decoy-nivel-uso-amount-moneyfmt.manifest.json",
+        "profile": "dummievec",
+        "slice": "C2.1a",
+        "defect": "geometry-decoy-nivel-uso-amount-moneyfmt",
+        "description": "AC1 de-risk harder decoy: a MONEY-FORMATTED leak ('$88,888.88', not a bare "
+                        "digit-group) leaks into the SaldoCargosRegulares row's Y-band; rightmost-wins "
+                        "pick grabs it instead of the true 32446.69 -- proves the AC1 fix's "
+                        "discriminator is not merely 'lacks money format'",
+    },
+    {
+        "id": "decoy-nivel-uso-amount-moneyfmt-realbanamex",
+        "pdf": "decoy-nivel-uso-amount-moneyfmt-realbanamex.pdf",
+        "manifest": "decoy-nivel-uso-amount-moneyfmt-realbanamex.manifest.json",
+        "profile": "realbanamex",
+        "slice": "C2.1a",
+        "defect": "geometry-decoy-nivel-uso-amount-moneyfmt",
+        "description": "Same money-formatted decoy-leak defect as 'decoy-nivel-uso-amount-moneyfmt', "
+                        "on the real-Banamex page geometry instead; rightmost-wins pick grabs 77777.00 "
+                        "instead of the true 22150.40 at confidence 1.0 today",
+    },
 ]
 
 
@@ -2806,6 +3068,7 @@ def main() -> int:
         _write_c14_resumen_decoy(OUTPUT_DIR)
         _write_c16_total_decoy(OUTPUT_DIR)  # C1.6: both profiles' decoy-total-amount specimens
         _write_c2_operand_specimens(OUTPUT_DIR)  # C2.0a: CL-21/CL-22 operand clean + decoy specimens
+        _write_c21a_footnote_and_harddecoy_specimens(OUTPUT_DIR)  # C2.1a: AC1 de-risk (footnote + hard decoy)
         _write_corpus_index(OUTPUT_DIR)  # S6.2.6: (re)write the standing-corpus index
 
     return 0

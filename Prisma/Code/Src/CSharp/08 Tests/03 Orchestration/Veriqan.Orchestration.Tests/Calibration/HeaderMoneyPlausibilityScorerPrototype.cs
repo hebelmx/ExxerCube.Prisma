@@ -70,6 +70,38 @@ internal sealed record HeaderMoneyScoreResult(
 /// the task brief's specified design and C1.2's own per-signal multiplicative
 /// pattern), but the redundancy is reported, not hidden.
 /// </summary>
+/// <remarks>
+/// <b>C2.1a AC1 fix (adversarial-review finding, de-risked before production wiring):</b>
+/// this scorer originally FALSE-ABSTAINED on a clean, correctly-extracted pick whenever a
+/// harmless single-digit superscript footnote marker sat in the value band — the exact real
+/// shape <c>PdfPigStatementFieldExtractor.cs:1115</c> documents: <c>"Pago para no generar
+/// intereses 2 $32,446.69"</c> (the "2" is a footnote-reference mark, not part of the amount).
+/// The footnote matched <see cref="AmountPattern"/> (a bare digit-group) and sat between the
+/// label and the true amount, so it both inflated <c>CandidateCount</c> to 2 and pushed the
+/// picked amount's rank-distance from the label above <see cref="RankAdjacencyThreshold"/> —
+/// tanking a genuinely correct pick to 0.3575, indistinguishable from a real decoy.
+/// <para>
+/// The fix, settled empirically against the real extractor's own domain knowledge: production
+/// already treats single-digit bare tokens as footnote markers, not amount candidates, in THREE
+/// separate call sites (<c>IsSingleDigit</c> — date-token filtering, the C1.4 rank-gap
+/// diagnostic's candidate predicate, and <c>FindAmountInBand</c>'s <c>findLeftmost</c> mode).
+/// This scorer now applies the identical domain rule: a bare single-digit token (length 1,
+/// <c>char.IsDigit</c>) is TRANSPARENT — excluded from both the rank-distance count and the
+/// competing-candidate count, exactly like the existing "$" sign-token exclusion (both are
+/// typesetting/annotation noise, not geometric content).
+/// </para>
+/// <para>
+/// <b>Why this does not blind decoy detection (the trap):</b> "exclude bare integers" would be
+/// wrong — the four C2.0a decoys (<c>500091</c>, <c>480033</c>, <c>7654</c>, <c>9871</c>) are
+/// ALSO bare integers with no "$"/decimal, and a blanket bare-integer exclusion would hide them
+/// too. The fix is narrower: only SINGLE-digit tokens are transparent. Every existing decoy is
+/// 4–6 digits, so the exclusion is a no-op for them (their scores are unchanged at
+/// 0.55×0.65=0.3575). The mechanism is also orthogonal to money-FORMAT, proven by the harder
+/// <c>decoy-nivel-uso-amount-moneyfmt</c> specimen (a "$"-prefixed, decimal-bearing decoy that
+/// still scores below the floor) — the discriminator is digit-count (footnote-marker shape), not
+/// "$ present" or "has a decimal".
+/// </para>
+/// </remarks>
 internal static class HeaderMoneyPlausibilityScorerPrototype
 {
     /// <summary>
@@ -78,6 +110,14 @@ internal static class HeaderMoneyPlausibilityScorerPrototype
     /// this spike must not depend on production internals).
     /// </summary>
     private static readonly Regex AmountPattern = new(@"^\$?([\d,]+(?:\.\d+)?)$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    /// <summary>
+    /// True for a bare single-digit token ("0"–"9") — a superscript footnote-reference marker in
+    /// this domain, not a money candidate. Mirrors <c>PdfPigStatementFieldExtractor.IsSingleDigit</c>
+    /// (kept independently here, same "spike must not depend on production internals" constraint
+    /// as <see cref="AmountPattern"/>). C2.1a AC1 fix — see the class remarks.
+    /// </summary>
+    private static bool IsSingleDigitFootnoteMarker(string s) => s.Length == 1 && char.IsDigit(s[0]);
 
     // -----------------------------------------------------------------------
     // Constants — FROZEN on the TRAIN set only (clean-nivel-pago,
@@ -116,9 +156,10 @@ internal static class HeaderMoneyPlausibilityScorerPrototype
     /// </summary>
     public static HeaderMoneyScoreResult Score(HeaderMoneyBandContext context)
     {
-        // "$" sign tokens are transparent to rank counting — see class remarks.
+        // "$" sign tokens AND single-digit footnote markers are transparent to rank counting
+        // (and, by construction below, to candidate counting too — see class remarks, C2.1a AC1 fix).
         var contentTokens = context.Band
-            .Where(t => t.Text != "$")
+            .Where(t => t.Text != "$" && !IsSingleDigitFootnoteMarker(t.Text))
             .OrderBy(t => t.Left)
             .ToList();
 

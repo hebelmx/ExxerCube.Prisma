@@ -359,6 +359,42 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Fixtures\synthetic\decoy-pago-sin-intereses-amount-realbanamex.manifest.json</Link>
     </Content>
+    <!-- C2.1a AC1 de-risk specimens (scripts/veriqan-corpus/synth_gen.py): a footnote clean
+         floor (both profiles) proving the C2.0b scorer's false-abstain on a harmless footnote
+         digit is fixed, plus a harder money-formatted decoy (both profiles) proving the fix
+         doesn't rely on money-format as its discriminator. -->
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\clean-nivel-pago-footnote.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\clean-nivel-pago-footnote.pdf</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\clean-nivel-pago-footnote.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\clean-nivel-pago-footnote.manifest.json</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\clean-nivel-pago-footnote-realbanamex.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\clean-nivel-pago-footnote-realbanamex.pdf</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\clean-nivel-pago-footnote-realbanamex.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\clean-nivel-pago-footnote-realbanamex.manifest.json</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-nivel-uso-amount-moneyfmt.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-nivel-uso-amount-moneyfmt.pdf</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-nivel-uso-amount-moneyfmt.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-nivel-uso-amount-moneyfmt.manifest.json</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-nivel-uso-amount-moneyfmt-realbanamex.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-nivel-uso-amount-moneyfmt-realbanamex.pdf</Link>
+    </Content>
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\synthetic\decoy-nivel-uso-amount-moneyfmt-realbanamex.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\synthetic\decoy-nivel-uso-amount-moneyfmt-realbanamex.manifest.json</Link>
+    </Content>
   </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">
     <ProjectCapability Include="DiagnoseCapabilities" />

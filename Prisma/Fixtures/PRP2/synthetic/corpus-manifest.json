@@ -12,6 +12,24 @@
       "description": "Baseline page 1 (byte-identical to s6211-baseline) + a recorded high-band confidenceExpectations floor for SaldoCargosRegulares/PagoParaNoGenerarIntereses (the CL-21/CL-22 recompute operands) — the clean calibration floor C2.0b's separation spike needs before any decoy can be judged"
     },
     {
+      "id": "clean-nivel-pago-footnote",
+      "pdf": "clean-nivel-pago-footnote.pdf",
+      "manifest": "clean-nivel-pago-footnote.manifest.json",
+      "profile": "dummievec",
+      "slice": "C2.1a",
+      "defect": null,
+      "description": "AC1 de-risk: baseline page 1 + a single-digit footnote marker ('2') between the Pago label and its amount, mirroring PdfPigStatementFieldExtractor.cs:1115's real-Banamex layout. Extraction is unaffected (rightmost-wins skips the footnote); proves the C2.0b scorer's false-abstain finding is fixed"
+    },
+    {
+      "id": "clean-nivel-pago-footnote-realbanamex",
+      "pdf": "clean-nivel-pago-footnote-realbanamex.pdf",
+      "manifest": "clean-nivel-pago-footnote-realbanamex.manifest.json",
+      "profile": "realbanamex",
+      "slice": "C2.1a",
+      "defect": null,
+      "description": "Same footnote shape as 'clean-nivel-pago-footnote', on the real-Banamex page geometry (byte-identical to s622-realbanamex-baseline plus the footnote token)"
+    },
+    {
       "id": "clean-nivel-pago-realbanamex",
       "pdf": "clean-nivel-pago-realbanamex.pdf",
       "manifest": "clean-nivel-pago-realbanamex.manifest.json",
@@ -28,6 +46,24 @@
       "slice": "C2.0a",
       "defect": "geometry-decoy-nivel-uso-amount",
       "description": "A bare-digit decoy ('500091', a masked-account/CLABE-tail shape) leaks into the SaldoCargosRegulares row's Y-band; ExtractNivelDeUsoField's open-bounds rightmost-wins pick grabs it instead of the true 32446.69, at confidence 1.0 today (true value in geometryDefect.trueValue)"
+    },
+    {
+      "id": "decoy-nivel-uso-amount-moneyfmt",
+      "pdf": "decoy-nivel-uso-amount-moneyfmt.pdf",
+      "manifest": "decoy-nivel-uso-amount-moneyfmt.manifest.json",
+      "profile": "dummievec",
+      "slice": "C2.1a",
+      "defect": "geometry-decoy-nivel-uso-amount-moneyfmt",
+      "description": "AC1 de-risk harder decoy: a MONEY-FORMATTED leak ('$88,888.88', not a bare digit-group) leaks into the SaldoCargosRegulares row's Y-band; rightmost-wins pick grabs it instead of the true 32446.69 -- proves the AC1 fix's discriminator is not merely 'lacks money format'"
+    },
+    {
+      "id": "decoy-nivel-uso-amount-moneyfmt-realbanamex",
+      "pdf": "decoy-nivel-uso-amount-moneyfmt-realbanamex.pdf",
+      "manifest": "decoy-nivel-uso-amount-moneyfmt-realbanamex.manifest.json",
+      "profile": "realbanamex",
+      "slice": "C2.1a",
+      "defect": "geometry-decoy-nivel-uso-amount-moneyfmt",
+      "description": "Same money-formatted decoy-leak defect as 'decoy-nivel-uso-amount-moneyfmt', on the real-Banamex page geometry instead; rightmost-wins pick grabs 77777.00 instead of the true 22150.40 at confidence 1.0 today"
     },
     {
       "id": "decoy-nivel-uso-amount-realbanamex",

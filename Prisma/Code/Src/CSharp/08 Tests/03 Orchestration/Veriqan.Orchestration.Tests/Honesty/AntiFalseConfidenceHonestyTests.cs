@@ -89,6 +89,16 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests.Honesty;
 /// gap as the s622 baseline — ARE added to the exclusion set. The corpus total moved 21 to 27; the
 /// deterministic subset moved 16 to 19 (now 8 excluded).
 /// </para>
+/// <para>
+/// <b>C2.1a addition (2026-07-17):</b> the AC1 adversarial-review de-risk (false-abstain on a
+/// clean footnote pick) added four specimens — <c>clean-nivel-pago-footnote</c> and
+/// <c>decoy-nivel-uso-amount-moneyfmt</c> (dummievec, reuse <c>PAGE1_TOKENS</c> verbatim or with
+/// one appended/substituted token — product still resolves positionally, NOT added to
+/// <see cref="NativeOcrExcludedSpecimenIds"/>) and their <c>-realbanamex</c> counterparts (reuse
+/// <c>PAGE1_TOKENS_S622</c> — same Product-not-positional gap as every other <c>-realbanamex</c>
+/// C2 specimen — ARE added to the exclusion set). The corpus total moved 27 to 31; the
+/// deterministic subset moved 19 to 21 (now 10 excluded).
+/// </para>
 /// </remarks>
 public sealed class AntiFalseConfidenceHonestyTests
 {
@@ -108,6 +118,8 @@ public sealed class AntiFalseConfidenceHonestyTests
         "clean-nivel-pago-realbanamex", // real-Banamex layout (PAGE1_TOKENS_S622); same Product-not-positional gap as the s622 baseline.
         "decoy-nivel-uso-amount-realbanamex", // real-Banamex layout (PAGE1_TOKENS_S622); same Product-not-positional gap as the s622 baseline.
         "decoy-pago-sin-intereses-amount-realbanamex", // real-Banamex layout (PAGE1_TOKENS_S622); same Product-not-positional gap as the s622 baseline.
+        "clean-nivel-pago-footnote-realbanamex", // real-Banamex layout (PAGE1_TOKENS_S622); same Product-not-positional gap as the s622 baseline.
+        "decoy-nivel-uso-amount-moneyfmt-realbanamex", // real-Banamex layout (PAGE1_TOKENS_S622); same Product-not-positional gap as the s622 baseline.
     };
 
     private static string FixturesDir => SyntheticCorpusIndexLoader.FindFixturesDir(AppContext.BaseDirectory);
@@ -126,11 +138,11 @@ public sealed class AntiFalseConfidenceHonestyTests
     public void DeterministicCorpus_IsNonEmpty_AndExcludesExactlyTheKnownOcrSpecimens()
     {
         var all = SyntheticCorpusIndexLoader.Load(FixturesDir);
-        all.Count.ShouldBe(27, "corpus-manifest.json specimen count changed — re-run the OCR-provenance " +
+        all.Count.ShouldBe(31, "corpus-manifest.json specimen count changed — re-run the OCR-provenance " +
             "diagnostic (see class remarks) for any newly-added specimen before trusting this suite's exclusion list.");
 
         var deterministic = DeterministicSpecimens();
-        deterministic.Count.ShouldBe(19, "expected exactly 19 deterministic (non-OCR) specimens (27 total minus the 8 excluded).");
+        deterministic.Count.ShouldBe(21, "expected exactly 21 deterministic (non-OCR) specimens (31 total minus the 10 excluded).");
 
         foreach (var excludedId in NativeOcrExcludedSpecimenIds)
             all.ShouldContain(s => s.Id == excludedId, $"excluded specimen id '{excludedId}' no longer exists in the corpus index — stale exclusion.");
