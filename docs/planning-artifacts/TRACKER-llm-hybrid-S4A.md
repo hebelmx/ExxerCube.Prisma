@@ -36,11 +36,11 @@ Orchestrated 2026-07-03. Owner ruling: S4 = Option A (measure before graduating)
 
 | # | Story | Status | Verified by | Commit |
 |---|-------|--------|-------------|--------|
-| S4A-1 | Harness build-out: invoke 3 tracks + compute per-field metrics + emit JSON/MD artifact (D1) | TODO | build 0/0 + diff | |
-| S4A-2 | Deterministic metric-computation unit test, mocked ILlmProvider (D2) — the verification anchor | TODO | test green | |
+| S4A-1 | Harness build-out: invoke 3 tracks + compute per-field metrics + emit JSON/MD artifact (D1) | ✅ DONE | build 0/0; harness + metrics landed (see "DONE this session") | `79b0da91` |
+| S4A-2 | Deterministic metric-computation unit test, mocked ILlmProvider (D2) — the verification anchor | ✅ DONE | shipped with the harness (17 tests green) | `79b0da91` |
 | S4A-3 | Live run on box → commit baseline artifact `docs/evaluation/llm-hybrid-extraction-baseline-2026-07.md` (+JSON) (D3) | ✅ DONE | 2m06s live run, artifact written w/ real numbers + model tags; surfaced silent-green-pass bug + gold-not-source-contained finding | (pending) |
 | S4A-4 | Graduation-criteria ADR-024 (D4) | ✅ DONE | D3 table filled + measurement-validity finding added | (pending) |
-| S4A-5 | (optional) Live-provider smoke test, skip-gated (D5) | TODO | test present + skips clean | |
+| S4A-5 | (optional) Live-provider smoke test, skip-gated (D5) | ⏸️ DEFERRED (optional, low-value) | test present + skips clean | — |
 
 ## DONE this session (2026-07-03, all pushed to Liv): 79b0da91 (S4-A harness+metrics+17 tests),
 ## c4522def (eval bug-fixes C3/C4/M1/M2/M3, metrics 20), 9496c1c3 (S4-B extractor extension + prompt
