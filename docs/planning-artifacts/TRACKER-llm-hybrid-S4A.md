@@ -68,7 +68,13 @@ Orchestrated 2026-07-03. Owner ruling: S4 = Option A (measure before graduating)
 ## Secondary finding logged (not fixed): gate rejects the WHOLE DTO on a present-but-invalid expediente,
 ##   discarding usable oficio/authority/partes → Gate-B design question (per-field abstention?).
 
-## REMAINING / next units — UPDATED 2026-07-04 (S4-B itself is CLOSED; see the top banner):
+## REMAINING / next units — UPDATED 2026-07-18 (S4-B CLOSED; see the top banner):
+## 0. [SCOPED 2026-07-18 — un-gated, ready to build] **S4-M Gate-B Measurement Harness** →
+##    `docs/planning-artifacts/SCOPING-llm-hybrid-S4M-gateb-measurement.md`. Produces the ONE missing number
+##    `P(LLM correct | deterministic NULL)` (Gate-B §7 item 1) that S4-C's owner go/no-go is blocked on.
+##    Measurement-only, zero production code, does NOT flip anything. This is the natural next backlog story:
+##    it converts the owner's "can't decide yet" into an evidence packet. Closes Gate-B items 1/2/3/5.
+## (below: the prior 2026-07-04 framing of the same remaining surface)
 ## 1. [CLOSED ✅] Rebuild the eval gold source-contained (D7.1) — DONE by P1 generator commits `d6b7dfb7`→`313d2210`
 ##    + gold loader `69ce5c71`; the 20-doc `PRP1-golden` corpus is source-contained and the harness numbers are
 ##    now meaningful. (This was the old "top lever"; no longer open.)
