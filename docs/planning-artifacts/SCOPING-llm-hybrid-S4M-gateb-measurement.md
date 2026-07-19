@@ -106,6 +106,21 @@ Built `Prisma/Fixtures/PRP1-golden-nullslice/` = **36 fixtures**, generator-stam
 - Split: mode1-FI1 **12** / mode2-emdash **12** / mode3-spaced **12** = exact 33/33/33, max share 33% ≤ 60%.
 - D7.1 `pdftotext` source-containment: **36/36 contained**. VERDICT: **GO** (decidable).
 - Hit-rate was a clean 100% per mode (no near-miss noise — an honesty note for M.2: this corpus has no partial-garble cases; every null is unambiguous).
+
+### ⚠️ S4-M.1 ADVERSARIAL REVIEW (2026-07-19) — corpus PARTIALLY REFUTED; plan-level finding
+
+Two adversarial reviewers ran against the committed corpus. **Generator additivity + doc honesty UPHELD empirically** (RNG-equivalence tested 200 seeds — no value/state drift, PRP1-golden reproducibility preserved; 12/12/12 split + all numbers match the manifests; no strays / no production `.cs`). **But corpus *methodology* was partially refuted — the modes are NOT equally valid for an honest precision number:**
+
+1. **CRITICAL — D7.1 verified against the WRONG oracle.** Probe checks `pdftotext` (text layer); the LLM-text fallback's real input is the deterministic-track **OCR text**. For mode2-emdash the OCR feed is the FUSED `A/AS26714670574FGR` (delimiters gone) though pdftotext still shows `—`. So "36/36 pdftotext-contained" does NOT mean "recoverable by the fallback" for the 12 mode2 fixtures. → M.2 must re-check containment against `_OcrText`, per fixture.
+2. **CRITICAL — 3 different difficulties can't be one number.** mode3 = trivial copy (~100%); mode1 = single-glyph fix; mode2 = re-segment from a fixed-width prior. → M.2 must report **per-mode**, never a blended headline (the "number, defined precisely" §52-64 single-number framing is the thing to change).
+3. **HIGH — mode3 (12/36) is a regex bug, not an OCR failure.** OCR byte-identical to pdftotext; nulls only from `[-–]` zero-whitespace-tolerance. `\s*[-–]\s*` recovers all 12 deterministically — counting them as "fallback wins" inflates LLM precision.
+4. **HIGH — grounding.** Only **mode1** traces to an *observed* failure (M.0). mode2/mode3 = invented delimiter formatting, no real-doc citation → violates this doc's own Cardinal Risk ("observed... not invented"). 24/36 at risk of being synthetic artifacts.
+5. **HIGH — structural monoculture.** All 36 golds share one width template (2L+1d|4d|6d|3L); mode2 is re-segmentable ONLY because widths are fixed/known → measures template-application, won't generalize to real width variance.
+6. **MED — probe asserts only `ShouldNotBeEmpty()`;** 36/36 + split are `WriteLine`-only (both reviewers). If it's to guard M.2, assert `n>=30` + 3-way split + OCR-text containment.
+
+**Honest negatives:** mode2 bias is UPWARD not downward (fixed widths); `ClassifyMode` not circular; **mode1 survives every attack (the one grounded third).**
+
+**Plan-level implication (converges with the pre-M.1 checkpoint):** the only grounded, genuinely-LLM-requiring failure is **mode1 (~12, below N≥30)**; mode2+mode3 are invented and/or deterministically fixable. A precision number over this corpus would be dominated by 12 trivial copies + 12 fixed-template guesses. **This is the "fallback value proposition is thin" finding the spec anticipated — S4-M's direction needs an owner ruling before M.2.** Options logged with owner 2026-07-19.
 | **S4-M.2** | **The conditional measurement.** Extend `LlmExtractionMetrics` (pure) + the harness to compute the deterministic-NULL slice metrics above; add the math to the CI-gated `LlmExtractionMetricsTests` (deterministic, mocked `ILlmProvider`). Emit a committed artifact `docs/evaluation/llm-hybrid-fallback-precision-2026-07.{json,md}`. | Pure-metric unit tests green in CI; artifact written on a live run (skip-gated like S4-A); precision-of-pass-set is the headline. | 1 |
 | **S4-M.3** | **Deterministic-fail rate.** Report `P(deterministic NULL)` on the corpus (and note if a real-doc sample is available). | A number + a one-line "does the fallback fire often enough to be worth it?" read. | 5 |
 | **S4-M.4** | **Partes no-regression (cheap add).** On the NULL slice, count `SolicitudPartes` the fallback recovers vs the deterministic-null baseline (which produces none) — the real value-add. | A number in the artifact. | 3 |
