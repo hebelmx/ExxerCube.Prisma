@@ -1,0 +1,50 @@
+{
+  "docId": "SEIDO-2024-356973_20260719_152605",
+  "seed": 5002,
+  "chaosLevel": "none",
+  "requirementType": "aseguramiento",
+  "folioSiara": "SEIDO/2024/356973",
+  "numeroOficio": "SEIDO/2024/356973",
+  "numeroExpediente": "A/JU1—7373—896194—AAA",
+  "autoridadNombre": "Procuraduría General de la República - Visitaduría General",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Noelia Martínez Beltrán",
+  "personaNombre": "Mateo Granados Chávez",
+  "personaRfc": "GRCM0208264SN",
+  "solicitudPartes": [
+    {
+      "nombre": "Mateo Granados Chávez",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$7,647,720.93",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Procuraduría General de la República - Visitaduría General",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

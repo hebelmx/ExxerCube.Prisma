@@ -1,0 +1,50 @@
+{
+  "docId": "CONDUSEF-2023-736174_20260719_152607",
+  "seed": 5002,
+  "chaosLevel": "none",
+  "requirementType": "pld",
+  "folioSiara": "CONDUSEF/2023/736174",
+  "numeroOficio": "CONDUSEF/2023/736174",
+  "numeroExpediente": "H/IN1—8870—427916—UIF",
+  "autoridadNombre": "Comisión Nacional para la Protección y Defensa de los Usuarios de Servicios Financieros",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Sessa Prieto Aguilera",
+  "personaNombre": "Adriana Abrego Frías",
+  "personaRfc": "ABFA510126V3L",
+  "solicitudPartes": [
+    {
+      "nombre": "Adriana Abrego Frías",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$4,261,102.66",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Comisión Nacional para la Protección y Defensa de los Usuarios de Servicios Financieros",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

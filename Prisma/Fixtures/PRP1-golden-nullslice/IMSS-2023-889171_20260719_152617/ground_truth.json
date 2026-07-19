@@ -1,0 +1,50 @@
+{
+  "docId": "IMSS-2023-889171_20260719_152617",
+  "seed": 5003,
+  "chaosLevel": "none",
+  "requirementType": "pld",
+  "folioSiara": "IMSS/2023/889171",
+  "numeroOficio": "IMSS/2023/889171",
+  "numeroExpediente": "H/IN2 - 7466 - 486580 - HAC",
+  "autoridadNombre": "Instituto Mexicano del Seguro Social",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Asunción Jimínez Sandoval",
+  "personaNombre": "Pascual Ramírez Narváez",
+  "personaRfc": "RANP970601QX5",
+  "solicitudPartes": [
+    {
+      "nombre": "Pascual Ramírez Narváez",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$7,815,288.23",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Instituto Mexicano del Seguro Social",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

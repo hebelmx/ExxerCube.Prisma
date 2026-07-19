@@ -1,0 +1,50 @@
+{
+  "docId": "AGAFF-2024-816916_20260719_152552",
+  "seed": 5001,
+  "chaosLevel": "none",
+  "requirementType": "informacion",
+  "folioSiara": "AGAFF/2024/816916",
+  "numeroOficio": "AGAFF/2024/816916",
+  "numeroExpediente": "B/FI1-3915-650105-AAA",
+  "autoridadNombre": "Servicio de Administración Tributaria",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Rodrigo Acevedo Iglesias",
+  "personaNombre": "Marisol Merino Badillo",
+  "personaRfc": "MEBM7112161NN",
+  "solicitudPartes": [
+    {
+      "nombre": "Marisol Merino Badillo",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$7,533,323.48",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Servicio de Administración Tributaria",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  }
+}

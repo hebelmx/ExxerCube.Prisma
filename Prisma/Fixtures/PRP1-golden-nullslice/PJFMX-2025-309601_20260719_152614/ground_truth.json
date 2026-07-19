@@ -1,0 +1,50 @@
+{
+  "docId": "PJFMX-2025-309601_20260719_152614",
+  "seed": 5003,
+  "chaosLevel": "none",
+  "requirementType": "fiscal",
+  "folioSiara": "PJFMX/2025/309601",
+  "numeroOficio": "PJFMX/2025/309601",
+  "numeroExpediente": "H/AS1 - 6425 - 478252 - IMX",
+  "autoridadNombre": "Poder Judicial de la Federación",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Alejandra Villa Carmona",
+  "personaNombre": "Victoria Cardenas Miranda",
+  "personaRfc": "CAMV590718MMS",
+  "solicitudPartes": [
+    {
+      "nombre": "Victoria Cardenas Miranda",
+      "caracter": "Contribuyente"
+    }
+  ],
+  "monto": "$2,951,994.26",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Poder Judicial de la Federación",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

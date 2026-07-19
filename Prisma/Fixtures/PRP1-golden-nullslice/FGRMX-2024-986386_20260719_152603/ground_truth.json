@@ -1,0 +1,50 @@
+{
+  "docId": "FGRMX-2024-986386_20260719_152603",
+  "seed": 5002,
+  "chaosLevel": "none",
+  "requirementType": "pld",
+  "folioSiara": "FGRMX/2024/986386",
+  "numeroOficio": "FGRMX/2024/986386",
+  "numeroExpediente": "A/IN2—5868—182148—AAA",
+  "autoridadNombre": "Fiscalía General de la República",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Ramiro Bonilla Mascareñas",
+  "personaNombre": "Araceli Perea Benavídez",
+  "personaRfc": "PEBA0706116M4",
+  "solicitudPartes": [
+    {
+      "nombre": "Araceli Perea Benavídez",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$9,037,869.95",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Fiscalía General de la República",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

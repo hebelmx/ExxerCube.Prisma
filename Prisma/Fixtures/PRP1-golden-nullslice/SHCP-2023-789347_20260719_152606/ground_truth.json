@@ -1,0 +1,50 @@
+{
+  "docId": "SHCP-2023-789347_20260719_152606",
+  "seed": 5002,
+  "chaosLevel": "none",
+  "requirementType": "informacion",
+  "folioSiara": "SHCP/2023/789347",
+  "numeroOficio": "SHCP/2023/789347",
+  "numeroExpediente": "B/AS1—3674—433218—HAC",
+  "autoridadNombre": "Secretaría de Hacienda y Crédito Público",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Alma Serrano Contreras",
+  "personaNombre": "Ernesto Mesa Camacho",
+  "personaRfc": "MECE710819SB5",
+  "solicitudPartes": [
+    {
+      "nombre": "Ernesto Mesa Camacho",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$2,049,298.29",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Secretaría de Hacienda y Crédito Público",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  }
+}

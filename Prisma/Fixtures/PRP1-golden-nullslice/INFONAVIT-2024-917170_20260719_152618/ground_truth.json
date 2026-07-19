@@ -1,0 +1,50 @@
+{
+  "docId": "INFONAVIT-2024-917170_20260719_152618",
+  "seed": 5003,
+  "chaosLevel": "none",
+  "requirementType": "informacion",
+  "folioSiara": "INFONAVIT/2024/917170",
+  "numeroOficio": "INFONAVIT/2024/917170",
+  "numeroExpediente": "A/PL1 - 4311 - 182481 - BBB",
+  "autoridadNombre": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Hermelinda Téllez Santacruz",
+  "personaNombre": "Gabriela Linares Carrión",
+  "personaRfc": "LICG8304246BE",
+  "solicitudPartes": [
+    {
+      "nombre": "Gabriela Linares Carrión",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$7,944,435.10",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  }
+}

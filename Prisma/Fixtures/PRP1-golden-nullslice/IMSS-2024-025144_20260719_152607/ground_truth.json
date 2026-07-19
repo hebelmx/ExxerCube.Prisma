@@ -1,0 +1,50 @@
+{
+  "docId": "IMSS-2024-025144_20260719_152607",
+  "seed": 5002,
+  "chaosLevel": "none",
+  "requirementType": "informacion",
+  "folioSiara": "IMSS/2024/025144",
+  "numeroOficio": "IMSS/2024/025144",
+  "numeroExpediente": "H/AS2—2346—916107—SAT",
+  "autoridadNombre": "Procuraduría General de la República - Visitaduría General",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Concepción Nazario Oquendo",
+  "personaNombre": "José Durán Calderón",
+  "personaRfc": "DUCJ6103262D5",
+  "solicitudPartes": [
+    {
+      "nombre": "José Durán Calderón",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$7,695,490.18",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Procuraduría General de la República - Visitaduría General",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  }
+}

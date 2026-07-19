@@ -96,6 +96,16 @@ Growing by over-sampling the one observed bug (`FI1` I→l) would be a **monocul
 **Feasibility: YES + controllable.** 3 forceable modes at ~100% hit-rate each conditional on their knob → M.1 can engineer an exact **~10/10/10 split, no mode >60%**. **Scope note:** `generate_numero_expediente` currently has NO area-code-weight or delimiter parameter (`random.choice` over fixed list + hardcoded `-`) → M.1 needs a **small additive** change to `core/data_generator.py` (area-code override, delimiter override, doc-type exclusion), NOT just seed cycling.
 
 **M.1 build plan (grounded):** (a) add the 3 additive knobs to `AAAV2_refactored/core/data_generator.py`; (b) generate a diversified NULL batch (~10 FI1-non-judicial + ~10 em-dash + ~10 spaced, over-generate to buffer), each with generator-stamped `ground_truth.json`; (c) **HARD GATE — run the real .NET M.0-style probe over the batch and confirm ≥30 actually null through the LIVE `AdaptiveTxtFieldExtractor` (not the regex replay) with the 3-way split holding + per-fixture `pdftotext` source-containment.** Land as sibling corpus `PRP1-golden-nullslice/`.
+
+### S4-M.1 ✅ DONE — VERIFIED RESULT (2026-07-19, orchestrator re-run confirmed)
+
+Built `Prisma/Fixtures/PRP1-golden-nullslice/` = **36 fixtures**, generator-stamped `ground_truth.json` per doc. Generator knobs added additively (`data_generator.py` `generate_numero_expediente(area_codes=None, delimiter='-')` + `main_generator.py` CLI flags `--expediente-area-codes`/`--expediente-delimiter`; default path byte-identical to original — verified same-seed). Probe: `S4M1_DeterministicNullDiversifiedCorpusProbe.cs` (skip-gated).
+
+**LIVE .NET-pipeline gate (independently re-run by the orchestrator, 2m42s, OCR stable, no SIGSEGV):**
+- **36/36 null** through the real `AdaptiveTxtFieldExtractor` (not the regex replay).
+- Split: mode1-FI1 **12** / mode2-emdash **12** / mode3-spaced **12** = exact 33/33/33, max share 33% ≤ 60%.
+- D7.1 `pdftotext` source-containment: **36/36 contained**. VERDICT: **GO** (decidable).
+- Hit-rate was a clean 100% per mode (no near-miss noise — an honesty note for M.2: this corpus has no partial-garble cases; every null is unambiguous).
 | **S4-M.2** | **The conditional measurement.** Extend `LlmExtractionMetrics` (pure) + the harness to compute the deterministic-NULL slice metrics above; add the math to the CI-gated `LlmExtractionMetricsTests` (deterministic, mocked `ILlmProvider`). Emit a committed artifact `docs/evaluation/llm-hybrid-fallback-precision-2026-07.{json,md}`. | Pure-metric unit tests green in CI; artifact written on a live run (skip-gated like S4-A); precision-of-pass-set is the headline. | 1 |
 | **S4-M.3** | **Deterministic-fail rate.** Report `P(deterministic NULL)` on the corpus (and note if a real-doc sample is available). | A number + a one-line "does the fallback fire often enough to be worth it?" read. | 5 |
 | **S4-M.4** | **Partes no-regression (cheap add).** On the NULL slice, count `SolicitudPartes` the fallback recovers vs the deterministic-null baseline (which produces none) — the real value-add. | A number in the artifact. | 3 |

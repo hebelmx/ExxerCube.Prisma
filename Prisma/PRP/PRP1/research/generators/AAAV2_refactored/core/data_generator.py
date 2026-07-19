@@ -381,23 +381,46 @@ class MexicanDataGenerator:
 
         return f"{prefix}/{year}/{number:06d}"
 
-    def generate_numero_expediente(self) -> str:
+    def generate_numero_expediente(self, area_codes: Optional[List[str]] = None,
+                                    delimiter: str = '-') -> str:
         """Generate realistic CNBV/SIARA case/file number.
 
-        Format: X/YY1-NNNN-NNNNNN-ZZZ
+        Format: X/YY1{delimiter}NNNN{delimiter}NNNNNN{delimiter}ZZZ
         Matches the regex used by TxtFieldExtractor and DocxFieldExtractor:
         ``[A-Z]/[A-Z]{1,4}\\d*[-]\\d+[-]\\d+[-][A-Z]+``
 
         Examples from real PRP1 fixtures: A/AS1-1111-222222-AAA
+
+        Args:
+            area_codes: Optional override for the area-code pool (default:
+                the full 7-code pool below). Used by the S4-M.1
+                deterministic-NULL corpus (`PRP1-golden-nullslice`) to force
+                a specific code, e.g. ``['FI1']``, which the real Tesseract
+                pipeline is known to misread as ``Fl1`` (capital-I -> lowercase-l),
+                breaking `AdaptiveTxtFieldExtractor`'s primary regex. Additive
+                and backward-compatible: omitting it (the default) reproduces
+                the original `random.choice` over the full pool exactly.
+            delimiter: Optional override for the field delimiter (default:
+                ``'-'``, the original hardcoded value). Used by the same
+                S4-M.1 corpus to reproduce two other grounded
+                deterministic-NULL modes: an em-dash (``'—'``, dropped by
+                the prod OCR char-whitelist -- digits fuse, no delimiter) and
+                a spaced hyphen (``' - '``, read perfectly by Tesseract but
+                the extractor's regex has zero whitespace tolerance).
+                Additive and backward-compatible: the default reproduces the
+                original hardcoded ``'-'`` exactly.
+
+        Returns:
+            The generated Expediente string.
         """
         letter = random.choice(['A', 'B', 'H'])
-        area_codes = ['AS1', 'IN1', 'PL1', 'FI1', 'JU1', 'AS2', 'IN2']
-        area = random.choice(area_codes)
+        codes = area_codes if area_codes else ['AS1', 'IN1', 'PL1', 'FI1', 'JU1', 'AS2', 'IN2']
+        area = random.choice(codes)
         seq1 = random.randint(1000, 9999)
         seq2 = random.randint(100000, 999999)
         suffix_letters = ['AAA', 'BBB', 'SAT', 'UIF', 'FGR', 'IMX', 'HAC']
         suffix = random.choice(suffix_letters)
-        return f"{letter}/{area}-{seq1}-{seq2}-{suffix}"
+        return f"{letter}/{area}{delimiter}{seq1}{delimiter}{seq2}{delimiter}{suffix}"
 
     def generate_creditos_fiscales(self, count: int = 5) -> List[str]:
         """Generate list of tax credit numbers."""

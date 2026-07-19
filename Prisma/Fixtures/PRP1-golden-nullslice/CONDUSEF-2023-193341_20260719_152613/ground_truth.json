@@ -1,0 +1,50 @@
+{
+  "docId": "CONDUSEF-2023-193341_20260719_152613",
+  "seed": 5003,
+  "chaosLevel": "none",
+  "requirementType": "judicial",
+  "folioSiara": "CONDUSEF/2023/193341",
+  "numeroOficio": "CONDUSEF/2023/193341",
+  "numeroExpediente": "H/AS1 - 3538 - 244800 - AAA",
+  "autoridadNombre": "Comisión Nacional para la Protección y Defensa de los Usuarios de Servicios Financieros",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "María del Carmen Mota Arevalo",
+  "personaNombre": "Evelio Gracia Lozano",
+  "personaRfc": "GRLE991005G87",
+  "solicitudPartes": [
+    {
+      "nombre": "Evelio Gracia Lozano",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$2,877,307.82",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Comisión Nacional para la Protección y Defensa de los Usuarios de Servicios Financieros",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

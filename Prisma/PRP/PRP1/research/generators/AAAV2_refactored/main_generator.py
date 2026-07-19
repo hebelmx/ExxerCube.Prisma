@@ -134,7 +134,9 @@ class CNBVFixtureGenerator:
                  chaos_level: str = 'medium',
                  seed: Optional[int] = None,
                  use_llm: bool = False,
-                 llm_config: Optional[LLMConfig] = None):
+                 llm_config: Optional[LLMConfig] = None,
+                 expediente_area_codes: Optional[List[str]] = None,
+                 expediente_delimiter: str = '-'):
         """Initialize fixture generator.
 
         Args:
@@ -145,11 +147,23 @@ class CNBVFixtureGenerator:
             seed: Random seed for reproducibility
             use_llm: Whether to use LLM for text generation
             llm_config: LLM configuration (uses defaults if None)
+            expediente_area_codes: Optional override forcing
+                `generate_numero_expediente`'s area-code pool (e.g. ``['FI1']``)
+                for every document in this batch. Additive / S4-M.1 only:
+                `None` (the default) preserves the original full-pool
+                `random.choice` behavior exactly.
+            expediente_delimiter: Optional override for
+                `generate_numero_expediente`'s field delimiter (e.g. an
+                em-dash or a spaced hyphen). Additive / S4-M.1 only: `'-'`
+                (the default) preserves the original hardcoded behavior
+                exactly.
         """
         self.output_base = Path(output_base)
         self.chaos_level = chaos_level
         self.use_llm = use_llm
         self.seed = seed
+        self.expediente_area_codes = expediente_area_codes
+        self.expediente_delimiter = expediente_delimiter
 
         # Initialize generators
         self.data_gen = MexicanDataGenerator(seed=seed)
@@ -585,7 +599,10 @@ class CNBVFixtureGenerator:
         # so a document could self-contradict (e.g. a SAT folio prefix next
         # to an IMSS gold authority).
         folio_siara = self.data_gen.generate_folio_siara(authority_siglas=authority_data['siglas'])
-        expediente = self.data_gen.generate_numero_expediente()
+        expediente = self.data_gen.generate_numero_expediente(
+            area_codes=self.expediente_area_codes,
+            delimiter=self.expediente_delimiter,
+        )
 
         # Generate amounts
         monto = self.data_gen.generate_monto()
@@ -796,6 +813,23 @@ def main():
     )
 
     parser.add_argument(
+        '--expediente-area-codes',
+        nargs='+',
+        help='Override the Numero de Expediente area-code pool (e.g. "FI1") '
+             'for every fixture in this batch (default: full 7-code pool, random per fixture). '
+             'S4-M.1 deterministic-NULL corpus knob -- see core/data_generator.py:generate_numero_expediente.'
+    )
+
+    parser.add_argument(
+        '--expediente-delimiter',
+        type=str,
+        default='-',
+        help='Override the Numero de Expediente field delimiter (default: "-"). '
+             'Accepts any literal string, e.g. an em-dash "—" or a spaced hyphen " - ". '
+             'S4-M.1 deterministic-NULL corpus knob -- see core/data_generator.py:generate_numero_expediente.'
+    )
+
+    parser.add_argument(
         '--llm',
         action='store_true',
         help='Use LLM (Ollama) for generating legal text variations'
@@ -850,7 +884,9 @@ def main():
         chaos_level=args.chaos,
         seed=args.seed,
         use_llm=args.llm,
-        llm_config=llm_config
+        llm_config=llm_config,
+        expediente_area_codes=args.expediente_area_codes,
+        expediente_delimiter=args.expediente_delimiter
     )
 
     # Generate fixtures
