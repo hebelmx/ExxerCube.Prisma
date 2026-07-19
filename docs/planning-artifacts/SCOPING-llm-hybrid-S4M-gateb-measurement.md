@@ -66,7 +66,17 @@ On that slice, run LLM-text + the S4-C control-discard gate (plausibility **and*
 
 | ID | Story | DoD | Gate-B item |
 |----|-------|-----|-------------|
-| **S4-M.0** | **Slice-size probe (MAKE-OR-BREAK, cheap).** Run the existing harness's *deterministic* track over PRP1-golden; count the current deterministic-NULL(`NumeroExpediente`) slice. Validate the spec's "~3/20" claim from ground truth. | A committed count. If slice ≈ 3, the corpus MUST grow (S4-M.1) before any conditional number is decidable — state that verdict loudly. | 2 (gate) |
+| **S4-M.0** ✅ **DONE (2026-07-19)** | **Slice-size probe (MAKE-OR-BREAK, cheap).** Run the existing harness's *deterministic* track over PRP1-golden; count the current deterministic-NULL(`NumeroExpediente`) slice. Validate the spec's "~3/20" claim from ground truth. | A committed count. If slice ≈ 3, the corpus MUST grow (S4-M.1) before any conditional number is decidable — state that verdict loudly. | 2 (gate) |
+
+### S4-M.0 — VERIFIED RESULT (2026-07-19)
+
+**Deterministic-NULL slice = 3/20** — matches the spec's "~3/20" claim exactly. **Verdict: GROW-CORPUS** (3 ≪ N≥30 decidability floor, ADR-024 D6).
+
+- NULL fixtures: `AGAFADAFSON2-2023-900824` (gold `B/FI1-5684-679243-BBB`), `FGRMX-2023-571625` (gold `B/FI1-3465-780088-FGR`), `SEIDO-2025-128577` (gold `B/FI1-7854-155349-SAT`).
+- **Failure mode (anchor for M.1's cardinal risk):** all 3 NULLs are **pattern-misses**, not OCR crashes/garbling — `AdaptiveTxtFieldExtractor` completed cleanly but didn't match the Expediente pattern on those renderings. M.1's deterministic-NULL triggers must reproduce *this* realistic failure (layout/format the adaptive TXT extractor can't parse), not invented garbling.
+- **Surprise:** the other 17 fixtures matched gold `NumeroExpediente` **exactly** — zero wrong-but-non-null population, so no separate garbled-value slice to model.
+- OCR stable (no SIGSEGV, ~90s for 20 docs × 3 pages).
+- Reproducible probe: `Tests.Infrastructure.Extraction/S4M0_DeterministicNullExpedienteProbe.cs` (`[Fact(Skip=…)]`, measurement-only, zero production `.cs`).
 | **S4-M.1** | **Grow the deterministic-NULL slice to N≥30 (corpus, source-contained).** Extend the P1 generator to emit fixtures that deliberately TRIGGER deterministic-NULL on `NumeroExpediente` — layouts/formats `AdaptiveTxt` cannot parse — while the true value **is still rendered into the body** (so LLM+source-containment can legitimately recover it). Gate every new fixture on D7.1 (source-contained manifest). | ≥30 deterministic-NULL fixtures, each D7.1-verified; generator change is additive; `PRP1-golden` (or a sibling `PRP1-golden-nullslice`) grown. | 2 |
 | **S4-M.2** | **The conditional measurement.** Extend `LlmExtractionMetrics` (pure) + the harness to compute the deterministic-NULL slice metrics above; add the math to the CI-gated `LlmExtractionMetricsTests` (deterministic, mocked `ILlmProvider`). Emit a committed artifact `docs/evaluation/llm-hybrid-fallback-precision-2026-07.{json,md}`. | Pure-metric unit tests green in CI; artifact written on a live run (skip-gated like S4-A); precision-of-pass-set is the headline. | 1 |
 | **S4-M.3** | **Deterministic-fail rate.** Report `P(deterministic NULL)` on the corpus (and note if a real-doc sample is available). | A number + a one-line "does the fallback fire often enough to be worth it?" read. | 5 |
