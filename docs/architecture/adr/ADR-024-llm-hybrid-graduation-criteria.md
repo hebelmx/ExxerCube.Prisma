@@ -590,3 +590,69 @@ Collected here for visibility (each is also flagged inline above):
 3. **D4 — provider/model scoping granularity**: this ADR treats every (track, provider, model tag) as
    requiring its own evidence; confirm this is the intended strictness rather than, e.g., certifying
    "Ollama" as a family regardless of model tag.
+
+---
+
+## Addendum D9 — S4-C fallback TRIGGER is field-aware (design-panel ruling, 2026-07-19)
+
+**Trigger for this addendum:** while scoping the S4-M Gate-B measurement, orchestrator ground-truth
+verification found the S4-C fallback trigger as specified (`spec-llm-hybrid-extractor-S4C.md` D1 §51-52 —
+"fires iff `extractionResult.IsFailure || extractionResult.Value == null`") **cannot fire on a per-field
+null**, which invalidates the entire per-field-NULL measurement premise (S4-M's "P(LLM correct | deterministic
+NULL for field X)"). A 3-role design panel (architect/PM/QA) was convened; this records the ruling.
+
+### The verified defect in the D1 trigger (why per-field measurement was measuring the wrong slice)
+
+- `AdaptiveTxtFieldExtractor.ExtractFieldsAsync` (`Infrastructure.Extraction.Txt/AdaptiveTxtFieldExtractor.cs:48-92`)
+  returns `Result.Success` whenever OCR text is non-empty and no exception is thrown — **a null/missing field
+  is not a failure**.
+- `ExtractionOrchestrator.MapExtractedFieldsToExpediente` (`04 Services/Athena/.../ExtractionOrchestrator.cs:552-570`)
+  is **non-nullable**; every missing field becomes `string.Empty` (`NumeroExpediente = fields.Expediente ?? string.Empty`).
+  The `Expediente` is **never null** on the success path.
+- ⟹ the D1 trigger fires ONLY on: no field-extractor, **no OCR text**, or an extraction exception. On the
+  no-OCR-text slice the **text**-LLM is fed that same empty OCR text (`BuildPdfExpedienteFromOcrAsync` early-returns
+  on `IsNullOrWhiteSpace(ocrResult.Text)`) → it is blind too → **the text-fallback is near-vacuous as specified.**
+  (Architect noted one narrow live exception: extractor-exception on non-blank text — rare.)
+
+### Panel ruling (UNANIMOUS on the trigger)
+
+**Adopt a field-aware trigger.** Add an OR-branch to D1: the fallback also fires when
+`string.IsNullOrEmpty(expediente.NumeroExpediente)` **AND** OCR text is present. Rationale: field-aware +
+text-present is the **only** regime in which the text-fallback has input to work with; `NumeroExpediente`
+is the record's identity key, so its absence justifies invoking recovery.
+
+- **Anchor field = `NumeroExpediente` ONLY.** Do NOT generalize the anchor to a set/count/percentage without a
+  fresh owner ruling — a single named-field boolean is crisp and 2-fixture testable and therefore does NOT
+  reopen D1's rejected "fuzzy coverage/percentage threshold." The line is crossed the moment "mandatory"
+  becomes a *cardinality or weighting* decision. (Unanimous architect + QA.)
+
+### OPEN sub-fork for owner (the panel deliberately did NOT resolve — it reverses a prior owner ruling)
+
+A field-aware trigger fires **far more often** than whole-extraction-failure, and the S4-C fallback's
+**whole-record replace** then discards *correct* deterministic fields (Causa, authority, etc.) to recover the
+one empty anchor — on the mercy of a single whole-record gate. This collides with the owner's all-or-nothing
+fallback rule AND is in tension with **D8 above** (which already ruled *per-field abstention, not
+all-or-nothing*, for partial-payload handling). Three positions:
+
+- **Keep whole-record replace** (architect): legitimate *only because* the anchor is the identity key — a
+  record missing `NumeroExpediente` is largely useless downstream, so trading good fields to regain it is
+  defensible for THIS anchor. Simplest; honors the owner's prior all-or-nothing rule.
+- **Move to per-field fill-gap** (PM): only the empty `NumeroExpediente` is LLM-eligible; correct deterministic
+  fields are never overwritten; gate scoped to the filled field. Safer for legal records; aligns with D8; but
+  reverses the S4-C spec's fallback semantics and is more work.
+- **QA compromise:** keep all-or-nothing only if un-darking is gated on a **whole-record false-accept-rate
+  ceiling** + a measured **correct-field-clobbering rate** (PM's guardrail); if that rate isn't ~0,
+  all-or-nothing is disqualified → forces fill-gap.
+
+### Revised Gate-B scope (consequence of D9)
+
+- The go/no-go number moves from record-level to **field-level**:
+  `P(LLM NumeroExpediente correct | field empty, OCR text present)` — which makes the S4-M per-field
+  measurement meaningful again (it now matches the firing slice).
+- **New guardrail metric (mandatory if whole-record replace is kept):** correct-field-clobbering rate.
+- QA caveat: the S4-M per-field NULL corpus grounding is still "partially refuted" (only mode1/`FI1` is
+  observed) — firm the grounding before trusting any precision number off it.
+
+**Status:** trigger ruling ADOPTED (pending owner ratification of this addendum); all-or-nothing-vs-fill-gap
+sub-fork OPEN, owner-gated. **No code authorized by this addendum** — it settles the design so a *correct*
+measurement scope (and, later, the S4-C build) can proceed.
