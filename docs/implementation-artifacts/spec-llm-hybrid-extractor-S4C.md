@@ -32,6 +32,12 @@ Anti-drift reference for the (future, owner-gated) S4-C build. Parent specs:
 > reconciliation: `Liv`, 2026-07-19 (ADR-024 D9).
 
 ## Status: DESIGN ONLY — BLOCKED on Gate-B preconditions + owner sign-off (see §7)
+> **Update 2026-07-20 (`Liv`):** owner picked **Direction #1** from the S4-M evidence packet — the deterministic
+> extractor was hardened for `NumeroExpediente` (whitespace-tolerant delimiter + `I↔l` OCR cleanup, unit-verified
+> 214/214) instead of wiring an LLM fallback for it. This closes the **field-level** Gate-B question for
+> `NumeroExpediente` as *"fallback not warranted for this field"* (pending a live-pipeline re-measurement). It does
+> **not** un-block S4-C generally: the seam, if ever built, targets a field where deterministic is genuinely weak
+> (`AutoridadNombre`). See `docs/evaluation/llm-hybrid-S4M-gateb-evidence-packet-2026-07.md` §8.
 Today the hybrid path (`IHybridExtractionService`) is reachable **only** from the Web.UI `/hybrid-extraction`
 demo page; the Athena worker never calls it. S4-C wires a **field-aware fallback** into the worker. It is
 blocked (by design) on the ADR-024 D6 corpus + D7 honesty preconditions + explicit owner sign-off. **No

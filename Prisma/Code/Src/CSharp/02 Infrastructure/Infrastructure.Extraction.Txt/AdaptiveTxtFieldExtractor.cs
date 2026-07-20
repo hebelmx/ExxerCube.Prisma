@@ -313,20 +313,24 @@ public sealed class AdaptiveTxtFieldExtractor : IFieldExtractor<TxtSource>
         // Primary pattern: A/AS1-2505-088637-PHM or B/CDEF-1234-567890-ABC
         // Format: Letter / Letters(optional digits) - Numbers - Numbers - Letters
         // The segment after "/" may be pure letters (e.g. CDEF) or letters+digits (e.g. AS1, Y1).
-        var expedientePattern = @"[A-Z]/[A-Z]{1,4}\d*[-–]\d+[-–]\d+[-–][A-Z]+";
+        // The delimiter tolerates horizontal whitespace around the hyphen (OCR sometimes
+        // renders "A/AS1 - 2025 - 436896 - IMX"); newlines are intentionally excluded to
+        // avoid matching across lines.
+        var expedientePattern = @"[A-Z]/[A-Z]{1,4}\d*[ \t]*[-–][ \t]*\d+[ \t]*[-–][ \t]*\d+[ \t]*[-–][ \t]*[A-Z]+";
         var match = Regex.Match(text, expedientePattern, RegexOptions.Multiline);
         if (match.Success)
         {
-            return match.Value;
+            return CanonicalizeDelimiters(match.Value);
         }
 
-        // Alternative pattern (with OCR errors): handle O→0, I→1 substitutions
-        var fuzzyPattern = @"[A-Z]/[A-Z]{1,4}[0-9O]*[-–][0-9O]+[-–][0-9O]+[-–][A-Z]+";
+        // Alternative pattern (with OCR errors): handle O→0, I→1 substitutions, and the
+        // capital-I-misread-as-lowercase-l glyph bug (e.g. "Fl1" for "FI1").
+        var fuzzyPattern = @"[A-Z]/[A-Zl]{1,4}[0-9O]*[ \t]*[-–][ \t]*[0-9O]+[ \t]*[-–][ \t]*[0-9O]+[ \t]*[-–][ \t]*[A-Z]+";
         match = Regex.Match(text, fuzzyPattern, RegexOptions.Multiline);
         if (match.Success)
         {
             // Clean up OCR errors
-            return CleanOcrErrors(match.Value);
+            return CleanOcrErrors(CanonicalizeDelimiters(match.Value));
         }
 
         return null;
@@ -668,6 +672,17 @@ public sealed class AdaptiveTxtFieldExtractor : IFieldExtractor<TxtSource>
     {
         // For numeric sections, replace O with 0
         // This is a simplified version - production would be more sophisticated
-        return text.Replace('O', '0');
+        // Also fix the common Tesseract capital-I misread as lowercase-l (e.g. "Fl1" -> "FI1").
+        return text.Replace('O', '0').Replace('l', 'I');
+    }
+
+    /// <summary>
+    /// Collapses horizontal whitespace around expediente delimiters (e.g. "A/AS1 - 2025"
+    /// -&gt; "A/AS1-2025") so a whitespace-tolerant match still returns the canonical,
+    /// bare-hyphen form.
+    /// </summary>
+    private static string CanonicalizeDelimiters(string value)
+    {
+        return Regex.Replace(value, @"[ \t]*([-–])[ \t]*", "$1");
     }
 }

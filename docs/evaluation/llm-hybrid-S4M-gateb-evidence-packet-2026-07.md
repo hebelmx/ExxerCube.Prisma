@@ -64,3 +64,41 @@ fields where deterministic extraction is genuinely weak.
   on `NumeroExpediente` is not defensible, and hands the owner three grounded directions instead.
 - **Item 2 (N≥30 corpus):** built (36), but only 12 grounded → does not satisfy the *spirit* (grounded variance).
 - **Items 3/4/5/6/7/8:** unchanged / still owned by S4-C + the owner ruling.
+
+---
+
+## 8. Addendum — owner picked **Direction #1 (harden the extractor)**  ·  2026-07-20  ·  `Liv`
+
+The owner selected §5 **Direction #1**. The `NumeroExpediente` deterministic failures were patched directly in
+`AdaptiveTxtFieldExtractor.ExtractExpediente` rather than measuring an LLM fallback over a slice the deterministic
+extractor could itself survive.
+
+**What shipped** (production `.cs`, working tree on `Liv`):
+1. **Whitespace-tolerant delimiter (recovers mode3-spaced).** Both the primary and fuzzy expediente regexes now
+   accept horizontal whitespace around each delimiter (`[ \t]*[-–][ \t]*`, newlines deliberately excluded to avoid
+   cross-line matches); a new `CanonicalizeDelimiters` helper collapses the match back to the canonical bare-hyphen
+   form. `A/AS1 - 2025 - 436896 - IMX` → `A/AS1-2025-436896-IMX`.
+2. **`I↔l` OCR cleanup (recovers mode1-FI1 glyph).** The *fuzzy* pattern's letter class widened `[A-Z]{1,4}` →
+   `[A-Zl]{1,4}` (primary untouched), and `CleanOcrErrors` gained `l → I` alongside the existing `O → 0` — scoped to
+   the fuzzy-matched expediente token only. `A/Fl1-2025-436896-IMX` → `A/FI1-2025-436896-IMX`.
+- **mode2-emdash deliberately NOT handled** — the adversarial review (§2) refuted it as un-grounded/invented, and its
+  mechanism (delimiter dropped by the OCR char-whitelist, digits fuse) is not delimiter-recoverable in any case.
+
+**Verified from ground truth:** `Infrastructure.Extraction.Txt` builds 0 warn / 0 err; `Tests.Infrastructure.Extraction.Txt`
+**214/214** green (210 baseline + 4 new: 2 mode-positive, 2 regression guards incl. a lowercase-`l`-in-prose guard).
+ITDD red phase confirmed (the 2 positive cases returned `null` before the fix).
+
+**Scope of the claim (honest):** this is verified at the **unit level** — the regex now recovers the mode1 and mode3
+*token shapes* from representative OCR text strings. Because the natural M.0 slice (§2, **3/20**) was **100% mode1
+(`FI1`)**, the naturally-occurring `NumeroExpediente` deterministic-NULL slice is expected to collapse toward zero on
+real documents. **Not yet re-measured end-to-end:** re-running the skip-gated live-pipeline probes (`S4M0_…` /
+`S4M1_…Probe.cs`) over `PRP1-golden-nullslice/` (24/36 fixtures = mode1+mode3 should now extract; the 12 mode2 remain
+NULL by design) is the confirming measurement. That step needs the live Tesseract pipeline (and may hit the known
+Linux OCR-native-coexistence SIGSEGV — see `ocr-segfault-troubleshooter`), so it is called out as the recommended
+follow-up, **not** silently assumed done here.
+
+**Gate-B consequence:** with the extractor hardened, the `NumeroExpediente` LLM-fallback slice shrinks to (at most)
+the un-grounded mode2 residual. This closes the field-level Gate-B question for `NumeroExpediente` as
+*"LLM fallback not warranted for this field"* (pending the live re-measurement above). The fallback's real value — if
+S4-C is pursued — lives on a field where deterministic is genuinely weak (§4: `AutoridadNombre`, §5 Direction #2), not
+on the identity key. **No S4-C production wiring was authorized or written by this addendum.**

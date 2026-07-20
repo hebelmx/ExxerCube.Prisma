@@ -53,6 +53,71 @@ CAUSA: Investigación administrativa
     }
 
     [Fact]
+    public async Task ExtractFieldsAsync_SpacedDelimiterOcrText_ExtractsCanonicalExpediente()
+    {
+        // Arrange - OCR renders the "-" delimiter with surrounding spaces ("mode3-spaced")
+        var ocrText = "Some text A/AS1 - 2025 - 436896 - IMX more text";
+        var source = new TxtSource(ocrText);
+        var fieldDefs = new[] { new FieldDefinition("Expediente") };
+
+        // Act
+        var result = await _extractor.ExtractFieldsAsync(source, fieldDefs);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Expediente.ShouldBe("A/AS1-2025-436896-IMX");
+    }
+
+    [Fact]
+    public async Task ExtractFieldsAsync_CleanTextWithBareDelimiter_ExtractsExpedienteUnchanged()
+    {
+        // Arrange - guard: normal clean input must still extract unchanged
+        var ocrText = "Some text A/AS1-2505-088637-PHM more text";
+        var source = new TxtSource(ocrText);
+        var fieldDefs = new[] { new FieldDefinition("Expediente") };
+
+        // Act
+        var result = await _extractor.ExtractFieldsAsync(source, fieldDefs);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Expediente.ShouldBe("A/AS1-2505-088637-PHM");
+    }
+
+    [Fact]
+    public async Task ExtractFieldsAsync_IMisreadAsLowercaseLInAreaCode_ExtractsCorrectedExpediente()
+    {
+        // Arrange - Tesseract misreads capital "I" as lowercase "l" in the "FI1" area code ("mode1-FI1")
+        var ocrText = "Some text A/Fl1-2025-436896-IMX more text";
+        var source = new TxtSource(ocrText);
+        var fieldDefs = new[] { new FieldDefinition("Expediente") };
+
+        // Act
+        var result = await _extractor.ExtractFieldsAsync(source, fieldDefs);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Expediente.ShouldBe("A/FI1-2025-436896-IMX");
+    }
+
+    [Fact]
+    public async Task ExtractFieldsAsync_LowercaseLInSurroundingProse_DoesNotMangleExpediente()
+    {
+        // Arrange - guard: a lowercase "l" outside the expediente token (in prose) must not
+        // be touched, and must not cause the fuzzy pattern to spuriously match prose text.
+        var ocrText = "El expediente correspondiente es Expediente: A/AS1-2505-088637-PHM, favor de revisarlo.";
+        var source = new TxtSource(ocrText);
+        var fieldDefs = new[] { new FieldDefinition("Expediente") };
+
+        // Act
+        var result = await _extractor.ExtractFieldsAsync(source, fieldDefs);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Expediente.ShouldBe("A/AS1-2505-088637-PHM");
+    }
+
+    [Fact]
     public async Task ExtractFieldAsync_ExtractsCausa_FromLabeledText()
     {
         // Arrange
