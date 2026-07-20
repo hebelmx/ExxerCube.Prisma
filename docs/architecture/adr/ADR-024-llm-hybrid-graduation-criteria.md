@@ -626,23 +626,23 @@ is the record's identity key, so its absence justifies invoking recovery.
   reopen D1's rejected "fuzzy coverage/percentage threshold." The line is crossed the moment "mandatory"
   becomes a *cardinality or weighting* decision. (Unanimous architect + QA.)
 
-### OPEN sub-fork for owner (the panel deliberately did NOT resolve — it reverses a prior owner ruling)
+### Sub-fork RESOLVED — per-field fill-gap (owner ruling, 2026-07-19)
 
 A field-aware trigger fires **far more often** than whole-extraction-failure, and the S4-C fallback's
-**whole-record replace** then discards *correct* deterministic fields (Causa, authority, etc.) to recover the
-one empty anchor — on the mercy of a single whole-record gate. This collides with the owner's all-or-nothing
-fallback rule AND is in tension with **D8 above** (which already ruled *per-field abstention, not
-all-or-nothing*, for partial-payload handling). Three positions:
+whole-record replace would then discard *correct* deterministic fields (Causa, authority, etc.) to recover the
+one empty anchor. The panel split (architect: keep whole-record replace, justified by anchor-is-identity-key;
+PM+QA: move to fill-gap). **Owner ruled: per-field fill-gap.**
 
-- **Keep whole-record replace** (architect): legitimate *only because* the anchor is the identity key — a
-  record missing `NumeroExpediente` is largely useless downstream, so trading good fields to regain it is
-  defensible for THIS anchor. Simplest; honors the owner's prior all-or-nothing rule.
-- **Move to per-field fill-gap** (PM): only the empty `NumeroExpediente` is LLM-eligible; correct deterministic
-  fields are never overwritten; gate scoped to the filled field. Safer for legal records; aligns with D8; but
-  reverses the S4-C spec's fallback semantics and is more work.
-- **QA compromise:** keep all-or-nothing only if un-darking is gated on a **whole-record false-accept-rate
-  ceiling** + a measured **correct-field-clobbering rate** (PM's guardrail); if that rate isn't ~0,
-  all-or-nothing is disqualified → forces fill-gap.
+- **RULING:** when the fallback fires, **only the empty `NumeroExpediente` is LLM-eligible.** Every
+  correctly-extracted deterministic field is left untouched — an LLM guess can never overwrite a field the
+  deterministic path already populated. The plausibility + source-containment gate is **scoped to the filled
+  field**; on gate failure that field stays empty (abstain → NULL), the rest of the record is unaffected.
+- **Consistency:** this aligns the fallback with **D8** (per-field abstention, not all-or-nothing) and
+  **supersedes the whole-record-replace semantics in `spec-llm-hybrid-extractor-S4C.md`** (D1/D8 of that spec) —
+  the S4-C spec must be reconciled to fill-gap before its build.
+- The "correct-field-clobbering rate" guardrail is now **structurally zero by construction** (correct fields are
+  never touched), so it drops out of Gate-B as a measured metric — replaced by the far simpler invariant test
+  "deterministically-populated fields are byte-identical pre/post fallback."
 
 ### Revised Gate-B scope (consequence of D9)
 
@@ -653,6 +653,10 @@ all-or-nothing*, for partial-payload handling). Three positions:
 - QA caveat: the S4-M per-field NULL corpus grounding is still "partially refuted" (only mode1/`FI1` is
   observed) — firm the grounding before trusting any precision number off it.
 
-**Status:** trigger ruling ADOPTED (pending owner ratification of this addendum); all-or-nothing-vs-fill-gap
-sub-fork OPEN, owner-gated. **No code authorized by this addendum** — it settles the design so a *correct*
-measurement scope (and, later, the S4-C build) can proceed.
+**Status (2026-07-19):** design FULLY SETTLED. Trigger = field-aware on `NumeroExpediente` (empty + OCR text
+present); semantics = **per-field fill-gap** (owner-ruled). Both ADOPTED. **No code authorized by this
+addendum** — it settles the design so a *correct* S4-M measurement scope, and later the S4-C build, can proceed.
+**Downstream work unblocked (each a separate epic, owner-gated to start):** (1) reconcile
+`spec-llm-hybrid-extractor-S4C.md` to the field-aware trigger + fill-gap semantics; (2) re-scope the S4-M
+Gate-B measurement to the field-level number `P(LLM NumeroExpediente correct | field empty, OCR text present)`
+on a grounding-firmed corpus; (3) the S4-C build itself (still full-Gate-B + sign-off gated).
