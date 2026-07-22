@@ -102,3 +102,34 @@ the un-grounded mode2 residual. This closes the field-level Gate-B question for 
 *"LLM fallback not warranted for this field"* (pending the live re-measurement above). The fallback's real value — if
 S4-C is pursued — lives on a field where deterministic is genuinely weak (§4: `AutoridadNombre`, §5 Direction #2), not
 on the identity key. **No S4-C production wiring was authorized or written by this addendum.**
+
+---
+
+## 9. Addendum — live re-measurement CONFIRMS the closure + owner PARKS S4-C  ·  2026-07-21  ·  `Liv`
+
+The §8 follow-up was executed (owner ruled "run it now"). `S4M1_DeterministicNullDiversifiedCorpusProbe`
+was temporarily un-skipped and run through the LIVE .NET pipeline (real Tesseract 5.5 + spa → `PdfOcrFieldExtractor`
+→ hardened `AdaptiveTxtFieldExtractor`) over all 36 `PRP1-golden-nullslice/` fixtures. Run: 2m49s–3m34s, **no OCR
+SIGSEGV** (two full runs), probe 1/1 green.
+
+**Measured result — deterministic-NULL slice collapsed 36/36 → 13/36:**
+
+| Mode | Pre-hardening NULL | Post-hardening NULL | Reading |
+|------|-------------------|---------------------|---------|
+| mode1-FI1 (the only *grounded* mode) | 12/12 | **0/12** | fully recovered — the natural real-doc slice (M.0 was 100% mode1) is now empty |
+| mode3-spaced | 12/12 | **1/12** | 11 recovered; the residual (`INFONAVIT-2024-389098`, gold `H/AS2 - 2108 - 458945 - FGR`) is fixture-specific OCR noise in the production render path — CLI `tesseract` at 300 dpi reads the line verbatim, and identical-shape siblings (`A/AS2 - …`, `H/AS2 - …`) recovered |
+| mode2-emdash | 12/12 | **12/12** | unchanged **by design** — un-grounded/invented mode, deliberately not handled (§8) |
+
+D7.1 pdftotext source-containment: still 36/36. The probe's `[Skip]` annotation now carries both the
+pre- and post-hardening results.
+
+**Gate-B verdict, now measured (not just expected):** the grounded `NumeroExpediente` deterministic-NULL slice is
+**zero** post-hardening; the only residual NULLs are the invented mode2 corpus artifacts plus one OCR-noise
+one-off. Field-level Gate-B for `NumeroExpediente` is **CLOSED: "LLM fallback not warranted for this field"** —
+no longer pending.
+
+**Owner ruling (same sitting): S4-C is PARKED.** With `NumeroExpediente` closed and no *currently-grounded*
+weakness on `AutoridadNombre` (the S4-B "81% vs 0%" headline predates fix `5a4d0b86`; deterministic is ~100% on
+PRP1-golden by construction), the epic has no grounded target field. Reopen condition: real-document evidence of
+a genuinely weak field → §5 Direction #2 (grounded measurement FIRST; build stays gated on the result). Ruling
+record: `docs/planning-artifacts/DECISIONS-2026-07-21-owner-rulings.md`; spec + tracker banners updated.

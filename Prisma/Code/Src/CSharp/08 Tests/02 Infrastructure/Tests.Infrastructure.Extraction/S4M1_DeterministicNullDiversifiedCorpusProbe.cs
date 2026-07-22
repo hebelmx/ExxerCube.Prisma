@@ -37,9 +37,12 @@ public sealed class S4M1_DeterministicNullDiversifiedCorpusProbe
     private const double MaxSingleModeShare = 0.60;
 
     [Fact(Skip = "eval-only: S4-M.1 measurement probe — run manually (real Tesseract OCR over 36 fixtures, " +
-        "~2.5 min), remove Skip to execute. RESULT (2026-07-19, verified GREEN, 2 subagent runs + 1 " +
-        "orchestrator re-run): 36/36 NULL (mode1-FI1 12/36, mode2-emdash 12/36, mode3-spaced 12/36 — exact " +
-        "even split, all <=60%), D7.1 pdftotext source-containment 36/36. VERDICT: GO. Not a CI gate.")]
+        "~3 min), remove Skip to execute. RESULT pre-hardening (2026-07-19): 36/36 NULL (12/12/12 even " +
+        "3-mode split), D7.1 36/36, VERDICT GO. RESULT post-Direction-#1 hardening (2026-07-21, `2aaf1b2b`): " +
+        "13/36 NULL — mode1-FI1 0/12 (all recovered), mode3-spaced 1/12 (single fixture-specific OCR-noise " +
+        "residual; CLI tesseract reads it fine, identical-shape siblings recovered), mode2-emdash 12/12 " +
+        "(unhandled by design). D7.1 still 36/36; no SIGSEGV. Confirms the field-level Gate-B closure for " +
+        "NumeroExpediente (evidence packet §9). Not a CI gate.")]
     public async Task Probe_DeterministicTrack_CountsNullNumeroExpedienteOverDiversifiedNullSlice()
     {
         var ct = TestContext.Current.CancellationToken;

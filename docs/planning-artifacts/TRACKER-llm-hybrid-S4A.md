@@ -68,12 +68,16 @@ Orchestrated 2026-07-03. Owner ruling: S4 = Option A (measure before graduating)
 ## Secondary finding logged (not fixed): gate rejects the WHOLE DTO on a present-but-invalid expediente,
 ##   discarding usable oficio/authority/partes → Gate-B design question (per-field abstention?).
 
-## REMAINING / next units — UPDATED 2026-07-18 (S4-B CLOSED; see the top banner):
-## 0. [SCOPED 2026-07-18 — un-gated, ready to build] **S4-M Gate-B Measurement Harness** →
-##    `docs/planning-artifacts/SCOPING-llm-hybrid-S4M-gateb-measurement.md`. Produces the ONE missing number
-##    `P(LLM correct | deterministic NULL)` (Gate-B §7 item 1) that S4-C's owner go/no-go is blocked on.
-##    Measurement-only, zero production code, does NOT flip anything. This is the natural next backlog story:
-##    it converts the owner's "can't decide yet" into an evidence packet. Closes Gate-B items 1/2/3/5.
+## REMAINING / next units — UPDATED 2026-07-21 (S4-C **PARKED by owner ruling** — the S4 thread is CLOSED):
+## ⛔ 2026-07-21: owner ruled PARK S4-C (see `DECISIONS-2026-07-21-owner-rulings.md` + spec-S4C banner).
+##    NumeroExpediente Gate-B closed field-level via Direction #1 (hardened extractor `2aaf1b2b`,
+##    live-confirmed — evidence packet §9); AutoridadNombre has no currently-grounded weakness (S4-B "81% vs
+##    0%" headline stale since `5a4d0b86`). Reopen ONLY on real-doc evidence of a genuinely-weak field →
+##    then Direction #2 (grounded measurement first). Items 0/3 below are historical framing, superseded.
+## 0. [DONE 2026-07-19→20 — superseded framing] **S4-M Gate-B Measurement Harness** →
+##    `docs/planning-artifacts/SCOPING-llm-hybrid-S4M-gateb-measurement.md`. Outcome was NOT the single
+##    number: the corpus was partially refuted (only mode1 grounded) → evidence packet
+##    `docs/evaluation/llm-hybrid-S4M-gateb-evidence-packet-2026-07.md` → owner picked Direction #1.
 ## (below: the prior 2026-07-04 framing of the same remaining surface)
 ## 1. [CLOSED ✅] Rebuild the eval gold source-contained (D7.1) — DONE by P1 generator commits `d6b7dfb7`→`313d2210`
 ##    + gold loader `69ce5c71`; the 20-doc `PRP1-golden` corpus is source-contained and the harness numbers are
@@ -81,7 +85,7 @@ Orchestrated 2026-07-03. Owner ruling: S4 = Option A (measure before graduating)
 ## 2. [DESIGN — IN PROGRESS] Gate coupling: all-or-nothing DTO rejection vs per-field abstention (Gate-B question).
 ##    Owner steer 2026-07-04: return a FAILED Result<Expediente> that still carries the partial T + metadata +
 ##    error list (per-field abstention reasons). Being settled by a BMAD design party → decision doc / ADR-024 addendum.
-## 3. [SEPARATE EPIC — S4-C] un-dark the PIPELINE: the Athena worker never calls HybridExtractionService today
+## 3. [SEPARATE EPIC — S4-C — **PARKED 2026-07-21, see banner above**] un-dark the PIPELINE: the Athena worker never calls HybridExtractionService today
 ##    (flags gate only the /hybrid-extraction demo page). DESIGN SPEC WRITTEN 2026-07-04:
 ##    `docs/implementation-artifacts/spec-llm-hybrid-extractor-S4C.md` (resolved design fork = replace-when-enabled;
 ##    OCR-seam sub-decision; ManualReview threading; Gate-B checklist). BUILD is BLOCKED/owner-gated: ADR-024 D6

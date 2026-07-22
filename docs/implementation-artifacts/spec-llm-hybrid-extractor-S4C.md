@@ -31,7 +31,15 @@ Anti-drift reference for the (future, owner-gated) S4-C build. Parent specs:
 > (D1/D2/D5-seam/D6/story-plan/tests/Gate-B) are rewritten to fill-gap. Design party session: `Liv`, 2026-07-04b;
 > reconciliation: `Liv`, 2026-07-19 (ADR-024 D9).
 
-## Status: DESIGN ONLY — BLOCKED on Gate-B preconditions + owner sign-off (see §7)
+## Status: **PARKED by owner ruling 2026-07-21** (was: DESIGN ONLY — BLOCKED on Gate-B preconditions)
+> **Update 2026-07-21 (`Liv`):** owner ruled **PARK S4-C**. `NumeroExpediente` (the D9 trigger anchor) is
+> closed field-level as "fallback not warranted" (hardened extractor, live-confirmed — evidence packet §9);
+> the remaining candidate `AutoridadNombre` has no *currently-grounded* weakness (the S4-B "81% vs 0%"
+> headline is stale — deterministic is ~100% on PRP1-golden by construction since `5a4d0b86`). **Reopen
+> condition:** real-document evidence of a field where deterministic extraction is genuinely weak → then
+> evidence-packet §5 Direction #2 (grounded measurement FIRST, build stays gated on the result). This spec
+> stays as the anti-drift design reference for that future build. Ruling record:
+> `docs/planning-artifacts/DECISIONS-2026-07-21-owner-rulings.md`.
 > **Update 2026-07-20 (`Liv`):** owner picked **Direction #1** from the S4-M evidence packet — the deterministic
 > extractor was hardened for `NumeroExpediente` (whitespace-tolerant delimiter + `I↔l` OCR cleanup, unit-verified
 > 214/214) instead of wiring an LLM fallback for it. This closes the **field-level** Gate-B question for
