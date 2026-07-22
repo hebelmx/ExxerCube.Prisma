@@ -15,18 +15,18 @@ unverified second bundle) is the correct "don't invent a new composition" choice
 
 | Id | Product | Signal | BankTier | CondusefTier | Fail | InsufficientData | Pass | Extraction ms | Verdict ms |
 |---|---|---|---|---|---|---|---|---|---|
-| A-2026-02 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 558 | 307 |
-| A-2026-03 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 543 | 299 |
-| A-2026-04 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 547 | 331 |
-| A-2026-05 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 569 | 333 |
-| B-2026-03 | credit_card | Red | Yellow | Red | 15 | 32 | 11 | 1406 | 5072 |
-| B-2026-04 | credit_card | Red | Yellow | Red | 14 | 32 | 12 | 1416 | 5015 |
-| B-2026-05 | credit_card | Red | Yellow | Red | 15 | 32 | 11 | 1442 | 5074 |
-| B-2026-06 | credit_card | Red | Yellow | Red | 15 | 34 | 9 | 1431 | 5090 |
-| C-2026-02 | credit_card | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 1684 | 1383 |
-| C-2026-03 | credit_card | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 1703 | 1416 |
-| C-2026-04 | credit_card | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 2162 | 1871 |
-| C-2026-05 | credit_card | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 1833 | 1554 |
+| A-2026-02 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 565 | 313 |
+| A-2026-03 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 558 | 311 |
+| A-2026-04 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 575 | 353 |
+| A-2026-05 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 589 | 343 |
+| B-2026-03 | credit_card | Red | Yellow | Red | 12 | 33 | 13 | 1458 | 5100 |
+| B-2026-04 | credit_card | Red | Yellow | Red | 12 | 33 | 13 | 1392 | 5080 |
+| B-2026-05 | credit_card | Red | Yellow | Red | 12 | 33 | 13 | 1454 | 5219 |
+| B-2026-06 | credit_card | Red | Yellow | Red | 14 | 34 | 10 | 1389 | 5211 |
+| C-2026-02 | credit_card | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 1744 | 1426 |
+| C-2026-03 | credit_card | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 1737 | 2159 |
+| C-2026-04 | credit_card | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 2618 | 1886 |
+| C-2026-05 | credit_card | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 1863 | 1560 |
 
 ## Per-check aggregate — real account statements (12)
 
@@ -38,10 +38,10 @@ not counted for that statement (engine didn't evaluate it).
 |---|---|---|---|---|---|
 | CL-10 | Warning | 0 | 4 | 0 | 4 |
 | CL-17 | Warning | 0 | 4 | 0 | 4 |
-| CL-18 | Critical | 4 | 0 | 0 | 4 |
+| CL-18 | Critical | 1 | 0 | 3 | 4 |
 | CL-19 | Info | 0 | 0 | 4 | 4 |
 | CL-20 | Warning | 0 | 4 | 0 | 4 |
-| CL-21 | Critical | 2 | 1 | 1 | 4 |
+| CL-21 | Warning | 0 | 4 | 0 | 4 |
 | CL-22 | Warning | 0 | 1 | 3 | 4 |
 | CL-23 | Warning | 0 | 4 | 0 | 4 |
 | CL-24 | Warning | 0 | 4 | 0 | 4 |
@@ -90,7 +90,7 @@ not counted for that statement (engine didn't evaluate it).
 | LAW-§23-STATUS | Info | 0 | 0 | 4 | 4 |
 | LAW-§24-QUEJAS | Warning | 0 | 4 | 0 | 4 |
 | LAW-§25-REESTRUCTURA | Info | 0 | 0 | 4 | 4 |
-| LAW-§26-NOTAS | Critical | 4 | 0 | 0 | 4 |
+| LAW-§26-NOTAS | Info | 0 | 0 | 4 | 4 |
 | LAW-§27-GLOSARIO | Critical | 4 | 0 | 0 | 4 |
 | LAW-§6-SIMULACION | Warning | 0 | 4 | 0 | 4 |
 | LAW-§8-INDICADORES | Warning | 0 | 4 | 0 | 4 |
@@ -108,7 +108,7 @@ confidence across all 4 attempts (extracted or not).
 | BranchNumber | 4/4 | 1.00 | 4/4 | 1.00 | 4/4 | 1.00 |
 | CardNumber | 4/4 | 1.00 | 4/4 | 1.00 | 4/4 | 1.00 |
 | Clabe | 0/4 | 0.00 | 4/4 | 1.00 | 4/4 | 1.00 |
-| ClientName | 4/4 | 1.00 | 4/4 | 1.00 | 4/4 | 1.00 |
+| ClientName | 4/4 | 1.00 | 0/4 | 0.00 | 0/4 | 0.00 |
 | ClientNumber | 0/4 | 0.00 | 4/4 | 1.00 | 4/4 | 1.00 |
 | PeriodSummary.AdeudoPeriodoAnterior | 0/4 | 0.00 | 0/4 | 0.00 | 0/4 | 0.00 |
 | PeriodSummary.CargosComprasAMesesCapital | 0/4 | 0.00 | 4/4 | 1.00 | 4/4 | 1.00 |
@@ -146,9 +146,9 @@ comparison; the Actual columns are this run's measurement.
 
 | Id | Known injected defect | Actual Signal | Actual FailCheckIds | Actual InsufficientDataCheckIds |
 |---|---|---|---|---|
-| defect-bad-font-cl35 | Courier font substituted for required Helvetica (historically trips CL-35) | Red | CL-18, CL-31, CL-32, CL-35, CL-46, CL-48, CL-50, CL-51, CL-52, CL-53, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE, LAW-§26-NOTAS, LAW-§27-GLOSARIO | CL-10, CL-17, CL-20, CL-23, CL-24, CL-25, CL-26, CL-29, CL-36, CL-37, CL-39, CL-40, CL-41, CL-43, CL-44, CL-45, CL-49, CLIENT-IMG-CATALOG, ITEM-58, LAW-DUC-ART27-GAT, LAW-SEC-SIZECAP, LAW-TYPO-BOLD, LAW-§11-URLS, LAW-§13-TRANSFERENCIA, LAW-§16-OTRASLINEAS, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§19-INTERES, LAW-§20-WATERFALL, LAW-§24-QUEJAS, LAW-§6-SIMULACION, LAW-§8-INDICADORES |
-| defect-bad-math-cl21 | +$11.00 injected on PagoParaNoGenerarIntereses (historically trips CL-21 + CL-22) | Red | CL-18, CL-31, CL-32, CL-46, CL-48, CL-50, CL-51, CL-52, CL-53, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE, LAW-§26-NOTAS, LAW-§27-GLOSARIO | CL-10, CL-17, CL-20, CL-23, CL-24, CL-25, CL-26, CL-29, CL-36, CL-37, CL-39, CL-40, CL-41, CL-43, CL-44, CL-45, CL-49, CLIENT-IMG-CATALOG, ITEM-58, LAW-DUC-ART27-GAT, LAW-SEC-SIZECAP, LAW-TYPO-BOLD, LAW-§11-URLS, LAW-§13-TRANSFERENCIA, LAW-§16-OTRASLINEAS, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§19-INTERES, LAW-§20-WATERFALL, LAW-§24-QUEJAS, LAW-§6-SIMULACION, LAW-§8-INDICADORES |
-| defect-good | none (reference-quality demo PDF; historically RED on structural/legend checks, not arithmetic) | Red | CL-18, CL-31, CL-32, CL-46, CL-48, CL-50, CL-51, CL-52, CL-53, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE, LAW-§26-NOTAS, LAW-§27-GLOSARIO | CL-10, CL-17, CL-20, CL-23, CL-24, CL-25, CL-26, CL-29, CL-36, CL-37, CL-39, CL-40, CL-41, CL-43, CL-44, CL-45, CL-49, CLIENT-IMG-CATALOG, ITEM-58, LAW-DUC-ART27-GAT, LAW-SEC-SIZECAP, LAW-TYPO-BOLD, LAW-§11-URLS, LAW-§13-TRANSFERENCIA, LAW-§16-OTRASLINEAS, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§19-INTERES, LAW-§20-WATERFALL, LAW-§24-QUEJAS, LAW-§6-SIMULACION, LAW-§8-INDICADORES |
+| defect-bad-font-cl35 | Courier font substituted for required Helvetica (historically trips CL-35) | Red | CL-31, CL-32, CL-35, CL-46, CL-48, CL-50, CL-51, CL-52, CL-53, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE, LAW-§27-GLOSARIO | CL-10, CL-17, CL-20, CL-21, CL-23, CL-24, CL-25, CL-26, CL-29, CL-36, CL-37, CL-39, CL-40, CL-41, CL-43, CL-44, CL-45, CL-49, CLIENT-IMG-CATALOG, ITEM-58, LAW-DUC-ART27-GAT, LAW-SEC-SIZECAP, LAW-TYPO-BOLD, LAW-§11-URLS, LAW-§13-TRANSFERENCIA, LAW-§16-OTRASLINEAS, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§19-INTERES, LAW-§20-WATERFALL, LAW-§24-QUEJAS, LAW-§6-SIMULACION, LAW-§8-INDICADORES |
+| defect-bad-math-cl21 | +$11.00 injected on PagoParaNoGenerarIntereses (historically trips CL-21 + CL-22) | Red | CL-31, CL-32, CL-46, CL-48, CL-50, CL-51, CL-52, CL-53, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE, LAW-§27-GLOSARIO | CL-10, CL-17, CL-20, CL-21, CL-23, CL-24, CL-25, CL-26, CL-29, CL-36, CL-37, CL-39, CL-40, CL-41, CL-43, CL-44, CL-45, CL-49, CLIENT-IMG-CATALOG, ITEM-58, LAW-DUC-ART27-GAT, LAW-SEC-SIZECAP, LAW-TYPO-BOLD, LAW-§11-URLS, LAW-§13-TRANSFERENCIA, LAW-§16-OTRASLINEAS, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§19-INTERES, LAW-§20-WATERFALL, LAW-§24-QUEJAS, LAW-§6-SIMULACION, LAW-§8-INDICADORES |
+| defect-good | none (reference-quality demo PDF; historically RED on structural/legend checks, not arithmetic) | Red | CL-31, CL-32, CL-46, CL-48, CL-50, CL-51, CL-52, CL-53, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE, LAW-§27-GLOSARIO | CL-10, CL-17, CL-20, CL-21, CL-23, CL-24, CL-25, CL-26, CL-29, CL-36, CL-37, CL-39, CL-40, CL-41, CL-43, CL-44, CL-45, CL-49, CLIENT-IMG-CATALOG, ITEM-58, LAW-DUC-ART27-GAT, LAW-SEC-SIZECAP, LAW-TYPO-BOLD, LAW-§11-URLS, LAW-§13-TRANSFERENCIA, LAW-§16-OTRASLINEAS, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§19-INTERES, LAW-§20-WATERFALL, LAW-§24-QUEJAS, LAW-§6-SIMULACION, LAW-§8-INDICADORES |
 | defect-scanned | image-only PDF, no text layer (historically ExtractionGap) | ExtractionGap |  |  |
 
 ## Notable observations

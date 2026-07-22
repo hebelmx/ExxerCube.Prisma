@@ -182,11 +182,23 @@ SUT_MONTH          = "2026-04"
 # All numeric PII values are produced by the generators above and asserted
 # valid by _assert_fake_values_valid() at the bottom of this section.
 #
-# RFC name-extraction rule for "CARLOS MENDOZA VARGAS":
+# RFC name-extraction rule for "LUIS MENDOZA VARGAS":
 #   Apellido paterno (MENDOZA) → 1st letter M + 1st internal vowel E
 #   Apellido materno (VARGAS)  → 1st letter V
-#   Nombre           (CARLOS)  → 1st letter C
-#   → initials = MEVC
+#   Nombre           (LUIS)    → 1st letter L
+#   → initials = MEVL
+#
+# Name chosen (RC1.S4.d round 2) so every substring variant the anonymizer
+# derives (full / first+paterno / paterno+materno / materno-alone — see
+# build_mapping()) is no LONGER than the real "ABEL BRIONES RAMIREZ" part it
+# replaces: LUIS(4)<=ABEL(4), MENDOZA(7)<=BRIONES(7), VARGAS(6)<=RAMIREZ(7).
+# This was previously "CARLOS MENDOZA VARGAS" ("ABEL BRIONES" → "CARLOS
+# MENDOZA" was +2 chars over its real counterpart), which — once the sub-8pt
+# auto-shrink fix made every replacement render at its full natural 8pt
+# width — needed to grow into neighboring content on tight transaction-line
+# occurrences and manufactured CL-28 text-overlap findings. Never reuse a
+# fake name/initial pair that is LONGER than the real value it replaces for
+# any high-frequency token (holder name recurs on nearly every page).
 
 _VISA_PFX   = "4111"           # standard Visa BIN
 _MC_PFX     = "5100"           # Mastercard 51xx BIN
@@ -196,8 +208,8 @@ _CLABE_PLZA = "180"            # CDMX main plaza
 
 FAKE: dict[str, str] = {
     # Holder
-    "holder_name":     "CARLOS MENDOZA VARGAS",
-    "rfc_personal":    _make_rfc_personal("MEVC", "000101", "XX"),  # → MEVC000101XX5
+    "holder_name":     "LUIS MENDOZA VARGAS",
+    "rfc_personal":    _make_rfc_personal("MEVL", "000101", "XX"),  # → MEVL000101XX3
     # Address (checking account header)
     "address_line1":   "AV REFORMA 1234 DESP 8",
     "address_line2":   "COL JUAREZ",
@@ -215,25 +227,35 @@ FAKE: dict[str, str] = {
     "branch_B":        "0002",
     "client_B":        "00000002",
     "clabe_B":         _make_clabe(_CLABE_BANK, _CLABE_PLZA, "00000000002"),  # cd=5
-    "rfc_b_field":     _make_rfc_personal("MEVC", "000101", "XX"),
+    "rfc_b_field":     _make_rfc_personal("MEVL", "000101", "XX"),
     # Account-C (MC credit — folder prefix: account-C-mc)
     # Fake last-4=0002 avoids the PII gate.
     "card_C":          _make_pan(_MC_PFX, "0002"),                 # Luhn-valid
     "branch_C":        "0003",
     "client_C":        "00000003",
     "clabe_C":         _make_clabe(_CLABE_BANK, _CLABE_PLZA, "00000000003"),  # cd=8
-    "rfc_c_field":     _make_rfc_personal("MEVC", "000101", "XX"),
-    # Bank identity (synthetic; no public checksum asserted for bank RFC)
+    "rfc_c_field":     _make_rfc_personal("MEVL", "000101", "XX"),
+    # Bank identity (synthetic; no public checksum asserted for bank RFC).
+    # "bank_short"/"bank_group"/"bank_app"/"bank_une_email" were shortened in
+    # RC1.S4.d round 2 (from "IndFusion"/9 chars, "une@bancoindifusion.demo.mx"
+    # /27 chars) so they never exceed the real "Banamex"(7)/"une@banamex.com"
+    # (15) tokens they replace — "Banamex" alone is the single highest-
+    # frequency bank-brand token (appears throughout every statement), so any
+    # length overage there was the most likely of all tokens to land next to
+    # tight real content and manufacture a CL-28 text-overlap finding.
+    # "bank_name_full"/"bank_name_sa" keep the full "IndFusion" spelling —
+    # both are already shorter than the real strings they replace, so no
+    # widening (and thus no overlap risk) is possible for them.
     "bank_name_full":  "Banco Demo IndFusion, S.A.",
     "bank_name_sa":    "Banco Demo IndFusion, S.A., Integrante del Grupo Financiero IndFusion",
-    "bank_group":      "Grupo Financiero IndFusion",
-    "bank_short":      "IndFusion",
+    "bank_group":      "Grupo Financiero IndFus",
+    "bank_short":      "IndFus",
     "bank_rfc":        "BDI000101IDF",
     "bank_net":        "DemoNet",
-    "bank_app":        "App IndFusion",
+    "bank_app":        "App IndFus",
     "bank_phone":      "55 0000 0000",
     "bank_address":    "Av. Demo 999, Col. Centro, 01000, Ciudad de Mexico",
-    "bank_une_email":  "une@bancoindifusion.demo.mx",
+    "bank_une_email":  "une@indfus.mx",
 }
 
 
@@ -611,11 +633,64 @@ def _redact_and_replace(page: fitz.Page, real: str, fake: str, *, color=_COLOR_B
 # still runs immediately per value to erase the real glyphs before the next
 # (shorter) search, only the drawing of the fake glyphs is deferred.
 #
-# Overflow handling: if a replacement is wider than the original rect at
-# 8pt (e.g. "Grupo Financiero Banamex" → "...IndFusion", or the une@ email),
-# the fill+draw box is widened rightward into the row's own trailing
-# whitespace, bounded to a safe page-right margin — never shrinking the font
-# to make it fit.
+# Overflow handling (RC1.S4.d round 2): if a replacement is wider than the
+# original rect at 8pt, the fill+draw box is widened rightward ONLY into
+# space confirmed genuinely empty — bounded by the nearest real neighboring
+# word and by every other pending replacement — never into a neighbor's
+# territory and never by shrinking the font. See _flush_pending_text.
+#
+# Spurious-hit guard (RC1.S4.d round 2): page.search_for() can return a rect
+# for a multi-word query that does NOT actually contain the matched text —
+# confirmed empirically: search_for("ABEL BRIONES RAMIREZ") on a real
+# statement returned 3 rects, but only 1 was genuine; the other 2 read back
+# unrelated multi-line content (a dehyphenation/line-join artifact in
+# PyMuPDF's phrase search, not a real occurrence of the phrase). Redacting
+# and full-text-replacing at such a rect corrupts unrelated real content AND
+# draws the replacement into a footprint far smaller than its true width,
+# guaranteeing a CL-28 overlap. Every hit is now validated via
+# _hit_actually_contains() before being redacted/queued; a mismatch is
+# skipped (logged) rather than acted on — the real value at that location,
+# if any, is still correctly found and redacted by a shorter/more specific
+# map entry later in the longest-first pass.
+#
+# Validation is done at the CHARACTER level (page.get_text("rawdict")'s
+# per-glyph bboxes), not the word level: two word-level heuristics were
+# tried and both had real false-negative failure modes on this corpus —
+# (a) exact whole-word-join comparison rejects a genuine hit whenever the
+# matched phrase's boundary word carries trailing punctuation glued on with
+# no space (e.g. real text "...S.A., Integrante..." — search_for correctly
+# finds just "...S.A." but the last WORD token is "S.A.,"); (b) it also
+# can't validate a genuine hit for a value with no whitespace around it at
+# all (e.g. real "ABEL,BRIONES/RAMIREZ" is ONE PyMuPDF word — search_for
+# still returns a correct, tight rect for just the "RAMIREZ" substring
+# inside it, but no single WORD equals "RAMIREZ"). Comparing the actual
+# characters whose bbox center falls inside `rect` sidesteps both: for a
+# genuine hit (whichever of the two forms above) this reconstructs exactly
+# `expected`; for a spurious hit it reconstructs whatever unrelated
+# characters are actually there instead.
+
+def _hit_actually_contains(page: fitz.Page, rect: fitz.Rect, expected: str) -> bool:
+    """
+    True iff the characters whose bbox CENTER falls inside `rect` — from
+    PyMuPDF's per-glyph raw text extraction, in left-to-right order —
+    equal `expected` (whitespace-normalized: some real PII values, e.g. a
+    misaligned address line, contain runs of multiple literal spaces).
+    """
+    chars: list[tuple[float, str]] = []
+    for blk in page.get_text("rawdict")["blocks"]:
+        if blk["type"] != 0:
+            continue
+        for line in blk["lines"]:
+            for span in line["spans"]:
+                for ch in span["chars"]:
+                    bx0, by0, bx1, by1 = ch["bbox"]
+                    cx, cy = (bx0 + bx1) / 2, (by0 + by1) / 2
+                    if rect.x0 - 0.5 <= cx <= rect.x1 + 0.5 and rect.y0 - 0.5 <= cy <= rect.y1 + 0.5:
+                        chars.append((bx0, ch["c"]))
+    chars.sort(key=lambda c: c[0])
+    actual = "".join(c for _x, c in chars)
+    return actual.split() == expected.split()
+
 
 def _redact_and_replace_deferred(
     page: fitz.Page,
@@ -633,11 +708,39 @@ def _redact_and_replace_deferred(
     hits = page.search_for(real)
     if not hits:
         return 0
+    n = 0
     for rect in hits:
+        if not _hit_actually_contains(page, rect, real):
+            log.debug("  spurious search_for hit for %r at %s — skipped", real[:25], rect)
+            continue
         page.add_redact_annot(rect, fill=_FILL_WHITE)
         pending.append((rect, fake))
-    page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_NONE)
-    return len(hits)
+        n += 1
+    if n:
+        page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_NONE)
+    return n
+
+
+# Minimum clearance (pt) to keep beneath the extractor's own
+# TextOverlapEpsilon (2.0pt, PdfPigStatementFieldExtractor.cs) so a
+# replacement that just barely fits doesn't round-trip into a CL-28 finding.
+_OVERLAP_SAFETY_GAP = 2.5
+
+
+def _nearest_right_edge(rect: fitz.Rect, obstacles: list[fitz.Rect]) -> float:
+    """
+    Return the LEFT edge of the nearest obstacle rect that sits to the right
+    of `rect` on the same horizontal band (any Y-overlap at all), or +inf if
+    none qualifies.
+    """
+    best = float("inf")
+    for ob in obstacles:
+        if ob.x0 < rect.x1 - 0.5:
+            continue  # not meaningfully to the right of this rect
+        if min(rect.y1, ob.y1) - max(rect.y0, ob.y0) <= 0:
+            continue  # different vertical band
+        best = min(best, ob.x0)
+    return best
 
 
 def _flush_pending_text(
@@ -647,24 +750,66 @@ def _flush_pending_text(
     color=_COLOR_BLACK,
     fontsize: float = _FONT_SIZE,
     fontname: str = _FONT_NAME,
-) -> None:
+) -> list[str]:
     """
     Draw every queued replacement at an EXACT, never-shrunk `fontsize`
-    (default 8pt). If a replacement is wider than the rect it replaces,
-    widen the white fill + drawable box rightward into the row's own
-    whitespace, bounded to a safe right margin, instead of letting the text
-    overflow onto un-redacted content or shrinking to fit.
+    (default 8pt).
+
+    IMPORTANT: page.insert_text() does not clip or auto-fit — the glyphs
+    render at their full natural width no matter what we fill behind them.
+    So the only way to avoid a CL-28 (text-overlap) finding when a
+    replacement is wider than the rect it replaces is to confirm there is
+    GENUINELY EMPTY space to grow into, bounded by the nearest real
+    neighboring word (from a background snapshot taken before any of this
+    page's insertions) AND by every other pending replacement's own rect (so
+    two widened insertions on the same line can't grow into each other) AND
+    by every box already placed earlier in this same flush. White-fill is
+    drawn to match the actual rendered text extent, never wider or clipped.
+
+    Returns the list of fake strings whose natural 8pt width exceeds the
+    genuinely available space — these DID get drawn (never shrunk below
+    fontsize, per the hard requirement), but the caller must treat this as a
+    signal to shorten that specific fake token in the map and re-run; it is
+    not a runtime auto-fix (see module docstring: "report it rather than
+    hacking" — RC1.S4.d round 2).
     """
     right_margin = page.rect.width - 15.0
-    for rect, fake in pending:
+    # Snapshot everything on the page BEFORE any of our insertions — this is
+    # exactly the real, non-PII content that survived redaction (anything
+    # that was a PII match is already gone via apply_redactions).
+    background = [fitz.Rect(w[:4]) for w in page.get_text("words")]
+    placed: list[fitz.Rect] = []
+    overflowed: list[str] = []
+
+    for i, (rect, fake) in enumerate(pending):
         needed = fitz.get_text_length(fake, fontname=fontname, fontsize=fontsize)
-        x1 = rect.x1
+        x1 = rect.x0 + needed  # natural, unclamped width — insert_text can't clip
+
+        # Only the EXCESS beyond the original rect's own footprint needs a
+        # genuine-free-space check: if the replacement's natural width is no
+        # wider than what the redacted real text already occupied, it can't
+        # introduce a NEW overlap that wasn't already possible in the source
+        # (a pre-existing source-side near-touch, if any, is untouched by us
+        # and out of scope here — same "subset of source" contract as the
+        # sub-8pt gate).
         if needed > rect.width:
-            x1 = min(right_margin, rect.x0 + needed + 1.0)
-        if x1 > rect.x1:
-            page.draw_rect(fitz.Rect(rect.x1, rect.y0, x1, rect.y1), color=None, fill=_FILL_WHITE)
+            other_pending = [r for j, (r, _f) in enumerate(pending) if j != i]
+            obstacle_x = min(
+                right_margin,
+                _nearest_right_edge(rect, background),
+                _nearest_right_edge(rect, other_pending),
+                _nearest_right_edge(rect, placed),
+            )
+            if x1 + _OVERLAP_SAFETY_GAP > obstacle_x:
+                overflowed.append(fake)
+            if x1 > rect.x1:
+                page.draw_rect(fitz.Rect(rect.x1, rect.y0, x1, rect.y1), color=None, fill=_FILL_WHITE)
+
         baseline = fitz.Point(rect.x0 + 0.5, rect.y1 - 2.0)
         page.insert_text(baseline, fake, fontname=fontname, fontsize=fontsize, color=color)
+        placed.append(fitz.Rect(rect.x0, rect.y0, x1, rect.y1))
+
+    return overflowed
 
 
 def _cover_region(page: fitz.Page, rect: fitz.Rect, fake: str, *, color=_COLOR_BLACK) -> None:
@@ -741,7 +886,14 @@ def anonymize_page(
             log.debug("  p%d brand %r → %r (%d×)", page_num + 1, real_brand[:30], fake_brand[:25], n)
 
     # ── 2b. Draw all queued replacements now, at an exact non-shrinking size ─
-    _flush_pending_text(page, pending)
+    overflowed = _flush_pending_text(page, pending)
+    for fake in overflowed:
+        log.warning(
+            "  p%d: replacement %r has no genuinely free space to grow into at %.1fpt — "
+            "will still render at exactly %.1fpt (never shrunk), but this WILL be a CL-28 "
+            "text-overlap incident. Shorten this fake token in the map.",
+            page_num + 1, fake[:40], _FONT_SIZE, _FONT_SIZE,
+        )
 
     # ── 3. Credit-card page 1: cover AFP image-layer field values ───────────
     #
@@ -1122,9 +1274,21 @@ def main(argv: Optional[list[str]] = None) -> int:
         input_path  = Path(args.input)
         output_path = Path(args.out)
 
-        # Auto-detect which account label this PDF belongs to
+        # Auto-detect which account label this PDF belongs to (drives
+        # product-specific cosmetics only: CC page-1 image-box fake values,
+        # logging). PII REDACTION must use the GLOBAL union of every
+        # product's real_to_fake map — a single product's statements can
+        # reference another product's real values verbatim (e.g. a checking
+        # account's transaction lines naming a real credit-card number for a
+        # payment made to it), so scoping the token set to just this file's
+        # own product leaks those cross-referenced real tokens. run_batch()
+        # already does this via build_global_rtof(); single-file mode must
+        # match it exactly so both entry points give the same safety
+        # guarantee (RC1.S4.d PII-leak fix: A-series checking statements
+        # were leaking B/C real card numbers referenced in their payment
+        # transaction lines).
         label = detect_account_label(statements_dir, input_path)
-        rtof  = mapping.get("products", {}).get(label, {}).get("real_to_fake", {})
+        rtof  = build_global_rtof(mapping)
 
         anonymize_doc(input_path, output_path, label, rtof, inject=args.inject)
         log.info("Done: %s", output_path)
