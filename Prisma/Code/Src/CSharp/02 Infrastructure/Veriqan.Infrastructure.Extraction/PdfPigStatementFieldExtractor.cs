@@ -3899,16 +3899,71 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// Normalized legend text used to locate the fiscal block page.
-    /// Matches "REPRESENTACIÓN IMPRESA SIN VALIDEZ FISCAL" after NormalizeText().
+    /// Normalized legend text used to locate the fiscal block page — the retired Epic-3
+    /// synthetic legend. Matches "REPRESENTACIÓN IMPRESA SIN VALIDEZ FISCAL" after
+    /// NormalizeText(). Kept (not removed) so existing synthetic fixtures/tests built against
+    /// this legend (e.g. <c>compliant-master.pdf</c>, the Epic-6.2 QR round-trip test) keep
+    /// working — see <see cref="FiscalLegendSatNormalized"/> for the real-corpus legend.
     /// </summary>
     private const string FiscalLegendNormalized = "REPRESENTACION IMPRESA SIN VALIDEZ FISCAL";
 
     /// <summary>
-    /// DPI at which the fiscal-block page is rendered for QR scanning.
-    /// 150 DPI balances speed vs. QR readability.
+    /// Normalized legend text used to locate the fiscal block page on real Banamex/Citibanamex
+    /// statements (RC1.S4.b, CL-50..53 real-corpus recalibration). Matches
+    /// "ESTE DOCUMENTO ES UNA REPRESENTACIÓN IMPRESA DE UN CFDI" after NormalizeText() — the
+    /// SAT-standard legend, printed twice per statement on the fiscal (CFDI) page. This is the
+    /// SAME legend text CL-46's <c>mandatory-legends.csv</c> was recalibrated to in RC1.S4.c —
+    /// keeping both aligned to one real-world legend family.
+    /// </summary>
+    private const string FiscalLegendSatNormalized = "ESTE DOCUMENTO ES UNA REPRESENTACION IMPRESA DE UN CFDI";
+
+    /// <summary>
+    /// Base DPI at which the fiscal-block page is first rendered for QR scanning.
+    /// 150 DPI balances speed vs. QR readability for the common case.
     /// </summary>
     private const int FiscalPageRenderDpi = 150;
+
+    /// <summary>
+    /// Escalated DPI used to retry the QR scan when the base-DPI attempt fails to decode
+    /// (RC1.S4.b, 2026-07-22).
+    /// </summary>
+    /// <remarks>
+    /// Real-corpus evidence: at 150 DPI ZXing (<c>TryHarder</c>, all-format and RGB/BGR-swap
+    /// variants all tried) failed to decode the real Banamex/Citibanamex fiscal-page QR on every
+    /// one of 8 real credit-card statements, even though the SAME rendered bitmap decoded
+    /// successfully via an independent decoder (OpenCV's <c>QRCodeDetector</c>) — proving the QR
+    /// pixels were genuinely valid/scannable and the failure was ZXing running out of pixel
+    /// density at 150 DPI on this document family's module size (likely a dense vector-drawn
+    /// QR), not a missing/broken decoder. At 300 DPI the SAME ZXing call decodes correctly
+    /// (verified against multiple real statements — the recovered UUID exactly matches the
+    /// text-layer "UUID" label's value, cross-validating both fixes).
+    /// <para>
+    /// <b>Escalate-on-failure only, never replace the base attempt:</b> unconditionally raising
+    /// the base DPI to 300 regressed a synthetic fixture (<c>02+Dummie+VEC+ago_sep+2025.pdf</c>)
+    /// whose embedded QR is a low-native-resolution raster image — upscaling it to 300 DPI
+    /// blurred the modules enough that ZXing could no longer binarize it, even though it decoded
+    /// cleanly at 150 DPI. A vector QR (real corpus) benefits from more samples; a low-res raster
+    /// QR (this synthetic fixture) gets blurrier, not sharper, from the same upscale. The ladder
+    /// (150 DPI first, 300 DPI only on failure) is therefore not just a performance optimization —
+    /// it is required for correctness on both document families.
+    /// </para>
+    /// </remarks>
+    private const int FiscalPageRenderDpiEscalated = 300;
+
+    /// <summary>
+    /// Maximum vertical gap (PDF points) between the "UUID" label's row and a continuation row
+    /// still considered part of the same wrapped value (RC1.S4.b). Real-corpus statements wrap
+    /// the fiscal-code UUID across two physical lines mid hex-group (observed line pitch ≈10pt);
+    /// 15pt gives headroom without bridging into an unrelated row further down the page.
+    /// </summary>
+    private const double FiscalUuidWrapMaxRowGap = 15.0;
+
+    /// <summary>
+    /// Maximum horizontal drift (PDF points) allowed between the first value fragment's left edge
+    /// and the continuation row's left edge for the two to be considered the same wrapped column
+    /// (RC1.S4.b). Observed real-corpus wrap keeps the exact same X (right-column value slot).
+    /// </summary>
+    private const double FiscalUuidWrapColumnTolerance = 15.0;
 
     /// <summary>
     /// Pattern for extracting RFC tokens from fiscal-block page text.
@@ -3946,8 +4001,11 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         byte[] pdfBytes,
         string normalizedFullText)
     {
-        // Fast path: if the legend is not in the normalized full text, block is absent.
-        if (!normalizedFullText.Contains(FiscalLegendNormalized, StringComparison.Ordinal))
+        // Fast path: if neither the retired synthetic legend nor the real-corpus SAT legend is
+        // in the normalized full text, block is absent. Additive check (RC1.S4.b) — the
+        // synthetic legend stays recognized so existing fixtures keep working.
+        if (!normalizedFullText.Contains(FiscalLegendNormalized, StringComparison.Ordinal)
+            && !normalizedFullText.Contains(FiscalLegendSatNormalized, StringComparison.Ordinal))
             return FiscalBlock.NotPresent();
 
         // Find which page has the CFDI legend.
@@ -3960,7 +4018,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 var pageWords = page.GetWords();
                 var pageText = string.Join(" ", pageWords.Select(w => w.Text));
                 var normalized = NormalizeText(pageText);
-                if (normalized.Contains(FiscalLegendNormalized, StringComparison.Ordinal))
+                if (normalized.Contains(FiscalLegendNormalized, StringComparison.Ordinal)
+                    || normalized.Contains(FiscalLegendSatNormalized, StringComparison.Ordinal))
                 {
                     fiscalPageNumber = i;
                     break;
@@ -3988,90 +4047,56 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         try
         {
             var fiscalPage = doc.GetPage(fiscalPageNumber);
-            var allPageText = string.Join(" ", fiscalPage.GetWords().Select(w => w.Text));
+            var pageWords = fiscalPage.GetWords().ToList();
+            var allPageText = string.Join(" ", pageWords.Select(w => w.Text));
+            var bands = GroupIntoBands(pageWords);
 
-            // UUID-style fiscal code (folio fiscal / UUID CFDI).
-            var uuidMatch = FiscalCodeUuidPattern.Match(allPageText);
-            if (uuidMatch.Success)
-                fiscalCode = uuidMatch.Groups[1].Value.ToUpperInvariant();
+            // Fiscal code (folio fiscal / UUID CFDI) — label-anchored to the "UUID" row, with
+            // real-corpus two-line-wrap reassembly (RC1.S4.b): the value is split mid hex-group
+            // across the label's row and the row directly beneath it. Falls back to a full-page
+            // regex scan (catches e.g. the UUID embedded in the "cadena original" cert block)
+            // when no "UUID" label is found on the page at all.
+            fiscalCode = ExtractFiscalUuidWithLineWrap(bands);
+            if (fiscalCode is null)
+            {
+                var uuidMatch = FiscalCodeUuidPattern.Match(allPageText);
+                if (uuidMatch.Success)
+                    fiscalCode = uuidMatch.Groups[1].Value.ToUpperInvariant();
+            }
 
-            // RFC tokens — first occurrence = issuer, second = receiver
-            // (order on CFDI representation: Emisor RFC then Receptor RFC).
-            var rfcMatches = FiscalRfcTokenPattern.Matches(allPageText);
-            if (rfcMatches.Count >= 1)
-                issuerRfc = rfcMatches[0].Groups[1].Value.ToUpperInvariant();
-            if (rfcMatches.Count >= 2)
-                receiverRfc = rfcMatches[1].Groups[1].Value.ToUpperInvariant();
+            // Issuer/receiver RFC — label-anchored only (RC1.S4.b), never positionally guessed.
+            // Real statements print a THIRD RFC-shaped token labeled "RFC Proveedor Certificado"
+            // (the SAT-authorized certification provider, not the issuer) between the Receptor
+            // and Emisor rows — a naive "first/second RFC-pattern match in the page" heuristic
+            // picks up that decoy and misassigns both fields. Anchoring strictly to the "RFC del
+            // Emisor" / "RFC del Receptor" label rows (same horizontal band as the value, per the
+            // existing header label→value convention) avoids the decoy entirely. When a label's
+            // value cell is empty — which is the observed, honest case for the receiver RFC on
+            // this real-corpus family (it is image-rendered on a different page, never printed in
+            // this page's text layer) — the field is left NotExtracted rather than guessed.
+            issuerRfc = ExtractFiscalLabeledRfc(bands, "RFC", "del", "Emisor");
+            receiverRfc = ExtractFiscalLabeledRfc(bands, "RFC", "del", "Receptor");
         }
         catch (Exception ex)
         {
             _logger.LogDebug(ex, "Failed to extract text fields from fiscal page {Page}.", fiscalPageNumber);
         }
 
-        // ---- Render page and scan for QR with ZXing -------------------------
-        bool qrDecoded = false;
-        string? qrPayload = null;
+        // ---- Render page and scan for QR with ZXing (DPI escalation ladder) -------------------
+        // Try the base DPI first (cheap, correct for the common case and for low-native-resolution
+        // raster QR embeds); only escalate to a higher DPI when the base attempt fails to decode
+        // (dense/vector-drawn real-corpus QR codes need more samples). See FiscalPageRenderDpiEscalated
+        // remarks (RC1.S4.b) for why this must be escalate-on-failure, not a flat DPI bump.
+        var (qrDecoded, qrPayload) = TryDecodeFiscalQr(pdfBytes, fiscalPageNumber, FiscalPageRenderDpi);
+        if (!qrDecoded)
+            (qrDecoded, qrPayload) = TryDecodeFiscalQr(pdfBytes, fiscalPageNumber, FiscalPageRenderDpiEscalated);
 
-        try
+        // If QR payload contains a UUID and we didn't find one in page text, extract it.
+        if (qrDecoded && fiscalCode is null && qrPayload is not null)
         {
-            // PDFtoImage page index is 0-based.
-            var pageIndex0 = fiscalPageNumber - 1;
-            using var pdfStream = new MemoryStream(pdfBytes);
-#pragma warning disable CA1416 // PDFtoImage is cross-platform
-            using var bitmap = Conversion.ToImage(
-                pdfStream,
-                leaveOpen: false,
-                page: pageIndex0,
-                options: new RenderOptions(Dpi: FiscalPageRenderDpi));
-#pragma warning restore CA1416
-
-            if (bitmap is not null && bitmap.Width > 0 && bitmap.Height > 0)
-            {
-                // SKBitmap.Bytes gives BGRA32 row-major data.
-                var bgraBytes = bitmap.Bytes;
-
-                if (bgraBytes is not null && bgraBytes.Length == bitmap.Width * bitmap.Height * 4)
-                {
-                    // Convert BGRA → BGR for RGBLuminanceSource.
-                    var bgrBytes = ConvertBgraToRgbForZXing(bgraBytes, bitmap.Width, bitmap.Height);
-
-                    var luminance = new RGBLuminanceSource(
-                        bgrBytes,
-                        bitmap.Width,
-                        bitmap.Height,
-                        RGBLuminanceSource.BitmapFormat.BGR24);
-
-                    var reader = new BarcodeReaderGeneric
-                    {
-                        AutoRotate = true,
-                        Options = new ZXing.Common.DecodingOptions
-                        {
-                            TryHarder = true,
-                            PossibleFormats = [ZXing.BarcodeFormat.QR_CODE],
-                        },
-                    };
-
-                    var decoded = reader.Decode(luminance);
-                    if (decoded is not null && !string.IsNullOrWhiteSpace(decoded.Text))
-                    {
-                        qrDecoded = true;
-                        qrPayload = decoded.Text;
-
-                        // If QR payload contains a UUID and we didn't find one in page text, extract it.
-                        if (fiscalCode is null)
-                        {
-                            var uuidInQr = FiscalCodeUuidPattern.Match(qrPayload);
-                            if (uuidInQr.Success)
-                                fiscalCode = uuidInQr.Groups[1].Value.ToUpperInvariant();
-                        }
-                    }
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex,
-                "QR scan failed for fiscal page {Page}; QrDecoded will be false.", fiscalPageNumber);
+            var uuidInQr = FiscalCodeUuidPattern.Match(qrPayload);
+            if (uuidInQr.Success)
+                fiscalCode = uuidInQr.Groups[1].Value.ToUpperInvariant();
         }
 
         _logger.LogInformation(
@@ -4087,6 +4112,165 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             IssuerRfc: issuerRfc,
             ReceiverRfc: receiverRfc,
             Locator: locator);
+    }
+
+    /// <summary>
+    /// Renders the fiscal-block page at <paramref name="dpi"/> and attempts a QR decode via ZXing.
+    /// One rendering + decode attempt only — callers implement the DPI escalation ladder
+    /// (RC1.S4.b — see <see cref="FiscalPageRenderDpiEscalated"/> remarks).
+    /// </summary>
+    /// <returns>
+    /// <c>(true, payload)</c> when a QR was found and decoded; <c>(false, null)</c> on any
+    /// render/decode failure or absence — never throws.
+    /// </returns>
+    private (bool Decoded, string? Payload) TryDecodeFiscalQr(byte[] pdfBytes, int fiscalPageNumber, int dpi)
+    {
+        try
+        {
+            // PDFtoImage page index is 0-based.
+            var pageIndex0 = fiscalPageNumber - 1;
+            using var pdfStream = new MemoryStream(pdfBytes);
+#pragma warning disable CA1416 // PDFtoImage is cross-platform
+            using var bitmap = Conversion.ToImage(
+                pdfStream,
+                leaveOpen: false,
+                page: pageIndex0,
+                options: new RenderOptions(Dpi: dpi));
+#pragma warning restore CA1416
+
+            if (bitmap is null || bitmap.Width <= 0 || bitmap.Height <= 0)
+                return (false, null);
+
+            // SKBitmap.Bytes gives BGRA32 row-major data.
+            var bgraBytes = bitmap.Bytes;
+            if (bgraBytes is null || bgraBytes.Length != bitmap.Width * bitmap.Height * 4)
+                return (false, null);
+
+            // Convert BGRA → BGR for RGBLuminanceSource.
+            var bgrBytes = ConvertBgraToRgbForZXing(bgraBytes, bitmap.Width, bitmap.Height);
+
+            var luminance = new RGBLuminanceSource(
+                bgrBytes,
+                bitmap.Width,
+                bitmap.Height,
+                RGBLuminanceSource.BitmapFormat.BGR24);
+
+            var reader = new BarcodeReaderGeneric
+            {
+                AutoRotate = true,
+                Options = new ZXing.Common.DecodingOptions
+                {
+                    TryHarder = true,
+                    PossibleFormats = [ZXing.BarcodeFormat.QR_CODE],
+                },
+            };
+
+            var decoded = reader.Decode(luminance);
+            return decoded is not null && !string.IsNullOrWhiteSpace(decoded.Text)
+                ? (true, decoded.Text)
+                : (false, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex,
+                "QR scan failed for fiscal page {Page} at {Dpi} DPI.", fiscalPageNumber, dpi);
+            return (false, null);
+        }
+    }
+
+    /// <summary>
+    /// Locates the "UUID" label on the fiscal-block page and extracts its value, rejoining the
+    /// real-corpus two-line wrap when the hex value's last group is split mid-group across the
+    /// label's row and the row directly beneath it (RC1.S4.b — CL-51).
+    /// </summary>
+    /// <remarks>
+    /// Real Banamex/Citibanamex statements print the label "UUID" in the right column of the
+    /// fiscal-block table with the folio-fiscal value wrapping onto a second physical line at the
+    /// same X position (observed: e.g. "DCA6DDCE-DA3F-44FC-A93E-9A77" / "42F7E8D2" on consecutive
+    /// rows ≈10pt apart). A same-band lookup alone (as used for the RFC fields) only recovers the
+    /// first fragment; this method additionally looks one row below when the first fragment is not
+    /// already a complete UUID.
+    /// </remarks>
+    private static string? ExtractFiscalUuidWithLineWrap(Dictionary<double, List<Word>> bands)
+    {
+        foreach (var (bandY, bandWords) in bands.OrderByDescending(b => b.Key))
+        {
+            var sorted = bandWords.OrderBy(w => w.BoundingBox.Left).ToList();
+
+            for (var i = 0; i < sorted.Count; i++)
+            {
+                if (!string.Equals(sorted[i].Text, "UUID", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                var labelRight = sorted[i].BoundingBox.Right;
+                var valueWords = sorted
+                    .Where(w => w.BoundingBox.Left > labelRight)
+                    .OrderBy(w => w.BoundingBox.Left)
+                    .ToList();
+
+                if (valueWords.Count == 0)
+                    continue;
+
+                var firstFragment = string.Concat(valueWords.Select(w => w.Text));
+
+                var directMatch = FiscalCodeUuidPattern.Match(firstFragment);
+                if (directMatch.Success)
+                    return directMatch.Groups[1].Value.ToUpperInvariant();
+
+                // Not a complete UUID on this row alone — look for a continuation row directly
+                // below, in the same column (the real-corpus line-wrap shape).
+                var valueLeft = valueWords[0].BoundingBox.Left;
+                var continuation = bands
+                    .Where(b => b.Key < bandY && bandY - b.Key <= FiscalUuidWrapMaxRowGap)
+                    .OrderByDescending(b => b.Key)
+                    .Select(b => b.Value.OrderBy(w => w.BoundingBox.Left).ToList())
+                    .FirstOrDefault(row => row.Count > 0
+                        && Math.Abs(row[0].BoundingBox.Left - valueLeft) <= FiscalUuidWrapColumnTolerance);
+
+                if (continuation is null)
+                    continue;
+
+                var combined = firstFragment + string.Concat(continuation.Select(w => w.Text));
+                var wrappedMatch = FiscalCodeUuidPattern.Match(combined);
+                if (wrappedMatch.Success)
+                    return wrappedMatch.Groups[1].Value.ToUpperInvariant();
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Locates a fiscal-block label (e.g. "RFC del Emisor") and returns the value on the SAME
+    /// horizontal band, to the right of the label — never a positional/first-second guess
+    /// (RC1.S4.b — CL-52/CL-53). Returns <see langword="null"/> when the label's value cell is
+    /// empty (the honest, observed case for the receiver RFC on the real-corpus family: the
+    /// customer's RFC is not printed in this page's text layer at all).
+    /// </summary>
+    private static string? ExtractFiscalLabeledRfc(Dictionary<double, List<Word>> bands, params string[] labelTokens)
+    {
+        foreach (var (_, bandWords) in bands)
+        {
+            var sorted = bandWords.OrderBy(w => w.BoundingBox.Left).ToList();
+
+            for (var i = 0; i <= sorted.Count - labelTokens.Length; i++)
+            {
+                if (!MatchesLabel(sorted, i, labelTokens))
+                    continue;
+
+                var labelRight = sorted[i + labelTokens.Length - 1].BoundingBox.Right;
+                var valueWords = sorted
+                    .Where(w => w.BoundingBox.Left > labelRight)
+                    .OrderBy(w => w.BoundingBox.Left)
+                    .ToList();
+
+                return valueWords.Count == 0
+                    ? null
+                    : string.Concat(valueWords.Select(w => w.Text)).ToUpperInvariant();
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

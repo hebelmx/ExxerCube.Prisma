@@ -14,7 +14,20 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// is present and matches the Mexican RFC pattern <c>^[A-ZÑ&amp;]{3,4}\d{6}[A-Z0-9]{3}$</c>.
 /// </summary>
 /// <remarks>
+/// <para>
 /// When the fiscal block is not required and not present, this rule returns Pass (n/a).
+/// </para>
+/// <para>
+/// <b>RC1.S4.b (2026-07-22) — NotExtracted vs. ExtractedInvalidFormat:</b> when the extractor
+/// found no receiver-RFC value at all (label-anchored lookup came up empty), this rule returns
+/// <b>InsufficientData</b> rather than Fail. Real-corpus evidence (Banamex/Citibanamex) showed
+/// the receiver's RFC is genuinely never printed in the fiscal-block page's text layer — it is
+/// image-rendered elsewhere on the statement — so a hard Fail here would be an ungrounded false
+/// positive, not a proven compliance gap. When a value WAS extracted but does not match the RFC
+/// pattern, the rule still Fails (a malformed extracted value is a real defect, distinct from an
+/// honest "not printed here"). This mirrors the established NotExtracted/ExtractedInvalidFormat
+/// split used elsewhere in the checklist (e.g. CL-21's guarded implied-zero).
+/// </para>
 /// </remarks>
 internal sealed class Cl53ReceiverRfcRule : IVecValidationRule
 {
@@ -76,6 +89,18 @@ internal sealed class Cl53ReceiverRfcRule : IVecValidationRule
                     locator: fb.Locator));
         }
 
+        // Not extracted at all (label-anchored lookup found no value) — abstain rather than
+        // false-FAIL. See remarks: real-corpus evidence shows this field is genuinely never
+        // printed in this page's text layer on this statement family.
+        if (string.IsNullOrWhiteSpace(rfc))
+        {
+            return InsufficientData(
+                "Receiver RFC not present in the fiscal-block page text layer "
+                + "(commonly image-rendered elsewhere on the statement) — cannot confirm "
+                + "compliance without visual/OCR confirmation.");
+        }
+
+        // A value WAS extracted but does not match the RFC pattern — a genuine defect.
         return Result<RuleFinding>.WithSuccess(
             RuleFinding.Fail(
                 checkId: CheckId,
@@ -83,7 +108,7 @@ internal sealed class Cl53ReceiverRfcRule : IVecValidationRule
                 severity: FindingSeverity.Critical,
                 engineVersion: Version,
                 expected: @"Receiver RFC matching ^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$",
-                observed: string.IsNullOrWhiteSpace(rfc) ? "not extracted" : rfc,
+                observed: rfc,
                 locator: fb.Locator));
     }
 

@@ -453,8 +453,17 @@ public sealed class FiscalBlockRuleTests
         result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
     }
 
+    /// <summary>
+    /// RC1.S4.b (2026-07-22): a receiver RFC that was never extracted (label-anchored lookup
+    /// found no value) is an honest abstention, not a Fail — real-corpus evidence showed this
+    /// field is genuinely never printed in the fiscal-block page's text layer (it is
+    /// image-rendered elsewhere), so treating "not extracted" as a hard compliance Fail would be
+    /// an ungrounded false positive. See <see cref="Cl53_MalformedReceiverRfc_ReturnsFail"/> for
+    /// the distinct case of a value that WAS extracted but doesn't match the RFC pattern, which
+    /// still Fails. Was <c>Cl53_MissingReceiverRfc_ReturnsFail</c> prior to this recalibration.
+    /// </summary>
     [Fact]
-    public void Cl53_MissingReceiverRfc_ReturnsFail()
+    public void Cl53_MissingReceiverRfc_ReturnsInsufficientData()
     {
         var rule = new Cl53ReceiverRfcRule();
         var fb = FiscalBlockWith(blockPresent: true, qrDecoded: true, receiverRfc: null);
@@ -465,7 +474,8 @@ public sealed class FiscalBlockRuleTests
         var result = rule.Evaluate(ctx, ct);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail);
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "not-extracted must abstain honestly rather than false-FAIL — see CL-53 remarks (RC1.S4.b)");
     }
 
     [Fact]
