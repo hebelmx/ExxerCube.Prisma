@@ -20,11 +20,23 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// <remarks>
 /// <para>
 /// <b>Formula:</b>
-/// <c>CargosRegularesNoMeses ≈ Σ Amount of Charge movements where Description ∉ MSI pattern</c>.
+/// <c>CargosRegularesNoMeses ≈ Σ Amount of Charge movements where Description ∉ MSI pattern
+/// AND Description ∉ interest/commission/IVA pattern</c>.
 /// </para>
 /// <para>
 /// MSI installment rows are identified by the "NNN de NNN" fragment in the description
 /// (e.g. "DON COLCHON CUMBRES 005 de 012") via <see cref="MovementClassifier.IsMsi"/>.
+/// </para>
+/// <para>
+/// <b>RC1.S4.a (real-corpus triage, class c):</b> interest, commission, and IVA-on-interest/
+/// commission DESGLOSE rows (e.g. "MONTO DE INTERESES", "COMISION ANUALIDAD", "IVA POR INTERESES
+/// Y/O COMISIONES") are also excluded from this sum via <see cref="MovementClassifier.IsInterestCommissionOrIva"/>
+/// — the printed "Cargos regulares (no a meses)" excludes those charges because they are reported
+/// on their own dedicated RESUMEN lines. Evidence: Observed−Expected ==
+/// MontoIntereses+MontoComisiones+IvaInteresesYComisiones to the cent on 4 independent real
+/// Banamex months (<c>docs/qa/calibration/real-corpus-triage-2026-07.md</c>). The exclusion
+/// pattern is deliberately conservative — an ambiguous row (no interest/commission/IVA keyword)
+/// stays IN the sum (fail-honest).
 /// </para>
 /// <para>
 /// <b>Tolerance (ADR-V3, Story 9.6):</b> resolved via <see cref="ILegalToleranceProvider"/>
@@ -101,7 +113,9 @@ internal sealed class Cl18CargosRegularesSumaDesgloseRule : IVecValidationRule
                 "CargosRegularesNoMeses", ps.CargosRegularesNoMeses.Confidence, confidenceThreshold));
 
         var sumNonMsi = ctx.StatementModel.Movements
-            .Where(m => m.Sign == MovementSign.Charge && !MovementClassifier.IsMsi(m.Description))
+            .Where(m => m.Sign == MovementSign.Charge
+                && !MovementClassifier.IsMsi(m.Description)
+                && !MovementClassifier.IsInterestCommissionOrIva(m.Description))
             .Sum(m => m.Amount);
 
         var target = ps.CargosRegularesNoMeses.Value;

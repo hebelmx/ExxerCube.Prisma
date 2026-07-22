@@ -21,8 +21,12 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// </para>
 /// <para>
 /// All thirteen note texts are in <see cref="CondusefVerbatimCatalog.Section26Notes"/>.
-/// Matching is tolerant (Jaccard + Levenshtein max via <see cref="VecTextMatcher"/>) to
-/// handle PDF extraction artefacts (line-wrapping, soft hyphens, ligatures).
+/// Matching is tolerant (Jaccard + Levenshtein max via <see cref="VecTextMatcher"/>, plus a
+/// token-sequence LCS ratio — <see cref="VerbatimBlockMatcher"/>, RC1.S4.a Fix 2a) to handle
+/// PDF extraction artefacts (line-wrapping, soft hyphens, ligatures, multi-column interleaving).
+/// A block also passes when it matches any accepted wording variant registered in
+/// <see cref="CondusefVerbatimCatalog.AcceptedVariants"/> (RC1.S4.a Fix 2b, owner-ruled) — the
+/// DOF text is always the primary candidate; variants only widen acceptance.
 /// </para>
 /// <para>
 /// <b>Abstain (InsufficientData) paths:</b>
@@ -52,14 +56,23 @@ internal sealed class Section26NotasAclaratoriasRule : IVecValidationRule
     /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
-    private static readonly IReadOnlyList<(string Id, string NormalizedText)> NormalizedBlocks =
+    private static readonly IReadOnlyList<(string Id, IReadOnlyList<string> NormalizedCandidates)> NormalizedBlocks =
         BuildNormalized();
 
-    private static IReadOnlyList<(string Id, string NormalizedText)> BuildNormalized()
+    private static IReadOnlyList<(string Id, IReadOnlyList<string> NormalizedCandidates)> BuildNormalized()
     {
-        var list = new List<(string, string)>(CondusefVerbatimCatalog.Section26Notes.Count);
+        var list = new List<(string, IReadOnlyList<string>)>(CondusefVerbatimCatalog.Section26Notes.Count);
         foreach (var (id, text) in CondusefVerbatimCatalog.Section26Notes)
-            list.Add((id, VecTextMatcher.Normalize(text)));
+        {
+            var candidates = new List<string> { VecTextMatcher.Normalize(text) };
+            if (CondusefVerbatimCatalog.AcceptedVariants.TryGetValue(id, out var variants))
+            {
+                foreach (var variant in variants)
+                    candidates.Add(VecTextMatcher.Normalize(variant));
+            }
+
+            list.Add((id, candidates));
+        }
 
         return list;
     }
@@ -96,7 +109,7 @@ internal sealed class Section26NotasAclaratoriasRule : IVecValidationRule
         // spurious occurrence elsewhere in the document is not realistic.
         var threshold = ResolveThreshold(ctx);
 
-        var failing = VerbatimBlockMatcher.FindFailingBlocks(model.NormalizedFullText, NormalizedBlocks, threshold);
+        var failing = VerbatimBlockMatcher.FindFailingBlocksMultiCandidate(model.NormalizedFullText, NormalizedBlocks, threshold);
 
         if (failing.Count == 0)
         {

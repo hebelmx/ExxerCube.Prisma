@@ -43,12 +43,25 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 /// DayCountPrinted, PagoMinimo), RESUMEN amounts (CargosRegularesNoMeses, CargosComprasAMeses,
 /// MontoIntereses, MontoComisiones, IvaInteresesYComisiones), and NIVEL-DE-USO totals
 /// (SaldoCargosRegulares, SaldoCargosAMeses, CreditoDisponible) are all now extracted.
-/// AdeudoPeriodoAnterior and PagosYAbonos remain NotExtracted (zero-row suppressed on
-/// page 1 of this layout). After the Epic 5 guarded-implied-zero rule change, CL-21 treats
-/// their absence as 0m and evaluates the formula with the 5 CORE operands.
-/// For good.pdf: computed=$12,604.55, observed=$12,604.55 → CL-21 returns <b>Pass</b>.
-/// For bad-math-cl21.pdf: computed=$12,604.55, observed=$12,615.55, delta=$11.00 &gt; tol=$0.50
-/// → CL-21 returns <b>Fail/Critical</b> (injected error exceeds tolerance).
+/// AdeudoPeriodoAnterior and PagosYAbonos remain NotExtracted (no label/amount for either row
+/// anywhere in the text layer — confirmed via <c>pdftotext</c>).
+/// </para>
+/// <para>
+/// <b>RC1.S4.a update (2026-07-22, real-corpus triage):</b> the Epic-5 "NotExtracted ⇒ implied
+/// zero" rule for AdeudoPeriodoAnterior/PagosYAbonos was retired in favor of a <em>grounded</em>
+/// implied-zero (<c>Cl21PagoParaNoGenerarInteresesRule</c>) — implied-zero now requires the
+/// operand's RESUMEN label to be found somewhere in the text layer. Real-corpus evidence proved
+/// the old unconditional rule produced false Fails on real Banamex statements where these rows
+/// are non-zero but image-rendered (same NotExtracted signature as a genuinely zero-suppressed
+/// row). Neither label is present anywhere in this PDF family's text layer (verified), so CL-21
+/// now honestly ABSTAINS (InsufficientData) on this PDF family instead of computing an implied
+/// zero — for BOTH good.pdf and bad-math-cl21.pdf. This is a deliberate, evidence-driven
+/// consequence of widening honesty (never force a pass on ungrounded data): bad-math-cl21.pdf's
+/// injected +$11.00 defect is still caught — CL-22 (<c>SaldoCargosRegulares ==
+/// PagoParaNoGenerarIntereses</c>) does not depend on Adeudo/Pagos grounding and still fires
+/// Fail/Critical, so the overall RED verdict is preserved. See
+/// <c>docs/qa/calibration/real-corpus-triage-2026-07.md</c> and
+/// <c>docs/planning-artifacts/epic-veriqan-real-corpus-calibration-2026-07-22.md</c> (RC1.S4.a).
 /// </para>
 /// <para>
 /// <b>Demo corpus</b> — 4 anonymized PDFs under:<br/>
@@ -56,8 +69,8 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 /// </para>
 /// <list type="table">
 ///   <listheader><term>File</term><description>Actual verdict / notes</description></listheader>
-///   <item><term>good.pdf</term><description>RED / LAW-SEC-PRESENCE — 13 structural failures. 21 fields extracted; floor cleared without bypass.</description></item>
-///   <item><term>bad-math-cl21.pdf</term><description>RED / LAW-SEC-PRESENCE + CL-21 + CL-22 — same 13 structural failures; CL-21 AND CL-22 = Fail (guarded implied-zero: Adeudo/Pagos absent → 0m, delta=$11.00 &gt; tol=$0.50). Single +$11.00 injection breaks both arithmetic identities.</description></item>
+///   <item><term>good.pdf</term><description>RED / LAW-SEC-PRESENCE — structural failures (CL-18 and LAW-§26-NOTAS now Pass post-RC1.S4.a; CL-21 now InsufficientData — ungrounded Adeudo/Pagos, see RC1.S4.a remarks above). 21 fields extracted; floor cleared without bypass.</description></item>
+///   <item><term>bad-math-cl21.pdf</term><description>RED / LAW-SEC-PRESENCE + CL-22 — CL-21 now InsufficientData (RC1.S4.a — ungrounded Adeudo/Pagos, same as good.pdf); CL-22 alone still catches the +$11.00 injection (delta=$11.00 &gt; tol=$0.50), preserving the RED verdict.</description></item>
 ///   <item><term>bad-font-cl35.pdf</term><description>RED / CL-35 — Courier font detected; Helvetica required by bundle (plus same 13 structural failures).</description></item>
 ///   <item><term>scanned.pdf</term><description>BLOCKED — image-only PDF, text-layer floor not met.</description></item>
 /// </list>
@@ -162,17 +175,25 @@ public sealed class VecChecklistDemoE2ETests
     ///   LAW-§26-NOTAS                — (a) genuine: 13 mandatory "Notas aclaratorias" texts absent
     ///   LAW-§27-GLOSARIO             — (a) genuine: 15 mandatory "Glosario de términos" texts absent
     ///
-    /// <b>Why bad-math-cl21.pdf is Red (CL-21 + CL-22 fire + 13 structural failures, after Epic 5):</b>
-    /// After the guarded-implied-zero rule change (Epic 5), AdeudoPeriodoAnterior and PagosYAbonos
-    /// are treated as 0m when absent (zero-row suppressed on page 1 of this layout).
-    /// The +$11.00 injection changes PagoParaNoGenerarIntereses: $12,604.55 → $12,615.55.
-    /// This single fat-finger entry legitimately breaks TWO arithmetic identities:
+    /// <b>Why bad-math-cl21.pdf is Red (CL-22 fires + structural failures; RC1.S4.a update):</b>
+    /// The +$11.00 injection changes PagoParaNoGenerarIntereses: $12,604.55 → $12,615.55. Before
+    /// RC1.S4.a (Epic 5's unconditional guarded-implied-zero), this single fat-finger entry broke
+    /// TWO arithmetic identities (CL-21 AND CL-22). RC1.S4.a retired the unconditional implied-zero
+    /// for AdeudoPeriodoAnterior/PagosYAbonos: implied-zero now requires the operand's RESUMEN
+    /// label to be grounded (found somewhere in the text layer). Neither label appears anywhere in
+    /// this PDF family's text layer, so CL-21 now honestly ABSTAINS (InsufficientData) — computing
+    /// on an ungrounded implied zero would risk a false verdict on a genuinely non-zero,
+    /// image-rendered row (the exact real-corpus failure mode RC1.S4.a fixes). CL-22 does NOT
+    /// depend on Adeudo/Pagos and is unaffected:
     /// <list type="bullet">
-    ///   <item>CL-21: computed(5-core-sum)=$12,604.55 vs observed=$12,615.55, delta=$11.00 &gt; $0.50 → <b>Fail/Critical</b>.</item>
-    ///   <item>CL-22: SaldoCargosRegulares(untouched)=$12,604.55 vs PagoParaNoGenerarIntereses(injected)=$12,615.55, delta=$11.00 &gt; $0.50 → <b>Fail/Critical</b>.</item>
+    ///   <item>CL-21: now <b>InsufficientData</b> (RC1.S4.a — ungrounded Adeudo/Pagos; formerly computed a Fail via unconditional implied-zero).</item>
+    ///   <item>CL-22: SaldoCargosRegulares(untouched)=$12,604.55 vs PagoParaNoGenerarIntereses(injected)=$12,615.55, delta=$11.00 &gt; $0.50 → <b>Fail/Critical</b> (unchanged).</item>
     /// </list>
-    /// The Red signal comes from both CL-21 + CL-22 (math errors) and the same 13 structural failures.
-    /// The assertions confirm CL-21 and CL-22 are both in FailCheckIds and neither is InsufficientData.
+    /// The Red signal is preserved via CL-22 (math error) plus the structural failures — the
+    /// defect specimen still correctly signals RED end-to-end even though the specific CL-21
+    /// finding changed. The assertions confirm CL-22 is in FailCheckIds and CL-21 is in
+    /// InsufficientDataCheckIds (RC1.S4.a — see
+    /// <c>docs/qa/calibration/real-corpus-triage-2026-07.md</c>).
     /// </remarks>
     /// <summary>
     /// MemberData source for <see cref="Pipeline_DemoFixture_ProducesExpectedVerdict"/>.
@@ -216,12 +237,16 @@ public sealed class VecChecklistDemoE2ETests
         // BankTierVerdict=Yellow because CL-50/CL-51/CL-52/CL-53 are Bank and CL-31/CL-32/CL-46/CL-48 are Both.
         ["good.pdf",          VerdictSignal.Red,     "LAW-SEC-PRESENCE", VerdictSignal.Yellow, VerdictSignal.Red],
 
-        // bad-math-cl21.pdf: RED (13 structural failures + CL-21 Fail + CL-22 Fail; delta=$11.00 > tol=$0.50).
-        // Single +$11.00 injection on PagoParaNoGenerarIntereses breaks both arithmetic identities.
-        // Tier partition: CL-21 and CL-22 are both "Both" tier → add to condusef + bank fail sets.
+        // bad-math-cl21.pdf: RED (structural failures + CL-22 Fail; delta=$11.00 > tol=$0.50).
+        // RC1.S4.a (2026-07-22): CL-21 now InsufficientData (grounded-implied-zero gate — neither
+        // AdeudoPeriodoAnterior nor PagosYAbonos label is found anywhere in this PDF family's text
+        // layer, so the rule honestly abstains instead of computing on an ungrounded implied zero).
+        // CL-22 (SaldoCargosRegulares == PagoParaNoGenerarIntereses) does not depend on Adeudo/Pagos
+        // and alone still catches the +$11.00 injection — RED verdict preserved.
+        // Tier partition: CL-22 is "Both" tier → adds to condusef + bank fail sets.
         // CondusefTierVerdict remains Red; BankTierVerdict remains Yellow (non-empty bankFailIds).
-        // Note: expectedFailCheckId column uses "CL-21" — CL-22 is asserted in-branch below.
-        ["bad-math-cl21.pdf", VerdictSignal.Red,     "CL-21",            VerdictSignal.Yellow, VerdictSignal.Red],
+        // Note: expectedFailCheckId column uses "CL-22" — CL-21's InsufficientData is asserted in-branch below.
+        ["bad-math-cl21.pdf", VerdictSignal.Red,     "CL-22",            VerdictSignal.Yellow, VerdictSignal.Red],
 
         // bad-font-cl35.pdf: RED / CL-35 (Bank tier) + same 13 structural failures.
         // CL-35 adds to bankFailIds but not condusefFailIds — tier split is the same as the others.
@@ -459,34 +484,39 @@ public sealed class VecChecklistDemoE2ETests
                     0,
                     $"'{fixtureName}': RED outcome must carry at least one RuleFinding.");
 
-                // For bad-math-cl21.pdf specifically (after Epic 5 — guarded implied-zero rule):
-                // AdeudoPeriodoAnterior and PagosYAbonos are legitimately absent (zero-row
-                // suppressed); the rule now treats them as 0m rather than returning InsufficientData.
-                // The +$11.00 injection changes PagoParaNoGenerarIntereses: $12,604.55 → $12,615.55.
-                // This single fat-finger entry breaks TWO arithmetic identities:
-                //   CL-21: computed(5-core-sum) = $12,604.55, observed = $12,615.55, delta = $11.00
-                //          >> $0.50 legal tolerance → Fail/Critical.
+                // For bad-math-cl21.pdf specifically (RC1.S4.a, 2026-07-22 — grounded implied-zero):
+                // AdeudoPeriodoAnterior and PagosYAbonos are NotExtracted with NEITHER label found
+                // anywhere in this PDF family's text layer (verified via pdftotext) — real-corpus
+                // evidence proved the old unconditional Epic-5 implied-zero produces false Fails on
+                // real Banamex statements where these rows are non-zero but image-rendered (same
+                // NotExtracted signature as a genuinely zero-suppressed row). CL-21 therefore now
+                // honestly ABSTAINS instead of computing on an ungrounded implied zero — this is a
+                // deliberate widening of honesty, not a regression: the same "misread digit ≠ false
+                // non-compliant" principle that made CL-21 fire on this fixture under Epic 5 now
+                // makes it abstain, because the grounding evidence for the implied zero doesn't
+                // exist on this PDF. The +$11.00 injection is still caught independently:
+                //   CL-21: InsufficientData (ungrounded Adeudo/Pagos — RC1.S4.a).
                 //   CL-22: SaldoCargosRegulares (NIVEL DE USO, untouched) = $12,604.55
                 //          vs PagoParaNoGenerarIntereses (injected) = $12,615.55, delta = $11.00
-                //          >> $0.50 → Fail/Critical.
+                //          >> $0.50 → Fail/Critical (does not depend on Adeudo/Pagos, unaffected).
                 if (fixtureName == "bad-math-cl21.pdf")
                 {
-                    outcome.Summary.InsufficientDataCheckIds.ShouldNotContain(
+                    outcome.Summary.InsufficientDataCheckIds.ShouldContain(
                         "CL-21",
-                        "CL-21 must NOT be InsufficientData for bad-math-cl21.pdf after the " +
-                        "guarded-implied-zero change (Epic 5) — absent Adeudo/Pagos rows are " +
-                        "now treated as 0m so the formula runs.");
-                    outcome.Summary.FailCheckIds.ShouldContain(
+                        "CL-21 must be InsufficientData for bad-math-cl21.pdf (RC1.S4.a) — neither " +
+                        "AdeudoPeriodoAnterior nor PagosYAbonos label is found anywhere in this PDF " +
+                        "family's text layer, so the grounded-implied-zero gate abstains rather than " +
+                        "computing on a fabricated zero.");
+                    outcome.Summary.FailCheckIds.ShouldNotContain(
                         "CL-21",
-                        "CL-21 must be Fail for bad-math-cl21.pdf — the +$11.00 injected error " +
-                        "(delta=$11.00) exceeds the $0.50 legal tolerance.");
+                        "CL-21 must NOT be Fail for bad-math-cl21.pdf post-RC1.S4.a — it abstains " +
+                        "instead (see InsufficientDataCheckIds assertion above).");
                     outcome.Summary.FailCheckIds.ShouldContain(
                         "CL-22",
-                        "CL-22 must also be Fail for bad-math-cl21.pdf — the same +$11.00 injection " +
-                        "that breaks CL-21 also violates the SaldoCargosRegulares==PagoParaNoGenerarIntereses " +
-                        "identity (SaldoCargosRegulares=$12,604.55 untouched vs injected $12,615.55, " +
-                        "delta=$11.00 >> $0.50 tolerance).  One fat-finger entry legitimately breaks " +
-                        "both arithmetic checks.");
+                        "CL-22 must be Fail for bad-math-cl21.pdf — it does not depend on " +
+                        "Adeudo/Pagos grounding and alone still catches the +$11.00 injected error " +
+                        "(SaldoCargosRegulares=$12,604.55 untouched vs injected $12,615.55, " +
+                        "delta=$11.00 >> $0.50 tolerance), preserving the RED verdict.");
                 }
                 break;
 

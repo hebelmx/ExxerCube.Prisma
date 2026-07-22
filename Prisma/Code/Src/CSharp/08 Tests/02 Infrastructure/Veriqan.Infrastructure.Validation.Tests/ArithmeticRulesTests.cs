@@ -133,7 +133,13 @@ public sealed class ArithmeticRulesTests
     /// Builds a minimal <see cref="StatementModel"/> wrapping the supplied <see cref="PeriodSummary"/>.
     /// The header identity fields are all set to Missing strings (not relevant for arithmetic rules).
     /// </summary>
-    private static StatementModel ModelWith(PeriodSummary ps)
+    /// <param name="ps">Period summary.</param>
+    /// <param name="normalizedFullText">
+    /// Normalized document text (RC1.S4.a grounding evidence for CL-21's implied-zero branch).
+    /// Defaults to empty — most arithmetic-rule tests do not exercise the CL-21 grounded-implied-
+    /// zero path, and an empty text layer is the honest "ungrounded" default.
+    /// </param>
+    private static StatementModel ModelWith(PeriodSummary ps, string normalizedFullText = "")
     {
         var missingStr = ExtractedField<string>.Missing(P1());
         var missingName = ExtractedField<ExtractedClientName>.Missing(P1());
@@ -147,9 +153,20 @@ public sealed class ArithmeticRulesTests
             clientNumber: missingStr,
             rfc: missingStr)
         {
-            PeriodSummary = ps
+            PeriodSummary = ps,
+            NormalizedFullText = normalizedFullText,
         };
     }
+
+    /// <summary>
+    /// RC1.S4.a grounding text: normalized document text containing BOTH CL-21 guarded operand
+    /// RESUMEN labels ("ADEUDO DEL PERIODO ANTERIOR", "PAGOS Y ABONOS"), simulating a statement
+    /// where the zero-suppressed row's label was at least typeset in the text layer — the
+    /// evidence pattern that grounds the implied-zero branch.
+    /// </summary>
+    private const string GroundedZeroSuppressionText =
+        "RESUMEN DE CARGOS Y ABONOS DEL PERIODO ADEUDO DEL PERIODO ANTERIOR CARGOS REGULARES " +
+        "PAGOS Y ABONOS NOTAS ACLARATORIAS";
 
     /// <summary>
     /// Builds a <see cref="PeriodSummary"/> whose "mandatory" non-RESUMEN fields are all filled
@@ -502,74 +519,136 @@ public sealed class ArithmeticRulesTests
     }
 
     // -----------------------------------------------------------------------
-    // CL-21 guarded implied-zero tests (Epic 5)
+    // CL-21 guarded implied-zero tests (Epic 5 + RC1.S4.a grounding)
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// Implied-zero FAIL: AdeudoPeriodoAnterior and PagosYAbonos are absent (not extracted);
-    /// both are treated as 0. The five core operands plus target are extracted. The target is
-    /// inflated beyond tolerance — rule must fire Fail.
+    /// Implied-zero FAIL: AdeudoPeriodoAnterior and PagosYAbonos are absent (not extracted) but
+    /// GROUNDED — their RESUMEN labels are present in the text layer (RC1.S4.a) — so both are
+    /// treated as 0. The five core operands plus target are extracted. The target is inflated
+    /// beyond tolerance — rule must fire Fail.
     /// </summary>
     [Fact]
-    public void Cl21_ImpliedZero_AdeudoAndPagosAbsent_TargetInflated_ReturnsFail()
+    public void Cl21_ImpliedZero_AdeudoAndPagosAbsentButGrounded_TargetInflated_ReturnsFail()
     {
         var rule = GetRule("CL-21");
         // computed = 0 + 5000 + 2500 + 1000 + 500 + 100 - 0 = 9100.00
         // target   = 9101.00  →  diff = 1.00 > 0.50 (Tol) → Fail
         var ps = MakeSummary(
             pagoParaNoGenerarIntereses: Found(9101.00m), // injected bad value
-            adeudoPeriodoAnterior: null,                 // ← absent → implied 0
+            adeudoPeriodoAnterior: null,                 // ← absent → implied 0 (grounded)
             cargosRegularesNoMeses: Found(5000.00m),
             cargosComprasAMesesCapital: Found(2500.00m),
             montoIntereses: Found(1000.00m),
             montoComisiones: Found(500.00m),
             ivaInteresesYComisiones: Found(100.00m),
-            pagosYAbonos: null);                         // ← absent → implied 0
-        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+            pagosYAbonos: null);                         // ← absent → implied 0 (grounded)
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps, GroundedZeroSuppressionText));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value!.CheckId.ShouldBe("CL-21");
         result.Value.Verdict.ShouldBe(FindingVerdict.Fail,
-            "implied-zero path must evaluate the formula and detect the arithmetic error");
+            "grounded implied-zero path must evaluate the formula and detect the arithmetic error");
         result.Value.Severity.ShouldBe(FindingSeverity.Critical);
     }
 
     /// <summary>
-    /// Implied-zero PASS: AdeudoPeriodoAnterior and PagosYAbonos are absent; both implied 0.
+    /// Implied-zero PASS: AdeudoPeriodoAnterior and PagosYAbonos are absent but GROUNDED
+    /// (RC1.S4.a — their labels are present in the text layer); both implied 0.
     /// Target matches the sum of the five core operands exactly → Pass.
     /// </summary>
     [Fact]
-    public void Cl21_ImpliedZero_AdeudoAndPagosAbsent_TargetMatchesSum_ReturnsPass()
+    public void Cl21_ImpliedZero_AdeudoAndPagosAbsentButGrounded_TargetMatchesSum_ReturnsPass()
     {
         var rule = GetRule("CL-21");
         // computed = 0 + 5000 + 2500 + 1000 + 500 + 100 - 0 = 9100.00
         // target   = 9100.00  →  diff = 0 < 0.50 → Pass
         var ps = MakeSummary(
             pagoParaNoGenerarIntereses: Found(9100.00m),
-            adeudoPeriodoAnterior: null,                  // ← absent → implied 0
+            adeudoPeriodoAnterior: null,                  // ← absent → implied 0 (grounded)
             cargosRegularesNoMeses: Found(5000.00m),
             cargosComprasAMesesCapital: Found(2500.00m),
             montoIntereses: Found(1000.00m),
             montoComisiones: Found(500.00m),
             ivaInteresesYComisiones: Found(100.00m),
-            pagosYAbonos: null);                          // ← absent → implied 0
-        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+            pagosYAbonos: null);                          // ← absent → implied 0 (grounded)
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps, GroundedZeroSuppressionText));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value!.CheckId.ShouldBe("CL-21");
         result.Value.Verdict.ShouldBe(FindingVerdict.Pass,
-            "implied-zero path: zero-suppressed Adeudo/Pagos rows + correct target → Pass");
+            "grounded implied-zero path: zero-suppressed Adeudo/Pagos rows + correct target → Pass");
         result.Value.ToleranceApplied.ShouldBe(Tol);
+    }
+
+    /// <summary>
+    /// RC1.S4.a — ungrounded NotExtracted AdeudoPeriodoAnterior must ABSTAIN, not imply zero.
+    /// Real-corpus evidence: image-rendered non-zero RESUMEN rows produce the identical
+    /// NotExtracted signature as a genuinely zero-suppressed row, with no label anywhere in the
+    /// text layer. Here the target exactly matches what the (unsafe) implied-zero formula would
+    /// have computed — proving this is not a coincidental Pass/Fail but a genuine grounding gate.
+    /// </summary>
+    [Fact]
+    public void Cl21_UngroundedNotExtracted_AdeudoPeriodoAnterior_AbstainsInsteadOfImpliedZero()
+    {
+        var rule = GetRule("CL-21");
+        // computed (if implied-zero were wrongly applied) = 0 + 5000 + 2500 + 1000 + 500 + 100 - 0
+        // = 9100.00, exactly matching the target below.
+        var ps = MakeSummary(
+            pagoParaNoGenerarIntereses: Found(9100.00m),
+            adeudoPeriodoAnterior: null,                  // ← NotExtracted, UNGROUNDED
+            cargosRegularesNoMeses: Found(5000.00m),
+            cargosComprasAMesesCapital: Found(2500.00m),
+            montoIntereses: Found(1000.00m),
+            montoComisiones: Found(500.00m),
+            ivaInteresesYComisiones: Found(100.00m),
+            pagosYAbonos: Found(0m));                     // ← present, isolates the Adeudo guard
+        // ModelWith default normalizedFullText = "" — no ADEUDO label anywhere → ungrounded.
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "AdeudoPeriodoAnterior NotExtracted with no label anywhere in the text layer must " +
+            "abstain — cannot confirm implied zero (RC1.S4.a)");
+    }
+
+    /// <summary>
+    /// RC1.S4.a — ungrounded NotExtracted PagosYAbonos must ABSTAIN, not imply zero (mirror of
+    /// the AdeudoPeriodoAnterior case above, isolating the Pagos guard).
+    /// </summary>
+    [Fact]
+    public void Cl21_UngroundedNotExtracted_PagosYAbonos_AbstainsInsteadOfImpliedZero()
+    {
+        var rule = GetRule("CL-21");
+        var ps = MakeSummary(
+            pagoParaNoGenerarIntereses: Found(9100.00m),
+            adeudoPeriodoAnterior: Found(0m),             // ← present, isolates the Pagos guard
+            cargosRegularesNoMeses: Found(5000.00m),
+            cargosComprasAMesesCapital: Found(2500.00m),
+            montoIntereses: Found(1000.00m),
+            montoComisiones: Found(500.00m),
+            ivaInteresesYComisiones: Found(100.00m),
+            pagosYAbonos: null);                          // ← NotExtracted, UNGROUNDED
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "PagosYAbonos NotExtracted with no label anywhere in the text layer must abstain — " +
+            "cannot confirm implied zero (RC1.S4.a)");
     }
 
     /// <summary>
     /// Block-not-located: target (PagoParaNoGenerarIntereses) is not extracted.
     /// The payment block was not found — rule must return InsufficientData regardless
-    /// of whether Adeudo/Pagos are absent.
+    /// of whether Adeudo/Pagos are absent or grounded.
     /// </summary>
     [Fact]
     public void Cl21_TargetNotExtracted_AdeudoPagosAbsent_ReturnsInsufficientData()
@@ -584,7 +663,7 @@ public sealed class ArithmeticRulesTests
             montoComisiones: Found(500.00m),
             ivaInteresesYComisiones: Found(100.00m),
             pagosYAbonos: null);                         // ← absent
-        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps, GroundedZeroSuppressionText));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -606,7 +685,7 @@ public sealed class ArithmeticRulesTests
             5000.00m, 0.5, P1(), ExtractionStatus.Extracted);
         var ps = MakeSummary(
             pagoParaNoGenerarIntereses: Found(9100.00m),
-            adeudoPeriodoAnterior: null,                  // ← absent → implied 0
+            adeudoPeriodoAnterior: Found(0m),             // ← present, isolates the Pagos guard
             cargosRegularesNoMeses: Found(5000.00m),
             cargosComprasAMesesCapital: Found(2500.00m),
             montoIntereses: Found(1000.00m),
@@ -695,7 +774,7 @@ public sealed class ArithmeticRulesTests
         var invalidFormatPagos = ExtractedField<decimal>.InvalidFormat(0m, P1());
         var ps = MakeSummary(
             pagoParaNoGenerarIntereses: Found(9100.00m),
-            adeudoPeriodoAnterior: null,                  // ← absent → would be implied 0
+            adeudoPeriodoAnterior: Found(0m),             // ← present, isolates the Pagos guard
             cargosRegularesNoMeses: Found(5000.00m),
             cargosComprasAMesesCapital: Found(2500.00m),
             montoIntereses: Found(1000.00m),
@@ -748,7 +827,7 @@ public sealed class ArithmeticRulesTests
         // zero path would have produced a false Pass here. The fix must abstain instead.
         var ps = MakeSummary(
             pagoParaNoGenerarIntereses: Found(9100.00m),
-            adeudoPeriodoAnterior: null,                  // ← absent → legitimately implied 0
+            adeudoPeriodoAnterior: Found(0m),             // ← present, isolates the Pagos guard
             cargosRegularesNoMeses: Found(5000.00m),
             cargosComprasAMesesCapital: Found(2500.00m),
             montoIntereses: Found(1000.00m),
@@ -765,32 +844,66 @@ public sealed class ArithmeticRulesTests
     }
 
     /// <summary>
-    /// Regression: genuinely absent Adeudo and Pagos (NotExtracted / null → Missing) must
-    /// STILL apply implied-zero and allow the rule to yield Pass or Fail.
-    /// This confirms the F1 fix did not break the Epic-5 guarded-implied-zero path.
+    /// Regression: genuinely absent Adeudo and Pagos (NotExtracted / null → Missing), WITH
+    /// grounding text present (RC1.S4.a — both RESUMEN labels found in the text layer), must
+    /// STILL apply implied-zero and allow the rule to yield Pass or Fail. This confirms the F1
+    /// fix and the RC1.S4.a grounding gate did not break the Epic-5 guarded-implied-zero path
+    /// for a genuinely (grounded) zero-suppressed statement.
     /// </summary>
     [Fact]
-    public void Cl21_NotExtracted_AdeudoAndPagos_StillAppliesImpliedZero_ReturnsPass()
+    public void Cl21_NotExtracted_AdeudoAndPagosGrounded_StillAppliesImpliedZero_ReturnsPass()
     {
         var rule = GetRule("CL-21");
         // computed = 0 + 5000 + 2500 + 1000 + 500 + 100 - 0 = 9100.00
         // target   = 9100.00  →  diff = 0 ≤ 0.50 → Pass
         var ps = MakeSummary(
             pagoParaNoGenerarIntereses: Found(9100.00m),
-            adeudoPeriodoAnterior: null,                  // ← NotExtracted → implied 0
+            adeudoPeriodoAnterior: null,                  // ← NotExtracted → implied 0 (grounded)
             cargosRegularesNoMeses: Found(5000.00m),
             cargosComprasAMesesCapital: Found(2500.00m),
             montoIntereses: Found(1000.00m),
             montoComisiones: Found(500.00m),
             ivaInteresesYComisiones: Found(100.00m),
-            pagosYAbonos: null);                          // ← NotExtracted → implied 0
-        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+            pagosYAbonos: null);                          // ← NotExtracted → implied 0 (grounded)
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps, GroundedZeroSuppressionText));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
-            "NotExtracted (genuine Banamex zero-suppression) must still imply 0 and allow a Pass");
+            "NotExtracted + grounded (label present in text layer) must still imply 0 and allow a Pass");
+    }
+
+    /// <summary>
+    /// RC1.S4.a regression pin: the OLD Epic-5 behavior — treating EVERY NotExtracted Adeudo/Pagos
+    /// as an unconditional implied zero, regardless of any text-layer grounding — is retired. The
+    /// exact same fixture as the grounded-Pass test above, but WITHOUT grounding text, must now
+    /// abstain instead of silently computing a Pass. This is the real-corpus false-Fail fix in
+    /// reverse: on real Banamex statements the labels are never found for these two rows even
+    /// when the account is genuinely active (image-rendered), so the rule can no longer assume
+    /// "NotExtracted ⇒ zero" universally.
+    /// </summary>
+    [Fact]
+    public void Cl21_NotExtracted_AdeudoAndPagosUngrounded_NoLongerAppliesImpliedZero_ReturnsInsufficientData()
+    {
+        var rule = GetRule("CL-21");
+        var ps = MakeSummary(
+            pagoParaNoGenerarIntereses: Found(9100.00m),
+            adeudoPeriodoAnterior: null,                  // ← NotExtracted, ungrounded
+            cargosRegularesNoMeses: Found(5000.00m),
+            cargosComprasAMesesCapital: Found(2500.00m),
+            montoIntereses: Found(1000.00m),
+            montoComisiones: Found(500.00m),
+            ivaInteresesYComisiones: Found(100.00m),
+            pagosYAbonos: null);                          // ← NotExtracted, ungrounded
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps)); // default empty NormalizedFullText
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "RC1.S4.a: without text-layer grounding, NotExtracted no longer implies zero — the " +
+            "unconditional Epic-5 behavior is retired");
     }
 
     [Fact]

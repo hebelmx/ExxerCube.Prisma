@@ -851,6 +851,161 @@ public sealed class VerbatimBlockRulesTests
         result.Value.Observed.ShouldContain("similarity=");
     }
 
+    // -----------------------------------------------------------------------
+    // RC1.S4.a Fix 2a — token-sequence LCS ratio: near-verbatim interleaved block clears 0.82
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Real-corpus-shaped case: §26-b is present but interleaved with unrelated "neighbor column"
+    /// tokens (simulating multi-column PdfPig word interleaving) AND differs from the DOF original
+    /// by one word ("continuarán" vs the bank's "continuarían" — real-corpus triage evidence).
+    /// The 1.5×-window Jaccard/Levenshtein-only scoring caps at ~0.67-0.8 for this shape (below
+    /// 0.82); the RC1.S4.a token-sequence LCS ratio is not diluted by the interleaved tokens and
+    /// clears the threshold — proving the fix, not a lowered threshold.
+    /// </summary>
+    [Fact]
+    public void Section26Rule_NoteB_InterleavedNearVerbatim_ClearsThreshold_ReturnsPass()
+    {
+        var rule = GetRule("LAW-§26-NOTAS");
+        var sections = SectionsWithPresent(26);
+
+        // All other 12 notes verbatim; §26-b is interleaved + one-word-substituted.
+        var interleavedNoteB = BuildInterleavedNearVerbatim(
+            Note26B, from: "CONTINUARAN", to: "CONTINUARIAN");
+
+        var notesWithInterleavedB = AllSection26Notes.Select(n =>
+            n == Note26B ? interleavedNoteB : VecTextMatcher.Normalize(n));
+        var notesText = "NOTAS ACLARATORIAS " + string.Join(" NOTA ", notesWithInterleavedB);
+        var docText = notesText + " GLOSARIO DE TERMINOS";
+
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 26, "NOTAS ACLARATORIAS", sections));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "a genuinely near-verbatim, interleaved §26-b must clear the 0.82 threshold via the " +
+            "token-sequence LCS ratio (RC1.S4.a Fix 2a)");
+    }
+
+    /// <summary>
+    /// Control for the fix above: a section where §26-b is genuinely ABSENT (replaced by
+    /// unrelated content, not merely interleaved/reworded) must still Fail — the fix widens
+    /// tolerance for near-verbatim interleaving, it does not make the check vacuous.
+    /// </summary>
+    [Fact]
+    public void Section26Rule_NoteB_GenuinelyReplacedByUnrelatedText_StillFails()
+    {
+        var rule = GetRule("LAW-§26-NOTAS");
+        var sections = SectionsWithPresent(26);
+
+        const string unrelatedText =
+            "Este parrafo describe un tema completamente distinto sobre el uso de cajeros " +
+            "automaticos y no menciona el saldo a pagar ni los intereses ordinarios.";
+
+        var notesWithUnrelatedB = AllSection26Notes.Select(n =>
+            n == Note26B ? VecTextMatcher.Normalize(unrelatedText) : VecTextMatcher.Normalize(n));
+        var notesText = "NOTAS ACLARATORIAS " + string.Join(" NOTA ", notesWithUnrelatedB);
+        var docText = notesText + " GLOSARIO DE TERMINOS";
+
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 26, "NOTAS ACLARATORIAS", sections));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail,
+            "a genuinely absent/replaced §26-b must still fail — the LCS fix must not be vacuous");
+        result.Value.Observed.ShouldNotBeNull();
+        result.Value.Observed!.ShouldContain("§26-b");
+    }
+
+    /// <summary>
+    /// Interleaves the DOF note's tokens with unrelated "neighbor column" noise tokens (simulating
+    /// PdfPig multi-column word interleaving) and applies one word substitution, then normalizes.
+    /// </summary>
+    private static string BuildInterleavedNearVerbatim(string dofText, string from, string to)
+    {
+        var normalized = VecTextMatcher.Normalize(dofText).Replace(from, to, StringComparison.Ordinal);
+        var tokens = normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        // Unique noise tokens (e.g. "COL7") simulate a neighboring column's varied content
+        // (amounts, dates) — a small repeated noise vocabulary would under-dilute the Jaccard
+        // union and fail to reproduce the real-corpus interleaving signature.
+        var interleaved = new List<string>(tokens.Length * 2);
+        for (var i = 0; i < tokens.Length; i++)
+        {
+            interleaved.Add(tokens[i]);
+            if (i % 2 == 1)
+                interleaved.Add($"COL{i}");
+        }
+
+        return string.Join(' ', interleaved);
+    }
+
+    // -----------------------------------------------------------------------
+    // RC1.S4.a Fix 2b — §26-i accepted wording variant (owner ruling 2026-07-22)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// This bank prints §26-i as "compras y cargos regulares" instead of the DOF's "compras
+    /// regulares". Owner ruling 2026-07-22: tolerate as an accepted variant
+    /// (<c>CondusefVerbatimCatalog.AcceptedVariants["§26-i"]</c>). The DOF text remains primary —
+    /// this proves the VARIANT clears the check even though it is not the literal DOF wording.
+    /// </summary>
+    [Fact]
+    public void Section26Rule_NoteI_AcceptedBankVariant_ReturnsPass()
+    {
+        var rule = GetRule("LAW-§26-NOTAS");
+        var sections = SectionsWithPresent(26);
+
+        const string bankVariantNoteI =
+            "Incluye los intereses ordinarios y moratorios de compras y cargos regulares, así " +
+            "como de compras y cargos a meses con intereses.";
+
+        var notesWithVariant = AllSection26Notes.Select(n =>
+            n == Note26I ? bankVariantNoteI : n);
+        var notesText = "NOTAS ACLARATORIAS " +
+                  string.Join(" NOTA ", notesWithVariant.Select(VecTextMatcher.Normalize));
+        var docText = notesText + " GLOSARIO DE TERMINOS";
+
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 26, "NOTAS ACLARATORIAS", sections));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "the bank's accepted §26-i wording variant (owner ruling 2026-07-22) must pass " +
+            "LAW-§26-NOTAS even though it is not the literal DOF text");
+    }
+
+    /// <summary>
+    /// Control for the variant mechanism: a §26-i wording that is neither the DOF original nor
+    /// the registered accepted variant must still Fail — variants widen acceptance narrowly,
+    /// they do not disable the check.
+    /// </summary>
+    [Fact]
+    public void Section26Rule_NoteI_UnrelatedWording_StillFails()
+    {
+        var rule = GetRule("LAW-§26-NOTAS");
+        var sections = SectionsWithPresent(26);
+
+        const string wrongNoteI =
+            "Este parrafo no guarda relacion alguna con los intereses ordinarios ni con las " +
+            "compras regulares del periodo.";
+
+        var notesWithWrong = AllSection26Notes.Select(n =>
+            n == Note26I ? wrongNoteI : n);
+        var notesText = "NOTAS ACLARATORIAS " +
+                  string.Join(" NOTA ", notesWithWrong.Select(VecTextMatcher.Normalize));
+        var docText = notesText + " GLOSARIO DE TERMINOS";
+
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 26, "NOTAS ACLARATORIAS", sections));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail,
+            "a §26-i wording that matches neither the DOF text nor the accepted variant must fail");
+        result.Value.Observed.ShouldNotBeNull();
+        result.Value.Observed!.ShouldContain("§26-i");
+    }
+
     [Fact]
     public void Section26Rule_AllNotesPresent_WithAccentAndWhitespaceVariation_ReturnsPass()
     {

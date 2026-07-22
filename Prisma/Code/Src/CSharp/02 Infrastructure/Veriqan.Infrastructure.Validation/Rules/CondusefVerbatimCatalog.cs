@@ -244,6 +244,35 @@ internal static class CondusefVerbatimCatalog
     ];
 
     // -----------------------------------------------------------------------
+    // §26-i accepted wording variant (RC1.S4.a, Fix 2b — owner ruling 2026-07-22)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// §26-i ACCEPTED VARIANT: this bank prints "compras y cargos regulares" where the DOF
+    /// original (<see cref="Section26NoteI"/>) reads "compras regulares". Owner ruling
+    /// 2026-07-22 (RC1.S4, real-corpus triage §26-i): tolerate this wording as an accepted
+    /// variant. The DOF text remains primary/canonical — this variant only widens acceptance,
+    /// it is never substituted for the original.
+    /// </summary>
+    public const string Section26NoteIVariant1 =
+        "Incluye los intereses ordinarios y moratorios de compras y cargos regulares, así como " +
+        "de compras y cargos a meses con intereses.";
+
+    /// <summary>
+    /// Data-declarative accepted-variant registry: maps a verbatim block id (as used in
+    /// <see cref="Section26Notes"/> and <see cref="Section27Terms"/>) to its list of accepted
+    /// alternate wordings. A block not present in this dictionary has no variants — only the
+    /// primary/canonical DOF text is accepted for it. Extend this table (never the primary
+    /// constants above) when a future owner ruling accepts another issuer's wording for a
+    /// different block.
+    /// </summary>
+    public static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> AcceptedVariants =
+        new Dictionary<string, IReadOnlyList<string>>
+        {
+            ["§26-i"] = [Section26NoteIVariant1],
+        };
+
+    // -----------------------------------------------------------------------
     // §27 — "Glosario de términos y abreviaturas" — 15 verbatim definitions
     // Source: Acuerdo §27 / Formato sección 27 (DOF p. 620)
     // Each entry is "Term": "Definition." as printed in the DOF.

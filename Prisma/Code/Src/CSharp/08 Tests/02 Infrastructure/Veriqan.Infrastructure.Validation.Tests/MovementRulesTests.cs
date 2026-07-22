@@ -728,6 +728,92 @@ public sealed class MovementRulesTests
         result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
     }
 
+    // -----------------------------------------------------------------------
+    // CL-18 — RC1.S4.a interest/commission/IVA exclusion (real-corpus triage, class c)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Real-layout-shaped case: DESGLOSE contains interest, commission, and IVA-on-interest/
+    /// commission rows alongside a regular charge. Only the regular charge counts toward
+    /// "Cargos regulares (no a meses)" — the other three have their own dedicated RESUMEN lines
+    /// and must be excluded, mirroring the printed statement (real-corpus triage evidence:
+    /// Observed−Expected == MontoIntereses+MontoComisiones+IvaInteresesYComisiones to the cent).
+    /// </summary>
+    [Fact]
+    public void Cl18_InterestCommissionIvaRowsExcluded_MatchesRegularOnlyTarget_ReturnsPass()
+    {
+        var rule = GetRule("CL-18");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m,   MovementSign.Charge, "NETFLIX COM CR",                    null, null), // regular
+            MakeMovement(50m,    MovementSign.Charge, "MONTO DE INTERESES",                null, null), // interest — excluded
+            MakeMovement(20m,    MovementSign.Charge, "COMISION ANUALIDAD",                null, null), // commission — excluded
+            MakeMovement(11.20m, MovementSign.Charge, "IVA POR INTERESES Y/O COMISIONES",  null, null), // IVA — excluded
+        };
+
+        // target = 100 (only the regular charge; interest/commission/IVA rows excluded)
+        var ps = MakeSummaryWithDates(cargosRegularesNoMeses: Found(100m));
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "interest/commission/IVA DESGLOSE rows must be excluded from the CL-18 sum");
+    }
+
+    /// <summary>
+    /// Baseline/regression: without the RC1.S4.a exclusion, the same fixture would sum
+    /// 100+50+20+11.20 = 181.20 against a target of 100 → Fail. This test documents the
+    /// pre-fix failure mode and proves the exclusion is load-bearing (not vacuous).
+    /// </summary>
+    [Fact]
+    public void Cl18_InterestCommissionIvaRowsExcluded_WithoutFixWouldHaveFailed()
+    {
+        var rule = GetRule("CL-18");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m,   MovementSign.Charge, "NETFLIX COM CR",                   null, null),
+            MakeMovement(50m,    MovementSign.Charge, "MONTO DE INTERESES",               null, null),
+            MakeMovement(20m,    MovementSign.Charge, "COMISION ANUALIDAD",               null, null),
+            MakeMovement(11.20m, MovementSign.Charge, "IVA POR INTERESES Y/O COMISIONES", null, null),
+        };
+
+        // Target set to the OLD (pre-fix) expectation of summing everything (181.20).
+        // Post-fix, the rule now excludes the 3 non-regular rows, so the sum is 100 —
+        // deviating from 181.20 by 81.20 > tolerance → Fail. This is the mirror assertion
+        // of the Pass test above and proves both branches are reachable.
+        var ps = MakeSummaryWithDates(cargosRegularesNoMeses: Found(181.20m));
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail,
+            "post-fix the rule correctly excludes interest/commission/IVA rows, so a target " +
+            "computed the old (unfixed) way must now fail");
+    }
+
+    /// <summary>
+    /// Fail-honest guard: a charge row whose description does not match the interest/commission/
+    /// IVA keyword pattern must remain IN the sum — the exclusion is conservative by design
+    /// (ambiguous rows are never silently dropped).
+    /// </summary>
+    [Fact]
+    public void Cl18_AmbiguousChargeDescription_NotMatchingExclusionPattern_StaysIncluded()
+    {
+        var rule = GetRule("CL-18");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m, MovementSign.Charge, "NETFLIX COM CR",       null, null),
+            MakeMovement(50m,  MovementSign.Charge, "TIENDA DEPARTAMENTAL", null, null), // ambiguous, not I/C/IVA
+        };
+
+        // target = 150 (both charges counted; neither matches the exclusion pattern)
+        var ps = MakeSummaryWithDates(cargosRegularesNoMeses: Found(150m));
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "a row with no interest/commission/IVA keyword must stay in the sum (fail-honest)");
+    }
+
     [Fact]
     public void Cl18_NoMovements_ReturnsInsufficientData()
     {
