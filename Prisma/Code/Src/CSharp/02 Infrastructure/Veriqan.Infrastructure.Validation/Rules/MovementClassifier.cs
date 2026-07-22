@@ -19,9 +19,11 @@ internal static class MovementClassifier
         RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
     /// <summary>
-    /// Pattern that identifies a DESGLOSE row whose own charge is interest, a commission/fee,
+    /// Pattern that identifies a DESGLOSE row as a genuine bank-fee row — interest, commission,
     /// or the VAT on either (e.g. "MONTO DE INTERESES", "COMISION ANUALIDAD",
-    /// "IVA POR INTERESES Y/O COMISIONES") — RC1.S4.a (CL-18 real-corpus triage, class c).
+    /// "IVA POR INTERESES Y/O COMISIONES") — by matching known fee-row description PREFIXES,
+    /// not bare mid-string keywords. RC1.S4.a (CL-18 real-corpus triage, class c) / RC1.S4.b
+    /// (residual fix, chunk B4).
     /// </summary>
     /// <remarks>
     /// <para>
@@ -33,15 +35,34 @@ internal static class MovementClassifier
     /// (<c>docs/qa/calibration/real-corpus-triage-2026-07.md</c>).
     /// </para>
     /// <para>
-    /// Deliberately conservative: matches only the three keyword families
-    /// (INTERES/INTERESES, COMISION/COMISIONES with or without the accent, IVA) as whole words.
-    /// A row whose description does not contain one of these keywords is NOT excluded — per the
-    /// "misread digit ≠ false non-compliant" program rule, an ambiguous row stays IN the sum
-    /// (fail-honest) rather than being silently dropped.
+    /// <b>RC1.S4.b residual fix:</b> the original pattern matched the bare whole-word keyword
+    /// <c>\bCOMISION\b</c> anywhere in the description, which excluded a real $230.00 MERCHANT
+    /// purchase row — "COMISION ESTATAL DE AG CEA 800313C95MX" (Comisión Estatal de Aguas, a
+    /// state water utility) — from the regular-charges sum (delta exactly −230.00,
+    /// B-2026-06). Mexican merchants are commonly named "Comisión …" (e.g. CFE = Comisión
+    /// Federal de Electricidad appears on millions of statements), so bare-keyword matching is
+    /// unsafe at scale. The pattern now anchors to the specific bank-fee phrase family printed
+    /// across all 4 real Banamex "B" months — "IVA POR INTERESES Y/O COMISIONES",
+    /// "INTERES GRAVAB. DISPONIBLE BANAM", "INTERES EXENTO DISPONIBLE BANAM" — plus the
+    /// synthetic-fixture phrases "MONTO DE INTERESES" / "COMISION ANUALIDAD", all matched as
+    /// description PREFIXES. A merchant name will not happen to begin with the bank's own
+    /// fee-line wording, so the false positive is eliminated by construction.
+    /// </para>
+    /// <para>
+    /// Deliberately conservative: a row whose description does not start with one of these
+    /// known fee-row phrases is NOT excluded — per the "misread digit ≠ false non-compliant"
+    /// program rule, an ambiguous row stays IN the sum (fail-honest) rather than being silently
+    /// dropped.
     /// </para>
     /// </remarks>
     private static readonly Regex InterestCommissionIvaPattern = new(
-        @"\b(INTERES(?:ES)?|COMISI[OÓ]N(?:ES)?|IVA)\b",
+        @"^\s*(?:" +
+            @"IVA\s+POR\s+INTERES(?:ES)?\s+Y/?O\s+COMISI[OÓ]N(?:ES)?" +
+            @"|INTERES\s+GRAVAB" +
+            @"|INTERES\s+EXENTO" +
+            @"|MONTO\s+DE\s+INTERES(?:ES)?" +
+            @"|COMISI[OÓ]N\s+ANUALIDAD" +
+        @")",
         RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
     /// <summary>

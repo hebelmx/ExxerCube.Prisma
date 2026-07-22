@@ -357,6 +357,101 @@ public sealed class MovementRulesTests
     }
 
     // -----------------------------------------------------------------------
+    // CL-42 — RC1.S4.b residual fix (chunk B4): ChargeDate is the period-membership column
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Real-corpus residual (B-2026-06, triage class c): a weekend purchase (OperationDate in
+    /// the PREVIOUS period) legitimately posts on the first day of the current period
+    /// (ChargeDate in-period). The printed statement is correct; CL-42 must pass because period
+    /// membership is defined on ChargeDate, not OperationDate.
+    /// </summary>
+    [Fact]
+    public void Cl42_OperationDateBeforePeriodStart_ButChargeDateInPeriod_ReturnsPass()
+    {
+        var rule = GetRule("CL-42");
+        var periodStart = new DateOnly(2025, 5, 5);
+        var periodCut = new DateOnly(2025, 6, 4);
+
+        var movements = new List<StatementMovement>
+        {
+            // Saturday purchase in the previous period, posts on the first day of this period.
+            MakeMovement(150m, MovementSign.Charge, "COMPRA FIN DE SEMANA",
+                opDate: new DateOnly(2025, 5, 2), chargeDate: new DateOnly(2025, 5, 5)),
+        };
+
+        var ps = MakeSummaryWithDates(
+            periodStart: DateFound(2025, 5, 5),
+            periodCutDate: DateFound(2025, 6, 4));
+
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "OperationDate preceding PeriodStart must not fail CL-42 when ChargeDate is in-period " +
+            "— real bank behavior lets weekend/previous-period purchases legitimately post in-period");
+    }
+
+    /// <summary>
+    /// A movement whose ChargeDate is provably outside the period must fail CL-42, even though
+    /// this is the primary (not the supplementary) invariant.
+    /// </summary>
+    [Fact]
+    public void Cl42_ChargeDateOutsidePeriod_ReturnsFail()
+    {
+        var rule = GetRule("CL-42");
+        var periodStart = new DateOnly(2025, 5, 5);
+        var periodCut = new DateOnly(2025, 6, 4);
+
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(150m, MovementSign.Charge, "CARGO TARDIO",
+                opDate: new DateOnly(2025, 5, 20), chargeDate: new DateOnly(2025, 6, 10)), // after cut
+        };
+
+        var ps = MakeSummaryWithDates(
+            periodStart: DateFound(2025, 5, 5),
+            periodCutDate: DateFound(2025, 6, 4));
+
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail);
+        result.Value.Severity.ShouldBe(FindingSeverity.Critical);
+        result.Value.Observed.ShouldNotBeNull();
+        result.Value.Observed!.ShouldContain("2025-06-10");
+    }
+
+    /// <summary>
+    /// Supplementary sanity bound: a movement with no ChargeDate (unparseable) but an
+    /// OperationDate provably after the period's CutDate is still flagged — a transaction
+    /// cannot be dated in the future relative to the period it is billed in.
+    /// </summary>
+    [Fact]
+    public void Cl42_NullChargeDate_ButOperationDateAfterCut_ReturnsFail()
+    {
+        var rule = GetRule("CL-42");
+        var periodStart = new DateOnly(2025, 5, 5);
+        var periodCut = new DateOnly(2025, 6, 4);
+
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(150m, MovementSign.Charge, "FUTURO",
+                opDate: new DateOnly(2025, 6, 10), chargeDate: null), // future op, unparseable charge date
+        };
+
+        var ps = MakeSummaryWithDates(
+            periodStart: DateFound(2025, 5, 5),
+            periodCutDate: DateFound(2025, 6, 4));
+
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail,
+            "a future-dated OperationDate is still suspicious even when ChargeDate is unparseable");
+    }
+
+    // -----------------------------------------------------------------------
     // CL-44 tests
     // -----------------------------------------------------------------------
 
@@ -812,6 +907,64 @@ public sealed class MovementRulesTests
 
         result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
             "a row with no interest/commission/IVA keyword must stay in the sum (fail-honest)");
+    }
+
+    // -----------------------------------------------------------------------
+    // CL-18 — RC1.S4.b residual fix (chunk B4): prefix-anchored fee-row pattern,
+    // merchant-name false-positive guard
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Real-corpus residual (B-2026-06, triage class c): a merchant purchase row whose NAME
+    /// merely contains the word "Comisión" — "COMISION ESTATAL DE AG CEA 800313C95MX" (Comisión
+    /// Estatal de Aguas, a state water utility, carrying an RFC-shaped token) — must NOT be
+    /// excluded from the CL-18 "Cargos regulares" sum. The old bare <c>\bCOMISION\b</c> keyword
+    /// wrongly excluded it (delta exactly −230.00); the new prefix-anchored pattern does not
+    /// match, because the description does not begin with a known bank-fee phrase.
+    /// </summary>
+    [Fact]
+    public void Cl18_MerchantNameContainingComision_WithRfcShapedToken_StaysIncluded()
+    {
+        var rule = GetRule("CL-18");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(230.00m, MovementSign.Charge,
+                "COMISION ESTATAL DE AG CEA 800313C95MX", null, null), // merchant, not a fee row
+        };
+
+        // target = 230 (the merchant purchase counts toward regular charges)
+        var ps = MakeSummaryWithDates(cargosRegularesNoMeses: Found(230.00m));
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "a merchant name that merely contains the word 'Comisión' must not be classified " +
+            "as a bank fee row — CL-18 real-corpus residual (B-2026-06)");
+    }
+
+    /// <summary>
+    /// Genuine bank-fee rows, prefixed exactly as printed across the 4 real Banamex "B" months,
+    /// remain excluded under the new prefix-anchored pattern.
+    /// </summary>
+    [Fact]
+    public void Cl18_RealCorpusFeeRowPrefixes_StillExcluded()
+    {
+        var rule = GetRule("CL-18");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m,  MovementSign.Charge, "NETFLIX COM CR",                        null, null), // regular
+            MakeMovement(11.20m, MovementSign.Charge, "IVA POR INTERESES Y/O COMISIONES",       null, null), // fee — excluded
+            MakeMovement(45.30m, MovementSign.Charge, "INTERES GRAVAB. DISPONIBLE BANAM",       null, null), // fee — excluded
+            MakeMovement(12.10m, MovementSign.Charge, "INTERES EXENTO DISPONIBLE BANAM",        null, null), // fee — excluded
+        };
+
+        // target = 100 (only the regular charge; the three real-corpus fee-row prefixes excluded)
+        var ps = MakeSummaryWithDates(cargosRegularesNoMeses: Found(100m));
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "the real-corpus fee-row description prefixes must still be excluded from the sum");
     }
 
     [Fact]

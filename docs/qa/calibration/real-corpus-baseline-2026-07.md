@@ -15,18 +15,18 @@ unverified second bundle) is the correct "don't invent a new composition" choice
 
 | Id | Product | Signal | BankTier | CondusefTier | Fail | InsufficientData | Pass | Extraction ms | Verdict ms |
 |---|---|---|---|---|---|---|---|---|---|
-| A-2026-02 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 724 | 461 |
-| A-2026-03 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 536 | 318 |
-| A-2026-04 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 573 | 366 |
-| A-2026-05 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 557 | 338 |
-| B-2026-03 | credit_card | Red | Yellow | Red | 10 | 34 | 14 | 1405 | 5138 |
-| B-2026-04 | credit_card | Red | Yellow | Red | 10 | 34 | 14 | 1415 | 5118 |
-| B-2026-05 | credit_card | Red | Yellow | Red | 10 | 34 | 14 | 1473 | 5309 |
-| B-2026-06 | credit_card | Red | Yellow | Red | 12 | 35 | 11 | 1380 | 5182 |
-| C-2026-02 | credit_card | Red | Yellow | Red | 12 | 34 | 12 | 1677 | 5926 |
-| C-2026-03 | credit_card | Red | Yellow | Red | 12 | 34 | 12 | 1653 | 6042 |
-| C-2026-04 | credit_card | Red | Yellow | Red | 11 | 34 | 13 | 2143 | 7187 |
-| C-2026-05 | credit_card | Red | Yellow | Red | 11 | 34 | 13 | 1889 | 6640 |
+| A-2026-02 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 545 | 303 |
+| A-2026-03 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 532 | 310 |
+| A-2026-04 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 571 | 323 |
+| A-2026-05 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 572 | 348 |
+| B-2026-03 | credit_card | Red | Yellow | Red | 10 | 34 | 14 | 1405 | 5057 |
+| B-2026-04 | credit_card | Red | Yellow | Red | 10 | 34 | 14 | 1425 | 4933 |
+| B-2026-05 | credit_card | Red | Yellow | Red | 10 | 34 | 14 | 1441 | 5232 |
+| B-2026-06 | credit_card | Red | Yellow | Red | 10 | 35 | 13 | 1386 | 5167 |
+| C-2026-02 | credit_card | Red | Yellow | Red | 11 | 34 | 13 | 1710 | 6165 |
+| C-2026-03 | credit_card | Red | Yellow | Red | 10 | 34 | 14 | 1697 | 6176 |
+| C-2026-04 | credit_card | Red | Yellow | Red | 10 | 34 | 14 | 2178 | 7117 |
+| C-2026-05 | credit_card | Red | Yellow | Red | 10 | 34 | 14 | 1870 | 6530 |
 
 ## Per-check aggregate — real account statements (12)
 
@@ -38,7 +38,7 @@ not counted for that statement (engine didn't evaluate it).
 |---|---|---|---|---|---|
 | CL-10 | Warning | 0 | 8 | 0 | 8 |
 | CL-17 | Warning | 0 | 8 | 0 | 8 |
-| CL-18 | Critical | 2 | 0 | 6 | 8 |
+| CL-18 | Info | 0 | 0 | 8 | 8 |
 | CL-19 | Info | 0 | 0 | 8 | 8 |
 | CL-20 | Warning | 0 | 8 | 0 | 8 |
 | CL-21 | Warning | 0 | 8 | 0 | 8 |
@@ -59,7 +59,7 @@ not counted for that statement (engine didn't evaluate it).
 | CL-39 | Warning | 0 | 8 | 0 | 8 |
 | CL-40 | Warning | 0 | 8 | 0 | 8 |
 | CL-41 | Warning | 0 | 8 | 0 | 8 |
-| CL-42 | Critical | 5 | 0 | 3 | 8 |
+| CL-42 | Info | 0 | 0 | 8 | 8 |
 | CL-43 | Warning | 0 | 8 | 0 | 8 |
 | CL-44 | Warning | 0 | 8 | 0 | 8 |
 | CL-45 | Warning | 0 | 8 | 0 | 8 |

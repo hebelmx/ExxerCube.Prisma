@@ -35,8 +35,12 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// on their own dedicated RESUMEN lines. Evidence: Observed−Expected ==
 /// MontoIntereses+MontoComisiones+IvaInteresesYComisiones to the cent on 4 independent real
 /// Banamex months (<c>docs/qa/calibration/real-corpus-triage-2026-07.md</c>). The exclusion
-/// pattern is deliberately conservative — an ambiguous row (no interest/commission/IVA keyword)
-/// stays IN the sum (fail-honest).
+/// pattern is deliberately conservative — an ambiguous row (not matching a known bank-fee
+/// description PREFIX) stays IN the sum (fail-honest). <b>RC1.S4.b residual fix (chunk B4):</b>
+/// the exclusion now matches description PREFIXES from a known bank-fee phrase family, not bare
+/// mid-string keywords — a bare <c>\bCOMISION\b</c> keyword had wrongly excluded a merchant row
+/// ("COMISION ESTATAL DE AG …", Comisión Estatal de Aguas) whose name merely contains the word
+/// "Comisión". See <see cref="MovementClassifier"/> for the full evidence trail.
 /// </para>
 /// <para>
 /// <b>Tolerance (ADR-V3, Story 9.6):</b> resolved via <see cref="ILegalToleranceProvider"/>
