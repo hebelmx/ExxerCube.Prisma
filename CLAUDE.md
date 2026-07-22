@@ -147,6 +147,10 @@ The system uses **Rx.NET Observables** (not traditional IEventHandler registrati
 | **Athena** | Document processing pipeline | `04 Services/Athena/` |
 | **Sentinel** | System monitoring & health | `04 Services/Sentinel/` — **library only; not hosted; OUT-OF-MVP** — see `docs/operations/SENTINEL-STATUS-2026-06.md` |
 
+## Local LLM engines
+
+Ollama is the default engine and already GPU-saturated — don't switch engines for speed. A direct llama.cpp build lives at `~/ExxerProjects/IndFusion/llama.cpp` (`./serve-local.sh <model>` → OpenAI-compatible API on **:8086**, serving the existing Ollama blobs — ports 8080–8085 belong to the Prisma/Veriqan stacks) for control needs: parallel slots, pinned models, fixed context. Colibri (`~/ExxerProjects/IndFusion/colibri`) is built but dormant (GLM-5.2-only, 372 GB model not downloaded). Details/benchmarks: `docs/operations/LOCAL-LLM-ENGINES.md`.
+
 ## Release Status
 
 > **MVP audit refreshed 2026-06-11** (post test-suite hardening). The PRD was reconciled
