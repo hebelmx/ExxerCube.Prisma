@@ -570,12 +570,101 @@ def _redact_and_replace(page: fitz.Page, real: str, fake: str, *, color=_COLOR_B
     IMPORTANT: Call this function ONLY after all longer values have already been
     processed (or use anonymize_page which handles the sort order).
 
+    NOTE: kept as-is (not migrated to the deferred fixed-size-text path below)
+    because it is also used by the math/font DEFECT-injection helpers, whose
+    output PDFs are pinned demo fixtures that must stay byte-identical. The
+    main PII/brand replacement path in anonymize_page() uses
+    `_redact_and_replace_deferred` instead — see its docstring for why.
+
     Returns the number of replacements applied.
     """
     n = _add_redact_for_value(page, real, fake, color=color)
     if n:
         page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_NONE)
     return n
+
+
+# ─── Sub-8pt auto-shrink fix (RC1.S4.d) ───────────────────────────────────────
+#
+# ROOT CAUSE (measured empirically): PyMuPDF's add_redact_annot(..., text=...,
+# fontsize=8.0) auto-fits the replacement string inside the REDACTED RECT
+# using an internal textbox layout that treats the rect's HEIGHT (not width)
+# as the binding constraint, with a generous line-height multiplier baked in.
+# A rect captured by page.search_for() for real text rendered at 9pt is only
+# ~12.3pt tall (the tight glyph bbox) — far short of the ~17.3pt height
+# add_redact_annot needs to keep an 8pt line, so it silently shrinks the
+# fake replacement to ~6.5pt. This reproduces regardless of the replacement
+# text's WIDTH (confirmed: widening the rect enormously does not stop the
+# shrink; only widening the HEIGHT does) and regardless of whether the fake
+# string is shorter, equal, or longer than the real one it replaces.
+#
+# FIX: never pass text=/fontsize= to add_redact_annot. Redact with a plain
+# white fill (no auto-fit involved), then draw the replacement ourselves via
+# page.insert_text() at an EXACT, non-shrinking fontsize (8.0) — the same
+# pattern already used elsewhere in this file for the image-layer field
+# covers (_cover_region, the credit-card page-1 AFP boxes). insert_text has
+# no auto-fit behavior, so the rendered size is always exactly _FONT_SIZE.
+#
+# Text insertion is DEFERRED until all redactions for the page are applied
+# (collected in `pending`) so the existing longest-first substring-removal
+# invariant (see anonymize_page docstring) is preserved: apply_redactions()
+# still runs immediately per value to erase the real glyphs before the next
+# (shorter) search, only the drawing of the fake glyphs is deferred.
+#
+# Overflow handling: if a replacement is wider than the original rect at
+# 8pt (e.g. "Grupo Financiero Banamex" → "...IndFusion", or the une@ email),
+# the fill+draw box is widened rightward into the row's own trailing
+# whitespace, bounded to a safe page-right margin — never shrinking the font
+# to make it fit.
+
+def _redact_and_replace_deferred(
+    page: fitz.Page,
+    real: str,
+    fake: str,
+    pending: list[tuple[fitz.Rect, str]],
+    *,
+    color=_COLOR_BLACK,
+) -> int:
+    """
+    Find all occurrences of `real`, white-fill-redact them immediately, and
+    queue (rect, fake) for fixed-size text insertion via `_flush_pending_text`
+    once all redactions for the page are done. See module comment above.
+    """
+    hits = page.search_for(real)
+    if not hits:
+        return 0
+    for rect in hits:
+        page.add_redact_annot(rect, fill=_FILL_WHITE)
+        pending.append((rect, fake))
+    page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_NONE)
+    return len(hits)
+
+
+def _flush_pending_text(
+    page: fitz.Page,
+    pending: list[tuple[fitz.Rect, str]],
+    *,
+    color=_COLOR_BLACK,
+    fontsize: float = _FONT_SIZE,
+    fontname: str = _FONT_NAME,
+) -> None:
+    """
+    Draw every queued replacement at an EXACT, never-shrunk `fontsize`
+    (default 8pt). If a replacement is wider than the rect it replaces,
+    widen the white fill + drawable box rightward into the row's own
+    whitespace, bounded to a safe right margin, instead of letting the text
+    overflow onto un-redacted content or shrinking to fit.
+    """
+    right_margin = page.rect.width - 15.0
+    for rect, fake in pending:
+        needed = fitz.get_text_length(fake, fontname=fontname, fontsize=fontsize)
+        x1 = rect.x1
+        if needed > rect.width:
+            x1 = min(right_margin, rect.x0 + needed + 1.0)
+        if x1 > rect.x1:
+            page.draw_rect(fitz.Rect(rect.x1, rect.y0, x1, rect.y1), color=None, fill=_FILL_WHITE)
+        baseline = fitz.Point(rect.x0 + 0.5, rect.y1 - 2.0)
+        page.insert_text(baseline, fake, fontname=fontname, fontsize=fontsize, color=color)
 
 
 def _cover_region(page: fitz.Page, rect: fitz.Rect, fake: str, *, color=_COLOR_BLACK) -> None:
@@ -627,22 +716,32 @@ def anonymize_page(
 
     Processing longest-first guarantees no shorter substring corrupts a longer
     value that hasn't been removed yet.
+
+    Text-layer replacement text is drawn via the DEFERRED fixed-fontsize path
+    (`_redact_and_replace_deferred` / `_flush_pending_text`) rather than
+    PyMuPDF's redact-annotation text auto-fit, which silently shrinks
+    replacements well below 8pt — see the module comment above
+    `_redact_and_replace_deferred` for the root-cause measurement.
     """
+    pending: list[tuple[fitz.Rect, str]] = []
 
     # ── 1. Text-layer PII — per-value redact+apply, LONGEST FIRST ──────────
     sorted_pairs = sorted(rtof.items(), key=lambda kv: len(kv[0]), reverse=True)
     for real_val, fake_val in sorted_pairs:
         if not real_val:
             continue
-        n = _redact_and_replace(page, real_val, fake_val)
+        n = _redact_and_replace_deferred(page, real_val, fake_val, pending)
         if n:
             log.debug("  p%d redacted %r → %r (%d×)", page_num + 1, real_val[:25], fake_val[:25], n)
 
     # ── 2. Bank brand replacements — also per-value, already longest-first ──
     for real_brand, fake_brand in _BANK_REPLACEMENTS:
-        n = _redact_and_replace(page, real_brand, fake_brand)
+        n = _redact_and_replace_deferred(page, real_brand, fake_brand, pending)
         if n:
             log.debug("  p%d brand %r → %r (%d×)", page_num + 1, real_brand[:30], fake_brand[:25], n)
+
+    # ── 2b. Draw all queued replacements now, at an exact non-shrinking size ─
+    _flush_pending_text(page, pending)
 
     # ── 3. Credit-card page 1: cover AFP image-layer field values ───────────
     #
@@ -704,7 +803,7 @@ def _replace_logo(page: fitz.Page) -> None:
         fitz.Point(25, 44),
         "Banco Demo IndFusion, S.A.",
         fontname="Helv",
-        fontsize=7,
+        fontsize=_FONT_SIZE,  # was hardcoded 7pt — RC1.S4.d sub-8pt fix
         color=(0.4, 0.4, 0.4),
     )
 
