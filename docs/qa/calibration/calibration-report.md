@@ -1,6 +1,6 @@
 ﻿# Veriqan Corpus Calibration Report
 
-**Generated:** 2026-07-22 22:40 UTC  
+**Generated:** 2026-07-22 23:32 UTC  
 **Corpus size:** 3 specimen(s)  
 **KnownGood:** 0 · **KnownSynthetic:** 3 (non-compliant placeholders — NOT compliance evidence) · **KnownBroken:** 0
 
@@ -32,8 +32,6 @@
 | LAW-§13-TRANSFERENCIA | no | yes | no | no |
 | LAW-§18-COMPLETE | no | yes | no | no |
 | LAW-§20-WATERFALL | no | yes | no | no |
-| LAW-§27-GLOSARIO | no | yes | no | no |
-| LAW-SEC-ORDER-GAP | no | yes | no | no |
 | LAW-SEC-PRESENCE | no | yes | no | no |
 | LAW-TYPO-MINSIZE | no | yes | no | no |
 
@@ -52,8 +50,6 @@
 | LAW-§18-COMPLETE | no | yes | no | no |
 | LAW-§20-WATERFALL | no | yes | no | no |
 | LAW-§23-STATUS | no | yes | no | no |
-| LAW-§27-GLOSARIO | no | yes | no | no |
-| LAW-SEC-ORDER-GAP | no | yes | no | no |
 | LAW-SEC-PRESENCE | no | yes | no | no |
 | LAW-TYPO-MINSIZE | no | yes | no | no |
 
@@ -67,8 +63,6 @@
 | LAW-§13-TRANSFERENCIA | no | yes | no | no |
 | LAW-§18-COMPLETE | no | yes | no | no |
 | LAW-§20-WATERFALL | no | yes | no | no |
-| LAW-§27-GLOSARIO | no | yes | no | no |
-| LAW-SEC-ORDER-GAP | no | yes | no | no |
 | LAW-SEC-PRESENCE | no | yes | no | no |
 | LAW-TYPO-MINSIZE | no | yes | no | no |
 
@@ -87,8 +81,6 @@
 | LAW-§18-COMPLETE | 3 | 0 | 0 | n/a | 0% |
 | LAW-§20-WATERFALL | 3 | 0 | 0 | n/a | 0% |
 | LAW-§23-STATUS | 1 | 0 | 0 | n/a | 0% |
-| LAW-§27-GLOSARIO | 3 | 0 | 0 | n/a | 0% |
-| LAW-SEC-ORDER-GAP | 3 | 0 | 0 | n/a | 0% |
 | LAW-SEC-PRESENCE | 3 | 0 | 0 | n/a | 0% |
 | LAW-TYPO-MINSIZE | 3 | 0 | 0 | n/a | 0% |
 
@@ -180,16 +172,6 @@ _Distribution is **good-only** — no separation measurable until KnownBroken sp
 | 02+Dummie+VEC+ago_sep+2025.pdf | KnownSynthetic | Observed=All 13 §26 notas aclaratorias (a–m) found in document (threshold=0.820). | (none) | tolerance applied: 0.82 | Verdict: Pass |
 | 03+Dummie+VEC+sep_oct+2025.pdf | KnownSynthetic | Observed=All 13 §26 notas aclaratorias (a–m) found in document (threshold=0.820). | (none) | tolerance applied: 0.82 | Verdict: Pass |
 
-### LAW-§27-GLOSARIO
-
-_Distribution is **good-only** — no separation measurable until KnownBroken specimens are added._
-
-| Specimen | Label | MeasuredValue | CurrentThreshold | Margin | Note |
-|----------|-------|---------------|-----------------|--------|------|
-| 01+Dummie+VEC+jul_ago+20252.pdf | KnownSynthetic | Observed=Missing/low-similarity §27 term(s): §27-a (similarity=0.317); §27-b (similarity=0.309); §27-c (similarity=0.407); §27-d (similarity=0.382); §27-e (similarity=0.340); §27-f (similarity=0.485); §27-g (similarity=0.338); §27-h (similarity=0.368); §27-i (similarity=0.316); §27-j (similarity=0.390); §27-k (similarity=0.400); §27-l (similarity=0.343); §27-m (similarity=0.351); §27-n (similarity=0.336); §27-o (similarity=0.370) | All 15 §27 verbatim glosario terms present. | tolerance applied: 0.82 | Verdict: Fail |
-| 02+Dummie+VEC+ago_sep+2025.pdf | KnownSynthetic | Observed=Missing/low-similarity §27 term(s): §27-a (similarity=0.321); §27-b (similarity=0.312); §27-c (similarity=0.421); §27-d (similarity=0.407); §27-e (similarity=0.347); §27-f (similarity=0.471); §27-g (similarity=0.348); §27-h (similarity=0.400); §27-i (similarity=0.314); §27-j (similarity=0.388); §27-k (similarity=0.405); §27-l (similarity=0.359); §27-m (similarity=0.358); §27-n (similarity=0.350); §27-o (similarity=0.375) | All 15 §27 verbatim glosario terms present. | tolerance applied: 0.82 | Verdict: Fail |
-| 03+Dummie+VEC+sep_oct+2025.pdf | KnownSynthetic | Observed=Missing/low-similarity §27 term(s): §27-a (similarity=0.318); §27-b (similarity=0.314); §27-c (similarity=0.410); §27-d (similarity=0.382); §27-e (similarity=0.333); §27-f (similarity=0.471); §27-g (similarity=0.344); §27-h (similarity=0.400); §27-i (similarity=0.312); §27-j (similarity=0.386); §27-k (similarity=0.402); §27-l (similarity=0.359); §27-m (similarity=0.347); §27-n (similarity=0.333); §27-o (similarity=0.347) | All 15 §27 verbatim glosario terms present. | tolerance applied: 0.82 | Verdict: Fail |
-
 ### LAW-ADS-PLACEMENT
 
 _Distribution is **good-only** — no separation measurable until KnownBroken specimens are added._
@@ -203,25 +185,15 @@ _Distribution is **good-only** — no separation measurable until KnownBroken sp
 | 03+Dummie+VEC+sep_oct+2025.pdf | KnownSynthetic | §12 length OK (47 chars ≤ 804 Fail threshold / 700 legal cap); no advertising markers in non-permitted sections. | ≤ 805 chars | OK | From RuleFinding.Observed (verdict: Pass) |
 | 03+Dummie+VEC+sep_oct+2025.pdf | KnownSynthetic | 47 chars (§12 section text) | ≤ 805 chars | +758 chars | Measured from StatementModel.Sections[12].SectionText |
 
-### LAW-SEC-ORDER-GAP
-
-_Distribution is **good-only** — no separation measurable until KnownBroken specimens are added._
-
-| Specimen | Label | MeasuredValue | CurrentThreshold | Margin | Note |
-|----------|-------|---------------|-----------------|--------|------|
-| 01+Dummie+VEC+jul_ago+20252.pdf | KnownSynthetic | Observed=Out-of-order sections: §17 (Mensajes adicionales) appears after §26 at reading position 8 (page 2); §18 (Programas de beneficios) appears after §17 at reading position 9 (page 2); §19 (Saldo sobre el que se calcularon los intereses) appears after §18 at reading position 10 (page 2); §16 (Información de otras líneas de crédito) appears after §19 at reading position 11 (page 2); §20 (Distribución de tu último pago) appears after §16 at reading position 12 (page 2); §22 (Desglose de movimientos) appears after §20 at reading position 13 (page 3) | Present sections in ascending §-order with no inter-section same-page gap > 2 cm (56.69 pt). Expected order: §6 → §7 → §8 → §11 → §12 → §13 → §16 → §17 → §18 → §19 → §20 → §22 → §26 → §27 | n/a | Verdict: Fail |
-| 02+Dummie+VEC+ago_sep+2025.pdf | KnownSynthetic | Observed=Out-of-order sections: §17 (Mensajes adicionales) appears after §26 at reading position 8 (page 2); §18 (Programas de beneficios) appears after §17 at reading position 9 (page 2); §19 (Saldo sobre el que se calcularon los intereses) appears after §18 at reading position 10 (page 2); §16 (Información de otras líneas de crédito) appears after §19 at reading position 11 (page 2); §20 (Distribución de tu último pago) appears after §16 at reading position 12 (page 2); §22 (Desglose de movimientos) appears after §20 at reading position 13 (page 3); §23 (Cargos no reconocidos) appears after §22 at reading position 14 (page 5) | Present sections in ascending §-order with no inter-section same-page gap > 2 cm (56.69 pt). Expected order: §6 → §7 → §8 → §11 → §12 → §13 → §16 → §17 → §18 → §19 → §20 → §22 → §23 → §26 → §27 | n/a | Verdict: Fail |
-| 03+Dummie+VEC+sep_oct+2025.pdf | KnownSynthetic | Observed=Out-of-order sections: §17 (Mensajes adicionales) appears after §26 at reading position 8 (page 2); §18 (Programas de beneficios) appears after §17 at reading position 9 (page 2); §19 (Saldo sobre el que se calcularon los intereses) appears after §18 at reading position 10 (page 2); §16 (Información de otras líneas de crédito) appears after §19 at reading position 11 (page 2); §20 (Distribución de tu último pago) appears after §16 at reading position 12 (page 2); §22 (Desglose de movimientos) appears after §20 at reading position 13 (page 3); §24 (Atención de quejas) appears after §22 at reading position 14 (page 7) | Present sections in ascending §-order with no inter-section same-page gap > 2 cm (56.69 pt). Expected order: §6 → §7 → §8 → §11 → §12 → §13 → §16 → §17 → §18 → §19 → §20 → §22 → §24 → §26 → §27 | n/a | Verdict: Fail |
-
 ### LAW-SEC-PRESENCE
 
 _Distribution is **good-only** — no separation measurable until KnownBroken specimens are added._
 
 | Specimen | Label | MeasuredValue | CurrentThreshold | Margin | Note |
 |----------|-------|---------------|-----------------|--------|------|
-| 01+Dummie+VEC+jul_ago+20252.pdf | KnownSynthetic | Observed=missing: §2, §3, §4, §5, §9, §10, §14, §15, §24 | §2, §3, §4, §5, §6, §7, §8, §9, §10, §11, §12, §13, §14, §15, §16, §17, §18, §19, §20, §22, §24, §26, §27 | n/a | Verdict: Fail |
-| 02+Dummie+VEC+ago_sep+2025.pdf | KnownSynthetic | Observed=missing: §2, §3, §4, §5, §9, §10, §14, §15, §24 | §2, §3, §4, §5, §6, §7, §8, §9, §10, §11, §12, §13, §14, §15, §16, §17, §18, §19, §20, §22, §23, §24, §26, §27 | n/a | Verdict: Fail |
-| 03+Dummie+VEC+sep_oct+2025.pdf | KnownSynthetic | Observed=missing: §2, §3, §4, §5, §9, §10, §14, §15 | §2, §3, §4, §5, §6, §7, §8, §9, §10, §11, §12, §13, §14, §15, §16, §17, §18, §19, §20, §22, §24, §26, §27 | n/a | Verdict: Fail |
+| 01+Dummie+VEC+jul_ago+20252.pdf | KnownSynthetic | Observed=missing: §2, §3, §4, §5, §9, §10, §14, §15, §24, §27 | §2, §3, §4, §5, §6, §7, §8, §9, §10, §11, §12, §13, §14, §15, §17, §18, §19, §20, §22, §24, §26, §27 | n/a | Verdict: Fail |
+| 02+Dummie+VEC+ago_sep+2025.pdf | KnownSynthetic | Observed=missing: §2, §3, §4, §5, §9, §10, §14, §15, §24, §27 | §2, §3, §4, §5, §6, §7, §8, §9, §10, §11, §12, §13, §14, §15, §17, §18, §19, §20, §22, §23, §24, §26, §27 | n/a | Verdict: Fail |
+| 03+Dummie+VEC+sep_oct+2025.pdf | KnownSynthetic | Observed=missing: §2, §3, §4, §5, §9, §10, §14, §15, §27 | §2, §3, §4, §5, §6, §7, §8, §9, §10, §11, §12, §13, §14, §15, §17, §18, §19, §20, §22, §24, §26, §27 | n/a | Verdict: Fail |
 
 ### LAW-SEC-SIZECAP
 

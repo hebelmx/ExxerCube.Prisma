@@ -4446,20 +4446,161 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         (28, "Sección opcional libre (§28)",                    "SECCION LIBRE",                                         true,  false),
     ];
 
+    // -----------------------------------------------------------------------
+    // Heading-band structural guard (RC1.S4.b/B3 — real-corpus calibration, 2026-07-22)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Maximum number of trailing words a heading band may carry after the matched anchor and
+    /// still count as a heading (rather than body prose that merely starts with the anchor
+    /// phrase). Calibrated against the Dummie VEC demo fixtures' real heading bands, the widest
+    /// of which is §22 "DESGLOSE DE MOVIMIENTOS <b>DEL PERIODO 5-jul-2025 al 04-ago-2025</b>"
+    /// (5 trailing words); a small margin is added.
+    /// </summary>
+    private const int MaxHeadingTrailingWords = 6;
+
+    /// <summary>
+    /// Matches CONDUSEF-mandated cross-reference sentences that name another section by its
+    /// title, e.g. <c>"Ver notas en la sección "NOTAS ACLARATORIAS" en este estado de
+    /// cuenta."</c> or <c>"Consulta la sección "GLOSARIO DE TÉRMINOS Y ABREVIATURAS" para
+    /// conocer…"</c>. These sentences appear verbatim (footers/footnotes) on every page of the
+    /// real Banamex/Citibanamex statement family and, before this guard, false-hit the §26/§27
+    /// anchors because the quoted section name is a literal substring of the footer/footnote
+    /// band. Matches on the normalized (upper, accent-stripped) band text.
+    /// </summary>
+    private static readonly Regex CrossReferenceSentencePattern = new(
+        @"\b(VER|REVISA|REVISAR|CONSULTA|CONSULTE)\b.{0,60}?\bSECCION\b",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    /// <summary>
+    /// Returns <see langword="true"/> when <paramref name="normalizedBandText"/> is a
+    /// cross-reference sentence (a lead-in verb — "ver"/"revisa"/"consulta"/… — followed by
+    /// "sección" within the same band) rather than a genuine section heading. Internal +
+    /// <see langword="static"/> so it is independently unit-testable (see
+    /// <c>PdfPigStatementFieldExtractorTests</c> LAW-SEC calibration tests).
+    /// </summary>
+    internal static bool IsCrossReferenceSentence(string normalizedBandText) =>
+        CrossReferenceSentencePattern.IsMatch(normalizedBandText);
+
+    /// <summary>
+    /// Returns <see langword="true"/> when <paramref name="normalizedBandText"/> is shaped like
+    /// a genuine section-heading band for <paramref name="normalizedAnchor"/>, rather than a
+    /// body-text fragment that happens to contain the anchor phrase.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Evidence (RC1.S1–S3 real-corpus ground truth, 2026-07-22):</b> on the real
+    /// Banamex/Citibanamex Visa/Mastercard statement family, every one of the 23 detectable
+    /// CONDUSEF §-anchors is genuinely image/graphic-rendered — no literal heading text exists
+    /// in the PDF text layer for any of them (confirmed: zero bold/short standalone bands match
+    /// any anchor on 8 real credit-card statements). The band-only <c>Contains</c> match this
+    /// method replaces was nonetheless reporting 5 sections falsely "Present" via three distinct
+    /// non-heading shapes, all now rejected:
+    /// <list type="bullet">
+    ///   <item><b>Cross-reference sentences</b> (§26, §27): "Ver notas en la sección "NOTAS
+    ///     ACLARATORIAS" en este estado de cuenta." / "Consulta la sección "GLOSARIO DE
+    ///     TÉRMINOS…" — the anchor is embedded mid-sentence, never at the start of the band.</item>
+    ///   <item><b>Data-table rows</b> (§16): the §19 SALDO SOBRE… table's own row label "Por
+    ///     disposiciones de efectivo de OTRAS LÍNEAS DE CRÉDITO" contains the §16 anchor as a
+    ///     trailing fragment of an unrelated table cell.</item>
+    ///   <item><b>Definition/legend prose</b> (§9, §22): the §27 Glosario body defines CAT
+    ///     ("Costo Anual Total de financiamiento expresado en términos…", 2-column-merged with
+    ///     the neighbouring TASA definition) and a footnote references "…en el desglose de
+    ///     movimientos" — both start with (or embed) the anchor but run on as prose, not a
+    ///     title.</item>
+    /// </list>
+    /// A genuine heading band IS the anchor phrase — possibly preceded and/or followed by
+    /// another section's complete anchor phrase in a multi-column layout (e.g. §7/§8 side by
+    /// side), and possibly followed by a short trailing decoration (a subtitle, a "(CAT)"
+    /// parenthetical, a trailing date range) — never preceded by unrelated words and never
+    /// followed by a long run of unrelated prose. This method enforces that shape: the text
+    /// before the anchor's first occurrence must be empty or itself be another anchor
+    /// (<see cref="ContainsAnotherAnchor"/> — never a flat word budget, or short unrelated
+    /// lead-ins like a table-row's leading words would also qualify); the band must not be a
+    /// cross-reference sentence (<see cref="IsCrossReferenceSentence"/>, checked independently
+    /// even though the "before" rule alone already rejects the two evidenced cross-reference
+    /// bands — kept as an explicit, separately-testable guard per the calibration story); and
+    /// the text after the anchor must either be short (≤ <see cref="MaxHeadingTrailingWords"/>
+    /// words) or itself contain another anchor.
+    /// </para>
+    /// <para>
+    /// Demo-fixture safety: verified against every currently-asserted heading on the Dummie VEC
+    /// fixtures (§7, §8, §11, §12, §13, §17, §18, §19, §22, §26) — all pass with 0–5 trailing
+    /// words.
+    /// </para>
+    /// </remarks>
+    internal static bool IsHeadingLikeMatch(string normalizedBandText, string normalizedAnchor)
+    {
+        var anchorIndex = normalizedBandText.IndexOf(normalizedAnchor, StringComparison.Ordinal);
+        if (anchorIndex < 0)
+            return false;
+
+        if (IsCrossReferenceSentence(normalizedBandText))
+            return false;
+
+        var before = normalizedBandText[..anchorIndex];
+        var after = normalizedBandText[(anchorIndex + normalizedAnchor.Length)..];
+
+        // The text BEFORE the anchor's first occurrence must be empty, or itself be another
+        // section's complete anchor phrase (the multi-column case below) — never a flat word
+        // budget, because that would also accept short unrelated lead-ins (e.g. the §19 table
+        // row "Por disposiciones de efectivo de OTRAS LÍNEAS DE CRÉDITO" has only 5 leading
+        // words, which is within any reasonable budget but is NOT a heading).
+        if (before.Length > 0 && !ContainsAnotherAnchor(before, normalizedAnchor))
+            return false;
+
+        // The text AFTER the anchor may be a short trailing decoration (a subtitle, a "(CAT)"
+        // parenthetical, a trailing date range) OR — multi-column layout, e.g. §7 "RESUMEN DE
+        // CARGOS Y ABONOS DEL PERIODO" and §8 "INDICADORES DEL COSTO ANUAL DE LA TARJETA" print
+        // side-by-side on one Y-band in the Dummie VEC fixtures — another section's complete
+        // anchor phrase glued on immediately after. Long prose that contains no other anchor
+        // (e.g. the §27 Glosario's CAT definition, "…de financiamiento expresado en términos
+        // porcentuales…") is rejected.
+        var afterWordCount = after.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length;
+        if (afterWordCount > MaxHeadingTrailingWords && !ContainsAnotherAnchor(after, normalizedAnchor))
+            return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Returns <see langword="true"/> when <paramref name="text"/> contains, verbatim, the
+    /// normalized anchor phrase of a DIFFERENT (non-indeterminate) <see cref="s_sectionAnchors"/>
+    /// entry than <paramref name="excludeAnchor"/>. Used by <see cref="IsHeadingLikeMatch"/> to
+    /// recognize multi-column bands where two section headings share the same Y-band.
+    /// </summary>
+    private static bool ContainsAnotherAnchor(string text, string excludeAnchor)
+    {
+        foreach (var (_, _, otherAnchor, _, otherIndeterminate) in s_sectionAnchors)
+        {
+            if (otherIndeterminate || string.IsNullOrEmpty(otherAnchor) || otherAnchor == excludeAnchor)
+                continue;
+
+            if (text.Contains(otherAnchor, StringComparison.Ordinal))
+                return true;
+        }
+
+        return false;
+    }
+
     /// <summary>
     /// Detects the 28 mandatory CONDUSEF <i>Acuerdo</i> sections by scanning per-page
     /// word bands (heading-band-only detection — Story 10.1 R1).
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <b>Algorithm (R1 — heading-band-only):</b>
+    /// <b>Algorithm (R1 — heading-band-only; R2 — heading-shaped match, RC1.S4.b):</b>
     /// <list type="number">
     ///   <item>Make a single pass over all pages collecting all bands (page, bandY, bandText, words)
     ///     into a flat ordered list of <c>BandEntry</c> records (reading order: page asc, Y desc).</item>
-    ///   <item>For each section anchor, find the first band whose normalized text contains the
-    ///     anchor → that band's locator is the section heading.  A bare occurrence of the anchor
-    ///     anywhere in the full document text (e.g. §27 Glosario body) is NOT sufficient — the
-    ///     anchor must appear in a band.</item>
+    ///   <item>For each section anchor, find the first band that is <b>heading-shaped</b> for
+    ///     that anchor (<see cref="IsHeadingLikeMatch"/>: the text around the anchor's first
+    ///     occurrence is empty, a short decoration, or another section's anchor — never
+    ///     unrelated prose — and the band is not a cross-reference sentence) → that band's
+    ///     locator is the section heading. A bare <c>Contains</c> occurrence of the anchor
+    ///     anywhere in the full document text (e.g. §27 Glosario body, or embedded in a
+    ///     cross-reference sentence or an unrelated table row) is NOT sufficient — the anchor
+    ///     must head its own band (RC1.S4.b real-corpus calibration, 2026-07-22).</item>
     ///   <item>After all sections are located, compute <see cref="DetectedSection.SectionText"/>
     ///     by collecting all band words from a section's heading band to the next detected section's
     ///     heading band (within the same reading-order sequence, across pages if needed).</item>
@@ -4511,7 +4652,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             var found = -1;
             for (var b = 0; b < allBands.Count; b++)
             {
-                if (allBands[b].NormalizedText.Contains(anchor, StringComparison.Ordinal))
+                if (IsHeadingLikeMatch(allBands[b].NormalizedText, anchor))
                 {
                     found = b;
                     break;

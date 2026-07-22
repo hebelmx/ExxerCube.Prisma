@@ -15,18 +15,18 @@ unverified second bundle) is the correct "don't invent a new composition" choice
 
 | Id | Product | Signal | BankTier | CondusefTier | Fail | InsufficientData | Pass | Extraction ms | Verdict ms |
 |---|---|---|---|---|---|---|---|---|---|
-| A-2026-02 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 908 | 678 |
-| A-2026-03 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 887 | 675 |
-| A-2026-04 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 929 | 680 |
-| A-2026-05 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 912 | 722 |
-| B-2026-03 | credit_card | Red | Yellow | Red | 6 | 35 | 17 | 1867 | 5456 |
-| B-2026-04 | credit_card | Red | Yellow | Red | 6 | 35 | 17 | 2177 | 8443 |
-| B-2026-05 | credit_card | Red | Yellow | Red | 6 | 35 | 17 | 3143 | 6944 |
-| B-2026-06 | credit_card | Red | Yellow | Red | 6 | 36 | 16 | 1947 | 5782 |
-| C-2026-02 | credit_card | Red | Yellow | Red | 10 | 35 | 13 | 2004 | 7326 |
-| C-2026-03 | credit_card | Red | Yellow | Red | 6 | 35 | 17 | 2633 | 6787 |
-| C-2026-04 | credit_card | Red | Yellow | Red | 6 | 35 | 17 | 2938 | 7676 |
-| C-2026-05 | credit_card | Red | Yellow | Red | 6 | 35 | 17 | 2764 | 7353 |
+| A-2026-02 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 895 | 665 |
+| A-2026-03 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 873 | 647 |
+| A-2026-04 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 935 | 678 |
+| A-2026-05 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 931 | 646 |
+| B-2026-03 | credit_card | Red | Yellow | Red | 4 | 37 | 17 | 1816 | 3014 |
+| B-2026-04 | credit_card | Red | Yellow | Red | 4 | 37 | 17 | 1842 | 3042 |
+| B-2026-05 | credit_card | Red | Yellow | Red | 4 | 37 | 17 | 1860 | 3115 |
+| B-2026-06 | credit_card | Red | Yellow | Red | 4 | 38 | 16 | 1830 | 3064 |
+| C-2026-02 | credit_card | Red | Yellow | Red | 8 | 37 | 13 | 1675 | 2907 |
+| C-2026-03 | credit_card | Red | Yellow | Red | 4 | 37 | 17 | 2156 | 3384 |
+| C-2026-04 | credit_card | Red | Yellow | Red | 4 | 37 | 17 | 2706 | 3896 |
+| C-2026-05 | credit_card | Red | Yellow | Red | 4 | 37 | 17 | 2290 | 3534 |
 
 ## Per-check aggregate — real account statements (12)
 
@@ -74,14 +74,14 @@ not counted for that statement (engine didn't evaluate it).
 | ITEM-58 | Warning | 0 | 8 | 0 | 8 |
 | LAW-ADS-PLACEMENT | Info | 0 | 0 | 8 | 8 |
 | LAW-DUC-ART27-GAT | Warning | 0 | 8 | 0 | 8 |
-| LAW-SEC-ORDER-GAP | Critical | 8 | 0 | 0 | 8 |
+| LAW-SEC-ORDER-GAP | Warning | 0 | 8 | 0 | 8 |
 | LAW-SEC-PRESENCE | Critical | 8 | 0 | 0 | 8 |
 | LAW-SEC-SIZECAP | Warning | 0 | 8 | 0 | 8 |
 | LAW-TYPO-BOLD | Warning | 0 | 8 | 0 | 8 |
 | LAW-TYPO-MINSIZE | Critical | 8 | 0 | 0 | 8 |
 | LAW-§11-URLS | Warning | 0 | 8 | 0 | 8 |
 | LAW-§13-TRANSFERENCIA | Warning | 0 | 8 | 0 | 8 |
-| LAW-§16-OTRASLINEAS | Warning | 0 | 8 | 0 | 8 |
+| LAW-§16-OTRASLINEAS | Info | 0 | 0 | 8 | 8 |
 | LAW-§17-LEGENDS | Warning | 0 | 8 | 0 | 8 |
 | LAW-§18-COMPLETE | Warning | 0 | 8 | 0 | 8 |
 | LAW-§19-INTERES | Warning | 0 | 8 | 0 | 8 |
@@ -90,8 +90,8 @@ not counted for that statement (engine didn't evaluate it).
 | LAW-§23-STATUS | Info | 0 | 0 | 8 | 8 |
 | LAW-§24-QUEJAS | Warning | 0 | 8 | 0 | 8 |
 | LAW-§25-REESTRUCTURA | Info | 0 | 0 | 8 | 8 |
-| LAW-§26-NOTAS | Info | 0 | 0 | 8 | 8 |
-| LAW-§27-GLOSARIO | Critical | 8 | 0 | 0 | 8 |
+| LAW-§26-NOTAS | Warning | 0 | 8 | 0 | 8 |
+| LAW-§27-GLOSARIO | Warning | 0 | 8 | 0 | 8 |
 | LAW-§6-SIMULACION | Warning | 0 | 8 | 0 | 8 |
 | LAW-§8-INDICADORES | Warning | 0 | 8 | 0 | 8 |
 | NotificationFailure | Warning | 0 | 8 | 0 | 8 |
@@ -146,9 +146,9 @@ comparison; the Actual columns are this run's measurement.
 
 | Id | Known injected defect | Actual Signal | Actual FailCheckIds | Actual InsufficientDataCheckIds |
 |---|---|---|---|---|
-| defect-bad-font-cl35 | Courier font substituted for required Helvetica (historically trips CL-35) | Red | CL-32, CL-35, CL-48, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE, LAW-§27-GLOSARIO | CL-10, CL-17, CL-20, CL-21, CL-23, CL-24, CL-25, CL-26, CL-29, CL-31, CL-36, CL-37, CL-39, CL-40, CL-41, CL-43, CL-44, CL-45, CL-49, CL-53, CLIENT-IMG-CATALOG, ITEM-58, LAW-DUC-ART27-GAT, LAW-SEC-SIZECAP, LAW-TYPO-BOLD, LAW-§11-URLS, LAW-§13-TRANSFERENCIA, LAW-§16-OTRASLINEAS, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§19-INTERES, LAW-§20-WATERFALL, LAW-§24-QUEJAS, LAW-§6-SIMULACION, LAW-§8-INDICADORES |
-| defect-bad-math-cl21 | +$11.00 injected on PagoParaNoGenerarIntereses (historically trips CL-21 + CL-22) | Red | CL-32, CL-48, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE, LAW-§27-GLOSARIO | CL-10, CL-17, CL-20, CL-21, CL-23, CL-24, CL-25, CL-26, CL-29, CL-31, CL-36, CL-37, CL-39, CL-40, CL-41, CL-43, CL-44, CL-45, CL-49, CL-53, CLIENT-IMG-CATALOG, ITEM-58, LAW-DUC-ART27-GAT, LAW-SEC-SIZECAP, LAW-TYPO-BOLD, LAW-§11-URLS, LAW-§13-TRANSFERENCIA, LAW-§16-OTRASLINEAS, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§19-INTERES, LAW-§20-WATERFALL, LAW-§24-QUEJAS, LAW-§6-SIMULACION, LAW-§8-INDICADORES |
-| defect-good | none (reference-quality demo PDF; historically RED on structural/legend checks, not arithmetic) | Red | CL-32, CL-48, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE, LAW-§27-GLOSARIO | CL-10, CL-17, CL-20, CL-21, CL-23, CL-24, CL-25, CL-26, CL-29, CL-31, CL-36, CL-37, CL-39, CL-40, CL-41, CL-43, CL-44, CL-45, CL-49, CL-53, CLIENT-IMG-CATALOG, ITEM-58, LAW-DUC-ART27-GAT, LAW-SEC-SIZECAP, LAW-TYPO-BOLD, LAW-§11-URLS, LAW-§13-TRANSFERENCIA, LAW-§16-OTRASLINEAS, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§19-INTERES, LAW-§20-WATERFALL, LAW-§24-QUEJAS, LAW-§6-SIMULACION, LAW-§8-INDICADORES |
+| defect-bad-font-cl35 | Courier font substituted for required Helvetica (historically trips CL-35) | Red | CL-32, CL-35, CL-48, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE | CL-10, CL-17, CL-20, CL-21, CL-23, CL-24, CL-25, CL-26, CL-29, CL-31, CL-36, CL-37, CL-39, CL-40, CL-41, CL-43, CL-44, CL-45, CL-49, CL-53, CLIENT-IMG-CATALOG, ITEM-58, LAW-DUC-ART27-GAT, LAW-SEC-ORDER-GAP, LAW-SEC-SIZECAP, LAW-TYPO-BOLD, LAW-§11-URLS, LAW-§13-TRANSFERENCIA, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§19-INTERES, LAW-§20-WATERFALL, LAW-§24-QUEJAS, LAW-§26-NOTAS, LAW-§27-GLOSARIO, LAW-§6-SIMULACION, LAW-§8-INDICADORES |
+| defect-bad-math-cl21 | +$11.00 injected on PagoParaNoGenerarIntereses (historically trips CL-21 + CL-22) | Red | CL-32, CL-48, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE | CL-10, CL-17, CL-20, CL-21, CL-23, CL-24, CL-25, CL-26, CL-29, CL-31, CL-36, CL-37, CL-39, CL-40, CL-41, CL-43, CL-44, CL-45, CL-49, CL-53, CLIENT-IMG-CATALOG, ITEM-58, LAW-DUC-ART27-GAT, LAW-SEC-ORDER-GAP, LAW-SEC-SIZECAP, LAW-TYPO-BOLD, LAW-§11-URLS, LAW-§13-TRANSFERENCIA, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§19-INTERES, LAW-§20-WATERFALL, LAW-§24-QUEJAS, LAW-§26-NOTAS, LAW-§27-GLOSARIO, LAW-§6-SIMULACION, LAW-§8-INDICADORES |
+| defect-good | none (reference-quality demo PDF; historically RED on structural/legend checks, not arithmetic) | Red | CL-32, CL-48, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE | CL-10, CL-17, CL-20, CL-21, CL-23, CL-24, CL-25, CL-26, CL-29, CL-31, CL-36, CL-37, CL-39, CL-40, CL-41, CL-43, CL-44, CL-45, CL-49, CL-53, CLIENT-IMG-CATALOG, ITEM-58, LAW-DUC-ART27-GAT, LAW-SEC-ORDER-GAP, LAW-SEC-SIZECAP, LAW-TYPO-BOLD, LAW-§11-URLS, LAW-§13-TRANSFERENCIA, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§19-INTERES, LAW-§20-WATERFALL, LAW-§24-QUEJAS, LAW-§26-NOTAS, LAW-§27-GLOSARIO, LAW-§6-SIMULACION, LAW-§8-INDICADORES |
 | defect-scanned | image-only PDF, no text layer (historically ExtractionGap) | ExtractionGap |  |  |
 
 ## Notable observations
