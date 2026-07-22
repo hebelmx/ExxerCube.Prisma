@@ -42,7 +42,10 @@ public sealed class CsvReferenceDataAdapterExtendedSectionsTests
         legends.ShouldNotBeNull();
         legends!.Count.ShouldBe(1);
         legends[0].LegendId.ShouldBe("repr-impresa");
-        legends[0].Text.ShouldBe("ESTE DOCUMENTO ES UNA REPRESENTACIÓN IMPRESA SIN VALIDEZ FISCAL");
+        // RC1.S4.c (2026-07-22, owner ruling): real corpus prints the SAT-standard CFDI
+        // wording, not the old "SIN VALIDEZ FISCAL" synthetic legend — see
+        // docs/qa/calibration/real-corpus-triage-2026-07.md (CL-46 row).
+        legends[0].Text.ShouldBe("ESTE DOCUMENTO ES UNA REPRESENTACIÓN IMPRESA DE UN CFDI");
         legends[0].MatchMode.ShouldBe("normalized");
         legends[0].Section.ShouldBe("fiscal");
         legends[0].Required.ShouldBe(true);

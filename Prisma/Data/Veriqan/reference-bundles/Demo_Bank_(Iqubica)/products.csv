@@ -3,3 +3,4 @@ TC-NL,Tarjeta de Crédito NL,NL,true,1500,MXN
 TC-TOR,Tarjeta de Crédito TOR,TOR,false,1500,MXN
 TC-BSSB,Tarjeta de Crédito BSSB,BSSB,false,1500,MXN
 TC-COSTCO-BANAMEX,Tarjeta de Crédito COSTCO BANAMEX,COSTCO BANAMEX|Tarjeta de Crédito COSTCO BANAMEX,false,1500,MXN
+TC-PLATINUM-BANAMEX,Tarjeta de Crédito PLATINUM BANAMEX,Tarjeta de Crédito PLATINUM BANAMEX|PLATINUM BANAMEX,false,1500,MXN

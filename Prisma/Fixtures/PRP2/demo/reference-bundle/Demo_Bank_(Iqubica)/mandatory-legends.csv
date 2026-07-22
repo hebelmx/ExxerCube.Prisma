@@ -1,2 +1,2 @@
 legendId,text,matchMode,appliesToProducts,section,required
-repr-impresa,ESTE DOCUMENTO ES UNA REPRESENTACIÓN IMPRESA SIN VALIDEZ FISCAL,normalized,,fiscal,true
+repr-impresa,ESTE DOCUMENTO ES UNA REPRESENTACIÓN IMPRESA DE UN CFDI,normalized,,fiscal,true

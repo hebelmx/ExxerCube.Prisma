@@ -1,6 +1,6 @@
 ﻿# Veriqan Corpus Calibration Report
 
-**Generated:** 2026-07-17 05:02 UTC  
+**Generated:** 2026-07-22 20:13 UTC  
 **Corpus size:** 3 specimen(s)  
 **KnownGood:** 0 · **KnownSynthetic:** 3 (non-compliant placeholders — NOT compliance evidence) · **KnownBroken:** 0
 
@@ -32,10 +32,8 @@
 | CL-42 | yes | no | no | no |
 | CL-48 | no | yes | no | no |
 | LAW-§13-TRANSFERENCIA | no | yes | no | no |
-| LAW-§17-LEGENDS | no | yes | no | no |
 | LAW-§18-COMPLETE | no | yes | no | no |
 | LAW-§20-WATERFALL | no | yes | no | no |
-| LAW-§26-NOTAS | no | yes | no | no |
 | LAW-§27-GLOSARIO | no | yes | no | no |
 | LAW-SEC-ORDER-GAP | no | yes | no | no |
 | LAW-SEC-PRESENCE | no | yes | no | no |
@@ -55,11 +53,9 @@
 | CL-52 | yes | no | no | no |
 | CL-53 | yes | no | no | no |
 | LAW-§13-TRANSFERENCIA | no | yes | no | no |
-| LAW-§17-LEGENDS | no | yes | no | no |
 | LAW-§18-COMPLETE | no | yes | no | no |
 | LAW-§20-WATERFALL | no | yes | no | no |
 | LAW-§23-STATUS | no | yes | no | no |
-| LAW-§26-NOTAS | no | yes | no | no |
 | LAW-§27-GLOSARIO | no | yes | no | no |
 | LAW-SEC-ORDER-GAP | no | yes | no | no |
 | LAW-SEC-PRESENCE | no | yes | no | no |
@@ -75,10 +71,8 @@
 | CL-42 | yes | no | no | no |
 | CL-48 | no | yes | no | no |
 | LAW-§13-TRANSFERENCIA | no | yes | no | no |
-| LAW-§17-LEGENDS | no | yes | no | no |
 | LAW-§18-COMPLETE | no | yes | no | no |
 | LAW-§20-WATERFALL | no | yes | no | no |
-| LAW-§26-NOTAS | no | yes | no | no |
 | LAW-§27-GLOSARIO | no | yes | no | no |
 | LAW-SEC-ORDER-GAP | no | yes | no | no |
 | LAW-SEC-PRESENCE | no | yes | no | no |
@@ -98,11 +92,9 @@
 | CL-52 | 1 | 0 | 0 | n/a | 0% |
 | CL-53 | 1 | 0 | 0 | n/a | 0% |
 | LAW-§13-TRANSFERENCIA | 3 | 0 | 0 | n/a | 0% |
-| LAW-§17-LEGENDS | 3 | 0 | 0 | n/a | 0% |
 | LAW-§18-COMPLETE | 3 | 0 | 0 | n/a | 0% |
 | LAW-§20-WATERFALL | 3 | 0 | 0 | n/a | 0% |
 | LAW-§23-STATUS | 1 | 0 | 0 | n/a | 0% |
-| LAW-§26-NOTAS | 3 | 0 | 0 | n/a | 0% |
 | LAW-§27-GLOSARIO | 3 | 0 | 0 | n/a | 0% |
 | LAW-SEC-ORDER-GAP | 3 | 0 | 0 | n/a | 0% |
 | LAW-SEC-PRESENCE | 3 | 0 | 0 | n/a | 0% |
@@ -146,9 +138,9 @@ _Distribution is **good-only** — no separation measurable until KnownBroken sp
 
 | Specimen | Label | MeasuredValue | CurrentThreshold | Margin | Note |
 |----------|-------|---------------|-----------------|--------|------|
-| 01+Dummie+VEC+jul_ago+20252.pdf | KnownSynthetic | Observed=Missing/low-similarity §17 legend(s): §17-a (similarity=0.667); §17-b (similarity=0.650); §17-c (similarity=0.659); §17-d (similarity=0.639) | All 4 §17 art-6-IV mandatory legends present. | tolerance applied: 0.82 | Verdict: Fail |
-| 02+Dummie+VEC+ago_sep+2025.pdf | KnownSynthetic | Observed=Missing/low-similarity §17 legend(s): §17-a (similarity=0.647); §17-b (similarity=0.661); §17-c (similarity=0.669); §17-d (similarity=0.655) | All 4 §17 art-6-IV mandatory legends present. | tolerance applied: 0.82 | Verdict: Fail |
-| 03+Dummie+VEC+sep_oct+2025.pdf | KnownSynthetic | Observed=Missing/low-similarity §17 legend(s): §17-a (similarity=0.667); §17-b (similarity=0.672); §17-c (similarity=0.654); §17-d (similarity=0.672) | All 4 §17 art-6-IV mandatory legends present. | tolerance applied: 0.82 | Verdict: Fail |
+| 01+Dummie+VEC+jul_ago+20252.pdf | KnownSynthetic | Observed=All 4 §17 art-6-IV mandatory legends found in document (threshold=0.820). | (none) | tolerance applied: 0.82 | Verdict: Pass |
+| 02+Dummie+VEC+ago_sep+2025.pdf | KnownSynthetic | Observed=All 4 §17 art-6-IV mandatory legends found in document (threshold=0.820). | (none) | tolerance applied: 0.82 | Verdict: Pass |
+| 03+Dummie+VEC+sep_oct+2025.pdf | KnownSynthetic | Observed=All 4 §17 art-6-IV mandatory legends found in document (threshold=0.820). | (none) | tolerance applied: 0.82 | Verdict: Pass |
 
 ### LAW-§18-COMPLETE
 
@@ -192,9 +184,9 @@ _Distribution is **good-only** — no separation measurable until KnownBroken sp
 
 | Specimen | Label | MeasuredValue | CurrentThreshold | Margin | Note |
 |----------|-------|---------------|-----------------|--------|------|
-| 01+Dummie+VEC+jul_ago+20252.pdf | KnownSynthetic | Observed=Missing/low-similarity §26 nota(s): §26-b (similarity=0.753); §26-i (similarity=0.667) | All 13 §26 verbatim notas aclaratorias present. | tolerance applied: 0.82 | Verdict: Fail |
-| 02+Dummie+VEC+ago_sep+2025.pdf | KnownSynthetic | Observed=Missing/low-similarity §26 nota(s): §26-b (similarity=0.707); §26-i (similarity=0.657) | All 13 §26 verbatim notas aclaratorias present. | tolerance applied: 0.82 | Verdict: Fail |
-| 03+Dummie+VEC+sep_oct+2025.pdf | KnownSynthetic | Observed=Missing/low-similarity §26 nota(s): §26-b (similarity=0.707); §26-i (similarity=0.667) | All 13 §26 verbatim notas aclaratorias present. | tolerance applied: 0.82 | Verdict: Fail |
+| 01+Dummie+VEC+jul_ago+20252.pdf | KnownSynthetic | Observed=All 13 §26 notas aclaratorias (a–m) found in document (threshold=0.820). | (none) | tolerance applied: 0.82 | Verdict: Pass |
+| 02+Dummie+VEC+ago_sep+2025.pdf | KnownSynthetic | Observed=All 13 §26 notas aclaratorias (a–m) found in document (threshold=0.820). | (none) | tolerance applied: 0.82 | Verdict: Pass |
+| 03+Dummie+VEC+sep_oct+2025.pdf | KnownSynthetic | Observed=All 13 §26 notas aclaratorias (a–m) found in document (threshold=0.820). | (none) | tolerance applied: 0.82 | Verdict: Pass |
 
 ### LAW-§27-GLOSARIO
 
@@ -202,9 +194,9 @@ _Distribution is **good-only** — no separation measurable until KnownBroken sp
 
 | Specimen | Label | MeasuredValue | CurrentThreshold | Margin | Note |
 |----------|-------|---------------|-----------------|--------|------|
-| 01+Dummie+VEC+jul_ago+20252.pdf | KnownSynthetic | Observed=Missing/low-similarity §27 term(s): §27-a (similarity=0.317); §27-b (similarity=0.309); §27-c (similarity=0.407); §27-d (similarity=0.362); §27-e (similarity=0.340); §27-f (similarity=0.485); §27-g (similarity=0.338); §27-h (similarity=0.368); §27-i (similarity=0.316); §27-j (similarity=0.390); §27-k (similarity=0.400); §27-l (similarity=0.343); §27-m (similarity=0.351); §27-n (similarity=0.336); §27-o (similarity=0.370) | All 15 §27 verbatim glosario terms present. | tolerance applied: 0.82 | Verdict: Fail |
+| 01+Dummie+VEC+jul_ago+20252.pdf | KnownSynthetic | Observed=Missing/low-similarity §27 term(s): §27-a (similarity=0.317); §27-b (similarity=0.309); §27-c (similarity=0.407); §27-d (similarity=0.382); §27-e (similarity=0.340); §27-f (similarity=0.485); §27-g (similarity=0.338); §27-h (similarity=0.368); §27-i (similarity=0.316); §27-j (similarity=0.390); §27-k (similarity=0.400); §27-l (similarity=0.343); §27-m (similarity=0.351); §27-n (similarity=0.336); §27-o (similarity=0.370) | All 15 §27 verbatim glosario terms present. | tolerance applied: 0.82 | Verdict: Fail |
 | 02+Dummie+VEC+ago_sep+2025.pdf | KnownSynthetic | Observed=Missing/low-similarity §27 term(s): §27-a (similarity=0.321); §27-b (similarity=0.312); §27-c (similarity=0.421); §27-d (similarity=0.407); §27-e (similarity=0.347); §27-f (similarity=0.471); §27-g (similarity=0.348); §27-h (similarity=0.400); §27-i (similarity=0.314); §27-j (similarity=0.388); §27-k (similarity=0.405); §27-l (similarity=0.359); §27-m (similarity=0.358); §27-n (similarity=0.350); §27-o (similarity=0.375) | All 15 §27 verbatim glosario terms present. | tolerance applied: 0.82 | Verdict: Fail |
-| 03+Dummie+VEC+sep_oct+2025.pdf | KnownSynthetic | Observed=Missing/low-similarity §27 term(s): §27-a (similarity=0.318); §27-b (similarity=0.314); §27-c (similarity=0.410); §27-d (similarity=0.372); §27-e (similarity=0.333); §27-f (similarity=0.471); §27-g (similarity=0.344); §27-h (similarity=0.400); §27-i (similarity=0.312); §27-j (similarity=0.386); §27-k (similarity=0.402); §27-l (similarity=0.359); §27-m (similarity=0.347); §27-n (similarity=0.333); §27-o (similarity=0.347) | All 15 §27 verbatim glosario terms present. | tolerance applied: 0.82 | Verdict: Fail |
+| 03+Dummie+VEC+sep_oct+2025.pdf | KnownSynthetic | Observed=Missing/low-similarity §27 term(s): §27-a (similarity=0.318); §27-b (similarity=0.314); §27-c (similarity=0.410); §27-d (similarity=0.382); §27-e (similarity=0.333); §27-f (similarity=0.471); §27-g (similarity=0.344); §27-h (similarity=0.400); §27-i (similarity=0.312); §27-j (similarity=0.386); §27-k (similarity=0.402); §27-l (similarity=0.359); §27-m (similarity=0.347); §27-n (similarity=0.333); §27-o (similarity=0.347) | All 15 §27 verbatim glosario terms present. | tolerance applied: 0.82 | Verdict: Fail |
 
 ### LAW-ADS-PLACEMENT
 

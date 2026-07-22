@@ -52,7 +52,10 @@ public sealed class CsvReferenceDataAdapterTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value!.Products.ShouldNotBeNull();
-        result.Value.Products!.Count.ShouldBe(3);
+        // RC1.S4.c (2026-07-22): TC-PLATINUM-BANAMEX row added (owner ruling — Mastercard/
+        // PLATINUM catalog gap found by real-corpus triage), bringing the production bundle
+        // from 4 to 5 rows (TC-NL, TC-TOR, TC-BSSB, TC-COSTCO-BANAMEX, TC-PLATINUM-BANAMEX).
+        result.Value.Products!.Count.ShouldBe(5);
     }
 
     [Fact]
