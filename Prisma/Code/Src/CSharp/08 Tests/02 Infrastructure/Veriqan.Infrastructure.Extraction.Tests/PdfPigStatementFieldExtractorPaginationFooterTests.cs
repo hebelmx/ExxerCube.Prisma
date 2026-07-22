@@ -211,4 +211,192 @@ public sealed class PdfPigStatementFieldExtractorPaginationFooterTests
         pageResult.PaginationTotal.ShouldBe(5,
             "PaginationTotal must be 5 via page-wide fallback — label is above footer band but must not be silently lost");
     }
+
+    // -----------------------------------------------------------------------
+    // RC1.S4.b — MSI installment-fragment rejection (real-corpus recalibration)
+    // -----------------------------------------------------------------------
+    //
+    // Real Banamex/Citibanamex movements tables carry MSI ("meses sin intereses")
+    // installment-plan fragments that also match the bare "N de M" shape (e.g. "3 de 12").
+    // Unlike a genuine page-number stamp, these fragments always sit on a line that also
+    // carries a currency amount ("$…") and/or an operation-date token ("dd-mmm-yyyy"). The
+    // three tests below prove the extractor rejects such lines rather than manufacturing a
+    // fake pagination total from them — see PdfPigStatementFieldExtractor.IsPlausiblePageLabelLine.
+
+    /// <summary>
+    /// Builds a single-page A4 PDF whose ONLY "N de M" text is an MSI-style fragment
+    /// ("3 de 12") sitting inside the literal bottom-10% footer band, on the SAME line as a
+    /// currency amount and an operation-date token — reproducing the real B-series page-2
+    /// collision found during RC1.S3 triage (a movements-table row happens to land inside the
+    /// footer band by page-layout coincidence).
+    /// </summary>
+    private static byte[] BuildPdfWithMsiFragmentInFooterBand()
+    {
+        // A4: 595 × 842 pt. Footer threshold = 84.2 pt. Y=30 is inside the footer band.
+        var builder = new PdfDocumentBuilder();
+        var page = builder.AddPage(595, 842);
+        var font = builder.AddStandard14Font(Standard14Font.Helvetica);
+        const float fontSize = 8f;
+        const float y = 30f;
+
+        page.AddText("04-mar-2026", fontSize, new PdfPoint(50, y), font);
+        page.AddText("MERCADO", fontSize, new PdfPoint(120, y), font);
+        page.AddText("PAGO", fontSize, new PdfPoint(160, y), font);
+        page.AddText("$11,444.24", fontSize, new PdfPoint(200, y), font);
+        page.AddText("3", fontSize, new PdfPoint(280, y), font);
+        page.AddText("de", fontSize, new PdfPoint(290, y), font);
+        page.AddText("12", fontSize, new PdfPoint(303, y), font);
+
+        return builder.Build();
+    }
+
+    /// <summary>
+    /// When the only "N de M" text on a page is an MSI installment fragment inside the footer
+    /// band (accompanied by a date token and a currency amount on the same line), the
+    /// extractor must NOT report it as pagination — PaginationCurrent/Total must both stay
+    /// null so CL-31 abstains (or evaluates only genuinely labeled pages) instead of computing
+    /// on a fabricated total.
+    /// </summary>
+    [Fact]
+    public async Task ExtractFullAsync_MsiFragmentInFooterBand_DoesNotProduceFalsePagination()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        var pdfBytes = BuildPdfWithMsiFragmentInFooterBand();
+        var extractor = CreateExtractor();
+
+        // Act
+        var result = await extractor.ExtractFullAsync(pdfBytes, ct);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue($"ExtractFullAsync failed: {result.Error}");
+        var model = result.Value!;
+        model.Pages.Count.ShouldBe(1, "synthetic PDF has exactly one page");
+
+        var page = model.Pages[0];
+
+        page.PaginationCurrent.ShouldBeNull(
+            "An MSI fragment ('3 de 12') sharing a line with a date and a currency amount must " +
+            "never be reported as pagination, even though it falls inside the footer band.");
+        page.PaginationTotal.ShouldBeNull(
+            "PaginationTotal must stay null for the same reason as PaginationCurrent.");
+    }
+
+    /// <summary>
+    /// Builds a single-page A4 PDF whose ONLY "N de M" text is an MSI-style fragment placed in
+    /// the wider fallback margin band (Y ≈ 15%, above the strict 10% footer band but inside the
+    /// 20% margin band) — reproducing the real B-series page-3 collision where the footer band
+    /// is empty and, pre-fix, the page-wide fallback would have grabbed a mid-table fragment.
+    /// </summary>
+    private static byte[] BuildPdfWithMsiFragmentInFallbackMarginBand()
+    {
+        // A4: 595 × 842 pt. Margin band threshold = 168.4 pt (20%). Y=126 ≈ 15% — inside the
+        // margin band but outside the strict 10% footer band (84.2 pt).
+        var builder = new PdfDocumentBuilder();
+        var page = builder.AddPage(595, 842);
+        var font = builder.AddStandard14Font(Standard14Font.Helvetica);
+        const float fontSize = 8f;
+        const float y = 126f;
+
+        page.AddText("26-mar-2026", fontSize, new PdfPoint(50, y), font);
+        page.AddText("DISPONIBLE", fontSize, new PdfPoint(140, y), font);
+        page.AddText("$1,190.04", fontSize, new PdfPoint(210, y), font);
+        page.AddText("007", fontSize, new PdfPoint(280, y), font);
+        page.AddText("de", fontSize, new PdfPoint(300, y), font);
+        page.AddText("012", fontSize, new PdfPoint(315, y), font);
+
+        return builder.Build();
+    }
+
+    /// <summary>
+    /// When the footer band is empty and the only "N de M" text anywhere in the fallback
+    /// margin band is an MSI fragment (date + amount on the same line), the fallback must NOT
+    /// recover it — PaginationCurrent/Total must stay null. This is the "constrain, don't
+    /// delete" behavior: the fallback still exists (see the sibling
+    /// "PaginationJustAboveFooterBand" test recovering a genuine label), but it never accepts
+    /// an implausible movements-table row.
+    /// </summary>
+    [Fact]
+    public async Task ExtractFullAsync_MsiFragmentInFallbackMarginBand_AbstainsRatherThanFalsePositive()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        var pdfBytes = BuildPdfWithMsiFragmentInFallbackMarginBand();
+        var extractor = CreateExtractor();
+
+        // Act
+        var result = await extractor.ExtractFullAsync(pdfBytes, ct);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue($"ExtractFullAsync failed: {result.Error}");
+        var model = result.Value!;
+        model.Pages.Count.ShouldBe(1, "synthetic PDF has exactly one page");
+
+        var page = model.Pages[0];
+
+        page.PaginationCurrent.ShouldBeNull(
+            "An MSI fragment ('007 de 012') in the fallback margin band must never be recovered " +
+            "as pagination — it shares its line with a date and a currency amount.");
+        page.PaginationTotal.ShouldBeNull(
+            "PaginationTotal must stay null for the same reason as PaginationCurrent.");
+    }
+
+    /// <summary>
+    /// Builds a single-page A4 PDF with a genuine footer label ("1 de 9") AND, elsewhere on the
+    /// same page, several MSI-style fragments inside the footer/margin bands sharing lines with
+    /// dates and amounts — reproducing the real corpus where a genuine label and MSI noise
+    /// coexist. The genuine label must win; the MSI noise must not create a conflicting total.
+    /// </summary>
+    private static byte[] BuildPdfWithGenuineLabelAndMsiNoise()
+    {
+        var builder = new PdfDocumentBuilder();
+        var page = builder.AddPage(595, 842);
+        var font = builder.AddStandard14Font(Standard14Font.Helvetica);
+        const float fontSize = 8f;
+
+        // Genuine label deep in the footer band (Y=15, well inside the 10% band).
+        page.AddText("1", fontSize, new PdfPoint(280, 15), font);
+        page.AddText("de", fontSize, new PdfPoint(290, 15), font);
+        page.AddText("9", fontSize, new PdfPoint(303, 15), font);
+
+        // MSI noise at Y=50 — still inside the footer band, but implausible (date + amount).
+        page.AddText("04-mar-2026", fontSize, new PdfPoint(50, 50), font);
+        page.AddText("$409.13", fontSize, new PdfPoint(150, 50), font);
+        page.AddText("3", fontSize, new PdfPoint(280, 50), font);
+        page.AddText("de", fontSize, new PdfPoint(290, 50), font);
+        page.AddText("3", fontSize, new PdfPoint(303, 50), font);
+
+        return builder.Build();
+    }
+
+    /// <summary>
+    /// The genuine footer label must be extracted even when implausible MSI-style noise is
+    /// also present inside the footer band on other lines — the plausibility filter must
+    /// discriminate per-line, not reject the whole footer band.
+    /// </summary>
+    [Fact]
+    public async Task ExtractFullAsync_GenuineLabelAmongMsiNoise_ExtractsGenuineLabelOnly()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        var pdfBytes = BuildPdfWithGenuineLabelAndMsiNoise();
+        var extractor = CreateExtractor();
+
+        // Act
+        var result = await extractor.ExtractFullAsync(pdfBytes, ct);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue($"ExtractFullAsync failed: {result.Error}");
+        var model = result.Value!;
+        model.Pages.Count.ShouldBe(1, "synthetic PDF has exactly one page");
+
+        var page = model.Pages[0];
+
+        page.PaginationCurrent.ShouldBe(1,
+            "The genuine footer label '1 de 9' must be extracted despite implausible MSI noise " +
+            "elsewhere in the footer band.");
+        page.PaginationTotal.ShouldBe(9,
+            "The genuine footer label '1 de 9' must be extracted despite implausible MSI noise " +
+            "elsewhere in the footer band.");
+    }
 }

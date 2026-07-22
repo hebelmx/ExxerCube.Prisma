@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
+using UglyToad.PdfPig.Core;
 using CoenM.ImageHash.HashAlgorithms;
 using PDFtoImage;
 using SixLabors.ImageSharp;
@@ -3426,10 +3427,18 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 //      of the upper band (the white space between them).
                 //   5. Margins are NOT counted: only inter-line gaps between content lines matter;
                 //      the space above the first line or below the last line is ignored.
-                var maxVerticalGapPoints = ComputeMaxVerticalGap(visibleWords);
+                //   6. RC1.S4.b: real statement pages are image-heavy (900+ embedded images per
+                //      page is typical for a scanned/rendered background) — a gap computed over
+                //      TEXT words only treats those image-covered regions as blank, producing a
+                //      false CL-48 "blank page" Fail. Embedded image bounding boxes are folded in
+                //      as content alongside the word bands (see the imageBounds parameter) so a
+                //      visually-covered region can never be reported as a blank gap.
+                var pageImages = page.GetImages().ToList();
+                var imageBounds = pageImages.Select(static img => img.BoundingBox).ToList();
+                var maxVerticalGapPoints = ComputeMaxVerticalGap(visibleWords, imageBounds);
 
                 // ImageCount: number of embedded images (proxy for logo).
-                var imageCount = page.GetImages().Count();
+                var imageCount = pageImages.Count;
 
                 // Collect all page text (stripped of spaces, lower-case) for card-number check.
                 var pageTextStripped = string.Concat(words.Select(w => w.Text))
@@ -3474,51 +3483,97 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 // body phrases such as "5 de 10 pagos".
                 // PdfPig uses a bottom-left coordinate origin, so "bottom 10%" means
                 // word.BoundingBox.Bottom < page.Height * 0.10.
-                // Within the footer band, prefer the LAST match (rightmost/lowest) as
-                // an additional safeguard against incidental text in the band.
                 //
                 // FALLBACK: if the footer band contains no valid "N de M" match (e.g.
                 // the printer placed the page number at Y ≈ 11–13% of page height,
                 // just above the 10% threshold), we fall back to a full-page scan so
                 // that recall is at least as good as the pre-S7 page-wide approach.
                 // This means the footer band is a PREFERENCE, not a hard filter.
+                //
+                // RC1.S4.b: on real Banamex/Citibanamex statements the movements table can
+                // contain MSI ("meses sin intereses") installment fragments that also match
+                // the bare "N de M" shape (e.g. "3 de 12"), and — by page-layout coincidence
+                // — some of these fragments land inside the literal bottom-10% footer band or
+                // are the only "N de M" text on a page with no real label at all. Both the
+                // footer-band scan and the page-wide fallback are therefore constrained to
+                // PLAUSIBLE page-label lines only (see <see cref="IsPlausiblePageLabelLine"/>):
+                // real movements rows always carry a currency amount and/or an operation-date
+                // token on the same line, which a bare page-number stamp never does. When no
+                // plausible label survives on a page, pagination stays NotExtracted (null) —
+                // CL-31 then abstains (or evaluates only the genuinely labeled pages) instead
+                // of computing on a fabricated total.
                 var footerYThreshold = page.Height * 0.10;
-                var footerWords = words
-                    .Where(w => w.BoundingBox.Bottom < footerYThreshold)
-                    .ToList();
-                var footerText = string.Join(" ", footerWords.Select(w => w.Text));
+
+                // Fallback margin band (Step 2): wider than the strict footer band to recover
+                // labels printed just above the 10% threshold (Y ≈ 11–13%, the scenario the
+                // original fallback was built for), but still bounded to the page's margin —
+                // never a truly unrestricted page-wide scan. Combined with the content-based
+                // plausibility filter below, this keeps the fallback from ever reaching into a
+                // movements table that happens to occupy the middle of the page.
+                var fallbackMarginThreshold = page.Height * 0.20;
+
                 int? paginationCurrent = null;
                 int? paginationTotal = null;
 
-                // Step 1 — try footer band first.
-                var footerMatches = PaginationPattern.Matches(footerText);
-                var paginationMatch = footerMatches.Count > 0
-                    ? footerMatches[footerMatches.Count - 1]
-                    : null;
+                var lineBands = GroupIntoBandsWithTolerance(words, YBandTolerance);
+                var footerCandidate = default((double LineY, int Current, int Total)?);
+                var marginCandidate = default((double LineY, int Current, int Total)?);
 
-                // Step 2 — fall back to page-wide scan if footer band had no hit.
-                // Build a space-joined full-page string (same format as footerText) so the
-                // regex can match "N de M" even when the label sits just above the 10% band.
-                if (paginationMatch is null)
+                foreach (var band in lineBands)
                 {
-                    var fullPageText = string.Join(" ", words.Select(w => w.Text));
-                    var pageWideMatches = PaginationPattern.Matches(fullPageText);
-                    if (pageWideMatches.Count > 0)
-                        paginationMatch = pageWideMatches[pageWideMatches.Count - 1];
+                    // band.Key is the line's representative Y (word Bottom). A line above the
+                    // margin band can never contribute a plausible label — skip it before
+                    // paying for the join/regex/plausibility work.
+                    var lineY = band.Key;
+                    if (lineY >= fallbackMarginThreshold)
+                        continue;
+
+                    var lineWords = band.Value.OrderBy(w => w.BoundingBox.Left).ToList();
+                    var lineText = string.Join(" ", lineWords.Select(w => w.Text));
+                    var lineMatches = PaginationPattern.Matches(lineText);
+                    if (lineMatches.Count == 0)
+                        continue;
+
+                    if (!IsPlausiblePageLabelLine(lineWords))
+                        continue;
+
+                    foreach (Match lineMatch in lineMatches)
+                    {
+                        if (!int.TryParse(lineMatch.Groups[1].Value,
+                                System.Globalization.NumberStyles.Integer,
+                                System.Globalization.CultureInfo.InvariantCulture,
+                                out var lineCurrent)
+                            || !int.TryParse(lineMatch.Groups[2].Value,
+                                System.Globalization.NumberStyles.Integer,
+                                System.Globalization.CultureInfo.InvariantCulture,
+                                out var lineTotal))
+                            continue;
+
+                        // Prefer the physically LOWEST plausible line within each region
+                        // (smallest Y), matching the original "prefer bottom of footer" intent.
+                        if (lineY < footerYThreshold
+                            && (footerCandidate is null || lineY < footerCandidate.Value.LineY))
+                        {
+                            footerCandidate = (lineY, lineCurrent, lineTotal);
+                        }
+
+                        if (marginCandidate is null || lineY < marginCandidate.Value.LineY)
+                        {
+                            marginCandidate = (lineY, lineCurrent, lineTotal);
+                        }
+                    }
                 }
 
-                if (paginationMatch is not null
-                    && int.TryParse(paginationMatch.Groups[1].Value,
-                        System.Globalization.NumberStyles.Integer,
-                        System.Globalization.CultureInfo.InvariantCulture,
-                        out var current)
-                    && int.TryParse(paginationMatch.Groups[2].Value,
-                        System.Globalization.NumberStyles.Integer,
-                        System.Globalization.CultureInfo.InvariantCulture,
-                        out var total))
+                // Step 1 — a plausible label inside the strict footer band (bottom 10%) wins.
+                // Step 2 — otherwise fall back to the lowest plausible label anywhere in the
+                // wider margin band (bottom 20%) — still content-filtered, never a raw
+                // page-wide match. When neither step finds a plausible label, pagination stays
+                // NotExtracted (null) rather than fabricating a total from table content.
+                var chosen = footerCandidate ?? marginCandidate;
+                if (chosen is not null)
                 {
-                    paginationCurrent = current;
-                    paginationTotal = total;
+                    paginationCurrent = chosen.Value.Current;
+                    paginationTotal = chosen.Value.Total;
                 }
 
                 var locator = FieldLocator.PageHint(pageIndex);
@@ -3559,43 +3614,91 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     }
 
     // -----------------------------------------------------------------------
+    // Pagination-label plausibility (RC1.S4.b — CL-31 real-corpus recalibration)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Determines whether a line of words containing a matched "N de M" token plausibly
+    /// represents a printed page-pagination label (e.g. "Página 1 de 9") rather than an
+    /// incidental digit coincidence inside a movements/charges table row — most commonly an
+    /// MSI ("meses sin intereses") installment-plan fragment such as
+    /// "3 de 12 meses sin intereses $1,234.56".
+    /// </summary>
+    /// <remarks>
+    /// Real Banamex/Citibanamex movements-table rows always carry a currency amount
+    /// ("$…") and/or an operation-date token ("dd-mmm-yyyy", see
+    /// <see cref="DesgloseDatePattern"/>) on the SAME line as any embedded "N de M" MSI
+    /// fragment — a bare page-number stamp never does. Rejecting any candidate line that
+    /// contains either signal keeps recall of genuine page labels intact while eliminating
+    /// the false pagination totals that were driving CL-31 false Fails on the real corpus
+    /// (RC1.S4.b calibration evidence: 11 real anonymized statements + 4 fixture PDFs).
+    /// </remarks>
+    /// <param name="lineWords">The words making up a single Y-band (reading-order line).</param>
+    /// <returns>
+    /// <see langword="true"/> when the line contains no currency amount and no date token —
+    /// i.e. it plausibly is a standalone page-number stamp.
+    /// </returns>
+    private static bool IsPlausiblePageLabelLine(IReadOnlyList<Word> lineWords)
+    {
+        foreach (var word in lineWords)
+        {
+            if (word.Text.Contains('$', StringComparison.Ordinal))
+                return false;
+
+            if (DesgloseDatePattern.IsMatch(word.Text))
+                return false;
+        }
+
+        return true;
+    }
+
+    // -----------------------------------------------------------------------
     // Vertical-gap computation (Story S11 — CL-48 "sin espacio > 2 cm")
     // -----------------------------------------------------------------------
 
     /// <summary>
     /// Computes the maximum vertical gap (in PDF points) between consecutive content
-    /// lines on a page, for the CL-48 "sin espacio en blanco mayor a 2 cm" check.
+    /// regions on a page, for the CL-48 "sin espacio en blanco mayor a 2 cm" check.
     /// </summary>
     /// <remarks>
     /// <para>
     /// Algorithm:
     /// <list type="number">
     ///   <item>Group the supplied visible words into Y-bands using <see cref="YBandTolerance"/>
-    ///         (5 pt), same grouping logic used throughout the extractor.</item>
-    ///   <item>For each band, record the band's <c>top</c> (maximum <c>BoundingBox.Top</c>)
-    ///         and <c>bottom</c> (minimum <c>BoundingBox.Bottom</c>) from its words.</item>
-    ///   <item>Sort bands descending by their representative Y (top-down reading order).</item>
-    ///   <item>For each consecutive pair of bands, the gap is:
-    ///         <c>upperBand.bottom − lowerBand.top</c>.  In PdfPig's bottom-left coordinate
-    ///         system this is the white space between the two ink rows.</item>
-    ///   <item>Return the maximum positive gap.  Negative gaps (overlapping bands) are
-    ///         clamped to zero.  Margins (above first line, below last line) are NOT counted.</item>
+    ///         (5 pt), same grouping logic used throughout the extractor. Each band contributes
+    ///         a content interval <c>[bottom, top]</c> (<c>top</c> = maximum <c>BoundingBox.Top</c>,
+    ///         <c>bottom</c> = minimum <c>BoundingBox.Bottom</c> among the band's words).</item>
+    ///   <item>RC1.S4.b: add one content interval per embedded image
+    ///         (<paramref name="imageBounds"/>) — real statement pages are image-heavy (a
+    ///         rendered/scanned background can carry 900+ embedded images per page), and a
+    ///         gap computed from text alone treats those visually-covered regions as blank,
+    ///         producing a false "blank page" positive. An image's bounding box is content
+    ///         exactly like a line of text for this check.</item>
+    ///   <item>Merge all intervals (word bands + image bounds) that overlap or touch into
+    ///         maximal content blocks, sorted top-down.</item>
+    ///   <item>For each consecutive pair of merged blocks, the gap is
+    ///         <c>upperBlock.bottom − lowerBlock.top</c>. In PdfPig's bottom-left coordinate
+    ///         system this is the white space between the two content regions.</item>
+    ///   <item>Return the maximum positive gap. Margins (above the first block, below the
+    ///         last block) are NOT counted.</item>
     /// </list>
     /// </para>
     /// <para>
-    /// Returns <c>0.0</c> when <paramref name="visibleWords"/> has fewer than two distinct
-    /// Y-bands (i.e. a single-line page or a blank page).
+    /// Returns <c>0.0</c> when there are fewer than two distinct content intervals (i.e. a
+    /// single-block page or a genuinely blank page).
     /// </para>
     /// </remarks>
     /// <param name="visibleWords">
     /// Words already filtered to exclude whitespace-only tokens (see caller).
     /// </param>
-    /// <returns>Maximum inter-line vertical gap in PDF points, or 0.0.</returns>
-    private static double ComputeMaxVerticalGap(List<UglyToad.PdfPig.Content.Word> visibleWords)
+    /// <param name="imageBounds">
+    /// Bounding boxes of every image embedded on the page (may be empty). Treated as content
+    /// alongside the word bands so an image-covered region is never reported as blank.
+    /// </param>
+    /// <returns>Maximum inter-block vertical gap in PDF points, or 0.0.</returns>
+    private static double ComputeMaxVerticalGap(
+        List<Word> visibleWords, IReadOnlyList<PdfRectangle> imageBounds)
     {
-        if (visibleWords.Count < 2)
-            return 0.0;
-
         // Build band map: representative Y → list of words in that band.
         // Reuse the same greedy first-match grouping as GroupIntoBandsWithTolerance.
         var bandMap = new Dictionary<double, (double BandTop, double BandBottom)>();
@@ -3623,20 +3726,50 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 bandMap[wordBottom] = (BandTop: wordTop, BandBottom: wordBottom);
         }
 
-        if (bandMap.Count < 2)
+        // Content intervals: [Bottom, Top] in PDF points, one per word band plus one per
+        // embedded image. Words and images are combined BEFORE merging so an image sitting
+        // between two lines of text correctly bridges what would otherwise look like a gap.
+        var intervals = new List<(double Top, double Bottom)>(bandMap.Count + imageBounds.Count);
+        foreach (var band in bandMap.Values)
+            intervals.Add((band.BandTop, band.BandBottom));
+
+        foreach (var rect in imageBounds)
+        {
+            var top = Math.Max(rect.Top, rect.Bottom);
+            var bottom = Math.Min(rect.Top, rect.Bottom);
+            intervals.Add((top, bottom));
+        }
+
+        if (intervals.Count < 2)
             return 0.0;
 
-        // Sort bands top-to-bottom: descending by representative Y key (= word Bottom baseline).
-        var sortedBands = bandMap
-            .OrderByDescending(static kv => kv.Key)
-            .Select(static kv => kv.Value)
-            .ToList();
-
-        // Measure the white space between consecutive bands: gap = upperBand.bottom - lowerBand.top.
-        var maxGap = 0.0;
-        for (var i = 0; i < sortedBands.Count - 1; i++)
+        // Merge overlapping/touching intervals into maximal content blocks, top-to-bottom.
+        var sorted = intervals.OrderByDescending(static iv => iv.Top).ToList();
+        var merged = new List<(double Top, double Bottom)> { sorted[0] };
+        for (var i = 1; i < sorted.Count; i++)
         {
-            var gap = sortedBands[i].BandBottom - sortedBands[i + 1].BandTop;
+            var current = sorted[i];
+            var last = merged[^1];
+
+            // current starts (Top) at or above the bottom of the open block → overlaps/touches.
+            if (current.Top >= last.Bottom)
+            {
+                merged[^1] = (last.Top, Math.Min(last.Bottom, current.Bottom));
+            }
+            else
+            {
+                merged.Add(current);
+            }
+        }
+
+        if (merged.Count < 2)
+            return 0.0;
+
+        // Measure the white space between consecutive merged blocks: gap = upperBlock.bottom - lowerBlock.top.
+        var maxGap = 0.0;
+        for (var i = 0; i < merged.Count - 1; i++)
+        {
+            var gap = merged[i].Bottom - merged[i + 1].Top;
             if (gap > maxGap)
                 maxGap = gap;
         }
