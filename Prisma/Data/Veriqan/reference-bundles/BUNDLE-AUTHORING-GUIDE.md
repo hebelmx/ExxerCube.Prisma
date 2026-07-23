@@ -389,6 +389,98 @@ ACC-0001,NETFLIX COM CR NME 110513PI3,329.00,2025-07-05,2025-07-07,+
 
 ---
 
+## Bundle Integrity: SHA-256 Manifest + HMAC-SHA256 Signature (RC6 item 3.5)
+
+Every institution bundle directory can be **signed** so the `CsvReferenceDataAdapter`
+verifies it at load time before trusting a single row of CSV data. This closes the gap
+where a compromised or accidentally-edited CSV (rates, legends, tolerances) would
+otherwise be parsed and used silently.
+
+### How it works
+
+- `bundle-manifest.sha256` — one line per `*.csv` file in the directory:
+  `<lowercase-hex-sha256>  <relative-filename>` (covers **every** CSV in the directory,
+  not just the ones a given code path happens to read).
+- `bundle-manifest.hmac` — a detached signature: the lowercase-hex HMAC-SHA256 of the
+  exact bytes of `bundle-manifest.sha256`, keyed with the configured HMAC key.
+- At load time, `BundleIntegrityVerifier` (in
+  `ExxerCube.Prisma.Veriqan.Infrastructure.ReferenceData.Integrity`) fails **closed** on
+  any of: missing manifest, missing signature, signature mismatch, a manifest-listed file
+  missing from disk, a hash mismatch for any listed file, or a `*.csv` file present on disk
+  that is **not** listed in the manifest (a "rogue file" — this catches a file added
+  without being signed).
+
+### Enabling verification
+
+Verification is **opt-in** for backwards compatibility with existing unsigned bundles
+(including `Demo_Bank_(Iqubica)`, which ships unsigned as synthetic test data). It is
+controlled by one configuration key:
+
+```json
+{
+  "Veriqan": {
+    "CsvReferenceData": {
+      "RootDirectory": "/data/veriqan/reference-bundles",
+      "BundleHmacKey": "<a long random secret, sourced from a secret store — never commit it>"
+    }
+  }
+}
+```
+
+or the environment variable `Veriqan__CsvReferenceData__BundleHmacKey`.
+
+- **Empty/unset (default):** verification is skipped entirely; the adapter logs a single
+  `Warning` per adapter instance ("bundle integrity verification disabled — no
+  BundleHmacKey configured") and loads the bundle exactly as before this feature existed.
+- **Set:** every `GetBundleAsync` / `GetChecklistTiersAsync` call verifies the target
+  institution directory first. A verification failure returns a `Result` failure with
+  `"Bundle integrity verification failed: ..."` and the bundle is **never** parsed — this
+  flows through `BundleBinder` to a `BlockedOutcome(BlockReason.InvalidBundle)`, the same
+  fail-closed path used for schema-invalid bundles.
+
+Never log, print, or commit the HMAC key. It is not exposed via any `ToString()` override
+on `CsvReferenceDataOptions`.
+
+### Signing a bundle (authoring workflow)
+
+Use `BundleManifestWriter.WriteManifestAsync(directoryPath, hmacKey, cancellationToken)`
+(same `Integrity` namespace) to generate or overwrite the manifest + signature pair for a
+bundle directory. It hashes every `*.csv` currently in the directory and writes both
+files. A minimal one-off signing script (e.g. run from a `dotnet-script` shell or a small
+console app):
+
+```csharp
+var result = await BundleManifestWriter.WriteManifestAsync(
+    "/data/veriqan/reference-bundles/Some_Bank",
+    hmacKey: Environment.GetEnvironmentVariable("VERIQAN_BUNDLE_HMAC_KEY")!,
+    cancellationToken: CancellationToken.None);
+
+if (!result.IsSuccess)
+    throw new InvalidOperationException(result.Error);
+```
+
+### Rotation: re-sign after every CSV edit
+
+The manifest is a **snapshot** — it does not auto-update. **Any** edit to **any** CSV file
+in a bundle directory (a rate change, a corrected legend, a new product row) invalidates
+the existing signature and must be followed by re-running `BundleManifestWriter` before
+the change reaches a deployment with `BundleHmacKey` configured. Treat "re-sign the
+bundle" as the last step of every bundle edit, the same way "bump `generatedAt` in
+`bundle-metadata.csv`" already is. If the HMAC key itself is rotated (e.g. a scheduled
+secret rotation), every currently-deployed bundle must be re-signed with the new key
+before the new key is rolled out to the Worker's configuration — verification will fail
+closed on any bundle signed with the old key.
+
+### Sign-off process interaction
+
+This is a **technical control**, independent of the human sign-off process described
+above. A bundle that has been through the compliance/legal sign-off above still needs a
+Veriqan integration engineer to run `BundleManifestWriter` as the final packaging step
+before it is deployed with `BundleHmacKey` configured — sign-off approves the *content*;
+the manifest/signature protects the *content from tampering after* that approval.
+
+---
+
 ## Deployment Notes
 
 The `Prisma/Data/Veriqan/reference-bundles/` directory is the **single source of

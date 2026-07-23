@@ -10,6 +10,7 @@ using CsvHelper.Configuration;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
+using ExxerCube.Prisma.Veriqan.Infrastructure.ReferenceData.Integrity;
 using ExxerCube.Prisma.Veriqan.Infrastructure.ReferenceData.Validation;
 using IndQuestResults;
 using IndQuestResults.Operations;
@@ -75,6 +76,12 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
     private readonly ILogger<CsvReferenceDataAdapter> _logger;
 
     /// <summary>
+    /// Guards the "integrity verification disabled" warning so it is logged at most once per
+    /// adapter instance, even though every call re-checks the (unchanging) configured key.
+    /// </summary>
+    private int _noKeyWarningLogged;
+
+    /// <summary>
     /// Initializes a new instance of <see cref="CsvReferenceDataAdapter"/>.
     /// </summary>
     /// <param name="options">Configuration options (root directory).</param>
@@ -112,6 +119,10 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
         if (!Directory.Exists(dataDir))
             return Result<VecReferenceBundle>.WithFailure(
                 $"CSV data directory not found: '{dataDir}'. Check CsvReferenceDataOptions.RootDirectory and institution name.");
+
+        var integrityFailure = await VerifyBundleIntegrityAsync<VecReferenceBundle>(dataDir, ct).ConfigureAwait(false);
+        if (integrityFailure is not null)
+            return integrityFailure;
 
         // Load required section: bundleMetadata
         var metadataResult = await LoadBundleMetadataAsync(dataDir, ct).ConfigureAwait(false);
@@ -179,6 +190,12 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
             return ResultExtensions.Cancelled<IReadOnlyDictionary<string, ChecklistTier>>();
 
         string dataDir = ResolveDataDirectory(key);
+
+        var integrityFailure = await VerifyBundleIntegrityAsync<IReadOnlyDictionary<string, ChecklistTier>>(dataDir, ct)
+            .ConfigureAwait(false);
+        if (integrityFailure is not null)
+            return integrityFailure;
+
         string path = Path.Combine(dataDir, "checklist-tiers.csv");
 
         if (!File.Exists(path))
@@ -238,6 +255,52 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
     }
 
     // ── private helpers ──────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Runs <see cref="BundleIntegrityVerifier"/> against <paramref name="dataDir"/> when
+    /// <see cref="CsvReferenceDataOptions.BundleHmacKey"/> is configured. When no key is
+    /// configured, integrity verification is skipped for backwards compatibility with
+    /// existing unsigned bundles, and a warning is logged at most once per adapter instance.
+    /// </summary>
+    /// <typeparam name="T">The success-value type of the caller's <see cref="Result{T}"/>.</typeparam>
+    /// <param name="dataDir">The resolved institution bundle directory.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>
+    /// <see langword="null"/> when the caller should proceed (verification disabled or passed);
+    /// otherwise a failed (or cancelled) <see cref="Result{T}"/> the caller must return as-is.
+    /// </returns>
+    private async Task<Result<T>?> VerifyBundleIntegrityAsync<T>(string dataDir, CancellationToken ct)
+    {
+        if (string.IsNullOrEmpty(_options.BundleHmacKey))
+        {
+            if (Interlocked.CompareExchange(ref _noKeyWarningLogged, 1, 0) == 0)
+            {
+                _logger.LogWarning(
+                    "CsvReferenceDataAdapter: bundle integrity verification disabled — no BundleHmacKey configured.");
+            }
+
+            return null;
+        }
+
+        if (ct.IsCancellationRequested)
+            return ResultExtensions.Cancelled<T>();
+
+        var verifyResult = await BundleIntegrityVerifier.VerifyAsync(dataDir, _options.BundleHmacKey, ct)
+            .ConfigureAwait(false);
+
+        if (verifyResult.IsCancelled())
+            return ResultExtensions.Cancelled<T>();
+
+        if (!verifyResult.IsSuccess)
+        {
+            _logger.LogWarning(
+                "CsvReferenceDataAdapter: bundle integrity verification failed for directory '{DataDir}': {Error}",
+                dataDir, verifyResult.Error);
+            return Result<T>.WithFailure($"Bundle integrity verification failed: {verifyResult.Error}");
+        }
+
+        return null;
+    }
 
     private string ResolveDataDirectory(StatementContextKey key)
     {
