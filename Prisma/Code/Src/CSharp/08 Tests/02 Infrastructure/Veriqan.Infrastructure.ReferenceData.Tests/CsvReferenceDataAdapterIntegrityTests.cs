@@ -231,6 +231,135 @@ public sealed class CsvReferenceDataAdapterIntegrityTests
         }
     }
 
+    // ---------------------------------------------------------------------------
+    // B1 — cross-institution replay is rejected end-to-end through the adapter
+    // ---------------------------------------------------------------------------
+
+    /// <summary>
+    /// Signs a bundle under institution directory <c>Bank_A</c>, copies the entire directory
+    /// (CSVs + manifest + signature) verbatim into <c>Bank_B</c>, then loads via the adapter
+    /// targeting <c>Bank_B</c> with the same key. The identity-bound manifest header must
+    /// cause this to fail — the whole-directory replay must not silently load another
+    /// institution's data.
+    /// </summary>
+    [Fact]
+    public async Task GetBundleAsync_KeyConfigured_CrossInstitutionReplay_ReturnsFailure()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var tempRoot = Path.Combine(Path.GetTempPath(), $"adapter-integrity-replay-{Guid.NewGuid():N}");
+        var bankADir = Path.Combine(tempRoot, "Bank_A");
+        var bankBDir = Path.Combine(tempRoot, "Bank_B");
+        Directory.CreateDirectory(bankADir);
+        Directory.CreateDirectory(bankBDir);
+
+        try
+        {
+            foreach (var csvFile in Directory.EnumerateFiles(DemoBundleSourcePath, "*.csv"))
+            {
+                File.Copy(csvFile, Path.Combine(bankADir, Path.GetFileName(csvFile)));
+            }
+
+            var signResult = await BundleManifestWriter.WriteManifestAsync(bankADir, HmacKey, ct);
+            signResult.IsSuccess.ShouldBeTrue($"Test setup: signing Bank_A must succeed: {signResult.Error}");
+
+            foreach (var file in Directory.EnumerateFiles(bankADir))
+            {
+                File.Copy(file, Path.Combine(bankBDir, Path.GetFileName(file)));
+            }
+
+            var adapter = CreateAdapter(tempRoot, HmacKey);
+            var key = new StatementContextKey("Bank_B");
+
+            var result = await adapter.GetBundleAsync(key, ct);
+
+            result.IsSuccess.ShouldBeFalse(
+                "A bundle replayed verbatim from another institution's directory must be rejected.");
+            result.Error.ShouldContain("integrity");
+        }
+        finally
+        {
+            Directory.Delete(tempRoot, recursive: true);
+        }
+    }
+
+    // ---------------------------------------------------------------------------
+    // Minor — whitespace-only key is treated as disabled (not as "configured but invalid")
+    // ---------------------------------------------------------------------------
+
+    [Fact]
+    public async Task GetBundleAsync_WhitespaceOnlyKey_TreatedAsDisabled_LogsDisabledWarning()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var tempRoot = CreateIsolatedBundleRoot();
+
+        try
+        {
+            var logger = new CapturingLogger<CsvReferenceDataAdapter>();
+            var adapter = CreateAdapter(tempRoot, hmacKey: "   ", logger: logger);
+            var key = new StatementContextKey("Demo Bank (Iqubica)");
+
+            var result = await adapter.GetBundleAsync(key, ct);
+
+            result.IsSuccess.ShouldBeTrue(
+                $"A whitespace-only key must behave exactly like an absent key (disabled): {result.Error}");
+
+            logger.Entries.ShouldContain(
+                e => e.Level == LogLevel.Warning &&
+                     e.Message.Contains("integrity verification disabled", StringComparison.Ordinal),
+                "A whitespace-only key must log the same 'disabled' warning as an empty key.");
+        }
+        finally
+        {
+            Directory.Delete(tempRoot, recursive: true);
+        }
+    }
+
+    // ---------------------------------------------------------------------------
+    // M1 — TOCTOU: end-to-end load reflects the verified bytes, not a fresh disk read
+    // ---------------------------------------------------------------------------
+
+    /// <summary>
+    /// Structural TOCTOU pin: once a bundle is signed and verified, the data the adapter
+    /// returns must equal the content that was actually signed — proving the parse path
+    /// consumes the verified bytes (not a second, independent disk read that could observe
+    /// different content). Bundle-metadata fields are compared field-by-field against the
+    /// signed CSV row's ground truth.
+    /// </summary>
+    [Fact]
+    public async Task GetBundleAsync_KeyConfigured_SignedBundle_LoadedDataMatchesSignedCsvContent()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var tempRoot = CreateIsolatedBundleRoot();
+
+        try
+        {
+            var instDir = Path.Combine(tempRoot, "Demo_Bank_(Iqubica)");
+            var signResult = await BundleManifestWriter.WriteManifestAsync(instDir, HmacKey, ct);
+            signResult.IsSuccess.ShouldBeTrue($"Test setup: signing must succeed: {signResult.Error}");
+
+            // Ground truth: read the exact bytes that were signed, directly from disk.
+            var expectedMetadataBytes = await File.ReadAllBytesAsync(
+                Path.Combine(instDir, "bundle-metadata.csv"), ct);
+            var expectedMetadataText = System.Text.Encoding.UTF8.GetString(expectedMetadataBytes);
+            var expectedInstitution = expectedMetadataText
+                .Split('\n')[1] // header row is [0], first data row is [1]
+                .Split(',')[1]; // institution is the 2nd column
+
+            var adapter = CreateAdapter(tempRoot, HmacKey);
+            var key = new StatementContextKey("Demo Bank (Iqubica)");
+
+            var result = await adapter.GetBundleAsync(key, ct);
+
+            result.IsSuccess.ShouldBeTrue($"A correctly signed bundle must load green end-to-end: {result.Error}");
+            result.Value!.BundleMetadata.Institution.ShouldBe(expectedInstitution,
+                "The loaded institution must equal the value in the exact bytes that were signed.");
+        }
+        finally
+        {
+            Directory.Delete(tempRoot, recursive: true);
+        }
+    }
+
     [Fact]
     public async Task GetChecklistTiersAsync_NoKeyConfigured_LoadsAsBeforeUnaffected()
     {

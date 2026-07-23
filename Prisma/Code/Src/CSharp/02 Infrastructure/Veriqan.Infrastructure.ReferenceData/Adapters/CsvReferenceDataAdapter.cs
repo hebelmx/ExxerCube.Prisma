@@ -120,12 +120,13 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
             return Result<VecReferenceBundle>.WithFailure(
                 $"CSV data directory not found: '{dataDir}'. Check CsvReferenceDataOptions.RootDirectory and institution name.");
 
-        var integrityFailure = await VerifyBundleIntegrityAsync<VecReferenceBundle>(dataDir, ct).ConfigureAwait(false);
+        var (integrityFailure, verifiedFiles) =
+            await VerifyBundleIntegrityAsync<VecReferenceBundle>(dataDir, ct).ConfigureAwait(false);
         if (integrityFailure is not null)
             return integrityFailure;
 
         // Load required section: bundleMetadata
-        var metadataResult = await LoadBundleMetadataAsync(dataDir, ct).ConfigureAwait(false);
+        var metadataResult = await LoadBundleMetadataAsync(dataDir, verifiedFiles, ct).ConfigureAwait(false);
         if (!metadataResult.IsSuccess)
             return Result<VecReferenceBundle>.WithFailure(
                 $"Failed to load bundle-metadata.csv: {metadataResult.Error}");
@@ -134,16 +135,16 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
             return ResultExtensions.Cancelled<VecReferenceBundle>();
 
         // Load optional sections
-        var products = await LoadProductsAsync(dataDir, ct).ConfigureAwait(false);
-        var interestRates = await LoadInterestRatesAsync(dataDir, ct).ConfigureAwait(false);
-        var toleranceConfig = await LoadToleranceConfigAsync(dataDir, ct).ConfigureAwait(false);
-        var validationConstants = await LoadValidationConstantsAsync(dataDir, ct).ConfigureAwait(false);
-        var mandatoryLegends = await LoadMandatoryLegendsAsync(dataDir, ct).ConfigureAwait(false);
-        var sequentialImages = await LoadSequentialImagesAsync(dataDir, ct).ConfigureAwait(false);
-        var promotions = await LoadPromotionsAsync(dataDir, ct).ConfigureAwait(false);
-        var clientAccounts = await LoadClientAccountsAsync(dataDir, ct).ConfigureAwait(false);
-        var priorStatements = await LoadPriorStatementsAsync(dataDir, ct).ConfigureAwait(false);
-        var expectedTransactions = await LoadExpectedTransactionsAsync(dataDir, ct).ConfigureAwait(false);
+        var products = await LoadProductsAsync(dataDir, verifiedFiles, ct).ConfigureAwait(false);
+        var interestRates = await LoadInterestRatesAsync(dataDir, verifiedFiles, ct).ConfigureAwait(false);
+        var toleranceConfig = await LoadToleranceConfigAsync(dataDir, verifiedFiles, ct).ConfigureAwait(false);
+        var validationConstants = await LoadValidationConstantsAsync(dataDir, verifiedFiles, ct).ConfigureAwait(false);
+        var mandatoryLegends = await LoadMandatoryLegendsAsync(dataDir, verifiedFiles, ct).ConfigureAwait(false);
+        var sequentialImages = await LoadSequentialImagesAsync(dataDir, verifiedFiles, ct).ConfigureAwait(false);
+        var promotions = await LoadPromotionsAsync(dataDir, verifiedFiles, ct).ConfigureAwait(false);
+        var clientAccounts = await LoadClientAccountsAsync(dataDir, verifiedFiles, ct).ConfigureAwait(false);
+        var priorStatements = await LoadPriorStatementsAsync(dataDir, verifiedFiles, ct).ConfigureAwait(false);
+        var expectedTransactions = await LoadExpectedTransactionsAsync(dataDir, verifiedFiles, ct).ConfigureAwait(false);
 
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<VecReferenceBundle>();
@@ -191,14 +192,17 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
 
         string dataDir = ResolveDataDirectory(key);
 
-        var integrityFailure = await VerifyBundleIntegrityAsync<IReadOnlyDictionary<string, ChecklistTier>>(dataDir, ct)
-            .ConfigureAwait(false);
+        var (integrityFailure, verifiedFiles) =
+            await VerifyBundleIntegrityAsync<IReadOnlyDictionary<string, ChecklistTier>>(dataDir, ct)
+                .ConfigureAwait(false);
         if (integrityFailure is not null)
             return integrityFailure;
 
-        string path = Path.Combine(dataDir, "checklist-tiers.csv");
+        const string fileName = "checklist-tiers.csv";
+        string path = Path.Combine(dataDir, fileName);
 
-        if (!File.Exists(path))
+        using var stream = TryOpenContent(dataDir, fileName, verifiedFiles);
+        if (stream is null)
         {
             _logger.LogDebug(
                 "CsvReferenceDataAdapter: checklist-tiers.csv not found at '{Path}'; returning empty tier map. " +
@@ -211,7 +215,7 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
         try
         {
             var map = new Dictionary<string, ChecklistTier>(StringComparer.OrdinalIgnoreCase);
-            using var reader = new StreamReader(path);
+            using var reader = new StreamReader(stream);
             using var csv = new CsvReader(reader, CsvConfig());
             await csv.ReadAsync().ConfigureAwait(false);
             csv.ReadHeader();
@@ -259,19 +263,25 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
     /// <summary>
     /// Runs <see cref="BundleIntegrityVerifier"/> against <paramref name="dataDir"/> when
     /// <see cref="CsvReferenceDataOptions.BundleHmacKey"/> is configured. When no key is
-    /// configured, integrity verification is skipped for backwards compatibility with
-    /// existing unsigned bundles, and a warning is logged at most once per adapter instance.
+    /// configured (including a whitespace-only value), integrity verification is skipped for
+    /// backwards compatibility with existing unsigned bundles, and a warning is logged at most
+    /// once per adapter instance (in practice, once per load, since this adapter is registered
+    /// Transient).
     /// </summary>
     /// <typeparam name="T">The success-value type of the caller's <see cref="Result{T}"/>.</typeparam>
     /// <param name="dataDir">The resolved institution bundle directory.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>
-    /// <see langword="null"/> when the caller should proceed (verification disabled or passed);
-    /// otherwise a failed (or cancelled) <see cref="Result{T}"/> the caller must return as-is.
+    /// <c>Failure</c> is non-null (a failed or cancelled <see cref="Result{T}"/>) when the
+    /// caller must return it as-is; when it is <see langword="null"/>, verification either
+    /// passed or was disabled, and <c>VerifiedFiles</c> carries the verified file bytes to
+    /// parse from (or <see langword="null"/> when verification is disabled and callers must
+    /// fall back to reading disk directly, unchanged from pre-integrity behavior).
     /// </returns>
-    private async Task<Result<T>?> VerifyBundleIntegrityAsync<T>(string dataDir, CancellationToken ct)
+    private async Task<(Result<T>? Failure, IReadOnlyDictionary<string, byte[]>? VerifiedFiles)>
+        VerifyBundleIntegrityAsync<T>(string dataDir, CancellationToken ct)
     {
-        if (string.IsNullOrEmpty(_options.BundleHmacKey))
+        if (string.IsNullOrWhiteSpace(_options.BundleHmacKey))
         {
             if (Interlocked.CompareExchange(ref _noKeyWarningLogged, 1, 0) == 0)
             {
@@ -279,27 +289,62 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
                     "CsvReferenceDataAdapter: bundle integrity verification disabled — no BundleHmacKey configured.");
             }
 
-            return null;
+            return (null, null);
         }
 
         if (ct.IsCancellationRequested)
-            return ResultExtensions.Cancelled<T>();
+            return (ResultExtensions.Cancelled<T>(), null);
 
         var verifyResult = await BundleIntegrityVerifier.VerifyAsync(dataDir, _options.BundleHmacKey, ct)
             .ConfigureAwait(false);
 
         if (verifyResult.IsCancelled())
-            return ResultExtensions.Cancelled<T>();
+            return (ResultExtensions.Cancelled<T>(), null);
 
         if (!verifyResult.IsSuccess)
         {
             _logger.LogWarning(
                 "CsvReferenceDataAdapter: bundle integrity verification failed for directory '{DataDir}': {Error}",
                 dataDir, verifyResult.Error);
-            return Result<T>.WithFailure($"Bundle integrity verification failed: {verifyResult.Error}");
+            return (Result<T>.WithFailure($"Bundle integrity verification failed: {verifyResult.Error}"), null);
         }
 
-        return null;
+        return (null, verifyResult.Value);
+    }
+
+    /// <summary>
+    /// Opens <paramref name="fileName"/> for reading, sourcing content from
+    /// <paramref name="verifiedFiles"/> when integrity verification produced verified bytes
+    /// (closing the verify-then-reread / TOCTOU gap), or from disk under
+    /// <paramref name="dataDir"/> when verification is disabled (<paramref name="verifiedFiles"/>
+    /// is <see langword="null"/>) — identical to pre-integrity behavior in that case.
+    /// </summary>
+    /// <param name="dataDir">The resolved institution bundle directory (disk fallback only).</param>
+    /// <param name="fileName">The bundle-relative file name to open, e.g. <c>products.csv</c>.</param>
+    /// <param name="verifiedFiles">
+    /// Verified filename → bytes map from <see cref="BundleIntegrityVerifier.VerifyAsync"/>, or
+    /// <see langword="null"/> when verification is disabled for this call.
+    /// </param>
+    /// <returns>
+    /// A readable, seekable <see cref="Stream"/> positioned at the start, or <see langword="null"/>
+    /// when the file is absent — from the verified set when verification is enabled (a file
+    /// listed nowhere in that set is treated as not found and never falls back to disk), or from
+    /// disk when verification is disabled.
+    /// </returns>
+    private static Stream? TryOpenContent(
+        string dataDir,
+        string fileName,
+        IReadOnlyDictionary<string, byte[]>? verifiedFiles)
+    {
+        if (verifiedFiles is not null)
+        {
+            return verifiedFiles.TryGetValue(fileName, out var bytes)
+                ? new MemoryStream(bytes, index: 0, count: bytes.Length, writable: false, publiclyVisible: true)
+                : null;
+        }
+
+        var path = Path.Combine(dataDir, fileName);
+        return File.Exists(path) ? new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read) : null;
     }
 
     private string ResolveDataDirectory(StatementContextKey key)
@@ -322,15 +367,16 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
     };
 
     private static async Task<Result<BundleMetadata>> LoadBundleMetadataAsync(
-        string dataDir, CancellationToken ct)
+        string dataDir, IReadOnlyDictionary<string, byte[]>? verifiedFiles, CancellationToken ct)
     {
-        string path = Path.Combine(dataDir, "bundle-metadata.csv");
-        if (!File.Exists(path))
-            return Result<BundleMetadata>.WithFailure($"Required file not found: {path}");
+        const string fileName = "bundle-metadata.csv";
+        using var stream = TryOpenContent(dataDir, fileName, verifiedFiles);
+        if (stream is null)
+            return Result<BundleMetadata>.WithFailure($"Required file not found: {Path.Combine(dataDir, fileName)}");
 
         try
         {
-            using var reader = new StreamReader(path);
+            using var reader = new StreamReader(stream);
             using var csv = new CsvReader(reader, CsvConfig());
             await csv.ReadAsync().ConfigureAwait(false);
             csv.ReadHeader();
@@ -368,20 +414,20 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            return Result<BundleMetadata>.WithFailure($"Error reading {path}: {ex.Message}");
+            return Result<BundleMetadata>.WithFailure($"Error reading {Path.Combine(dataDir, fileName)}: {ex.Message}");
         }
     }
 
     private static async Task<IReadOnlyList<VecProduct>?> LoadProductsAsync(
-        string dataDir, CancellationToken ct)
+        string dataDir, IReadOnlyDictionary<string, byte[]>? verifiedFiles, CancellationToken ct)
     {
-        string path = Path.Combine(dataDir, "products.csv");
-        if (!File.Exists(path)) return null;
+        using var stream = TryOpenContent(dataDir, "products.csv", verifiedFiles);
+        if (stream is null) return null;
 
         try
         {
             var products = new List<VecProduct>();
-            using var reader = new StreamReader(path);
+            using var reader = new StreamReader(stream);
             using var csv = new CsvReader(reader, CsvConfig());
             await csv.ReadAsync().ConfigureAwait(false);
             csv.ReadHeader();
@@ -424,15 +470,15 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
     }
 
     private static async Task<IReadOnlyList<InterestRateEntry>?> LoadInterestRatesAsync(
-        string dataDir, CancellationToken ct)
+        string dataDir, IReadOnlyDictionary<string, byte[]>? verifiedFiles, CancellationToken ct)
     {
-        string path = Path.Combine(dataDir, "interest-rates.csv");
-        if (!File.Exists(path)) return null;
+        using var stream = TryOpenContent(dataDir, "interest-rates.csv", verifiedFiles);
+        if (stream is null) return null;
 
         try
         {
             var ratesByProduct = new Dictionary<string, List<RateByPeriod>>(StringComparer.OrdinalIgnoreCase);
-            using var reader = new StreamReader(path);
+            using var reader = new StreamReader(stream);
             using var csv = new CsvReader(reader, CsvConfig());
             await csv.ReadAsync().ConfigureAwait(false);
             csv.ReadHeader();
@@ -475,14 +521,14 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
     }
 
     private static async Task<ToleranceConfig?> LoadToleranceConfigAsync(
-        string dataDir, CancellationToken ct)
+        string dataDir, IReadOnlyDictionary<string, byte[]>? verifiedFiles, CancellationToken ct)
     {
-        string path = Path.Combine(dataDir, "tolerance-config.csv");
-        if (!File.Exists(path)) return null;
+        using var stream = TryOpenContent(dataDir, "tolerance-config.csv", verifiedFiles);
+        if (stream is null) return null;
 
         try
         {
-            using var reader = new StreamReader(path);
+            using var reader = new StreamReader(stream);
             using var csv = new CsvReader(reader, CsvConfig());
             await csv.ReadAsync().ConfigureAwait(false);
             csv.ReadHeader();
@@ -502,14 +548,14 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
     }
 
     private static async Task<ValidationConstants?> LoadValidationConstantsAsync(
-        string dataDir, CancellationToken ct)
+        string dataDir, IReadOnlyDictionary<string, byte[]>? verifiedFiles, CancellationToken ct)
     {
-        string path = Path.Combine(dataDir, "validation-constants.csv");
-        if (!File.Exists(path)) return null;
+        using var stream = TryOpenContent(dataDir, "validation-constants.csv", verifiedFiles);
+        if (stream is null) return null;
 
         try
         {
-            using var reader = new StreamReader(path);
+            using var reader = new StreamReader(stream);
             using var csv = new CsvReader(reader, CsvConfig());
             await csv.ReadAsync().ConfigureAwait(false);
             csv.ReadHeader();
@@ -535,15 +581,15 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
     }
 
     private static async Task<IReadOnlyList<MandatoryLegend>?> LoadMandatoryLegendsAsync(
-        string dataDir, CancellationToken ct)
+        string dataDir, IReadOnlyDictionary<string, byte[]>? verifiedFiles, CancellationToken ct)
     {
-        string path = Path.Combine(dataDir, "mandatory-legends.csv");
-        if (!File.Exists(path)) return null;
+        using var stream = TryOpenContent(dataDir, "mandatory-legends.csv", verifiedFiles);
+        if (stream is null) return null;
 
         try
         {
             var legends = new List<MandatoryLegend>();
-            using var reader = new StreamReader(path);
+            using var reader = new StreamReader(stream);
             using var csv = new CsvReader(reader, CsvConfig());
             await csv.ReadAsync().ConfigureAwait(false);
             csv.ReadHeader();
@@ -586,15 +632,15 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
     }
 
     private static async Task<IReadOnlyList<SequentialImage>?> LoadSequentialImagesAsync(
-        string dataDir, CancellationToken ct)
+        string dataDir, IReadOnlyDictionary<string, byte[]>? verifiedFiles, CancellationToken ct)
     {
-        string path = Path.Combine(dataDir, "sequential-images.csv");
-        if (!File.Exists(path)) return null;
+        using var stream = TryOpenContent(dataDir, "sequential-images.csv", verifiedFiles);
+        if (stream is null) return null;
 
         try
         {
             var images = new List<SequentialImage>();
-            using var reader = new StreamReader(path);
+            using var reader = new StreamReader(stream);
             using var csv = new CsvReader(reader, CsvConfig());
             await csv.ReadAsync().ConfigureAwait(false);
             csv.ReadHeader();
@@ -623,15 +669,15 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
     }
 
     private static async Task<IReadOnlyList<Promotion>?> LoadPromotionsAsync(
-        string dataDir, CancellationToken ct)
+        string dataDir, IReadOnlyDictionary<string, byte[]>? verifiedFiles, CancellationToken ct)
     {
-        string path = Path.Combine(dataDir, "promotions.csv");
-        if (!File.Exists(path)) return null;
+        using var stream = TryOpenContent(dataDir, "promotions.csv", verifiedFiles);
+        if (stream is null) return null;
 
         try
         {
             var promotions = new List<Promotion>();
-            using var reader = new StreamReader(path);
+            using var reader = new StreamReader(stream);
             using var csv = new CsvReader(reader, CsvConfig());
             await csv.ReadAsync().ConfigureAwait(false);
             csv.ReadHeader();
@@ -665,20 +711,19 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
     }
 
     private static async Task<IReadOnlyList<ClientAccount>?> LoadClientAccountsAsync(
-        string dataDir, CancellationToken ct)
+        string dataDir, IReadOnlyDictionary<string, byte[]>? verifiedFiles, CancellationToken ct)
     {
-        string clientsPath = Path.Combine(dataDir, "client-accounts.csv");
-        if (!File.Exists(clientsPath)) return null;
-
-        string entriesPath = Path.Combine(dataDir, "client-accounts-entries.csv");
+        using var clientsStream = TryOpenContent(dataDir, "client-accounts.csv", verifiedFiles);
+        if (clientsStream is null) return null;
 
         try
         {
             // Load account entries first, grouped by clientId
             var entriesByClient = new Dictionary<string, List<AccountEntry>>(StringComparer.OrdinalIgnoreCase);
-            if (File.Exists(entriesPath))
+            using var entriesStream = TryOpenContent(dataDir, "client-accounts-entries.csv", verifiedFiles);
+            if (entriesStream is not null)
             {
-                using var entryReader = new StreamReader(entriesPath);
+                using var entryReader = new StreamReader(entriesStream);
                 using var entryCsv = new CsvReader(entryReader, CsvConfig());
                 await entryCsv.ReadAsync().ConfigureAwait(false);
                 entryCsv.ReadHeader();
@@ -718,7 +763,7 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
 
             // Load client rows
             var clients = new List<ClientAccount>();
-            using var reader = new StreamReader(clientsPath);
+            using var reader = new StreamReader(clientsStream);
             using var csv = new CsvReader(reader, CsvConfig());
             await csv.ReadAsync().ConfigureAwait(false);
             csv.ReadHeader();
@@ -775,20 +820,19 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
     }
 
     private static async Task<IReadOnlyList<PriorStatement>?> LoadPriorStatementsAsync(
-        string dataDir, CancellationToken ct)
+        string dataDir, IReadOnlyDictionary<string, byte[]>? verifiedFiles, CancellationToken ct)
     {
-        string statementsPath = Path.Combine(dataDir, "prior-statements.csv");
-        if (!File.Exists(statementsPath)) return null;
-
-        string installmentsPath = Path.Combine(dataDir, "prior-statements-installments.csv");
+        using var statementsStream = TryOpenContent(dataDir, "prior-statements.csv", verifiedFiles);
+        if (statementsStream is null) return null;
 
         try
         {
             // Load installments first, grouped by accountRef
             var installmentsByAccount = new Dictionary<string, List<InstallmentEntry>>(StringComparer.OrdinalIgnoreCase);
-            if (File.Exists(installmentsPath))
+            using var installmentsStream = TryOpenContent(dataDir, "prior-statements-installments.csv", verifiedFiles);
+            if (installmentsStream is not null)
             {
-                using var instReader = new StreamReader(installmentsPath);
+                using var instReader = new StreamReader(installmentsStream);
                 using var instCsv = new CsvReader(instReader, CsvConfig());
                 await instCsv.ReadAsync().ConfigureAwait(false);
                 instCsv.ReadHeader();
@@ -828,7 +872,7 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
 
             // Load prior statement rows
             var statements = new List<PriorStatement>();
-            using var reader = new StreamReader(statementsPath);
+            using var reader = new StreamReader(statementsStream);
             using var csv = new CsvReader(reader, CsvConfig());
             await csv.ReadAsync().ConfigureAwait(false);
             csv.ReadHeader();
@@ -887,15 +931,15 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
     }
 
     private static async Task<IReadOnlyList<ExpectedTransactionGroup>?> LoadExpectedTransactionsAsync(
-        string dataDir, CancellationToken ct)
+        string dataDir, IReadOnlyDictionary<string, byte[]>? verifiedFiles, CancellationToken ct)
     {
-        string path = Path.Combine(dataDir, "expected-transactions.csv");
-        if (!File.Exists(path)) return null;
+        using var stream = TryOpenContent(dataDir, "expected-transactions.csv", verifiedFiles);
+        if (stream is null) return null;
 
         try
         {
             var byAccount = new Dictionary<string, List<ExpectedTransaction>>(StringComparer.OrdinalIgnoreCase);
-            using var reader = new StreamReader(path);
+            using var reader = new StreamReader(stream);
             using var csv = new CsvReader(reader, CsvConfig());
             await csv.ReadAsync().ConfigureAwait(false);
             csv.ReadHeader();

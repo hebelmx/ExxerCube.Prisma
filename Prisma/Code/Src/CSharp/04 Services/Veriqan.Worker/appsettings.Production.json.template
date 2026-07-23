@@ -10,6 +10,9 @@
   // Key reference:
   //   ConnectionStrings:VeriqanDb              — SQL Server connection string (required for SQL persistence)
   //   Veriqan:CsvReferenceData:RootDirectory   — Host path to institution CSV files (required)
+  //   Veriqan:CsvReferenceData:BundleHmacKey   — HMAC key for reference-bundle integrity verification
+  //                                               (empty = disabled, opt-in; see BUNDLE-AUTHORING-GUIDE.md)
+  //                                               Prefer env var: Veriqan__CsvReferenceData__BundleHmacKey
   //   Veriqan:Smtp:Host                        — SMTP relay hostname (required for alert emails)
   //   Veriqan:Smtp:Port                        — SMTP port (typically 25, 465, or 587)
   //   Veriqan:Smtp:EnableSsl                   — true for TLS/STARTTLS, false for plain
@@ -32,7 +35,8 @@
   },
   "Veriqan": {
     "CsvReferenceData": {
-      "RootDirectory": "<REPLACE_ME: absolute path to CSV reference data root, e.g. /opt/veriqan/reference-data/csv/>"
+      "RootDirectory": "<REPLACE_ME: absolute path to CSV reference data root, e.g. /opt/veriqan/reference-data/csv/>",
+      "BundleHmacKey": ""
     },
     "Smtp": {
       "Host": "<REPLACE_ME: SMTP relay hostname or IP>",

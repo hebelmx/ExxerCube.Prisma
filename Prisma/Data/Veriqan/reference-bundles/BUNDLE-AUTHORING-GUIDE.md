@@ -398,17 +398,46 @@ otherwise be parsed and used silently.
 
 ### How it works
 
-- `bundle-manifest.sha256` — one line per `*.csv` file in the directory:
-  `<lowercase-hex-sha256>  <relative-filename>` (covers **every** CSV in the directory,
-  not just the ones a given code path happens to read).
-- `bundle-manifest.hmac` — a detached signature: the lowercase-hex HMAC-SHA256 of the
-  exact bytes of `bundle-manifest.sha256`, keyed with the configured HMAC key.
+The manifest is **format v2** — a two-line signed header followed by the per-file hash lines:
+
+```
+bundle: Some_Bank
+generatedAt: 2026-07-23T17:22:38.1234567Z
+1f3d...c9  bundle-metadata.csv
+7ab0...12  products.csv
+...
+```
+
+- **Header line 1 — `bundle: <directory-leaf-name>`.** The leaf (final path segment) of the
+  institution directory the manifest was generated for. `BundleIntegrityVerifier` compares this
+  (ordinal, case-sensitive) against the actual directory being verified. This is what binds the
+  signature to *this specific bundle*: copying an entire validly-signed bundle directory
+  (CSVs + manifest + signature) into a **different** institution's directory no longer verifies,
+  because the copied header still names the original directory. Without this, a validly-signed
+  bundle could be replayed wholesale under another institution's name — the HMAC alone only
+  proves "some directory I once signed," not "this directory."
+- **Header line 2 — `generatedAt: <ISO-8601 UTC timestamp>`.** Must parse as a valid ISO-8601
+  timestamp or verification fails; there is currently **no freshness/TTL policy** on it. A
+  residual risk this does *not* close: replaying an **old, still-validly-signed** snapshot of
+  the **same** institution's own directory (a rollback to a stale-but-legitimately-signed
+  manifest+CSV set) still verifies — the header only proves identity, not recency. Closing that
+  gap would need a freshness window or a monotonic bundle-generation counter checked against a
+  persisted high-water mark; out of scope for this pass.
+- **Per-file lines** — one per `*.csv` file in the directory:
+  `<hex-sha256>  <relative-filename>` (covers **every** CSV in the directory, not just the ones
+  a given code path happens to read). Hex case is accepted **case-insensitively** on read and
+  normalized to lowercase internally; `BundleManifestWriter` always writes lowercase hex.
+- `bundle-manifest.hmac` — a detached signature: the lowercase-hex HMAC-SHA256 of the exact
+  bytes of `bundle-manifest.sha256` (header included), keyed with the configured HMAC key.
 - At load time, `BundleIntegrityVerifier` (in
   `ExxerCube.Prisma.Veriqan.Infrastructure.ReferenceData.Integrity`) fails **closed** on
-  any of: missing manifest, missing signature, signature mismatch, a manifest-listed file
-  missing from disk, a hash mismatch for any listed file, or a `*.csv` file present on disk
-  that is **not** listed in the manifest (a "rogue file" — this catches a file added
-  without being signed).
+  any of: missing manifest, missing signature, signature mismatch, a missing or malformed
+  header, a `bundle:` value that does not match the directory being verified, an unparseable
+  `generatedAt:`, a manifest-listed file missing from disk, a hash mismatch for any listed file,
+  or a `*.csv` file present on disk that is **not** listed in the manifest (a "rogue file" —
+  this catches a file added without being signed). On success, the verified bytes of every
+  listed file are returned to the caller, which parses from those bytes rather than re-reading
+  the files from disk — closing the gap between "verified" and "parsed" (TOCTOU).
 
 ### Enabling verification
 
@@ -432,6 +461,15 @@ or the environment variable `Veriqan__CsvReferenceData__BundleHmacKey`.
 - **Empty/unset (default):** verification is skipped entirely; the adapter logs a single
   `Warning` per adapter instance ("bundle integrity verification disabled — no
   BundleHmacKey configured") and loads the bundle exactly as before this feature existed.
+  A whitespace-only value (e.g. `"   "`) is treated identically to empty/unset — disabled,
+  with the same warning.
+  `VeriqanConfigurationValidator` (the Worker's startup config auditor) also checks this key
+  and logs its own structured `Warning` ("bundle integrity verification disabled — no
+  BundleHmacKey configured") when it is absent or empty — this is **non-fatal**, the same
+  warn-not-crash posture the validator uses for every other optional key; it never aborts
+  startup. Both `appsettings.json` and `appsettings.Production.json.template` ship the key
+  present but empty (`"BundleHmacKey": ""`) so the absence is a visible, documented choice
+  rather than a missing key.
 - **Set:** every `GetBundleAsync` / `GetChecklistTiersAsync` call verifies the target
   institution directory first. A verification failure returns a `Result` failure with
   `"Bundle integrity verification failed: ..."` and the bundle is **never** parsed — this
@@ -470,6 +508,12 @@ bundle" as the last step of every bundle edit, the same way "bump `generatedAt` 
 secret rotation), every currently-deployed bundle must be re-signed with the new key
 before the new key is rolled out to the Worker's configuration — verification will fail
 closed on any bundle signed with the old key.
+
+Re-signing also refreshes the manifest's `generatedAt:` header (sourced from
+`TimeProvider.System` by default; pass a `TimeProvider` explicitly for deterministic
+tests). It does **not** need to move — moving the bundle to a different directory
+requires re-signing anyway, since the `bundle:` header is derived from the directory's
+leaf name at signing time and must match wherever it is verified.
 
 ### Sign-off process interaction
 

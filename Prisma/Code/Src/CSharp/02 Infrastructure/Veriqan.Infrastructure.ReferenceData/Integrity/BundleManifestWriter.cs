@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -20,7 +21,9 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.ReferenceData.Integrity;
 /// <c>*.csv</c> file, producing the pair of files that
 /// <see cref="BundleIntegrityVerifier"/> checks at load time:
 /// <see cref="BundleIntegrityVerifier.ManifestFileName"/> and
-/// <see cref="BundleIntegrityVerifier.SignatureFileName"/>.
+/// <see cref="BundleIntegrityVerifier.SignatureFileName"/>. The manifest is format v2: a
+/// <c>bundle:</c> / <c>generatedAt:</c> header (see <see cref="BundleIntegrityVerifier"/> remarks)
+/// followed by the per-file SHA-256 lines.
 /// </remarks>
 public static class BundleManifestWriter
 {
@@ -32,6 +35,10 @@ public static class BundleManifestWriter
     /// <param name="directoryPath">Absolute path of the institution bundle directory.</param>
     /// <param name="hmacKey">The HMAC key used to sign the generated manifest.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <param name="timeProvider">
+    /// Source of the <c>generatedAt:</c> header timestamp. Defaults to <see cref="TimeProvider.System"/>
+    /// when omitted; tests inject a fake provider for deterministic assertions.
+    /// </param>
     /// <returns>
     /// A successful <see cref="Result"/> once both files are written; a failure result if the
     /// directory does not exist, contains no CSV files, or an I/O error occurs.
@@ -39,7 +46,8 @@ public static class BundleManifestWriter
     public static async Task<Result> WriteManifestAsync(
         string directoryPath,
         string hmacKey,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        TimeProvider? timeProvider = null)
     {
         ArgumentNullException.ThrowIfNull(directoryPath);
         ArgumentNullException.ThrowIfNull(hmacKey);
@@ -90,7 +98,18 @@ public static class BundleManifestWriter
             manifestLines.Add($"{hashHex}  {fileName}");
         }
 
-        var manifestBytes = Encoding.UTF8.GetBytes(string.Join('\n', manifestLines) + "\n");
+        var effectiveTimeProvider = timeProvider ?? TimeProvider.System;
+        var bundleName = BundleIntegrityVerifier.GetDirectoryLeafName(directoryPath);
+        var generatedAt = effectiveTimeProvider.GetUtcNow().UtcDateTime.ToString("O", CultureInfo.InvariantCulture);
+
+        var headerLines = new List<string>(manifestLines.Count + 2)
+        {
+            $"bundle: {bundleName}",
+            $"generatedAt: {generatedAt}",
+        };
+        headerLines.AddRange(manifestLines);
+
+        var manifestBytes = Encoding.UTF8.GetBytes(string.Join('\n', headerLines) + "\n");
         var manifestPath = Path.Combine(directoryPath, BundleIntegrityVerifier.ManifestFileName);
         var signaturePath = Path.Combine(directoryPath, BundleIntegrityVerifier.SignatureFileName);
 

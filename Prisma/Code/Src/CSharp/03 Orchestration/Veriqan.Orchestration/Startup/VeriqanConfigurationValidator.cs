@@ -34,6 +34,8 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Startup;
 ///   <item><c>Veriqan:Smtp:Host</c> — SMTP relay for RED-verdict alerts</item>
 ///   <item><c>Veriqan:LegalBaseline:EncryptionKey</c> — AES-256 key for at-rest encryption</item>
 ///   <item><c>Veriqan:Auth:Jwt:SigningKey</c> — HMAC-SHA256 key for JWT bearer token validation</item>
+///   <item><c>Veriqan:CsvReferenceData:BundleHmacKey</c> — HMAC key for reference-bundle integrity
+///     verification (absence = verification disabled, not a startup failure — see RC6 3.5)</item>
 /// </list>
 /// </para>
 /// </remarks>
@@ -54,6 +56,9 @@ public sealed class VeriqanConfigurationValidator : IHostedService
             "AES-256 encryption key — required for the encrypted SQL legal-baseline store"),
         ("Veriqan:Auth:Jwt:SigningKey",
             "HMAC-SHA256 JWT signing key — bearer token validation will reject all tokens without it"),
+        ("Veriqan:CsvReferenceData:BundleHmacKey",
+            "HMAC key for reference-bundle integrity verification — absence disables tamper-evidence " +
+            "(unsigned bundles load as before; not a hard requirement)"),
     ];
 
     private readonly IConfiguration _configuration;
@@ -100,6 +105,18 @@ public sealed class VeriqanConfigurationValidator : IHostedService
                     _logger.LogWarning(
                         "VeriqanDb connection string absent — persistence will be IN-MEMORY. " +
                         "Purpose: {KeyPurpose}. Set {ConfigKey} to enable SQL durability.",
+                        purpose, key);
+                }
+                else if (key == "Veriqan:CsvReferenceData:BundleHmacKey")
+                {
+                    // Non-fatal by design: reference-bundle integrity verification is opt-in.
+                    // This mirrors the VeriqanDb branch's tone (a specific, actionable message)
+                    // rather than falling through to the generic "critical key" wording, since
+                    // an absent key here is an accepted, documented posture — not a defect.
+                    _logger.LogWarning(
+                        "Bundle integrity verification disabled — no BundleHmacKey configured. " +
+                        "Purpose: {KeyPurpose}. Set {ConfigKey} to enable SHA-256+HMAC tamper-evidence " +
+                        "for reference bundles.",
                         purpose, key);
                 }
                 else

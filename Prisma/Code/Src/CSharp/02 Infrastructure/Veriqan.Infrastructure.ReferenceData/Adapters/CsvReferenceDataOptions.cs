@@ -19,6 +19,7 @@ public sealed class CsvReferenceDataOptions
     /// Default is empty, which
     /// <strong>disables</strong> integrity verification for backwards compatibility with
     /// existing unsigned bundles (a warning is logged once per adapter instance in that case).
+    /// A whitespace-only value is treated identically to empty — also disabled, also warned.
     /// Configure via <c>Veriqan:CsvReferenceData:BundleHmacKey</c> (or the corresponding
     /// <c>Veriqan__CsvReferenceData__BundleHmacKey</c> environment variable) in production —
     /// never commit a real key to source control.

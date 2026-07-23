@@ -87,6 +87,7 @@ public sealed class VeriqanConfigurationValidatorTests
                 ["Veriqan:Smtp:Host"] = "smtp.example.com",
                 ["Veriqan:LegalBaseline:EncryptionKey"] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
                 ["Veriqan:Auth:Jwt:SigningKey"] = "jwt-signing-key-at-least-32-chars-long-for-hmac256",
+                ["Veriqan:CsvReferenceData:BundleHmacKey"] = "bundle-hmac-key-at-least-32-chars-long-for-hmac256",
             })
             .Build();
 
@@ -120,6 +121,7 @@ public sealed class VeriqanConfigurationValidatorTests
                 ["Veriqan:Smtp:Host"] = "smtp.example.com",
                 ["Veriqan:LegalBaseline:EncryptionKey"] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
                 ["Veriqan:Auth:Jwt:SigningKey"] = "jwt-signing-key-at-least-32-chars-long-for-hmac256",
+                ["Veriqan:CsvReferenceData:BundleHmacKey"] = "bundle-hmac-key-at-least-32-chars-long-for-hmac256",
             })
             .Build();
 
@@ -202,5 +204,67 @@ public sealed class VeriqanConfigurationValidatorTests
             "EncryptionKey is absent — must be flagged.");
         missingKeys.ShouldContain("Veriqan:Auth:Jwt:SigningKey",
             "JWT signing key is absent — must be flagged (Story 6.3).");
+    }
+
+    // ---------------------------------------------------------------------------
+    // 5. BundleHmacKey (RC6 3.5 M2) — warn, never fail, on absence
+    // ---------------------------------------------------------------------------
+
+    /// <summary>
+    /// When <c>Veriqan:CsvReferenceData:BundleHmacKey</c> is absent the validator must log a
+    /// structured Warning containing the literal phrase "bundle integrity verification disabled"
+    /// — mirroring the non-fatal, warn-only semantics of every other critical key.
+    /// </summary>
+    [Fact]
+    public async Task StartAsync_BundleHmacKeyAbsent_LogsIntegrityDisabledWarning()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var config = new ConfigurationBuilder().Build();
+
+        var logger = Substitute.For<ILogger<VeriqanConfigurationValidator>>();
+        var validator = new VeriqanConfigurationValidator(config, logger);
+
+        // Act
+        await validator.StartAsync(ct);
+
+        // Assert — StartAsync must not throw (non-fatal), and a warning must be logged.
+        logger.Received().Log(
+            LogLevel.Warning,
+            Arg.Any<EventId>(),
+            Arg.Is<object>(o => o.ToString()!.Contains("Bundle integrity verification disabled")),
+            Arg.Any<System.Exception?>(),
+            Arg.Any<Func<object, System.Exception?, string>>());
+    }
+
+    /// <summary>
+    /// <see cref="VeriqanConfigurationValidator.FindMissingKeys"/> must include
+    /// <c>Veriqan:CsvReferenceData:BundleHmacKey</c> when it is absent.
+    /// </summary>
+    [Fact]
+    public void FindMissingKeys_BundleHmacKeyAbsent_IncludesBundleHmacKeyKey()
+    {
+        var config = new ConfigurationBuilder().Build();
+        var logger = Substitute.For<ILogger<VeriqanConfigurationValidator>>();
+        var validator = new VeriqanConfigurationValidator(config, logger);
+
+        var missingKeys = validator.FindMissingKeys();
+
+        missingKeys.ShouldContain("Veriqan:CsvReferenceData:BundleHmacKey",
+            "BundleHmacKey is absent — must be flagged (non-fatal, RC6 3.5).");
+    }
+
+    /// <summary>
+    /// Startup must NOT fail/throw when <c>BundleHmacKey</c> is absent — it is an opt-in
+    /// control, not a required one.
+    /// </summary>
+    [Fact]
+    public async Task StartAsync_BundleHmacKeyAbsent_DoesNotThrow()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var config = new ConfigurationBuilder().Build();
+        var logger = Substitute.For<ILogger<VeriqanConfigurationValidator>>();
+        var validator = new VeriqanConfigurationValidator(config, logger);
+
+        await Should.NotThrowAsync(() => validator.StartAsync(ct));
     }
 }

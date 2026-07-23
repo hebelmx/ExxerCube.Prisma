@@ -157,4 +157,69 @@ public sealed class BundleManifestWriterTests
             Directory.Delete(tempDir, recursive: true);
         }
     }
+
+    // ---------------------------------------------------------------------------
+    // B1 — manifest format v2 header (bundle: / generatedAt:)
+    // ---------------------------------------------------------------------------
+
+    /// <summary>
+    /// Minimal <see cref="TimeProvider"/> stub that always returns a fixed instant, so the
+    /// <c>generatedAt:</c> header can be asserted deterministically.
+    /// </summary>
+    private sealed class FixedTimeProvider(DateTimeOffset fixedNow) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => fixedNow;
+    }
+
+    [Fact]
+    public async Task WriteManifestAsync_InjectedTimeProvider_WritesExpectedGeneratedAtHeader()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var tempDir = CreateIsolatedBundleCopy();
+        var fixedNow = new DateTimeOffset(2026, 7, 23, 17, 22, 38, TimeSpan.Zero);
+        var timeProvider = new FixedTimeProvider(fixedNow);
+
+        try
+        {
+            var result = await BundleManifestWriter.WriteManifestAsync(tempDir, HmacKey, ct, timeProvider);
+            result.IsSuccess.ShouldBeTrue($"Expected success but got: {result.Error}");
+
+            var manifestLines = await File.ReadAllLinesAsync(
+                Path.Combine(tempDir, BundleIntegrityVerifier.ManifestFileName), ct);
+
+            manifestLines[0].ShouldBe($"bundle: {Path.GetFileName(tempDir)}");
+            manifestLines[1].ShouldStartWith("generatedAt: 2026-07-23T17:22:38");
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task WriteManifestAsync_NoTimeProviderInjected_DefaultsToSystemTimeProvider()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var tempDir = CreateIsolatedBundleCopy();
+        var beforeCall = DateTimeOffset.UtcNow;
+
+        try
+        {
+            var result = await BundleManifestWriter.WriteManifestAsync(tempDir, HmacKey, ct);
+            result.IsSuccess.ShouldBeTrue($"Expected success but got: {result.Error}");
+
+            var afterCall = DateTimeOffset.UtcNow;
+            var manifestLines = await File.ReadAllLinesAsync(
+                Path.Combine(tempDir, BundleIntegrityVerifier.ManifestFileName), ct);
+
+            var generatedAtRaw = manifestLines[1]["generatedAt: ".Length..];
+            var generatedAt = DateTimeOffset.Parse(generatedAtRaw, System.Globalization.CultureInfo.InvariantCulture);
+
+            generatedAt.ShouldBeInRange(beforeCall.AddSeconds(-1), afterCall.AddSeconds(1));
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
 }
