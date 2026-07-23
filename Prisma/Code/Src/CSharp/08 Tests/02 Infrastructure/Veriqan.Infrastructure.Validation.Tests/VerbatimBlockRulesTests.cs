@@ -364,6 +364,35 @@ public sealed class VerbatimBlockRulesTests
         return list;
     }
 
+    /// <summary>
+    /// Builds a list of 28 <see cref="DetectedSection"/> entries where only
+    /// <paramref name="sectionNumeral"/> is present, and that section's presence carries
+    /// <see cref="SectionDetectionSource.Ocr"/> (RC1-residuals adversarial-review fix,
+    /// 2026-07-23) — simulating the §-anchor OCR escalation ladder having upgraded this
+    /// section from absent (text layer) to present (OCR). Mirrors the production shape:
+    /// <see cref="FieldLocator.PageHint"/> only (no bounding box), <c>SectionText</c> empty.
+    /// </summary>
+    private static IReadOnlyList<DetectedSection> SectionsWithPresentOcr(int sectionNumeral)
+    {
+        var list = new List<DetectedSection>(28);
+        for (var i = 1; i <= 28; i++)
+        {
+            var isPresent = i == sectionNumeral;
+            list.Add(new DetectedSection(
+                SectionNumber: i,
+                Name: $"Section {i}",
+                IsPresent: isPresent,
+                IsApplicable: true,
+                Locator: isPresent ? FieldLocator.PageHint(1) : FieldLocator.NoPage())
+            {
+                DetectionStatus = isPresent ? SectionDetectionStatus.Present : SectionDetectionStatus.Absent,
+                Source = isPresent ? SectionDetectionSource.Ocr : SectionDetectionSource.TextLayer,
+            });
+        }
+
+        return list;
+    }
+
     // -----------------------------------------------------------------------
     // Shared: all five rules must be discoverable via DI + correct metadata
     // -----------------------------------------------------------------------
@@ -604,6 +633,51 @@ public sealed class VerbatimBlockRulesTests
     }
 
     // -----------------------------------------------------------------------
+    // LAW-§11-URLS: RC1-residuals adversarial-review fix (2026-07-23) — §11 detected via
+    // OCR escalation (raster-rendered section) must abstain, not false-Fail, when the
+    // URLs are absent from the text layer; a positive text-layer match still Passes.
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Section11Rule_OcrSourcedSection_UrlsMissingFromTextLayer_ReturnsInsufficientData()
+    {
+        var rule = GetRule("LAW-§11-URLS");
+        var sections = SectionsWithPresentOcr(11);
+
+        // §11's heading was only found via OCR (raster-rendered region); the discarded OCR page
+        // text is never fed into NormalizedFullText, so the URLs are absent from the text layer
+        // even though (per the S1 probe) they are legible on the rendered page.
+        var docText = "COMPARA TU TARJETA CON OTRAS OPCIONES NOTAS ACLARATORIAS";
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 11, string.Empty, sections));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "an OCR-sourced §11 heading means the section is raster-rendered; a text-layer " +
+            "miss cannot prove the URLs are absent from the rendered region");
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail);
+    }
+
+    [Fact]
+    public void Section11Rule_OcrSourcedSection_UrlsFoundInTextLayer_ReturnsPass()
+    {
+        var rule = GetRule("LAW-§11-URLS");
+        var sections = SectionsWithPresentOcr(11);
+
+        var url1N = VecTextMatcher.Normalize(Url1);
+        var url2N = VecTextMatcher.Normalize(Url2);
+        var docText = $"COMPARA TU TARJETA CON OTRAS EN: {url1N} {url2N} NOTAS ACLARATORIAS";
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 11, string.Empty, sections));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "positive text-layer evidence must Pass regardless of the section's presence source");
+    }
+
+    // -----------------------------------------------------------------------
     // LAW-§17-LEGENDS: Pass when all four legends present in NormalizedFullText
     // -----------------------------------------------------------------------
 
@@ -702,6 +776,48 @@ public sealed class VerbatimBlockRulesTests
     }
 
     // -----------------------------------------------------------------------
+    // LAW-§17-LEGENDS: RC1-residuals adversarial-review fix (2026-07-23) — §17 detected via
+    // OCR escalation (raster-rendered section) must abstain, not false-Fail, when legends are
+    // absent from the text layer; a positive text-layer match still Passes.
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Section17Rule_OcrSourcedSection_LegendsMissingFromTextLayer_ReturnsInsufficientData()
+    {
+        var rule = GetRule("LAW-§17-LEGENDS");
+        var sections = SectionsWithPresentOcr(17);
+
+        var docText = "MENSAJES ADICIONALES SIN CONTENIDO RELEVANTE";
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 17, string.Empty, sections));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "an OCR-sourced §17 heading means the section is raster-rendered; a text-layer " +
+            "miss cannot prove the legends are absent from the rendered region");
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail);
+    }
+
+    [Fact]
+    public void Section17Rule_OcrSourcedSection_LegendsFoundInTextLayer_ReturnsPass()
+    {
+        var rule = GetRule("LAW-§17-LEGENDS");
+        var sections = SectionsWithPresentOcr(17);
+
+        var docText = string.Join(" SEPARADOR ",
+            new[] { Legend17A, Legend17B, Legend17C, Legend17D }
+                .Select(l => VecTextMatcher.Normalize(l)));
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 17, string.Empty, sections));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "positive text-layer evidence must Pass regardless of the section's presence source");
+    }
+
+    // -----------------------------------------------------------------------
     // LAW-§24-QUEJAS: Pass when invariant CONDUSEF block present in NormalizedFullText
     // -----------------------------------------------------------------------
 
@@ -769,6 +885,50 @@ public sealed class VerbatimBlockRulesTests
         result.Value.Observed.ShouldNotBeNull();
         result.Value.Observed!.ShouldContain("similarity=");
         result.Value.Observed.ShouldContain("threshold=");
+    }
+
+    // -----------------------------------------------------------------------
+    // LAW-§24-QUEJAS: RC1-residuals adversarial-review fix (2026-07-23) — §24 detected via
+    // OCR escalation (raster-rendered section) must abstain, not false-Fail, when the legend
+    // is absent from the text layer; a positive text-layer match still Passes. This rule was
+    // not one of the three originally flagged (§11/§17/§27) but shares the identical pattern
+    // (whole-document NormalizedFullText scan gated only on section presence) so the guard
+    // was extended here for consistency, per adversarial-review instruction.
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Section24Rule_OcrSourcedSection_QuejasLegendMissingFromTextLayer_ReturnsInsufficientData()
+    {
+        var rule = GetRule("LAW-§24-QUEJAS");
+        var sections = SectionsWithPresentOcr(24);
+
+        var docText = "ATENCION DE QUEJAS BANCO DEMO RECIBE CONSULTAS EN SU UNIDAD ESPECIALIZADA";
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 24, string.Empty, sections));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "an OCR-sourced §24 heading means the section is raster-rendered; a text-layer " +
+            "miss cannot prove the quejas legend is absent from the rendered region");
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail);
+    }
+
+    [Fact]
+    public void Section24Rule_OcrSourcedSection_QuejasLegendFoundInTextLayer_ReturnsPass()
+    {
+        var rule = GetRule("LAW-§24-QUEJAS");
+        var sections = SectionsWithPresentOcr(24);
+
+        var invariantN = VecTextMatcher.Normalize(Quejas24Fragment);
+        var docText = $"BANCO DEMO RECIBE QUEJAS EN SU UNE. {invariantN} REESTRUCTURA DE TU DEUDA";
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 24, string.Empty, sections));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "positive text-layer evidence must Pass regardless of the section's presence source");
     }
 
     // -----------------------------------------------------------------------
@@ -849,6 +1009,50 @@ public sealed class VerbatimBlockRulesTests
         // At least one of the missing note ids (c–m) should appear.
         result.Value.Observed!.ShouldContain("§26-");
         result.Value.Observed.ShouldContain("similarity=");
+    }
+
+    // -----------------------------------------------------------------------
+    // LAW-§26-NOTAS: RC1-residuals adversarial-review fix (2026-07-23) — §26 detected via
+    // OCR escalation (raster-rendered section) must abstain, not false-Fail, when the notas
+    // are absent from the text layer; a positive text-layer match still Passes. Latent on the
+    // measured corpus (the notas genuinely are in the text layer), guarded for future layouts.
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Section26Rule_OcrSourcedSection_NotasMissingFromTextLayer_ReturnsInsufficientData()
+    {
+        var rule = GetRule("LAW-§26-NOTAS");
+        var sections = SectionsWithPresentOcr(26);
+
+        var docText = "NOTAS ACLARATORIAS SIN CONTENIDO RELEVANTE";
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 26, string.Empty, sections));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "an OCR-sourced §26 heading means the section is raster-rendered; a text-layer " +
+            "miss cannot prove the notas are absent from the rendered region");
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail);
+    }
+
+    [Fact]
+    public void Section26Rule_OcrSourcedSection_NotasFoundInTextLayer_ReturnsPass()
+    {
+        var rule = GetRule("LAW-§26-NOTAS");
+        var sections = SectionsWithPresentOcr(26);
+
+        var notesText = "NOTAS ACLARATORIAS " +
+                  string.Join(" NOTA ",
+                      AllSection26Notes.Select(VecTextMatcher.Normalize));
+        var docText = notesText + " GLOSARIO DE TERMINOS";
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 26, string.Empty, sections));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "positive text-layer evidence must Pass regardless of the section's presence source");
     }
 
     // -----------------------------------------------------------------------
@@ -1120,6 +1324,48 @@ public sealed class VerbatimBlockRulesTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+    }
+
+    // -----------------------------------------------------------------------
+    // LAW-§27-GLOSARIO: RC1-residuals adversarial-review fix (2026-07-23) — §27 detected via
+    // OCR escalation (raster-rendered section) must abstain, not false-Fail, when terms are
+    // absent from the text layer; a positive text-layer match still Passes.
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Section27Rule_OcrSourcedSection_TermsMissingFromTextLayer_ReturnsInsufficientData()
+    {
+        var rule = GetRule("LAW-§27-GLOSARIO");
+        var sections = SectionsWithPresentOcr(27);
+
+        var docText = "GLOSARIO DE TERMINOS Y ABREVIATURAS SIN CONTENIDO";
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 27, string.Empty, sections));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "an OCR-sourced §27 heading means the section is raster-rendered; a text-layer " +
+            "miss cannot prove the glossary terms are absent from the rendered region");
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail);
+    }
+
+    [Fact]
+    public void Section27Rule_OcrSourcedSection_TermsFoundInTextLayer_ReturnsPass()
+    {
+        var rule = GetRule("LAW-§27-GLOSARIO");
+        var sections = SectionsWithPresentOcr(27);
+
+        var termsText = "GLOSARIO DE TERMINOS Y ABREVIATURAS " +
+                  string.Join(" TERMINO ",
+                      AllSection27Terms.Select(VecTextMatcher.Normalize));
+        var ctx = Ctx(ModelWithTextAndSectionText(termsText, 27, string.Empty, sections));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "positive text-layer evidence must Pass regardless of the section's presence source");
     }
 
     // -----------------------------------------------------------------------

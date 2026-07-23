@@ -88,17 +88,49 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests.Calibration.RealCorpus;
 ///   heading is OCR-recovered, and (unchanged) the rule scans the real text-layer
 ///   <c>NormalizedFullText</c> for the 13 verbatim notas, which genuinely are present as normal
 ///   body text on this family.</description></item>
-///   <item><description><b>LAW-§27-GLOSARIO flips InsufficientData→FAIL on all 8</b> — §27's
-///   heading is likewise OCR-recovered, but unlike §26 the 15 verbatim glosario terms are
-///   genuinely NOT found in the real text layer of any of the 8 statements. This is an honest,
-///   newly-surfaced finding (the check no longer silently abstains behind an undetected heading),
-///   not a defect introduced by the ladder.</description></item>
+///   <item><description><b>LAW-§27-GLOSARIO stays InsufficientData on all 8</b> — §27's heading
+///   is OCR-recovered (raster-rendered region), and the 15 verbatim glosario terms are genuinely
+///   NOT found in the real text layer of any of the 8 statements.</description></item>
 ///   <item><description><b>LAW-§11-URLS</b> and <b>LAW-§17-LEGENDS</b> (previously untracked —
-///   both gate on section presence the same way, then scan real full-text) newly surface as
-///   <b>Fail on all 8</b> for the same honest reason: their §11/§17 headings are now OCR-detected,
-///   but their mandated verbatim content is genuinely absent from the real text layer. Added to
-///   the tracked subset here specifically because RC1.S6 moved them from untracked-abstain to a
-///   real, reproducible Fail.</description></item>
+///   both gate on section presence the same way, then scan real full-text) are tracked here as
+///   <b>InsufficientData on all 8</b> for the mirror reason: their §11/§17 headings are now
+///   OCR-detected, but their mandated verbatim content is genuinely absent from the real text
+///   layer.</description></item>
+///   <item><description><b>2026-07-23 same-day correction (RC1-residuals adversarial-review
+///   BLOCKER fix):</b> the RC1.S6 measurement above originally recorded LAW-§27-GLOSARIO,
+///   LAW-§11-URLS, and LAW-§17-LEGENDS as <b>Fail</b> on all 8 statements. Adversarial review
+///   found this was a FALSE Critical Fail: an OCR-detected section heading means the section
+///   region is a rendered image, and a text-layer content scan proves nothing about that
+///   region's actual content — it can only observe that the mandated content is not in the
+///   *selectable* text. An S1 probe of the OCR'd page text found the CONDUSEF URLs / §17
+///   legends / §27 glossary terms ARE legible on the rendered pages. The three rules
+///   (<c>Section11ComparaUrlsRule</c>, <c>Section17LegendsRule</c>, <c>Section27GlosarioRule</c>)
+///   were corrected to abstain (InsufficientData) rather than Fail whenever their host section's
+///   presence <c>Source</c> is <c>SectionDetectionSource.Ocr</c> and the text-layer content scan
+///   comes up empty; a positive text-layer match still Passes regardless of presence source.
+///   Content-level OCR verification does not exist yet — abstaining is the honest outcome until
+///   it does. Pinned values below reflect this corrected behavior
+///   (InsufficientData, not Fail).</description></item>
+///   <item><description><b>LAW-§24-QUEJAS</b> (also newly added to the tracked subset here — it
+///   was previously measured but undisclosed) moved <b>InsufficientData→Pass on all 8</b> via
+///   the same OCR section-detection path: its host heading is OCR-recovered, and — unlike
+///   §11/§17/§27 — the invariant CONDUSEF quejas legend genuinely IS present in the real text
+///   layer of every statement, the same "content genuinely present" shape as
+///   LAW-§26-NOTAS. This rule was also given the same OCR-source guard for consistency (its
+///   Fail branch has the identical shape as §11/§17/§27), but the guard is not exercised on this
+///   corpus because the content is always found.</description></item>
+///   <item><description><b>LAW-§23-ABONO-LINK</b> and <b>LAW-§23-STATUS</b> were inspected for
+///   the same OCR-gated false-Fail risk and found NOT to need the guard. LAW-§23-STATUS's Fail
+///   branch requires a non-empty <c>DetectedSection.SectionText</c>, which
+///   <c>SectionAnchorOcrEscalationStage</c> always leaves empty for an OCR-upgraded section (no
+///   word geometry exists to slice a span from) — so the rule's existing empty-SectionText guard
+///   already abstains before it can ever reach Fail on an OCR-sourced §23. LAW-§23-ABONO-LINK
+///   does not scan text-layer content at all — its Fail branch cross-references structured
+///   <c>DisputeRows</c>/<c>Movements</c> extraction, entirely independent of heading
+///   presence-source. Both move on the real corpus to a per-statement mix (5 Pass / 3
+///   InsufficientData) driven by dispute-row/movement extraction availability, not by
+///   OCR-detection — deliberately NOT folded into the uniform <c>StandardCreditCardChecks</c>
+///   block below.</description></item>
 ///   <item><description><b>BankTierVerdict</b> flips <b>Yellow→Green</b> wherever CL-32 was the
 ///   only bank-tier fail: B-2026-03/04/05/06, C-2026-03/04/05, and the <c>defect-good</c> /
 ///   <c>defect-bad-math-cl21</c> specimens. C-2026-02 (independent fiscal-legend residual,
@@ -111,8 +143,9 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests.Calibration.RealCorpus;
 ///   never a fabricated bounding box, so <c>SectionOrderAndGapRule</c>'s
 ///   <c>Locator.Bottom.HasValue</c> geometry gate still excludes them), CL-18/21/31/42/46/48/50/
 ///   51/52/53/LAW-§16-OTRASLINEAS/LAW-TYPO-MINSIZE, and the overall Signal/CondusefTierVerdict
-///   (still Red — LAW-SEC-PRESENCE/LAW-TYPO-MINSIZE/LAW-§27-GLOSARIO/LAW-§11-URLS/LAW-§17-LEGENDS
-///   keep the Condusef tier Red regardless of CL-32) — are UNCHANGED by RC1.S6.</description></item>
+///   (still Red — LAW-SEC-PRESENCE and LAW-TYPO-MINSIZE alone keep the Condusef tier Red on
+///   every real credit-card statement, regardless of CL-32 or the now-abstaining
+///   §11/§17/§27) — are UNCHANGED by RC1.S6 or by the 2026-07-23 correction.</description></item>
 /// </list>
 /// See <c>docs/qa/calibration/real-corpus-baseline-2026-07.md</c> §"Per-check aggregate" for the
 /// full measured Fail/Abstain/Pass counts this update is pinned from.
@@ -183,16 +216,24 @@ public sealed class RealCorpusCalibrationPinTests
             ["LAW-§16-OTRASLINEAS"] = "Pass",
             // RC1.S6 (2026-07-23): §-anchor OCR escalation recovers the §26/§27 headings via
             // real Tesseract OCR on this raster-headed real-corpus family. §26's verbatim notas
-            // ARE genuinely present in the real text layer (Pass); §27's verbatim glosario terms
-            // are genuinely NOT (an honest new Fail, not a defect) — see class remarks above.
+            // ARE genuinely present in the real text layer (Pass). §27's verbatim glosario terms
+            // are genuinely NOT found in the text layer — corrected same-day (2026-07-23,
+            // adversarial-review BLOCKER fix) to InsufficientData: an OCR-detected section is a
+            // rendered image, so a text-layer miss cannot prove content absence — see class
+            // remarks above.
             ["LAW-§26-NOTAS"] = "Pass",
-            ["LAW-§27-GLOSARIO"] = "Fail",
-            // RC1.S6 additions — previously untracked; both flip from an untracked/undetected
-            // abstain to a real, reproducible Fail for the same reason as LAW-§27-GLOSARIO (their
-            // host section's heading is now OCR-detected, but their mandated verbatim content is
-            // genuinely absent from the real text layer).
-            ["LAW-§11-URLS"] = "Fail",
-            ["LAW-§17-LEGENDS"] = "Fail",
+            ["LAW-§27-GLOSARIO"] = "InsufficientData",
+            // RC1.S6 additions — previously untracked; both mirror LAW-§27-GLOSARIO's shape
+            // exactly (host section's heading is OCR-detected, mandated verbatim content is
+            // genuinely absent from the real text layer). Corrected same-day (2026-07-23) to
+            // InsufficientData for the identical reason.
+            ["LAW-§11-URLS"] = "InsufficientData",
+            ["LAW-§17-LEGENDS"] = "InsufficientData",
+            // Newly added to the tracked subset (previously measured but undisclosed): §24's
+            // heading is OCR-detected and its invariant CONDUSEF quejas legend genuinely IS
+            // present in the real text layer — the same "content genuinely present" shape as
+            // LAW-§26-NOTAS.
+            ["LAW-§24-QUEJAS"] = "Pass",
             // RC1.S6 addition: CL-32 (§11 "Compara tu tarjeta") flips Fail→Pass on this family —
             // OCR recovers the heading on page 1 of every real B/C credit-card statement.
             ["CL-32"] = "Pass",

@@ -30,8 +30,11 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 /// <b>Good-PDF principle (Hard Honesty):</b> <c>good.pdf</c> is a production-quality reference
 /// Visa/BSSB statement for Mar-Apr 2026 provided by the owner as the golden master dataset.  It
 /// was NOT authored to meet CONDUSEF CL-rules and is NOT assumed to be perfectly compliant.
-/// Actual verified verdict (RC1.S5 footer-aware-gap update, 2026-07-23, live run post owner
-/// ruling): <b>RED</b> with 3 FailCheckIds — [CL-32, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE].
+/// Actual verified verdict (RC1.S6 §-anchor OCR escalation + adversarial-review correction,
+/// 2026-07-23, live run): <b>RED</b> with 2 FailCheckIds — [LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE]
+/// (CL-32 now Passes: §11's raster-rendered heading is recovered via OCR escalation;
+/// LAW-§11-URLS/§17-LEGENDS/§27-GLOSARIO honestly abstain — OCR-sourced presence, text-layer-only
+/// content scan — see the RC1.S6 remarks on <see cref="DemoFixtures"/>).
 /// (CL-48 previously also failed here — a probe of 8 real corpus statements including this same
 /// PDF family proved that reported gap was trailing whitespace down to the page footer, not a
 /// real blank-page violation; excluding footer-only content before measuring CL-48's gap
@@ -42,9 +45,9 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 /// Banamex layout family, and RC1.S5 additionally cleared CL-48 — all 10 now Pass or honestly
 /// abstain on this PDF.)
 /// The Red verdict is a TRUE-POSITIVE: genuine non-compliance with the required checklist sections
-/// (LAW-SEC-PRESENCE), "COMPARA TU TARJETA" (CL-32), and sub-floor
-/// typography (LAW-TYPO-MINSIZE, owner-ratified — see RC1.S3/S4.d).  No bundle values were
-/// fabricated, no findings were suppressed, and no tolerances were relaxed.
+/// (LAW-SEC-PRESENCE) and sub-floor typography (LAW-TYPO-MINSIZE, owner-ratified — see
+/// RC1.S3/S4.d).  No bundle values were fabricated, no findings were suppressed, and no
+/// tolerances were relaxed.
 /// See <see cref="DemoFixtures"/> remarks for the per-check classification.
 /// </para>
 /// <para>
@@ -82,7 +85,7 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 ///   <listheader><term>File</term><description>Actual verdict / notes</description></listheader>
 ///   <item><term>good.pdf</term><description>RED / LAW-SEC-PRESENCE — structural failures (CL-18 and LAW-§26-NOTAS now Pass post-RC1.S4.a; CL-21 now InsufficientData — ungrounded Adeudo/Pagos, see RC1.S4.a remarks above). 21 fields extracted; floor cleared without bypass.</description></item>
 ///   <item><term>bad-math-cl21.pdf</term><description>RED / LAW-SEC-PRESENCE + CL-22 — CL-21 now InsufficientData (RC1.S4.a — ungrounded Adeudo/Pagos, same as good.pdf); CL-22 alone still catches the +$11.00 injection (delta=$11.00 &gt; tol=$0.50), preserving the RED verdict.</description></item>
-///   <item><term>bad-font-cl35.pdf</term><description>RED / CL-35 — Courier font detected; Helvetica required by bundle (plus the same 3 checks as good.pdf: CL-32, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE; CL-48 now Pass post-RC1.S5).</description></item>
+///   <item><term>bad-font-cl35.pdf</term><description>RED / CL-35 — Courier font detected; Helvetica required by bundle (plus the same 2 checks as good.pdf: LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE; CL-48 now Pass post-RC1.S5, CL-32 now Pass post-RC1.S6).</description></item>
 ///   <item><term>scanned.pdf</term><description>BLOCKED — image-only PDF, text-layer floor not met.</description></item>
 /// </list>
 /// <para>
@@ -179,9 +182,9 @@ public sealed class VecChecklistDemoE2ETests
     /// on this branch post-RC1.S5:</b>
     /// <list type="table">
     ///   <listheader><term>Fixture</term><description>FailCheckIds (BankFail / CondusefFail split)</description></listheader>
-    ///   <item><term>good.pdf</term><description>[LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE, LAW-§11-URLS, LAW-§17-LEGENDS, LAW-§27-GLOSARIO] — Bank:[] (RC1.S6: CL-32 now Pass via §-anchor OCR escalation — BankTierVerdict flips Yellow→Green), Condusef:[LAW-SEC-PRESENCE,LAW-TYPO-MINSIZE,LAW-§11-URLS,LAW-§17-LEGENDS,LAW-§27-GLOSARIO]</description></item>
-    ///   <item><term>bad-math-cl21.pdf</term><description>[CL-22, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE, LAW-§11-URLS, LAW-§17-LEGENDS, LAW-§27-GLOSARIO] — Bank:[CL-22] (CL-32 now Pass, but CL-22 alone keeps Bank-tier Yellow), Condusef:[CL-22,LAW-SEC-PRESENCE,LAW-TYPO-MINSIZE,LAW-§11-URLS,LAW-§17-LEGENDS,LAW-§27-GLOSARIO]</description></item>
-    ///   <item><term>bad-font-cl35.pdf</term><description>[CL-35, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE, LAW-§11-URLS, LAW-§17-LEGENDS, LAW-§27-GLOSARIO] — Bank:[CL-35] (CL-32 now Pass, but CL-35 alone keeps Bank-tier Yellow), Condusef:[LAW-SEC-PRESENCE,LAW-TYPO-MINSIZE,LAW-§11-URLS,LAW-§17-LEGENDS,LAW-§27-GLOSARIO]</description></item>
+    ///   <item><term>good.pdf</term><description>[LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE] — Bank:[] (RC1.S6: CL-32 now Pass via §-anchor OCR escalation — BankTierVerdict flips Yellow→Green), Condusef:[LAW-SEC-PRESENCE,LAW-TYPO-MINSIZE]. LAW-§11-URLS/LAW-§17-LEGENDS/LAW-§27-GLOSARIO honestly abstain (InsufficientData) — see the 2026-07-23 correction note below.</description></item>
+    ///   <item><term>bad-math-cl21.pdf</term><description>[CL-22, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE] — Bank:[CL-22] (CL-32 now Pass, but CL-22 alone keeps Bank-tier Yellow), Condusef:[CL-22,LAW-SEC-PRESENCE,LAW-TYPO-MINSIZE]. LAW-§11-URLS/LAW-§17-LEGENDS/LAW-§27-GLOSARIO abstain (InsufficientData).</description></item>
+    ///   <item><term>bad-font-cl35.pdf</term><description>[CL-35, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE] — Bank:[CL-35] (CL-32 now Pass, but CL-35 alone keeps Bank-tier Yellow), Condusef:[LAW-SEC-PRESENCE,LAW-TYPO-MINSIZE]. LAW-§11-URLS/LAW-§17-LEGENDS/LAW-§27-GLOSARIO abstain (InsufficientData).</description></item>
     ///   <item><term>compliant-master.pdf</term><description>[LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE] — Bank:[] (was [CL-48] pre-RC1.S5 — now empty, BankTierVerdict flips Yellow→Green), Condusef:[LAW-SEC-PRESENCE,LAW-TYPO-MINSIZE]</description></item>
     ///   <item><term>scanned.pdf</term><description>ExtractionGap — no rules ran, no findings.</description></item>
     /// </list>
@@ -191,17 +194,27 @@ public sealed class VecChecklistDemoE2ETests
     /// three, so the new <c>SectionAnchorOcrEscalationStage</c> fires and recovers §11 "COMPARA TU
     /// TARJETA" via real Tesseract OCR on all three. CL-32 (reworked to consult
     /// <c>StatementModel.Sections</c> first) flips Fail→Pass on all three. The SAME OCR recovery
-    /// also surfaces §26/§27/§11/§17 headings, which flips 3 previously-abstained checks into
-    /// genuine, honest findings: LAW-§26-NOTAS flips to Pass (its 13 verbatim notas genuinely ARE
-    /// present in the real text layer), while LAW-§27-GLOSARIO/LAW-§11-URLS/LAW-§17-LEGENDS newly
-    /// surface as genuine Fails (their mandated verbatim content is genuinely NOT present in the
-    /// real text layer — an honest new finding, not a defect introduced by the ladder). Net effect
-    /// on these 3 fixtures: CL-32 leaves FailCheckIds; LAW-§27-GLOSARIO/LAW-§11-URLS/LAW-§17-LEGENDS
-    /// join it (net +2 FailCheckIds); BankTierVerdict flips Yellow→Green on good.pdf (CL-32 was its
-    /// only bank-tier fail) but stays Yellow on bad-math-cl21.pdf/bad-font-cl35.pdf (CL-22/CL-35
-    /// are independent bank-tier fails). Signal and CondusefTierVerdict stay Red throughout — see
-    /// <c>RealCorpusCalibrationPinTests</c> (Veriqan real-corpus suite) for the equivalent
-    /// full-16-statement-corpus measurement this is consistent with.
+    /// also surfaces §26/§27/§11/§17 headings: LAW-§26-NOTAS flips to Pass (its 13 verbatim notas
+    /// genuinely ARE present in the real text layer). Net effect on these 3 fixtures: CL-32 leaves
+    /// FailCheckIds; BankTierVerdict flips Yellow→Green on good.pdf (CL-32 was its only bank-tier
+    /// fail) but stays Yellow on bad-math-cl21.pdf/bad-font-cl35.pdf (CL-22/CL-35 are independent
+    /// bank-tier fails). Signal and CondusefTierVerdict stay Red throughout (via LAW-SEC-PRESENCE +
+    /// LAW-TYPO-MINSIZE alone) — see <c>RealCorpusCalibrationPinTests</c> (Veriqan real-corpus
+    /// suite) for the equivalent full-16-statement-corpus measurement this is consistent with.
+    /// <para>
+    /// <b>2026-07-23 same-day correction (RC1-residuals adversarial-review BLOCKER fix):</b> the
+    /// RC1.S6 measurement above originally treated LAW-§27-GLOSARIO/LAW-§11-URLS/LAW-§17-LEGENDS as
+    /// genuine Fails on good.pdf/bad-math-cl21.pdf/bad-font-cl35.pdf (their mandated verbatim
+    /// content is genuinely absent from the text layer, same as their host §11/§17/§27 headings).
+    /// Adversarial review found this was a FALSE Critical Fail: an OCR-detected section heading
+    /// means the section region is a rendered image, so a text-layer content miss cannot prove
+    /// content absence. The three rules were corrected to abstain (InsufficientData) instead of
+    /// Fail whenever their host section's presence source is OCR and text-layer content is absent;
+    /// a positive text-layer match still Passes regardless of source. These 3 fixtures therefore no
+    /// longer carry LAW-§11-URLS/LAW-§17-LEGENDS/LAW-§27-GLOSARIO in FailCheckIds — Signal stays Red
+    /// and both tier verdicts are unaffected (LAW-SEC-PRESENCE + LAW-TYPO-MINSIZE alone already kept
+    /// CondusefTierVerdict=Red; neither of the 3 rules was ever a bank-tier check).
+    /// </para>
     /// CL-31, CL-46, CL-48, CL-50, CL-51, CL-52, CL-53, and LAW-SEC-ORDER-GAP remain Pass or
     /// InsufficientData on this PDF family (unaffected by RC1.S6 — see the class remarks above for
     /// the footer-gap rationale, and <c>RealCorpusCalibrationPinTests</c> remarks for why
@@ -251,15 +264,15 @@ public sealed class VecChecklistDemoE2ETests
     ///   <item><term>CL-48</term><description>Both → condusef + bank (still tier-classified Both by the CSV, but no longer FAILS on any of these 4 fixtures post-RC1.S5 — see class remarks)</description></item>
     ///   <item><term>LAW-SEC-PRESENCE</term><description>Condusef → condusef only</description></item>
     ///   <item><term>LAW-TYPO-MINSIZE</term><description>Condusef → condusef only</description></item>
-    ///   <item><term>LAW-§27-GLOSARIO, LAW-§11-URLS, LAW-§17-LEGENDS</term><description>Condusef → condusef only (RC1.S6: newly-surfaced genuine Fails on good.pdf/bad-math-cl21.pdf/bad-font-cl35.pdf — see class remarks)</description></item>
     /// </list>
-    /// CL-31, CL-46, CL-48, CL-50, CL-51, CL-52, CL-53, LAW-SEC-ORDER-GAP, and LAW-§26-NOTAS no
-    /// longer appear in any of these 4 fixtures' FailCheckIds — they Pass or honestly abstain
-    /// (InsufficientData) on this PDF layout family.
+    /// CL-31, CL-46, CL-48, CL-50, CL-51, CL-52, CL-53, LAW-SEC-ORDER-GAP, LAW-§26-NOTAS, and (as of
+    /// the 2026-07-23 same-day adversarial-review correction described above) LAW-§27-GLOSARIO,
+    /// LAW-§11-URLS, and LAW-§17-LEGENDS no longer appear in any of these 4 fixtures' FailCheckIds —
+    /// they Pass or honestly abstain (InsufficientData) on this PDF layout family.
     ///
     /// Result: condusefFailIds is non-empty → CondusefTierVerdict=Red on all 4 non-BLOCKED
-    /// fixtures (LAW-SEC-PRESENCE/LAW-TYPO-MINSIZE/LAW-§27-GLOSARIO/LAW-§11-URLS/LAW-§17-LEGENDS
-    /// keep it Red regardless of CL-32/CL-48's post-RC1.S5/S6 Pass). bankFailIds non-empty →
+    /// fixtures (LAW-SEC-PRESENCE/LAW-TYPO-MINSIZE alone keep it Red regardless of CL-32/CL-48's
+    /// post-RC1.S5/S6 Pass and regardless of §11/§17/§27's abstention). bankFailIds non-empty →
     /// BankTierVerdict=Yellow, EXCEPT good.pdf and compliant-master.pdf, where the ONLY bank-tier
     /// fail (CL-32 pre-RC1.S6 on good.pdf; CL-48 pre-RC1.S5 on compliant-master.pdf) is now Pass —
     /// bankFailIds is empty on both, so BankTierVerdict=Green (see those fixtures' rows below).
@@ -275,12 +288,14 @@ public sealed class VecChecklistDemoE2ETests
         // synthetic fixture), so the new SectionAnchorOcrEscalationStage fires on it too (text
         // layer alone finds < 2 present sections) and recovers §11 "COMPARA TU TARJETA" via real
         // Tesseract OCR — CL-32 (reworked to consult StatementModel.Sections first) flips
-        // Fail→Pass. Live-measured FailCheckIds are now [LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE,
-        // LAW-§11-URLS, LAW-§17-LEGENDS, LAW-§27-GLOSARIO] (the last 3 are newly-surfaced HONEST
-        // findings: their host sections' headings are now OCR-detected, but their mandated
-        // verbatim content is genuinely absent from the real text layer — see
-        // RealCorpusCalibrationPinTests class remarks for the equivalent full-corpus measurement).
-        // CondusefTierVerdict stays Red (still multiple Condusef-tier fails). BankTierVerdict
+        // Fail→Pass. Live-measured FailCheckIds are [LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE].
+        // LAW-§11-URLS/LAW-§17-LEGENDS/LAW-§27-GLOSARIO's host sections' headings are OCR-detected,
+        // but their mandated verbatim content is genuinely absent from the real text layer — an
+        // OCR-detected heading means the section region is raster-rendered, so a text-layer content
+        // miss cannot prove content absence, so all 3 rules honestly ABSTAIN (InsufficientData)
+        // rather than Fail (2026-07-23 same-day adversarial-review correction — see class remarks
+        // and RealCorpusCalibrationPinTests class remarks for the equivalent full-corpus measurement).
+        // CondusefTierVerdict stays Red (LAW-SEC-PRESENCE + LAW-TYPO-MINSIZE alone). BankTierVerdict
         // flips Yellow→Green: CL-32 was the ONLY bank-tier fail on this fixture, and it is now
         // Pass — genuine, honest verdict movement, not a re-pin of convenience.
         ["good.pdf",          VerdictSignal.Red,     "LAW-SEC-PRESENCE", VerdictSignal.Green, VerdictSignal.Red],
@@ -299,8 +314,9 @@ public sealed class VecChecklistDemoE2ETests
         ["bad-math-cl21.pdf", VerdictSignal.Red,     "CL-22",            VerdictSignal.Yellow, VerdictSignal.Red],
 
         // bad-font-cl35.pdf: RED / CL-35 (Bank tier) + the same Condusef-tier checks as good.pdf
-        // (LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE, LAW-§11-URLS, LAW-§17-LEGENDS, LAW-§27-GLOSARIO) —
-        // CL-32 now Pass post-RC1.S6 (OCR-recovered §11), same as good.pdf.
+        // (LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE) — CL-32 now Pass post-RC1.S6 (OCR-recovered §11),
+        // same as good.pdf. LAW-§11-URLS/LAW-§17-LEGENDS/LAW-§27-GLOSARIO abstain (InsufficientData)
+        // per the 2026-07-23 adversarial-review correction (see class remarks).
         // CL-35 alone keeps bankFailIds non-empty (Bank-tier only) — BankTierVerdict stays Yellow
         // even though CL-32 dropped out; CondusefTierVerdict stays Red via the Condusef-only checks.
         ["bad-font-cl35.pdf", VerdictSignal.Red,     "CL-35",            VerdictSignal.Yellow, VerdictSignal.Red],

@@ -28,6 +28,11 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// </para>
 /// <para>
 /// <b>Abstain (InsufficientData) when section §24 is absent or detection has not run.</b>
+/// Also abstains when §24 was detected via the §-anchor OCR escalation ladder
+/// (<see cref="SectionDetectionSource.Ocr"/>) and the legend is not found in the text layer —
+/// the section region is raster-rendered, so a text-layer miss does not prove content absence
+/// (RC1-residuals adversarial-review fix, 2026-07-23). A positive text-layer match still Passes
+/// regardless of presence source.
 /// </para>
 /// </remarks>
 internal sealed class Section24QuejasLegendRule : IVecValidationRule
@@ -93,6 +98,20 @@ internal sealed class Section24QuejasLegendRule : IVecValidationRule
                     toleranceApplied: (decimal)threshold,
                     locator: section24.Locator));
         }
+
+        // RC1-residuals adversarial-review fix: when §24's presence was established by the OCR
+        // escalation ladder (raster-rendered heading, no text-layer heading band), the section
+        // region itself is a rendered image — a text-layer scan of NormalizedFullText proves
+        // nothing about the region's actual content, only that the legend is not in the
+        // selectable text layer. Content-level OCR verification does not exist yet, so a
+        // text-layer miss under these conditions cannot be treated as a confident absence.
+        // Abstain instead of false-Failing a statement whose legend is legible on the rendered page.
+        if (section24.Source == SectionDetectionSource.Ocr)
+            return InsufficientData(
+                "§24 (ATENCION DE QUEJAS) was detected via OCR escalation (raster-rendered " +
+                "section, no text-layer heading band); a text-layer scan cannot prove the " +
+                $"mandated quejas legend is absent from the rendered region (similarity=" +
+                $"{score:F3}, threshold={threshold:F3}).");
 
         return Result<RuleFinding>.WithSuccess(
             RuleFinding.Fail(

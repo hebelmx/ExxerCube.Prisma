@@ -124,6 +124,23 @@ internal sealed class Section26NotasAclaratoriasRule : IVecValidationRule
         }
 
         var detail = BuildFailDetail(failing);
+
+        // RC1-residuals adversarial-review fix: when §26's presence was established by the OCR
+        // escalation ladder (raster-rendered heading, no text-layer heading band), the section
+        // region itself is a rendered image — a text-layer scan of NormalizedFullText proves
+        // nothing about the region's actual content. Content-level OCR verification does not
+        // exist yet, so a text-layer miss under these conditions cannot be treated as a
+        // confident absence. Abstain instead of false-Failing a statement whose notas are
+        // legible on the rendered page. (Currently latent on the measured corpus — the notas
+        // genuinely are in the text layer and this rule Passes above — but the same guard the
+        // sibling §11/§17/§24/§27 rules carry keeps the Fail branch honest for future layouts.)
+        if (section26.Source == SectionDetectionSource.Ocr)
+            return InsufficientData(
+                "§26 (NOTAS ACLARATORIAS) was detected via OCR escalation (raster-rendered " +
+                "section, no text-layer heading band); a text-layer scan cannot prove the " +
+                $"mandated notas are absent from the rendered region. Missing/low-similarity in " +
+                $"text layer: {detail}.");
+
         return Result<RuleFinding>.WithSuccess(
             RuleFinding.Fail(
                 checkId: CheckId,
