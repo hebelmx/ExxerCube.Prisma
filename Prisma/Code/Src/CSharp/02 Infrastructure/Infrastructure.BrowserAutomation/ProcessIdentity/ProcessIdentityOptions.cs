@@ -66,11 +66,19 @@ public sealed class ProcessIdentityOptions
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <strong>Rotation procedure</strong> (see the ADR-012 HMAC-rotation addendum): (1) set a new
-    /// <see cref="JwtSecret"/>, move the old value into this list, and rolling-restart the three
-    /// processes; (2) once <see cref="TokenLifetime"/> plus the 30s validation <c>ClockSkew</c> has
-    /// drained (comfortably covered by waiting ~6 minutes), remove the old secret from this list. Both
-    /// steps are configuration-only — no code deploy or downtime is required.
+    /// <strong>Rotation procedure</strong> is <strong>three-phase</strong>, config-only, no code deploy:
+    /// (A) pre-stage — leave <see cref="JwtSecret"/> unchanged, put the new secret into this list, and
+    /// rolling-restart all three processes so every validator accepts the new secret while nobody mints
+    /// it yet; (B) cut over — set <see cref="JwtSecret"/> to the new value, move the old value into this
+    /// list, and rolling-restart again so minting switches over while every validator still accepts both;
+    /// (C) retire — once <see cref="TokenLifetime"/> plus the 30s validation <c>ClockSkew</c> has drained
+    /// (comfortably covered by waiting ~6 minutes after the last Phase-B restart), remove the old secret
+    /// from this list and rolling-restart once more. A single-phase "swap secret + old-as-previous, restart
+    /// in any order" rollout is <em>not</em> safe: the first host restarted immediately mints with the new
+    /// secret while not-yet-restarted peers (whose accept-set was baked in at their own last startup) still
+    /// validate old-only, and the handoff between them is rejected fail-closed. See the "Correction" note
+    /// at the top of <c>docs/architecture/adr/ADR-012-addendum-hmac-rotation-grace-2026-07-23.md</c> §3 for
+    /// the full failure-mode walkthrough and the corrected three-phase procedure.
     /// </para>
     /// <para>
     /// Use <see cref="ProcessIdentitySigningKeys.BuildAcceptedKeys(ProcessIdentityOptions)"/> to compute

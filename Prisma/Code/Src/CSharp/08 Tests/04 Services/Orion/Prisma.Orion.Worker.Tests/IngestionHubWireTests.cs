@@ -143,6 +143,51 @@ public sealed class IngestionHubWireTests
         connection.State.ShouldNotBe(HubConnectionState.Connected);
     }
 
+    /// <summary>
+    /// RC6 3.9 (zero-downtime HMAC secret rotation, ADR-012 addendum): a client presenting a bearer token
+    /// signed with a <em>retired</em> secret must still be accepted at the hub-connection level as long as
+    /// that secret is listed in <c>ProcessIdentity:PreviousJwtSecrets</c>. This exercises the same
+    /// <see cref="ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.ProcessIdentitySigningKeys.BuildAcceptedKeys"/>
+    /// path used by <c>AddJwtBearer</c> in <c>Program.cs</c>, and — because the grace secret is supplied
+    /// purely via in-memory <see cref="Microsoft.Extensions.Configuration.IConfiguration"/> keys
+    /// (<c>ProcessIdentity:PreviousJwtSecrets:0</c>) rather than an object initializer — also pins that the
+    /// options binder correctly materializes the list from indexed configuration keys.
+    /// </summary>
+    [Fact]
+    public async Task Connect_WithTokenSignedByPreviousSecret_InGraceList_IsAccepted()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        const string oldSecret = OrionWorkerApplication.TestJwtSecret;
+        const string newSecret = "ORION-WORKER-TESTS-JWT-SECRET-ROTATED-NEW-32-CHARS+";
+
+        await using var application = new OrionWorkerApplication(new Dictionary<string, string?>
+        {
+            ["ProcessIdentity:JwtSecret"] = newSecret,
+            ["ProcessIdentity:PreviousJwtSecrets:0"] = oldSecret,
+        });
+        _ = application.Services;
+        var server = application.Server;
+
+        // Token minted with the OLD (now-retired-for-minting) secret must still be accepted because the
+        // host's grace list carries it.
+        var token = MintToken(oldSecret, "athena-extractor-test", "Extract");
+
+        await using var connection = new HubConnectionBuilder()
+            .WithUrl(
+                server.BaseAddress + "hubs/ingestion",
+                options =>
+                {
+                    options.HttpMessageHandlerFactory = _ => server.CreateHandler();
+                    options.AccessTokenProvider = () => Task.FromResult<string?>(token);
+                })
+            .Build();
+
+        await connection.StartAsync(ct);
+        connection.State.ShouldBe(HubConnectionState.Connected);
+
+        await connection.StopAsync(ct);
+    }
+
     // ── Private helpers ──────────────────────────────────────────────────────────────
 
     /// <summary>

@@ -12,6 +12,15 @@ owner-gated). This addendum is a minimal, forward-compatible improvement to the 
 symmetric HMAC scheme; it does not touch algorithm choice, key topology, or `kid`-based
 per-process keys. Both addenda can coexist — see §6.
 
+**Correction (2026-07-23, same day, adversarial review):** the rotation procedure
+originally documented in §3 below (and described in commit `00a062ee`'s message) was a
+**single-phase** "swap `JwtSecret` to new + old into `PreviousJwtSecrets`, rolling-restart
+in any order" step, claimed to produce zero validation failures in any restart ordering.
+That claim was **wrong** — see §3.0 for the failure mode it missed. §3 has been rewritten
+as a **three-phase** procedure. The mechanism in §2 (`PreviousJwtSecrets`,
+`ProcessIdentitySigningKeys.BuildAcceptedKeys`) is unaffected and remains correct; only the
+*documented operational procedure* for using it has changed.
+
 ---
 
 ## 1. Problem
@@ -114,36 +123,101 @@ ever logged. This property is guarded by a unit test
 
 ## 3. Rotation Procedure (config-only, no code deploy, no downtime)
 
-Two steps, each a plain configuration change followed by a rolling restart:
+### 3.0 Why a single-phase rollout is unsafe
 
-**Step 1 — introduce the new secret alongside the old one**
+Accept-sets are **baked at process start**: each process reads
+`ProcessIdentity:PreviousJwtSecrets` once, at startup, into the singleton
+`IOptions<ProcessIdentityOptions>` consumed by `ProcessIdentitySigningKeys.BuildAcceptedKeys`
+(§2.2). A process's validation behaviour cannot change again until it is restarted. That is
+fine — restarts are an expected part of rotation — but it means the **order** in which hosts
+learn the new secret matters, because every process in this system is **both a minter and a
+validator**, not a one-directional chain. The mint→validate edges are:
 
-1. Generate a new `JwtSecret` value.
-2. In each of the three processes' configuration (environment variable, Key Vault
-   reference, or `appsettings.json` override — never a committed real secret):
-   - Set `ProcessIdentity:JwtSecret` to the **new** value.
-   - Move the **old** value into `ProcessIdentity:PreviousJwtSecrets` (a single-element
-     array is sufficient for a normal rotation; multiple entries support stacking
-     rotations if a previous grace window has not yet drained).
-3. Rolling-restart the three processes in any order. At every point during the rollout:
-   - A not-yet-restarted process still mints and validates with the old secret.
-   - An already-restarted process mints with the new secret and validates against
-     `{new, old}` — so it accepts tokens from not-yet-restarted peers.
-   - No combination of restarted/non-restarted processes produces a validation failure.
+| # | Mints                                                                | Validated by                                        |
+|---|------------------------------------------------------------------------|-------------------------------------------------------|
+| 1 | Orion — per-message clearance token on each downloaded-document event  | Athena `JwtProcessClearanceTokenService.ValidateAsync` |
+| 2 | Athena — hub-connection bearer to Orion's `hubs/ingestion`             | Orion `AddJwtBearer` (connection-level policy check)   |
+| 3 | Athena — per-message clearance token on each extraction-completed event | Reconciliator `ValidateAsync`                         |
+| 4 | Reconciliator — hub-connection bearer to Athena's `hubs/reconciliation` | Athena `AddJwtBearer` (connection-level policy check) |
 
-**Step 2 — retire the old secret once the grace window has drained**
+A previously documented single-phase procedure said: "set `JwtSecret` = new, move old into
+`PreviousJwtSecrets` on all three hosts, then rolling-restart in any order — no combination
+of restarted/non-restarted processes produces a validation failure." **That claim is
+false.** Consider the first host restarted under that single-phase config change — call it
+Athena — the moment it comes back up:
+
+1. Athena's new startup config is `JwtSecret = new`, `PreviousJwtSecrets = [old]`. It now
+   **mints** with `new`.
+2. Athena mints a per-message clearance token signed with `new` on the next
+   extraction-completed event and hands it to the Reconciliator (edge 3 above).
+3. The Reconciliator has **not yet restarted** — its accept-set, baked at ITS last startup,
+   is still `{old}` only (its `PreviousJwtSecrets` was empty, or whatever it was before this
+   rotation began).
+4. The Reconciliator's `ValidateAsync` check rejects the `new`-signed token: **the handoff
+   drops, fail-closed.** The identical failure shape recurs on edge 2 (Athena's new hub
+   bearer to Orion's `hubs/ingestion`, rejected by Orion's not-yet-restarted
+   `AddJwtBearer`) and on edges 1/4 depending on which host happens to restart first — the
+   defect is not specific to any one edge, it is inherent to letting *any* host mint the new
+   secret before *every* host can validate it.
+
+The single-phase step conflates two things that must happen in a strict order across *all*
+hosts before anyone is allowed to mint with the new secret: (a) *every* validator must
+already accept the new secret, and (b) only then may *any* minter start using it. A rolling
+restart of a single "set new secret + old-as-previous" config cannot guarantee (a) happens
+before (b), because the very first host to restart under that config starts minting new
+immediately while its peers are still validate-old-only.
+
+The fix is to split what was one config change into two, so that the phase in which
+validators learn the new secret is *fully complete* (all three hosts restarted) before the
+phase in which any host is allowed to mint with it begins.
+
+### 3.1 Phase A — pre-stage the new secret as an accepted (not yet minted) value
+
+1. Generate a new `JwtSecret` value (call it `new`); the current value is `old`.
+2. On **all three** processes, set:
+   - `ProcessIdentity:JwtSecret` = `old` (**unchanged** — nobody mints `new` yet).
+   - `ProcessIdentity:PreviousJwtSecrets` = `[new]`.
+3. Rolling-restart the three processes, **in any order** — order does not matter in this
+   phase because every mint, restarted or not, is still signed with `old`, and every host
+   (restarted or not) still accepts `old` (either as `JwtSecret` pre-restart, or as
+   `PreviousJwtSecrets` post-restart). **Zero validation failures possible during this
+   phase.**
+4. End state, once all three have restarted: every validator accepts `{old, new}`; every
+   minter still only mints `old`.
+
+### 3.2 Phase B — cut over minting to the new secret
+
+Only begin once Phase A has completed on **all three** processes (every validator now
+accepts `new`).
+
+1. On **all three** processes, set:
+   - `ProcessIdentity:JwtSecret` = `new`.
+   - `ProcessIdentity:PreviousJwtSecrets` = `[old]`.
+2. Rolling-restart the three processes, **in any order**. At every point during this
+   rollout, a not-yet-restarted host mints `old` (accepted by everyone, per Phase A's end
+   state) and an already-restarted host mints `new` (also accepted by everyone, because
+   Phase A already made `new` universally acceptable). **Zero validation failures
+   possible.**
+3. End state: every minter mints `new`; every validator still accepts `{new, old}` (so any
+   token minted moments before a peer's Phase-B restart, still in flight, is not rejected).
+
+### 3.3 Phase C — retire the old secret once the grace window has drained
 
 1. Wait at least `TokenLifetime` (default 5 minutes) plus the validation `ClockSkew`
-   (30 seconds) — comfortably covered by waiting **~6 minutes** after step 1 completes on
-   all three processes, so every in-flight token minted with the old secret has expired
-   naturally.
-2. Remove the old secret from `PreviousJwtSecrets` (set back to `[]`) on each process and
-   rolling-restart again.
+   (30 seconds) — comfortably covered by waiting **~6 minutes** after the *last* Phase-B
+   restart completes, so every in-flight token minted with `old` has expired naturally.
+2. On each process, set `PreviousJwtSecrets` = `[]` and rolling-restart again. Mixed states
+   during this rollout mint `new` only (Phase B already retired `old` from every minter) and
+   every host — restarted or not — still accepts `new` (it's `JwtSecret` everywhere already).
+   **Zero validation failures possible.**
 3. The old secret is no longer accepted anywhere; rotation is complete.
 
-Both steps are configuration-only. No code path needs to change, no process needs to stop
-serving traffic, and no in-flight cross-process handoff (Orion → Athena → Reconciliator)
-is rejected mid-transit.
+All three phases are configuration-only; no code path changes, no process stops serving
+traffic, and no in-flight cross-process handoff is rejected mid-transit — **provided each
+phase is allowed to complete on all three processes before the next phase begins.** The
+three-phase shape (stage as accepted → cut over minting → retire) is exactly the standard
+key-rotation pattern precisely because rotation must never let "accepted-everywhere" trail
+behind "minted-somewhere."
 
 ---
 

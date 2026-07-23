@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +23,15 @@ internal class AthenaWorkerApplication : WebApplicationFactory<global::Prisma.At
     internal const string TestJwtSecret = "ATHENA-WORKER-TESTS-JWT-SECRET-FOR-TESTS-ONLY-32+";
 
     /// <summary>
+    /// Optional per-test configuration overrides (e.g. RC6 3.9 rotation-grace scenarios), applied after
+    /// the default <see cref="ProcessIdentityOptions.SectionName"/> values below so a test can override
+    /// individual keys — such as <c>ProcessIdentity:JwtSecret</c> or
+    /// <c>ProcessIdentity:PreviousJwtSecrets:0</c> — without duplicating the whole config block. Null
+    /// (the default) preserves existing behaviour exactly.
+    /// </summary>
+    private readonly IReadOnlyDictionary<string, string?>? _additionalConfig;
+
+    /// <summary>
     /// Ensure SEQ_URL is set to a valid URL before the host starts.
     /// Serilog.Settings.Configuration v10 calls Environment.ExpandEnvironmentVariables on the
     /// serverUrl string from appsettings.json (%SEQ_URL%) at logger-creation time, which happens
@@ -31,8 +41,13 @@ internal class AthenaWorkerApplication : WebApplicationFactory<global::Prisma.At
     /// (once, idempotently) gives Serilog a valid URL so the host boots; no actual Seq server
     /// is needed — the sink will silently fail to connect and that is acceptable in tests.
     /// </summary>
-    public AthenaWorkerApplication()
+    /// <param name="additionalConfig">
+    /// Optional configuration overrides applied on top of the default in-memory <c>ProcessIdentity</c>
+    /// section (see <see cref="_additionalConfig"/>). Omit for default behaviour.
+    /// </param>
+    public AthenaWorkerApplication(IReadOnlyDictionary<string, string?>? additionalConfig = null)
     {
+        _additionalConfig = additionalConfig;
         if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SEQ_URL")))
             Environment.SetEnvironmentVariable("SEQ_URL", "http://localhost:5341");
     }
@@ -53,6 +68,11 @@ internal class AthenaWorkerApplication : WebApplicationFactory<global::Prisma.At
                 ["Siara:Actor:ActorId"] = "athena-extractor-test",
                 ["Siara:Actor:DisplayName"] = "Athena Extractor (Test)",
             });
+
+            // Applied last so per-test overrides (e.g. a rotated JwtSecret + PreviousJwtSecrets grace
+            // list) win over the defaults above for the same keys.
+            if (_additionalConfig is not null)
+                config.AddInMemoryCollection(_additionalConfig);
         });
 
         builder.ConfigureServices(services =>
