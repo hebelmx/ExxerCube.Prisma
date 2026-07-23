@@ -179,11 +179,13 @@ namespace Prisma.Orion.Worker
                         .GetSection(ProcessIdentityOptions.SectionName)
                         .Get<ProcessIdentityOptions>() ?? new ProcessIdentityOptions();
 
+                    // RC6 item 3.9: accept the current JwtSecret plus any not-yet-retired PreviousJwtSecrets
+                    // so this connection-level path never drifts from the per-message ValidateAsync path
+                    // during an HMAC secret rotation grace window (see ADR-012 HMAC-rotation addendum).
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(processIdentityOptions.JwtSecret)),
+                        IssuerSigningKeys = ProcessIdentitySigningKeys.BuildAcceptedKeys(processIdentityOptions),
                         ValidateIssuer = true,
                         ValidIssuer = processIdentityOptions.JwtIssuer,
                         ValidateAudience = true,

@@ -26,7 +26,10 @@ namespace ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
 /// <strong>ValidateAsync:</strong> uses <see cref="JwtSecurityTokenHandler"/> with
 /// <c>ValidateIssuer/Audience/Lifetime/IssuerSigningKey = true</c> and a <c>ClockSkew</c> of 30 seconds
 /// to tolerate minor NTP drift between containers (design R5). Fails closed on any error — exceptions are
-/// caught and converted to a failure result; the caller never sees an exception.
+/// caught and converted to a failure result; the caller never sees an exception. The accepted signing key
+/// set (<c>IssuerSigningKeys</c>) comes from <see cref="ProcessIdentitySigningKeys.BuildAcceptedKeys"/>,
+/// so a token minted with a not-yet-retired previous secret validates during an HMAC rotation grace
+/// window (RC6 item 3.9) — see the ADR-012 HMAC-rotation addendum.
 /// </para>
 /// <para>
 /// Registered as a singleton: the service is stateless (reads options once, mints/validates per call).
@@ -144,12 +147,12 @@ public sealed class JwtProcessClearanceTokenService : IProcessClearanceTokenServ
             // (e.g. "sub", "jti") are preserved as-is and FindFirst(JwtRegisteredClaimNames.Sub) works.
             tokenHandler.InboundClaimTypeMap.Clear();
 
-            var key = Encoding.UTF8.GetBytes(_options.JwtSecret);
+            var acceptedKeys = ProcessIdentitySigningKeys.BuildAcceptedKeys(_options);
 
             var validationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(key),
+                IssuerSigningKeys = acceptedKeys,
                 ValidateIssuer = true,
                 ValidIssuer = _options.JwtIssuer,
                 ValidateAudience = true,

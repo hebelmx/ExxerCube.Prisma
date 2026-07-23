@@ -56,4 +56,35 @@ public sealed class ProcessIdentityOptions
     /// Reconciliator → <see cref="ProcessClearance.Reconcile"/>.
     /// </summary>
     public ProcessClearance Clearance { get; set; } = ProcessClearance.Download;
+
+    /// <summary>
+    /// Gets or sets retired signing secrets still accepted for token <em>validation</em> during a
+    /// zero-downtime HMAC secret rotation (RC6 item 3.9). <see cref="JwtSecret"/> remains the sole secret
+    /// used to <em>mint</em> new tokens; entries here are validate-only, so an in-flight token minted with
+    /// the previous secret before a rotation is not rejected mid-transit. Defaults to empty (no grace
+    /// window in effect).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <strong>Rotation procedure</strong> (see the ADR-012 HMAC-rotation addendum): (1) set a new
+    /// <see cref="JwtSecret"/>, move the old value into this list, and rolling-restart the three
+    /// processes; (2) once <see cref="TokenLifetime"/> plus the 30s validation <c>ClockSkew</c> has
+    /// drained (comfortably covered by waiting ~6 minutes), remove the old secret from this list. Both
+    /// steps are configuration-only — no code deploy or downtime is required.
+    /// </para>
+    /// <para>
+    /// Use <see cref="ProcessIdentitySigningKeys.BuildAcceptedKeys(ProcessIdentityOptions)"/> to compute
+    /// the accepted validation key set (current secret first, then these, de-duplicated) — it is the
+    /// single source of truth shared by <c>JwtProcessClearanceTokenService.ValidateAsync</c> and each
+    /// worker's <c>AddJwtBearer</c> connection-level auth so the two paths cannot drift.
+    /// </para>
+    /// <para>
+    /// Secret values are deliberately excluded from any diagnostic surface: this type does not override
+    /// <see cref="object.ToString"/>, so default reflection-based formatting (e.g. record-style dumps) is
+    /// the only way its property values could ever be rendered, and no code in this codebase logs
+    /// <see cref="ProcessIdentityOptions"/> instances directly — only individual non-secret claims
+    /// (actor id, clearance, file id) are ever passed to the logger.
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<string> PreviousJwtSecrets { get; set; } = Array.Empty<string>();
 }

@@ -144,4 +144,154 @@ public sealed class JwtProcessClearanceTokenServiceTests
 
         result.IsFailure.ShouldBeTrue();
     }
+
+    // ── RC6 item 3.9: HMAC secret rotation grace period ─────────────────────────────────
+
+    [Fact]
+    public async Task ValidateAsync_TokenMintedWithPreviousSecret_ValidatesWhenSecretInGraceList()
+    {
+        // Simulates the rotation window: a token minted moments before the rotation (signed with the
+        // OLD secret) must still validate once the OLD secret has been moved into PreviousJwtSecrets
+        // alongside the NEW JwtSecret.
+        const string oldSecret = "old-secret-that-is-long-enough-for-hmac-sha256-signing";
+        const string newSecret = "new-secret-that-is-long-enough-for-hmac-sha256-signing";
+
+        var signerOpts = new ProcessIdentityOptions
+        {
+            JwtSecret = oldSecret,
+            JwtIssuer = ValidIssuer,
+            JwtAudience = ValidAudience,
+            TokenLifetime = TimeSpan.FromMinutes(5),
+        };
+        var token = await MintTokenAsync(signerOpts, Ct);
+
+        var validatorOpts = new ProcessIdentityOptions
+        {
+            JwtSecret = newSecret,
+            PreviousJwtSecrets = [oldSecret],
+            JwtIssuer = ValidIssuer,
+            JwtAudience = ValidAudience,
+            TokenLifetime = TimeSpan.FromMinutes(5),
+        };
+        var validator = BuildService(validatorOpts);
+        var result = await validator.ValidateAsync(token, Ct);
+
+        result.IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task ValidateAsync_TokenMintedWithPreviousSecret_FailsWhenGraceListEmpty()
+    {
+        // Once the grace window has closed (PreviousJwtSecrets emptied), a token signed with the retired
+        // secret must be rejected again — the grace period is not a permanent amnesty.
+        const string oldSecret = "old-secret-that-is-long-enough-for-hmac-sha256-signing";
+        const string newSecret = "new-secret-that-is-long-enough-for-hmac-sha256-signing";
+
+        var signerOpts = new ProcessIdentityOptions
+        {
+            JwtSecret = oldSecret,
+            JwtIssuer = ValidIssuer,
+            JwtAudience = ValidAudience,
+            TokenLifetime = TimeSpan.FromMinutes(5),
+        };
+        var token = await MintTokenAsync(signerOpts, Ct);
+
+        var validatorOpts = new ProcessIdentityOptions
+        {
+            JwtSecret = newSecret,
+            PreviousJwtSecrets = [],
+            JwtIssuer = ValidIssuer,
+            JwtAudience = ValidAudience,
+            TokenLifetime = TimeSpan.FromMinutes(5),
+        };
+        var validator = BuildService(validatorOpts);
+        var result = await validator.ValidateAsync(token, Ct);
+
+        result.IsFailure.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task ValidateAsync_TokenMintedWithCurrentSecret_ValidatesRegardlessOfGraceList()
+    {
+        // The current JwtSecret must always validate, whether or not a rotation grace window is in
+        // effect — PreviousJwtSecrets only widens the accepted set, it never narrows it.
+        const string currentSecret = "current-secret-that-is-long-enough-for-hmac-sha256";
+        const string someOldSecret = "some-old-secret-that-is-long-enough-for-hmac-sha256";
+
+        var signerOpts = new ProcessIdentityOptions
+        {
+            JwtSecret = currentSecret,
+            JwtIssuer = ValidIssuer,
+            JwtAudience = ValidAudience,
+            TokenLifetime = TimeSpan.FromMinutes(5),
+        };
+        var token = await MintTokenAsync(signerOpts, Ct);
+
+        var validatorWithGrace = BuildService(new ProcessIdentityOptions
+        {
+            JwtSecret = currentSecret,
+            PreviousJwtSecrets = [someOldSecret],
+            JwtIssuer = ValidIssuer,
+            JwtAudience = ValidAudience,
+            TokenLifetime = TimeSpan.FromMinutes(5),
+        });
+        var validatorWithoutGrace = BuildService(new ProcessIdentityOptions
+        {
+            JwtSecret = currentSecret,
+            JwtIssuer = ValidIssuer,
+            JwtAudience = ValidAudience,
+            TokenLifetime = TimeSpan.FromMinutes(5),
+        });
+
+        (await validatorWithGrace.ValidateAsync(token, Ct)).IsSuccess.ShouldBeTrue();
+        (await validatorWithoutGrace.ValidateAsync(token, Ct)).IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task ValidateAsync_TokenSecretNotInCurrentOrPreviousList_ReturnsFailure()
+    {
+        // A secret that is neither the current JwtSecret nor listed in PreviousJwtSecrets must never
+        // validate — the accept-set is a closed list, not an open one.
+        const string unknownSecret = "unknown-secret-that-is-long-enough-for-hmac-sha256";
+
+        var signerOpts = new ProcessIdentityOptions
+        {
+            JwtSecret = unknownSecret,
+            JwtIssuer = ValidIssuer,
+            JwtAudience = ValidAudience,
+            TokenLifetime = TimeSpan.FromMinutes(5),
+        };
+        var token = await MintTokenAsync(signerOpts, Ct);
+
+        var validator = BuildService(new ProcessIdentityOptions
+        {
+            JwtSecret = "current-secret-that-is-long-enough-for-hmac-sha256",
+            PreviousJwtSecrets = ["yet-another-secret-that-is-long-enough-for-hmac"],
+            JwtIssuer = ValidIssuer,
+            JwtAudience = ValidAudience,
+            TokenLifetime = TimeSpan.FromMinutes(5),
+        });
+        var result = await validator.ValidateAsync(token, Ct);
+
+        result.IsFailure.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void ProcessIdentityOptions_ToString_DoesNotContainSecretMaterial()
+    {
+        // Guard against accidental secret leakage: ProcessIdentityOptions must not override ToString (or
+        // any other formatting hook) in a way that would surface JwtSecret / PreviousJwtSecrets values —
+        // the default Object.ToString() (the fully-qualified type name) is the safe baseline.
+        var opts = new ProcessIdentityOptions
+        {
+            JwtSecret = "super-secret-value-that-must-never-be-logged",
+            PreviousJwtSecrets = ["another-super-secret-value-that-must-never-be-logged"],
+        };
+
+        var rendered = opts.ToString();
+
+        rendered.ShouldNotBeNull();
+        rendered.ShouldNotContain("super-secret-value-that-must-never-be-logged");
+        rendered.ShouldNotContain("another-super-secret-value-that-must-never-be-logged");
+    }
 }
