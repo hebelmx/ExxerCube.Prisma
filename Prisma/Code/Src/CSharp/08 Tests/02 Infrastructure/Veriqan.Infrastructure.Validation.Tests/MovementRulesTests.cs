@@ -451,6 +451,46 @@ public sealed class MovementRulesTests
             "a future-dated OperationDate is still suspicious even when ChargeDate is unparseable");
     }
 
+    /// <summary>
+    /// RC1.S5 documented residual — NOT a regression target: pins the third, still-open blind
+    /// spot the RC1.S4.b adversarial gate accepted as a KNOWN limitation (see
+    /// <c>docs/planning-artifacts/epic-veriqan-real-corpus-calibration-2026-07-22.md</c>, S4 row,
+    /// and the class remarks on <c>RealCorpusCalibrationPinTests</c> in
+    /// <c>Veriqan.Orchestration.Tests</c>). When ChargeDate is unparseable (null) AND
+    /// OperationDate falls BEFORE the period start — a legitimate prior-period mis-billing
+    /// pattern is indistinguishable, at this rule, from a genuinely mis-dated movement — CL-42
+    /// currently PASSES silently rather than abstaining (InsufficientData would be the honest
+    /// answer, matching the "OperationDate after cut" supplementary bound's asymmetry). This test
+    /// exists so that a future, CONSCIOUS change to this behavior (tightening it to abstain) shows
+    /// up here as an intentional pin update, not a silent behavior drift nobody notices.
+    /// </summary>
+    [Fact]
+    public void Cl42_NullChargeDate_ButOperationDateBeforePeriodStart_DocumentedBlindSpot_ReturnsPass()
+    {
+        var rule = GetRule("CL-42");
+        var periodStart = new DateOnly(2025, 5, 5);
+        var periodCut = new DateOnly(2025, 6, 4);
+
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(150m, MovementSign.Charge, "PRIOR_PERIOD_UNPARSEABLE_CHARGE",
+                opDate: new DateOnly(2025, 4, 20), chargeDate: null), // prior-period op, unparseable charge date
+        };
+
+        var ps = MakeSummaryWithDates(
+            periodStart: DateFound(2025, 5, 5),
+            periodCutDate: DateFound(2025, 6, 4));
+
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "DOCUMENTED BLIND SPOT (RC1.S4.b gate, not a regression target): ChargeDate==null + " +
+            "OperationDate < PeriodStart currently passes silently. If this pin ever needs to " +
+            "change (e.g. tightened to InsufficientData), that must be a conscious rule change, " +
+            "not an accidental side effect of an unrelated fix.");
+    }
+
     // -----------------------------------------------------------------------
     // CL-44 tests
     // -----------------------------------------------------------------------
