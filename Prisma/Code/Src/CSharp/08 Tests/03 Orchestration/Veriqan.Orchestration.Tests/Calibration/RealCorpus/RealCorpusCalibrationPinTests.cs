@@ -72,6 +72,52 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests.Calibration.RealCorpus;
 /// as much a sign of an uncalibrated change as the reverse.
 /// </para>
 /// <para>
+/// <b>RC1.S6 update (2026-07-23 — §-anchor OCR escalation ladder):</b> on this real-corpus family
+/// every CONDUSEF §-heading is raster/image-rendered — the text layer alone found 0 of 23
+/// detectable anchors on all 8 real credit-card statements (RC1.S6 probe). A new escalation stage
+/// (<c>SectionAnchorOcrEscalationStage</c>) renders + OCRs each page when the text layer finds
+/// fewer than 2 present sections, re-scanning recognized text for the same anchor table. Measured
+/// against the full 16-statement corpus (<c>real-corpus-baseline-2026-07.md</c>, regenerated
+/// 2026-07-23 post-RC1.S6):
+/// <list type="bullet">
+///   <item><description><b>CL-32</b> (§11 "Compara tu tarjeta", reworked to consult
+///   <c>StatementModel.Sections</c> before the raw-text fallback) flips <b>Fail→Pass on all 8</b>
+///   real B/C credit-card statements — OCR recovers "COMPARA TU TARJETA" on page 1 of every one,
+///   exactly as the RC1.S6 probe found.</description></item>
+///   <item><description><b>LAW-§26-NOTAS</b> flips <b>InsufficientData→Pass on all 8</b> — §26's
+///   heading is OCR-recovered, and (unchanged) the rule scans the real text-layer
+///   <c>NormalizedFullText</c> for the 13 verbatim notas, which genuinely are present as normal
+///   body text on this family.</description></item>
+///   <item><description><b>LAW-§27-GLOSARIO flips InsufficientData→FAIL on all 8</b> — §27's
+///   heading is likewise OCR-recovered, but unlike §26 the 15 verbatim glosario terms are
+///   genuinely NOT found in the real text layer of any of the 8 statements. This is an honest,
+///   newly-surfaced finding (the check no longer silently abstains behind an undetected heading),
+///   not a defect introduced by the ladder.</description></item>
+///   <item><description><b>LAW-§11-URLS</b> and <b>LAW-§17-LEGENDS</b> (previously untracked —
+///   both gate on section presence the same way, then scan real full-text) newly surface as
+///   <b>Fail on all 8</b> for the same honest reason: their §11/§17 headings are now OCR-detected,
+///   but their mandated verbatim content is genuinely absent from the real text layer. Added to
+///   the tracked subset here specifically because RC1.S6 moved them from untracked-abstain to a
+///   real, reproducible Fail.</description></item>
+///   <item><description><b>BankTierVerdict</b> flips <b>Yellow→Green</b> wherever CL-32 was the
+///   only bank-tier fail: B-2026-03/04/05/06, C-2026-03/04/05, and the <c>defect-good</c> /
+///   <c>defect-bad-math-cl21</c> specimens. C-2026-02 (independent fiscal-legend residual,
+///   CL-46/50/51/52) and <c>defect-bad-font-cl35</c> (independent CL-35 font defect) keep a
+///   non-empty bank-tier fail set from their OTHER residuals and stay Yellow.</description></item>
+///   <item><description>Everything else in the tracked subset — LAW-SEC-PRESENCE (still Fail:
+///   §3/§4/§14/§15/etc. remain genuinely reworded/absent even after OCR — the ladder recovers
+///   18–20 of 27 anchors per document, not all of them), LAW-SEC-ORDER-GAP (still
+///   InsufficientData: OCR-sourced sections carry a page-only <c>FieldLocator</c>, deliberately
+///   never a fabricated bounding box, so <c>SectionOrderAndGapRule</c>'s
+///   <c>Locator.Bottom.HasValue</c> geometry gate still excludes them), CL-18/21/31/42/46/48/50/
+///   51/52/53/LAW-§16-OTRASLINEAS/LAW-TYPO-MINSIZE, and the overall Signal/CondusefTierVerdict
+///   (still Red — LAW-SEC-PRESENCE/LAW-TYPO-MINSIZE/LAW-§27-GLOSARIO/LAW-§11-URLS/LAW-§17-LEGENDS
+///   keep the Condusef tier Red regardless of CL-32) — are UNCHANGED by RC1.S6.</description></item>
+/// </list>
+/// See <c>docs/qa/calibration/real-corpus-baseline-2026-07.md</c> §"Per-check aggregate" for the
+/// full measured Fail/Abstain/Pass counts this update is pinned from.
+/// </para>
+/// <para>
 /// <b>Discrepancy vs. the S5 story brief (recorded here for traceability):</b> the story brief
 /// described LAW-TYPO-MINSIZE as "Fail×4 on B" (implying the C series passes it). The MEASURED
 /// state pinned here is Fail×8 — LAW-TYPO-MINSIZE fails on ALL 8 real credit-card statements (B
@@ -135,8 +181,21 @@ public sealed class RealCorpusCalibrationPinTests
             ["LAW-SEC-PRESENCE"] = "Fail",
             ["LAW-SEC-ORDER-GAP"] = "InsufficientData",
             ["LAW-§16-OTRASLINEAS"] = "Pass",
-            ["LAW-§26-NOTAS"] = "InsufficientData",
-            ["LAW-§27-GLOSARIO"] = "InsufficientData",
+            // RC1.S6 (2026-07-23): §-anchor OCR escalation recovers the §26/§27 headings via
+            // real Tesseract OCR on this raster-headed real-corpus family. §26's verbatim notas
+            // ARE genuinely present in the real text layer (Pass); §27's verbatim glosario terms
+            // are genuinely NOT (an honest new Fail, not a defect) — see class remarks above.
+            ["LAW-§26-NOTAS"] = "Pass",
+            ["LAW-§27-GLOSARIO"] = "Fail",
+            // RC1.S6 additions — previously untracked; both flip from an untracked/undetected
+            // abstain to a real, reproducible Fail for the same reason as LAW-§27-GLOSARIO (their
+            // host section's heading is now OCR-detected, but their mandated verbatim content is
+            // genuinely absent from the real text layer).
+            ["LAW-§11-URLS"] = "Fail",
+            ["LAW-§17-LEGENDS"] = "Fail",
+            // RC1.S6 addition: CL-32 (§11 "Compara tu tarjeta") flips Fail→Pass on this family —
+            // OCR recovers the heading on page 1 of every real B/C credit-card statement.
+            ["CL-32"] = "Pass",
             ["CL-48"] = "Pass",
             ["LAW-TYPO-MINSIZE"] = "Fail",
             ["CL-21"] = "InsufficientData",
@@ -173,25 +232,29 @@ public sealed class RealCorpusCalibrationPinTests
             ["A-2026-04"] = new StatementPin("ExtractionGap", "ExtractionGap", "ExtractionGap", NoFindings),
             ["A-2026-05"] = new StatementPin("ExtractionGap", "ExtractionGap", "ExtractionGap", NoFindings),
 
-            // Account B (Visa credit card) — steady-state Red/Yellow/Red, standard check block.
-            ["B-2026-03"] = new StatementPin("Red", "Yellow", "Red", StandardCreditCardChecks),
-            ["B-2026-04"] = new StatementPin("Red", "Yellow", "Red", StandardCreditCardChecks),
-            ["B-2026-05"] = new StatementPin("Red", "Yellow", "Red", StandardCreditCardChecks),
-            ["B-2026-06"] = new StatementPin("Red", "Yellow", "Red", StandardCreditCardChecks),
+            // Account B (Visa credit card) — RC1.S6: BankTierVerdict Yellow→Green (CL-32 was the
+            // sole bank-tier fail; now Pass via OCR escalation). Standard check block (updated).
+            ["B-2026-03"] = new StatementPin("Red", "Green", "Red", StandardCreditCardChecks),
+            ["B-2026-04"] = new StatementPin("Red", "Green", "Red", StandardCreditCardChecks),
+            ["B-2026-05"] = new StatementPin("Red", "Green", "Red", StandardCreditCardChecks),
+            ["B-2026-06"] = new StatementPin("Red", "Green", "Red", StandardCreditCardChecks),
 
-            // Account C (Mastercard credit card) — same steady state except C-2026-02 (fiscal
-            // block residual, see CMinus0202FiscalResidualChecks doc-comment above).
+            // Account C (Mastercard credit card) — same RC1.S6 BankTierVerdict flip except
+            // C-2026-02, whose independent fiscal-legend residual (CL-46/50/51/52 Fail, see
+            // CMinus0202FiscalResidualChecks doc-comment above) keeps a non-empty bank-tier fail
+            // set regardless of CL-32 — stays Yellow.
             ["C-2026-02"] = new StatementPin("Red", "Yellow", "Red", CMinus0202FiscalResidualChecks),
-            ["C-2026-03"] = new StatementPin("Red", "Yellow", "Red", StandardCreditCardChecks),
-            ["C-2026-04"] = new StatementPin("Red", "Yellow", "Red", StandardCreditCardChecks),
-            ["C-2026-05"] = new StatementPin("Red", "Yellow", "Red", StandardCreditCardChecks),
+            ["C-2026-03"] = new StatementPin("Red", "Green", "Red", StandardCreditCardChecks),
+            ["C-2026-04"] = new StatementPin("Red", "Green", "Red", StandardCreditCardChecks),
+            ["C-2026-05"] = new StatementPin("Red", "Green", "Red", StandardCreditCardChecks),
 
             // Defect specimens — byte-identical to the synthetic demo E2E fixtures (RC1.S3
             // triage: defect-good == demo good.pdf == real statement B-2026-04). Same standard
-            // check block; defect-bad-font-cl35 additionally fails CL-35 (outside the pinned
-            // subset — CL-35 is not one of the RC1.S5 tracked checks).
-            ["defect-good"] = new StatementPin("Red", "Yellow", "Red", StandardCreditCardChecks),
-            ["defect-bad-math-cl21"] = new StatementPin("Red", "Yellow", "Red", StandardCreditCardChecks),
+            // check block (RC1.S6-updated); defect-bad-font-cl35 additionally fails CL-35 (outside
+            // the pinned subset — CL-35 is not one of the RC1.S5 tracked checks), which alone keeps
+            // its bank-tier fail set non-empty — stays Yellow, unlike its 2 siblings below.
+            ["defect-good"] = new StatementPin("Red", "Green", "Red", StandardCreditCardChecks),
+            ["defect-bad-math-cl21"] = new StatementPin("Red", "Green", "Red", StandardCreditCardChecks),
             ["defect-bad-font-cl35"] = new StatementPin("Red", "Yellow", "Red", StandardCreditCardChecks),
             ["defect-scanned"] = new StatementPin("ExtractionGap", "ExtractionGap", "ExtractionGap", NoFindings),
         };

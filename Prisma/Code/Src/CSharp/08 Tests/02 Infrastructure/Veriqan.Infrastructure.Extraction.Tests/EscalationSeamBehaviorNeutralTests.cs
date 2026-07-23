@@ -112,7 +112,11 @@ public sealed class EscalationSeamBehaviorNeutralTests
         // No referenceBundle is ever passed by this harness's ExtractFullAsync calls, so the
         // resolver is never invoked — a bare substitute is sufficient (Story 3.3a).
         return new EscalatingStatementFieldExtractor(
-            inner, orchestrator, Substitute.For<IProductResolver>(), XUnitLogger.CreateLogger<EscalatingStatementFieldExtractor>());
+            inner,
+            orchestrator,
+            Substitute.For<IProductResolver>(),
+            new SectionAnchorOcrEscalationStage(SectionOcrEscalationTestHelpers.NoOpSectionOcrEngine(), NullLogger<SectionAnchorOcrEscalationStage>.Instance),
+            XUnitLogger.CreateLogger<EscalatingStatementFieldExtractor>());
     }
 
     // -----------------------------------------------------------------------

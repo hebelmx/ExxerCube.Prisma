@@ -99,7 +99,11 @@ public sealed class HeaderImageOcrStageLiveOcrCanaryTests
         // No referenceBundle is ever passed by this test's ExtractFullAsync call, so the resolver
         // is never invoked — a bare substitute is sufficient (Story 3.3a).
         var escalating = new EscalatingStatementFieldExtractor(
-            inner, orchestrator, Substitute.For<IProductResolver>(), XUnitLogger.CreateLogger<EscalatingStatementFieldExtractor>());
+            inner,
+            orchestrator,
+            Substitute.For<IProductResolver>(),
+            new SectionAnchorOcrEscalationStage(SectionOcrEscalationTestHelpers.NoOpSectionOcrEngine(), NullLogger<SectionAnchorOcrEscalationStage>.Instance),
+            XUnitLogger.CreateLogger<EscalatingStatementFieldExtractor>());
 
         var result = await escalating.ExtractFullAsync(pdfBytes, ct);
 

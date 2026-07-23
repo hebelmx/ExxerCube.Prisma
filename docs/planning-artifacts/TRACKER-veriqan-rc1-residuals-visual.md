@@ -40,8 +40,8 @@ Resolve the three image-blind residuals pinned as-is by RC1.S5, **measure-first*
 | S0 | Re-ground: code/corpus map (Explore) | DONE 2026-07-23 |
 | S1 | Ground-truth probe: PyMuPDF gap+drawings analysis of CL-48 regions; render pages; OCR/visual sweep for 23 anchors + CL-32 + §26/§27 across B/C×8 | DONE 2026-07-23 — see findings |
 | S2 | Triage findings → per-residual classification; owner checkpoint | DONE 2026-07-23 — owner rulings below |
-| S3.1 | CL-48 footer-aware gap fix + pin updates | PENDING |
-| S3.2 | OCR §-anchor escalation ladder (R2/R3) + pin updates | PENDING (after S3.1 verified) |
+| S3.1 | CL-48 footer-aware gap fix + pin updates | DONE `04a6c67c` — CL-48 Fail×8→Pass×8, no other real-corpus movement; compliant-master BankTier Yellow→Green (CL-48 was its sole Bank-tier fail); Extraction 506, Validation 553, Orch 260, build 0/0 |
+| S3.2 | OCR §-anchor escalation ladder (R2/R3) + pin updates | DONE 2026-07-23 — `SectionAnchorOcrEscalationStage` (fires only when text layer finds <2 present sections; reuses E7 Tesseract singleton + same anchor table/heading-shape gate; page-hint locators only, never fabricated geometry; SectionGaps untouched → ORDER-GAP stays honestly abstained). CL-32 reworked to consult §11 detection first (raw-text fallback kept). Measured movement: CL-32 Fail×8→Pass×8, LAW-§26-NOTAS →Pass×8, honest new Fails LAW-§11-URLS/§17-LEGENDS/§27-GLOSARIO ×8 (verbatim content genuinely absent — owner-review queue per S2 ruling), BankTier Yellow→Green where CL-32 was sole bank fail (B×4, C-03/04/05, defect-good, defect-bad-math). Extraction cost ~1.8s→10–22s/doc on raster-headed family. Verified: Extraction 521, Validation 561, Orch 260, App 158, RefData 46; Worker+Web.UI build 0/0 |
 | S4 | Adversarial review vs this spec; close epic | PENDING |
 
 ## S1 findings (ground truth, verified 2026-07-23; orchestrator eyeballed key renders)

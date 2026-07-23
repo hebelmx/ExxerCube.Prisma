@@ -36,6 +36,34 @@ public enum SectionDetectionStatus
 }
 
 /// <summary>
+/// How a <see cref="DetectedSection"/>'s presence was determined.
+/// </summary>
+/// <remarks>
+/// Introduced by the §-anchor OCR escalation ladder (RC1.S6): on real-world statements where
+/// every section heading is raster/image-rendered, the PDF text layer alone cannot find any
+/// heading band. When the text-layer pass locates fewer than 2 present sections, an escalation
+/// stage renders each page and runs OCR, re-scanning the recognized text for the same anchor
+/// phrases. A section upgraded this way carries <see cref="Ocr"/> so downstream rules — and any
+/// future geometry-dependent logic — can tell the difference between a text-layer-measured
+/// heading (with real PDF-point bounding-box geometry) and an OCR-recognized one (page number
+/// only, no bounding box: <see cref="FieldLocator.PageHint"/>).
+/// </remarks>
+public enum SectionDetectionSource
+{
+    /// <summary>Detected (or found absent) by scanning the PDF text layer's word bands. Default —
+    /// preserves the pre-escalation behavior for every existing caller/test.</summary>
+    TextLayer,
+
+    /// <summary>
+    /// Detected by the §-anchor OCR escalation stage: the text layer found this heading's anchor
+    /// nowhere, a rendered-page OCR pass did. <see cref="DetectedSection.Locator"/> carries only a
+    /// page number (<see cref="FieldLocator.PageHint"/>) — never a fabricated bounding box —
+    /// because OCR text has no PDF-point word geometry.
+    /// </summary>
+    Ocr,
+}
+
+/// <summary>
 /// Represents one of the 28 mandatory CONDUSEF <i>Acuerdo</i> sections detected (or not found)
 /// in a VEC credit-card statement (Story 10.1).
 /// </summary>
@@ -146,4 +174,12 @@ public sealed record DetectedSection(
     /// </para>
     /// </remarks>
     public string SectionText { get; init; } = string.Empty;
+
+    /// <summary>
+    /// How this section's presence/absence was determined (RC1.S6 — §-anchor OCR escalation
+    /// ladder). Defaults to <see cref="SectionDetectionSource.TextLayer"/> so every record
+    /// constructed before this property existed (and every call site that never sets it) keeps
+    /// its original, unescalated meaning.
+    /// </summary>
+    public SectionDetectionSource Source { get; init; } = SectionDetectionSource.TextLayer;
 }

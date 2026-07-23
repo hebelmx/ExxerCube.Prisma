@@ -335,6 +335,7 @@ public sealed class AntiFalseConfidenceHonestyTests
                     providerForOverride.GetRequiredService<PdfPigStatementFieldExtractor>(),
                     providerForOverride.GetRequiredService<FieldResolutionOrchestrator>(),
                     providerForOverride.GetRequiredService<IProductResolver>(),
+                    providerForOverride.GetRequiredService<ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Ocr.SectionAnchorOcrEscalationStage>(),
                     providerForOverride.GetRequiredService<ILogger<EscalatingStatementFieldExtractor>>()),
                 wrongTasa)))
         {

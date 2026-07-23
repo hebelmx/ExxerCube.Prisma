@@ -4,9 +4,11 @@ using System.Threading.Tasks;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Ocr;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Resolution;
 using IndQuestResults;
 using Meziantou.Extensions.Logging.Xunit.v3;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using Shouldly;
 using Xunit;
@@ -66,6 +68,7 @@ public sealed class EscalatingExtractorPaymentDueDateWindowTests
             fakeInner,
             orchestrator,
             Substitute.For<IProductResolver>(), // never exercised: no VecReferenceBundle supplied.
+            new SectionAnchorOcrEscalationStage(SectionOcrEscalationTestHelpers.NoOpSectionOcrEngine(), NullLogger<SectionAnchorOcrEscalationStage>.Instance),
             XUnitLogger.CreateLogger<EscalatingStatementFieldExtractor>());
     }
 

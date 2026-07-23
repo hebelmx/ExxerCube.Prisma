@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Ocr;
 using IndQuestResults;
 using IndQuestResults.Operations;
 using Microsoft.Extensions.Logging;
@@ -43,6 +44,7 @@ public sealed class EscalatingStatementFieldExtractor : IStatementFieldExtractor
     private readonly IStatementFieldExtractor _inner;
     private readonly FieldResolutionOrchestrator _orchestrator;
     private readonly IProductResolver _productResolver;
+    private readonly SectionAnchorOcrEscalationStage _sectionEscalationStage;
     private readonly ILogger<EscalatingStatementFieldExtractor> _logger;
 
     /// <summary>
@@ -59,16 +61,24 @@ public sealed class EscalatingStatementFieldExtractor : IStatementFieldExtractor
     /// <see cref="VecReferenceBundle.Products"/> catalog, to gate a resolved
     /// <see cref="FieldKind.Product"/> value against tenant catalog membership.
     /// </param>
+    /// <param name="sectionEscalationStage">
+    /// RC1.S6 — §-anchor OCR escalation ladder: upgrades <see cref="StatementModel.Sections"/>
+    /// entries the text layer marked absent when a render+OCR pass finds the heading (only
+    /// triggered when the text layer found fewer than 2 present sections; a no-op, reference-
+    /// preserving pass-through otherwise).
+    /// </param>
     /// <param name="logger">Logger for escalation diagnostics.</param>
     public EscalatingStatementFieldExtractor(
         IStatementFieldExtractor inner,
         FieldResolutionOrchestrator orchestrator,
         IProductResolver productResolver,
+        SectionAnchorOcrEscalationStage sectionEscalationStage,
         ILogger<EscalatingStatementFieldExtractor> logger)
     {
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         _orchestrator = orchestrator ?? throw new ArgumentNullException(nameof(orchestrator));
         _productResolver = productResolver ?? throw new ArgumentNullException(nameof(productResolver));
+        _sectionEscalationStage = sectionEscalationStage ?? throw new ArgumentNullException(nameof(sectionEscalationStage));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -247,12 +257,46 @@ public sealed class EscalatingStatementFieldExtractor : IStatementFieldExtractor
             }
         }
 
-        if (!anyEscalated)
+        // -----------------------------------------------------------------
+        // §-anchor OCR escalation (RC1.S6) — independent of the per-field ladder above.
+        // No-op (reference-preserving) unless the text layer found fewer than 2 present
+        // sections, so it never touches the synthetic/demo fixtures (which have real selectable
+        // heading text and easily clear that bar).
+        // -----------------------------------------------------------------
+        var sectionEscalationResult = await _sectionEscalationStage
+            .EscalateAsync(model.Sections, pdf, model.PageCount, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (sectionEscalationResult.IsCancelled())
+            return ResultExtensions.Cancelled<StatementModel>();
+
+        var sections = model.Sections;
+        var sectionsChanged = false;
+        if (sectionEscalationResult.IsFailure)
         {
-            // E1 always takes this path: every ladder is empty, so every field above came back
-            // as the exact same instance already on `model`. Returning `model` itself (rather
-            // than a field-by-field-identical rebuild) is the behavior-neutral guarantee E1 is
-            // required to prove.
+            // Best-effort enrichment: a failure here must not abort extraction — fall back to the
+            // text-layer sections unchanged (the same abstain-safe philosophy as HeaderImageOcrStage).
+            _logger.LogWarning(
+                "Section-anchor OCR escalation failed: {Error} — keeping text-layer sections.",
+                sectionEscalationResult.Errors?.FirstOrDefault() ?? "unknown error");
+        }
+        else
+        {
+            var escalatedSections = sectionEscalationResult.Value!;
+            if (!ReferenceEquals(escalatedSections, model.Sections))
+            {
+                sections = escalatedSections;
+                sectionsChanged = true;
+            }
+        }
+
+        if (!anyEscalated && !sectionsChanged)
+        {
+            // E1 always takes this path (plus every real document whose text layer alone already
+            // finds ≥ 2 present sections): every ladder is empty and section escalation did not
+            // fire, so every field above came back as the exact same instance already on `model`.
+            // Returning `model` itself (rather than a field-by-field-identical rebuild) is the
+            // behavior-neutral guarantee E1 is required to prove.
             return Result<StatementModel>.WithSuccess(model);
         }
 
@@ -269,7 +313,12 @@ public sealed class EscalatingStatementFieldExtractor : IStatementFieldExtractor
             FiscalBlock = model.FiscalBlock,
             PageCount = model.PageCount,
             Pages = model.Pages,
-            Sections = model.Sections,
+            Sections = sections,
+            // SectionGaps is intentionally NEVER recomputed here: it is a text-layer-only
+            // geometric measurement (real PDF-point word bands), and OCR-sourced sections carry
+            // no such geometry. Leaving it exactly as the text-layer pass produced it means
+            // SectionOrderAndGapRule stays honestly abstained rather than inventing a gap/order
+            // claim from OCR text that was never measured.
             SectionGaps = model.SectionGaps,
             TypographySamples = model.TypographySamples,
             TypographyExtractionStatus = model.TypographyExtractionStatus,

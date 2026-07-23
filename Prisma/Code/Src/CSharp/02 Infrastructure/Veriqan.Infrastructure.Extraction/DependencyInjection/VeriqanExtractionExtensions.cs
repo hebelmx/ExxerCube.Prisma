@@ -85,6 +85,13 @@ public static class VeriqanExtractionExtensions
         // not thread-safe; TesseractHeaderProductOcrEngine serializes access internally.
         services.TryAddSingleton<IHeaderProductOcrEngine, TesseractHeaderProductOcrEngine>();
 
+        // §-anchor OCR escalation ladder (RC1.S6): shares the SAME singleton OCR engine above —
+        // its semaphore already serializes all native Tesseract access, so this stage adds no new
+        // engine instance and no new deadlock risk. No-op (reference-preserving pass-through) for
+        // every document whose text layer alone finds ≥ 2 present sections (all synthetic/demo
+        // fixtures), so registering it unconditionally is safe.
+        services.TryAddSingleton<SectionAnchorOcrEscalationStage>();
+
         // Stage-provider seam (E2.2): resolves the concrete higher-stage implementations for a
         // field. DefaultFieldStageProvider registers a fuzzy label-anchor stage for
         // FieldKind.PaymentDueDate and (E7.S7.2/S7.3) a header-image OCR stage for
@@ -103,6 +110,7 @@ public static class VeriqanExtractionExtensions
             sp.GetRequiredService<PdfPigStatementFieldExtractor>(),
             sp.GetRequiredService<FieldResolutionOrchestrator>(),
             sp.GetRequiredService<IProductResolver>(),
+            sp.GetRequiredService<SectionAnchorOcrEscalationStage>(),
             sp.GetRequiredService<ILogger<EscalatingStatementFieldExtractor>>()));
 
         return services;

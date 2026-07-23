@@ -4494,6 +4494,26 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         (28, "Sección opcional libre (§28)",                    "SECCION LIBRE",                                         true,  false),
     ];
 
+    /// <summary>
+    /// Read-only view of <see cref="s_sectionAnchors"/> for the §-anchor OCR escalation stage
+    /// (RC1.S6 — <c>SectionAnchorOcrEscalationStage</c>). Exposes the single source of truth for
+    /// anchor phrases/numbers/names/conditional-flags so the OCR escalation path re-scans
+    /// OCR-recognized page text for the EXACT SAME anchors as the text-layer pass — never a
+    /// second, hand-maintained anchor list that could drift from this one.
+    /// </summary>
+    internal static IReadOnlyList<(int Number, string Name, string NormalizedAnchor, bool IsConditional, bool IsIndeterminate)> SectionAnchors =>
+        s_sectionAnchors;
+
+    /// <summary>
+    /// Public re-export of <see cref="IsHeadingLikeMatch"/> for the §-anchor OCR escalation stage
+    /// (RC1.S6). OCR text is split into lines and each line is checked with this exact same
+    /// heading-shape gate used by the text-layer band scan — same anchor set, same normalization,
+    /// same tolerance rules — so an OCR-recognized line must look like a genuine heading (not
+    /// prose that merely contains the anchor phrase) to count as "present".
+    /// </summary>
+    internal static bool IsOcrLineHeadingLikeMatch(string normalizedLineText, string normalizedAnchor) =>
+        IsHeadingLikeMatch(normalizedLineText, normalizedAnchor);
+
     // -----------------------------------------------------------------------
     // Heading-band structural guard (RC1.S4.b/B3 — real-corpus calibration, 2026-07-22)
     // -----------------------------------------------------------------------

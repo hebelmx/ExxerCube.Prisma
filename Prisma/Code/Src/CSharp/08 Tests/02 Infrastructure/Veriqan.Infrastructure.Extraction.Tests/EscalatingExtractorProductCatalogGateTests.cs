@@ -6,10 +6,12 @@ using ExxerCube.Prisma.Veriqan.Application.DependencyInjection;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Ocr;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Resolution;
 using IndQuestResults;
 using Meziantou.Extensions.Logging.Xunit.v3;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using Shouldly;
 using Xunit;
@@ -92,7 +94,11 @@ public sealed class EscalatingExtractorProductCatalogGateTests
             registry, stageProvider, XUnitLogger.CreateLogger<FieldResolutionOrchestrator>());
 
         return new EscalatingStatementFieldExtractor(
-            fakeInner, orchestrator, resolver, XUnitLogger.CreateLogger<EscalatingStatementFieldExtractor>());
+            fakeInner,
+            orchestrator,
+            resolver,
+            new SectionAnchorOcrEscalationStage(SectionOcrEscalationTestHelpers.NoOpSectionOcrEngine(), NullLogger<SectionAnchorOcrEscalationStage>.Instance),
+            XUnitLogger.CreateLogger<EscalatingStatementFieldExtractor>());
     }
 
     private static StatementModel BuildModelWithMissingProduct()
