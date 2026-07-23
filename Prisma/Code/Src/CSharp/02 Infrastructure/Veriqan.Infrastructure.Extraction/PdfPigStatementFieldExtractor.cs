@@ -3657,6 +3657,27 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     // -----------------------------------------------------------------------
 
     /// <summary>
+    /// RC1.S5 (owner ruling 2026-07-23): height, in PDF points, of the trailing "footer zone"
+    /// measured up from the page's bottom edge (PdfPig <c>y = 0</c>, bottom-left origin).
+    /// </summary>
+    /// <remarks>
+    /// A probe of 8 real credit-card statements (<c>VERIQAN_REAL_CORPUS_ROOT</c>) found every
+    /// CL-48 gap flag was genuinely trailing whitespace down to the page footer — a small logo
+    /// raster plus a form-code text line sitting at PdfPig <c>y ≈ 24.5–45.5 pt</c> on 792 pt
+    /// (US Letter) pages. Because the footer counts as content, the blank span between the last
+    /// real content block and the footer was registering as an intra-page gap. This constant
+    /// reuses the same physical 2 cm value as
+    /// <c>Veriqan.Infrastructure.Visual.Rules.Cl48BlankPageRule.BlankGapThresholdPoints</c>
+    /// (56.7 pt = 2 cm × 28.35 pt/cm) — chosen because the observed footer's top edge (45.5 pt)
+    /// sits comfortably inside it (an ~11 pt margin for print/scan jitter) while remaining far
+    /// below where real statement body content starts (well over 100 pt from the bottom on every
+    /// corpus sample), so no genuine content block is ever misclassified as footer. The two
+    /// constants live in different projects (Extraction vs. Visual) and are intentionally
+    /// duplicated rather than cross-referenced, to keep the projects decoupled.
+    /// </remarks>
+    private const double FooterZoneHeightPoints = 56.7;
+
+    /// <summary>
     /// Computes the maximum vertical gap (in PDF points) between consecutive content
     /// regions on a page, for the CL-48 "sin espacio en blanco mayor a 2 cm" check.
     /// </summary>
@@ -3676,16 +3697,29 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     ///         exactly like a line of text for this check.</item>
     ///   <item>Merge all intervals (word bands + image bounds) that overlap or touch into
     ///         maximal content blocks, sorted top-down.</item>
-    ///   <item>For each consecutive pair of merged blocks, the gap is
-    ///         <c>upperBlock.bottom − lowerBlock.top</c>. In PdfPig's bottom-left coordinate
-    ///         system this is the white space between the two content regions.</item>
+    ///   <item>RC1.S5 (owner ruling 2026-07-23): drop any merged block whose entire extent
+    ///         lies inside the trailing <see cref="FooterZoneHeightPoints"/> zone at the
+    ///         bottom of the page — real statement footers (a small logo raster plus a
+    ///         form-code text line) are trailing boilerplate, not content the "no blank
+    ///         space" check is meant to police. See <see cref="FooterZoneHeightPoints"/> for
+    ///         the corpus evidence behind the cutoff. A block that merged with real content
+    ///         (i.e. it extends above the footer zone) is NOT dropped — only footer-only
+    ///         blocks are excluded.</item>
+    ///   <item>For each consecutive pair of the REMAINING (non-footer-only) merged blocks,
+    ///         the gap is <c>upperBlock.bottom − lowerBlock.top</c>. In PdfPig's bottom-left
+    ///         coordinate system this is the white space between the two content regions.</item>
     ///   <item>Return the maximum positive gap. Margins (above the first block, below the
-    ///         last block) are NOT counted.</item>
+    ///         last surviving block — including the trailing space down to a dropped footer
+    ///         block) are NOT counted.</item>
     /// </list>
     /// </para>
     /// <para>
-    /// Returns <c>0.0</c> when there are fewer than two distinct content intervals (i.e. a
-    /// single-block page or a genuinely blank page).
+    /// Returns <c>0.0</c> when there are fewer than two distinct non-footer-only content
+    /// intervals (i.e. a single-block page, a footer-only page, or a genuinely blank page).
+    /// A page whose only content is its footer is therefore reported as gap-free here; it is
+    /// still correctly caught as blank (if warranted) by <c>Cl48BlankPageRule</c>'s separate
+    /// whole-blank-page branch (<c>HasContent == false &amp;&amp; ImageCount == 0</c>), which
+    /// this method does not touch.
     /// </para>
     /// </remarks>
     /// <param name="visibleWords">
@@ -3765,11 +3799,25 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         if (merged.Count < 2)
             return 0.0;
 
-        // Measure the white space between consecutive merged blocks: gap = upperBlock.bottom - lowerBlock.top.
+        // RC1.S5 (owner ruling 2026-07-23): drop merged blocks that lie ENTIRELY within the
+        // trailing footer zone (see FooterZoneHeightPoints) before measuring gaps. A block
+        // that merged with real content above the zone is NOT dropped (its Top will exceed
+        // the zone height); only footer-only blocks — trailing boilerplate — are excluded.
+        // The trailing space down to a dropped footer block then simply becomes the (already
+        // uncounted) bottom margin below the last surviving content block.
+        var contentBlocks = merged
+            .Where(static block => block.Top > FooterZoneHeightPoints)
+            .ToList();
+
+        if (contentBlocks.Count < 2)
+            return 0.0;
+
+        // Measure the white space between consecutive (non-footer-only) merged blocks:
+        // gap = upperBlock.bottom - lowerBlock.top.
         var maxGap = 0.0;
-        for (var i = 0; i < merged.Count - 1; i++)
+        for (var i = 0; i < contentBlocks.Count - 1; i++)
         {
-            var gap = merged[i].Bottom - merged[i + 1].Top;
+            var gap = contentBlocks[i].Bottom - contentBlocks[i + 1].Top;
             if (gap > maxGap)
                 maxGap = gap;
         }

@@ -110,6 +110,17 @@ public sealed class RealCorpusCalibrationPinTests
     /// and <see cref="Pins"/>) — that one statement's fiscal block genuinely carries no SAT legend
     /// text in its text layer (RC1.S4.c documented residual, same root cause as its CL-46 fail).
     /// </summary>
+    /// <remarks>
+    /// RC1.S5 footer-aware gap fix (owner ruling 2026-07-23): CL-48 moved Fail→Pass here. A
+    /// probe of the 8 real corpus statements found every flagged gap was the same false
+    /// positive — trailing whitespace down to the page footer (logo + form-code line), which
+    /// the extractor's <c>ComputeMaxVerticalGap</c> was counting as an intra-page violation
+    /// because the footer itself counts as content. Excluding footer-only content before
+    /// measuring gaps (see <c>PdfPigStatementFieldExtractor.FooterZoneHeightPoints</c>) flips
+    /// CL-48 to Pass on all 8 real B/C statements plus the 3 defect fixtures below (they mirror
+    /// the demo <c>good.pdf</c> layout, which carries the same footer). No other check, Signal,
+    /// or tier verdict moved — re-measured against this same pipeline after the fix.
+    /// </remarks>
     private static readonly IReadOnlyDictionary<string, string> StandardCreditCardChecks =
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
@@ -126,7 +137,7 @@ public sealed class RealCorpusCalibrationPinTests
             ["LAW-§16-OTRASLINEAS"] = "Pass",
             ["LAW-§26-NOTAS"] = "InsufficientData",
             ["LAW-§27-GLOSARIO"] = "InsufficientData",
-            ["CL-48"] = "Fail",
+            ["CL-48"] = "Pass",
             ["LAW-TYPO-MINSIZE"] = "Fail",
             ["CL-21"] = "InsufficientData",
         };

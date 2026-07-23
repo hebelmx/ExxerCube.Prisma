@@ -1,6 +1,6 @@
 ﻿# Veriqan Corpus Calibration Report
 
-**Generated:** 2026-07-22 23:32 UTC  
+**Generated:** 2026-07-23 18:55 UTC  
 **Corpus size:** 3 specimen(s)  
 **KnownGood:** 0 · **KnownSynthetic:** 3 (non-compliant placeholders — NOT compliance evidence) · **KnownBroken:** 0
 
@@ -44,7 +44,6 @@
 | CL-31 | no | yes | no | no |
 | CL-34 | no | yes | no | no |
 | CL-35 | no | yes | no | no |
-| CL-48 | no | yes | no | no |
 | CL-52 | yes | no | no | no |
 | LAW-§13-TRANSFERENCIA | no | yes | no | no |
 | LAW-§18-COMPLETE | no | yes | no | no |
@@ -75,7 +74,7 @@
 | CL-31 | 2 | 0 | 0 | n/a | 0% |
 | CL-34 | 3 | 0 | 0 | n/a | 0% |
 | CL-35 | 3 | 0 | 0 | n/a | 0% |
-| CL-48 | 2 | 0 | 0 | n/a | 0% |
+| CL-48 | 1 | 0 | 0 | n/a | 0% |
 | CL-52 | 1 | 0 | 0 | n/a | 0% |
 | LAW-§13-TRANSFERENCIA | 3 | 0 | 0 | n/a | 0% |
 | LAW-§18-COMPLETE | 3 | 0 | 0 | n/a | 0% |

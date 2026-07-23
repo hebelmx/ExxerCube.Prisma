@@ -30,13 +30,19 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 /// <b>Good-PDF principle (Hard Honesty):</b> <c>good.pdf</c> is a production-quality reference
 /// Visa/BSSB statement for Mar-Apr 2026 provided by the owner as the golden master dataset.  It
 /// was NOT authored to meet CONDUSEF CL-rules and is NOT assumed to be perfectly compliant.
-/// Actual verified verdict (RC1.S5, 2026-07-22, live run post-RC1.S4 calibration): <b>RED</b>
-/// with 4 FailCheckIds — [CL-32, CL-48, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE]. (The "13 structural
-/// FailCheckIds" figure from the original 2026-06-27 run is stale: RC1.S4.a/b recalibrated CL-31,
-/// CL-46, CL-50/51/52/53, LAW-SEC-ORDER-GAP, LAW-§26-NOTAS, and LAW-§27-GLOSARIO against the real
-/// Banamex layout family, and all 9 now Pass or honestly abstain on this PDF.)
+/// Actual verified verdict (RC1.S5 footer-aware-gap update, 2026-07-23, live run post owner
+/// ruling): <b>RED</b> with 3 FailCheckIds — [CL-32, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE].
+/// (CL-48 previously also failed here — a probe of 8 real corpus statements including this same
+/// PDF family proved that reported gap was trailing whitespace down to the page footer, not a
+/// real blank-page violation; excluding footer-only content before measuring CL-48's gap
+/// [<c>PdfPigStatementFieldExtractor.FooterZoneHeightPoints</c>] flips it to Pass here. The
+/// prior "4 FailCheckIds" figure, and the earlier-still "13 structural FailCheckIds" figure from
+/// the original 2026-06-27 run, are both stale: RC1.S4.a/b recalibrated CL-31, CL-46,
+/// CL-50/51/52/53, LAW-SEC-ORDER-GAP, LAW-§26-NOTAS, and LAW-§27-GLOSARIO against the real
+/// Banamex layout family, and RC1.S5 additionally cleared CL-48 — all 10 now Pass or honestly
+/// abstain on this PDF.)
 /// The Red verdict is a TRUE-POSITIVE: genuine non-compliance with the required checklist sections
-/// (LAW-SEC-PRESENCE), "COMPARA TU TARJETA" (CL-32), a blank-page region (CL-48), and sub-floor
+/// (LAW-SEC-PRESENCE), "COMPARA TU TARJETA" (CL-32), and sub-floor
 /// typography (LAW-TYPO-MINSIZE, owner-ratified — see RC1.S3/S4.d).  No bundle values were
 /// fabricated, no findings were suppressed, and no tolerances were relaxed.
 /// See <see cref="DemoFixtures"/> remarks for the per-check classification.
@@ -76,7 +82,7 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 ///   <listheader><term>File</term><description>Actual verdict / notes</description></listheader>
 ///   <item><term>good.pdf</term><description>RED / LAW-SEC-PRESENCE — structural failures (CL-18 and LAW-§26-NOTAS now Pass post-RC1.S4.a; CL-21 now InsufficientData — ungrounded Adeudo/Pagos, see RC1.S4.a remarks above). 21 fields extracted; floor cleared without bypass.</description></item>
 ///   <item><term>bad-math-cl21.pdf</term><description>RED / LAW-SEC-PRESENCE + CL-22 — CL-21 now InsufficientData (RC1.S4.a — ungrounded Adeudo/Pagos, same as good.pdf); CL-22 alone still catches the +$11.00 injection (delta=$11.00 &gt; tol=$0.50), preserving the RED verdict.</description></item>
-///   <item><term>bad-font-cl35.pdf</term><description>RED / CL-35 — Courier font detected; Helvetica required by bundle (plus the same 4 checks as good.pdf: CL-32, CL-48, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE).</description></item>
+///   <item><term>bad-font-cl35.pdf</term><description>RED / CL-35 — Courier font detected; Helvetica required by bundle (plus the same 3 checks as good.pdf: CL-32, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE; CL-48 now Pass post-RC1.S5).</description></item>
 ///   <item><term>scanned.pdf</term><description>BLOCKED — image-only PDF, text-layer floor not met.</description></item>
 /// </list>
 /// <para>
@@ -159,32 +165,37 @@ public sealed class VecChecklistDemoE2ETests
     /// the signal is <see cref="VerdictSignal.Red"/> (<see langword="null"/> when no specific
     /// check ID is required, e.g. for BLOCKED cases).
     ///
-    /// <b>RC1.S5 update (2026-07-22, reconciled against a live run post-RC1.S4):</b> the
-    /// "13 structural FailCheckIds" figure below this line used to describe (from a 2026-06-27
-    /// run, before RC1.S4's real-corpus calibration fixes landed) is STALE — RC1.S4.a/b
+    /// <b>RC1.S5 update (2026-07-23, reconciled against a live run post owner-ruled footer-gap
+    /// fix):</b> the "13 structural FailCheckIds" figure below this line used to describe (from a
+    /// 2026-06-27 run, before RC1.S4's real-corpus calibration fixes landed) is STALE — RC1.S4.a/b
     /// recalibrated CL-31, CL-50/51/52/53, and the LAW-SEC/LAW-§26/LAW-§27 detectors against the
     /// real Banamex layout family (see
     /// <c>docs/planning-artifacts/epic-veriqan-real-corpus-calibration-2026-07-22.md</c>, RC1.S4
-    /// row), and most of those checks now Pass or honestly abstain (InsufficientData) instead of
-    /// failing. <b>ACTUAL verdicts, verified live on this branch at commit <c>a44eff25</c>+RC1.S5:</b>
+    /// row), and RC1.S5 (2026-07-23, owner ruling) additionally cleared CL-48: a probe of 8 real
+    /// corpus statements found every flagged CL-48 gap was trailing whitespace down to the page
+    /// footer (not a genuine blank-page violation), so <c>ComputeMaxVerticalGap</c> now excludes
+    /// footer-only content before measuring gaps. Most of the RC1.S4/S5 checks now Pass or
+    /// honestly abstain (InsufficientData) instead of failing. <b>ACTUAL verdicts, verified live
+    /// on this branch post-RC1.S5:</b>
     /// <list type="table">
     ///   <listheader><term>Fixture</term><description>FailCheckIds (BankFail / CondusefFail split)</description></listheader>
-    ///   <item><term>good.pdf</term><description>[CL-32, CL-48, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE] — Bank:[CL-32,CL-48], Condusef:[CL-32,CL-48,LAW-SEC-PRESENCE,LAW-TYPO-MINSIZE]</description></item>
-    ///   <item><term>bad-math-cl21.pdf</term><description>[CL-22, CL-32, CL-48, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE] — Bank:[CL-22,CL-32,CL-48], Condusef:[CL-22,CL-32,CL-48,LAW-SEC-PRESENCE,LAW-TYPO-MINSIZE]</description></item>
-    ///   <item><term>bad-font-cl35.pdf</term><description>[CL-32, CL-35, CL-48, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE] — Bank:[CL-32,CL-35,CL-48], Condusef:[CL-32,CL-48,LAW-SEC-PRESENCE,LAW-TYPO-MINSIZE]</description></item>
-    ///   <item><term>compliant-master.pdf</term><description>[CL-48, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE] — Bank:[CL-48], Condusef:[CL-48,LAW-SEC-PRESENCE,LAW-TYPO-MINSIZE]</description></item>
+    ///   <item><term>good.pdf</term><description>[CL-32, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE] — Bank:[CL-32], Condusef:[CL-32,LAW-SEC-PRESENCE,LAW-TYPO-MINSIZE]</description></item>
+    ///   <item><term>bad-math-cl21.pdf</term><description>[CL-22, CL-32, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE] — Bank:[CL-22,CL-32], Condusef:[CL-22,CL-32,LAW-SEC-PRESENCE,LAW-TYPO-MINSIZE]</description></item>
+    ///   <item><term>bad-font-cl35.pdf</term><description>[CL-32, CL-35, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE] — Bank:[CL-32,CL-35], Condusef:[CL-32,LAW-SEC-PRESENCE,LAW-TYPO-MINSIZE]</description></item>
+    ///   <item><term>compliant-master.pdf</term><description>[LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE] — Bank:[] (was [CL-48] pre-RC1.S5 — now empty, BankTierVerdict flips Yellow→Green), Condusef:[LAW-SEC-PRESENCE,LAW-TYPO-MINSIZE]</description></item>
     ///   <item><term>scanned.pdf</term><description>ExtractionGap — no rules ran, no findings.</description></item>
     /// </list>
-    /// Only 4 checks remain genuinely failing on this PDF family now: CL-32 (ComparaTuTarjeta —
-    /// (a) genuine, section absent from this layout), CL-48 (BlankPage — (b)/(c) documented S4.b
-    /// residual, one truly-empty ~211pt region per doc with no text and no image), LAW-SEC-PRESENCE
+    /// Only 3 checks remain genuinely failing on this PDF family now: CL-32 (ComparaTuTarjeta —
+    /// (a) genuine, section absent from this layout), LAW-SEC-PRESENCE
     /// ((a)/(b) required sections absent/undetectable), and LAW-TYPO-MINSIZE ((e) owner-ratified
     /// genuine finding — anonymizer-surviving footnote-marker spans, see RC1.S3/S4.d). CL-31,
-    /// CL-46, CL-50, CL-51, CL-52, CL-53, LAW-SEC-ORDER-GAP, LAW-§26-NOTAS, and LAW-§27-GLOSARIO —
-    /// all present in the old 13-check list — now Pass or InsufficientData on this PDF family and
-    /// are NOT in the current FailCheckIds for any of these 4 fixtures. See the RC1.S4 row of the
-    /// epic doc for the fix-by-fix rationale, and <c>RealCorpusCalibrationPinTests</c> (Veriqan
-    /// real-corpus suite) for the equivalent per-check pin table over the full 16-statement corpus.
+    /// CL-46, CL-48, CL-50, CL-51, CL-52, CL-53, LAW-SEC-ORDER-GAP, LAW-§26-NOTAS, and
+    /// LAW-§27-GLOSARIO — all present in the old 13-check list — now Pass or InsufficientData on
+    /// this PDF family and are NOT in the current FailCheckIds for any of these 4 fixtures (CL-48
+    /// is the RC1.S5 addition to this now-clean list — see the class remarks above for the
+    /// footer-gap rationale). See the RC1.S4 row of the epic doc for the fix-by-fix rationale, and
+    /// <c>RealCorpusCalibrationPinTests</c> (Veriqan real-corpus suite) for the equivalent
+    /// per-check pin table over the full 16-statement corpus.
     ///
     /// <b>Why bad-math-cl21.pdf is Red (CL-22 fires + structural failures; RC1.S4.a update):</b>
     /// The +$11.00 injection changes PagoParaNoGenerarIntereses: $12,604.55 → $12,615.55. Before
@@ -219,34 +230,39 @@ public sealed class VecChecklistDemoE2ETests
     ///   <item>expected <see cref="VerdictSummary.CondusefTierVerdict"/> (Story 1.3)</item>
     /// </list>
     ///
-    /// <b>Tier partition analysis (RC1.S5 update, reconciled against a live run — see the
-    /// FailCheckIds table on <see cref="DemoFixtures"/> above; the previous "13 structural
-    /// failures" list here was stale after RC1.S4.a/b recalibration):</b>
+    /// <b>Tier partition analysis (RC1.S5 update 2026-07-23 — footer-aware CL-48 gap fix,
+    /// reconciled against a live run — see the FailCheckIds table on <see cref="DemoFixtures"/>
+    /// above; the previous "13 structural failures" list here was stale after RC1.S4.a/b
+    /// recalibration):</b>
     /// <list type="table">
     ///   <listheader><term>CheckId</term><description>CSV tier → partition(s)</description></listheader>
     ///   <item><term>CL-22</term><description>Both → condusef + bank (bad-math-cl21.pdf only)</description></item>
     ///   <item><term>CL-32</term><description>Both → condusef + bank</description></item>
     ///   <item><term>CL-35</term><description>Bank → bank only (bad-font-cl35.pdf only)</description></item>
-    ///   <item><term>CL-48</term><description>Both → condusef + bank</description></item>
+    ///   <item><term>CL-48</term><description>Both → condusef + bank (still tier-classified Both by the CSV, but no longer FAILS on any of these 4 fixtures post-RC1.S5 — see class remarks)</description></item>
     ///   <item><term>LAW-SEC-PRESENCE</term><description>Condusef → condusef only</description></item>
     ///   <item><term>LAW-TYPO-MINSIZE</term><description>Condusef → condusef only</description></item>
     /// </list>
-    /// CL-31, CL-46, CL-50, CL-51, CL-52, CL-53, LAW-SEC-ORDER-GAP, LAW-§26-NOTAS, and
-    /// LAW-§27-GLOSARIO no longer appear in any of these 4 fixtures' FailCheckIds post-RC1.S4 —
+    /// CL-31, CL-46, CL-48, CL-50, CL-51, CL-52, CL-53, LAW-SEC-ORDER-GAP, LAW-§26-NOTAS, and
+    /// LAW-§27-GLOSARIO no longer appear in any of these 4 fixtures' FailCheckIds post-RC1.S5 —
     /// they now Pass or honestly abstain (InsufficientData) on this PDF layout family.
     ///
-    /// Result: condusefFailIds is non-empty → CondusefTierVerdict=Red; bankFailIds is non-empty → BankTierVerdict=Yellow.
+    /// Result: condusefFailIds is non-empty → CondusefTierVerdict=Red; bankFailIds non-empty →
+    /// BankTierVerdict=Yellow, EXCEPT compliant-master.pdf where CL-48 was the sole Bank-tier
+    /// fail — with CL-48 now Pass, bankFailIds is empty there and BankTierVerdict=Green (see that
+    /// fixture's row below).
     /// Combined overall = Red (Condusef=Red takes precedence via <see cref="VerdictSummary.CombineOverallSignal"/>).
     /// BLOCKED fixtures carry Blocked on both tier properties (no rules ran).
     /// </remarks>
     public static IEnumerable<object?[]> DemoFixtures =>
     [
-        // good.pdf: RED — 4 failures post-RC1.S4 (CL-32, CL-48, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE);
+        // good.pdf: RED — 3 failures post-RC1.S5 (CL-32, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE);
         // condusef-tier = Red, bank-tier = Yellow. See the DemoFixtures remarks above for the full
-        // reconciled FailCheckIds table (CL-31/46/50/51/52/53/LAW-SEC-ORDER-GAP/LAW-§26/LAW-§27 no
-        // longer fail on this PDF family).
-        // CondusefTierVerdict=Red because LAW-SEC-PRESENCE/LAW-TYPO-MINSIZE/CL-32/CL-48 are Condusef/Both.
-        // BankTierVerdict=Yellow because CL-32/CL-48 are Both (no Bank-only fails on good.pdf).
+        // reconciled FailCheckIds table (CL-31/46/48/50/51/52/53/LAW-SEC-ORDER-GAP/LAW-§26/LAW-§27
+        // no longer fail on this PDF family).
+        // CondusefTierVerdict=Red because LAW-SEC-PRESENCE/LAW-TYPO-MINSIZE/CL-32 are Condusef/Both.
+        // BankTierVerdict=Yellow because CL-32 is Both (no Bank-only fails on good.pdf; CL-48 no
+        // longer contributes post-RC1.S5, but CL-32 alone keeps this fixture Yellow, not Green).
         ["good.pdf",          VerdictSignal.Red,     "LAW-SEC-PRESENCE", VerdictSignal.Yellow, VerdictSignal.Red],
 
         // bad-math-cl21.pdf: RED (structural failures + CL-22 Fail; delta=$11.00 > tol=$0.50).
@@ -255,30 +271,42 @@ public sealed class VecChecklistDemoE2ETests
         // layer, so the rule honestly abstains instead of computing on an ungrounded implied zero).
         // CL-22 (SaldoCargosRegulares == PagoParaNoGenerarIntereses) does not depend on Adeudo/Pagos
         // and alone still catches the +$11.00 injection — RED verdict preserved.
-        // Tier partition: CL-22 is "Both" tier → adds to condusef + bank fail sets.
+        // Tier partition: CL-22 and CL-32 are both "Both" tier → keep condusef + bank fail sets
+        // non-empty even after CL-48 drops out post-RC1.S5.
         // CondusefTierVerdict remains Red; BankTierVerdict remains Yellow (non-empty bankFailIds).
         // Note: expectedFailCheckId column uses "CL-22" — CL-21's InsufficientData is asserted in-branch below.
         ["bad-math-cl21.pdf", VerdictSignal.Red,     "CL-22",            VerdictSignal.Yellow, VerdictSignal.Red],
 
-        // bad-font-cl35.pdf: RED / CL-35 (Bank tier) + the same 4 checks as good.pdf
-        // (CL-32, CL-48, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE) — 5 total post-RC1.S4.
-        // CL-35 adds to bankFailIds but not condusefFailIds — tier split is the same as the others.
+        // bad-font-cl35.pdf: RED / CL-35 (Bank tier) + the same 3 checks as good.pdf
+        // (CL-32, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE) — 4 total post-RC1.S5 (CL-48 now Pass).
+        // CL-35 adds to bankFailIds but not condusefFailIds — CL-32 (Both) also keeps bankFailIds
+        // non-empty independent of CL-35, so tier split is unaffected by the CL-48 fix.
         ["bad-font-cl35.pdf", VerdictSignal.Red,     "CL-35",            VerdictSignal.Yellow, VerdictSignal.Red],
 
         // scanned.pdf: ExtractionGap (Story 4.2) — text-layer floor fires before rules; tier verdicts = ExtractionGap.
         ["scanned.pdf",       VerdictSignal.ExtractionGap, null,         VerdictSignal.ExtractionGap, VerdictSignal.ExtractionGap],
 
-        // compliant-master.pdf: RED / 3 failures post-RC1.S4 (CL-48, LAW-SEC-PRESENCE,
-        // LAW-TYPO-MINSIZE) — honest verdict after Epic 3 corpus injection.
+        // compliant-master.pdf: RED / 2 failures post-RC1.S5 (LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE)
+        // — honest verdict after Epic 3 corpus injection.
         // §11 / §17 / §26 / §27 pages added → CL-32, LAW-§26-NOTAS, LAW-§27-GLOSARIO PASS (as before).
         // RC1.S4 additionally cleared CL-31, CL-46, CL-50, CL-51, CL-52, CL-53, LAW-SEC-ORDER-GAP
         // on this fixture (same recalibration as good.pdf) — not re-verified by a dedicated
         // DiagnosticCompliantMaster run, but this fixture shares good.pdf's layout family and the
-        // same RC1.S4 fixes apply; the live pipeline run (RC1.S5) confirms only CL-48/LAW-SEC-
-        // PRESENCE/LAW-TYPO-MINSIZE remain in FailCheckIds.
-        // BankTierVerdict=Yellow (BankFail: CL-48).
-        // CondusefTierVerdict=Red (CondusefFail: CL-48, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE).
-        ["compliant-master.pdf", VerdictSignal.Red, "LAW-SEC-PRESENCE", VerdictSignal.Yellow, VerdictSignal.Red],
+        // same RC1.S4 fixes apply.
+        // RC1.S5 (2026-07-23, owner-ruled footer-gap fix): CL-48 was previously the ONLY Bank-tier
+        // fail on this fixture (compliant-master.pdf's Epic-3 enhancement already cleared CL-32,
+        // unlike good.pdf/bad-math-cl21.pdf/bad-font-cl35.pdf where CL-32 still fails). Once CL-48
+        // itself flips Fail→Pass (footer-trailing whitespace, not a real blank-page violation —
+        // this fixture shares good.pdf's layout/footer), bankFailIds becomes EMPTY and
+        // BankTierVerdict genuinely flips Yellow→Green. This is a live-measured, deliberate
+        // consequence of the fix — not a silent rewrite: the live pipeline run (RC1.S5) confirms
+        // only LAW-SEC-PRESENCE/LAW-TYPO-MINSIZE remain in FailCheckIds; overall Signal stays Red
+        // (CondusefTierVerdict is still Red via LAW-SEC-PRESENCE) via
+        // <see cref="VerdictSummary.CombineOverallSignal"/>.
+        // BankTierVerdict=Green (BankFail: none — was [CL-48] pre-RC1.S5).
+        // CondusefTierVerdict=Red (CondusefFail: LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE — was also
+        // [CL-48, ...] pre-RC1.S5).
+        ["compliant-master.pdf", VerdictSignal.Red, "LAW-SEC-PRESENCE", VerdictSignal.Green, VerdictSignal.Red],
     ];
 
     // -----------------------------------------------------------------------

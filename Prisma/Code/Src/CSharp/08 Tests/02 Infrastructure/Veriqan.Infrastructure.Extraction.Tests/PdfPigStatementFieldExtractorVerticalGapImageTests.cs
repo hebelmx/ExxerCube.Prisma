@@ -175,4 +175,146 @@ public sealed class PdfPigStatementFieldExtractorVerticalGapImageTests
         model.Pages[0].MaxVerticalGapPoints.ShouldBeGreaterThanOrEqualTo(
             0.0, "MaxVerticalGapPoints must never be negative.");
     }
+
+    // -----------------------------------------------------------------------
+    // RC1.S5 (owner ruling 2026-07-23) — footer-aware gap exclusion
+    // -----------------------------------------------------------------------
+    //
+    // A probe of 8 real credit-card statements found every CL-48 gap flag was genuinely
+    // trailing whitespace down to the page footer (a small logo raster near the bottom edge,
+    // PdfPig y ~= 24.5-45.5 pt on 792 pt pages). Because the footer counts as content, the
+    // blank span between the last real content block and the footer was registering as an
+    // intra-page gap. The owner ruled: content lying entirely within the trailing footer zone
+    // (FooterZoneHeightPoints = 56.7 pt, same physical 2 cm constant as the CL-48 threshold)
+    // must be excluded before measuring gaps; internal gaps between real content blocks must
+    // still be measured and must still fail.
+
+    /// <summary>
+    /// A footer-only image near the bottom edge (well inside the footer zone) must not turn the
+    /// trailing whitespace below the last real content line into a reported gap.
+    /// </summary>
+    [Fact]
+    public async Task ExtractFullAsync_TrailingFooterOnlyContent_GapNotCounted()
+    {
+        var builder = new PdfDocumentBuilder();
+        var page = builder.AddPage(595, 842);
+        var font = builder.AddStandard14Font(Standard14Font.Helvetica);
+        const float fontSize = 10f;
+
+        // Single real content line near the top of the page.
+        page.AddText("Encabezado", fontSize, new PdfPoint(50, 700), font);
+
+        // Footer-only image well within the footer zone (y in [20, 40], both < 56.7 pt).
+        var pngBytes = Convert.FromBase64String(TinyPngBase64);
+        var footerPlacement = new PdfRectangle(x1: 50, y1: 20, x2: 100, y2: 40);
+        page.AddPng(pngBytes, footerPlacement);
+
+        var pdfBytes = builder.Build();
+        var ct = TestContext.Current.CancellationToken;
+        var extractor = CreateExtractor();
+
+        var result = await extractor.ExtractFullAsync(pdfBytes, ct);
+
+        result.IsSuccess.ShouldBeTrue($"ExtractFullAsync failed: {result.Error}");
+        var model = result.Value!;
+        model.Pages.Count.ShouldBe(1, "synthetic PDF has exactly one page");
+
+        var page1 = model.Pages[0];
+        page1.ImageCount.ShouldBeGreaterThanOrEqualTo(
+            1, "The synthetic PDF must carry the footer image the test intends to exercise.");
+
+        // Without the footer-zone exclusion, this would report a ~650 pt gap (line at y~700
+        // down to the footer image top at y=40). With the exclusion, only one non-footer
+        // content block remains, so the gap is 0.
+        page1.MaxVerticalGapPoints.ShouldBe(
+            0.0,
+            $"Expected the trailing gap down to a footer-only block to be excluded, " +
+            $"but got {page1.MaxVerticalGapPoints:F2} pt.");
+    }
+
+    /// <summary>
+    /// An internal gap between two real (non-footer) content blocks must still be measured and
+    /// must still exceed the CL-48 threshold, even when the page also carries a footer.
+    /// </summary>
+    [Fact]
+    public async Task ExtractFullAsync_InternalGapBetweenRealContentBlocks_StillCounted()
+    {
+        var builder = new PdfDocumentBuilder();
+        var page = builder.AddPage(595, 842);
+        var font = builder.AddStandard14Font(Standard14Font.Helvetica);
+        const float fontSize = 10f;
+
+        // Two real content lines with a genuine internal gap (~200 pt) between them.
+        page.AddText("Encabezado", fontSize, new PdfPoint(50, 800), font);
+        page.AddText("Cuerpo", fontSize, new PdfPoint(50, 600), font);
+
+        // Footer-only image well within the footer zone — must not affect the internal gap.
+        var pngBytes = Convert.FromBase64String(TinyPngBase64);
+        var footerPlacement = new PdfRectangle(x1: 50, y1: 20, x2: 100, y2: 40);
+        page.AddPng(pngBytes, footerPlacement);
+
+        var pdfBytes = builder.Build();
+        var ct = TestContext.Current.CancellationToken;
+        var extractor = CreateExtractor();
+
+        var result = await extractor.ExtractFullAsync(pdfBytes, ct);
+
+        result.IsSuccess.ShouldBeTrue($"ExtractFullAsync failed: {result.Error}");
+        var model = result.Value!;
+        model.Pages.Count.ShouldBe(1, "synthetic PDF has exactly one page");
+
+        var gap = model.Pages[0].MaxVerticalGapPoints;
+
+        // The internal gap between the two real lines (~200 pt apart) must still be reported —
+        // well above the CL-48 56.7 pt threshold.
+        gap.ShouldBeGreaterThan(
+            100.0,
+            $"Expected the internal gap between two real content blocks to still be counted, " +
+            $"but got {gap:F2} pt.");
+
+        // Upper bound rules out the footer contaminating the measurement: if the footer-only
+        // block were NOT excluded, the reported gap would instead run from the lower text line
+        // down to the footer (~560 pt), far exceeding this bound.
+        gap.ShouldBeLessThan(
+            300.0,
+            $"Expected the reported gap to be the internal ~200 pt gap between the two real " +
+            $"lines, not a gap inflated by the (excluded) trailing footer block, " +
+            $"but got {gap:F2} pt.");
+    }
+
+    /// <summary>
+    /// A page whose only content is its footer must report no gap. Note: this does NOT make
+    /// the page pass CL-48's whole-blank-page branch — that branch (in
+    /// <c>Cl48BlankPageRule</c>) separately fails on <c>HasContent == false &amp;&amp;
+    /// ImageCount == 0</c>, and this page has <c>ImageCount == 1</c> (the footer image), so it
+    /// is correctly not blank either. Blank-page detection for a truly empty page is unaffected
+    /// by this fix.
+    /// </summary>
+    [Fact]
+    public async Task ExtractFullAsync_OnlyContentIsFooter_ReportsNoGap()
+    {
+        var builder = new PdfDocumentBuilder();
+        var page = builder.AddPage(595, 842);
+
+        var pngBytes = Convert.FromBase64String(TinyPngBase64);
+        var footerPlacement = new PdfRectangle(x1: 50, y1: 20, x2: 100, y2: 40);
+        page.AddPng(pngBytes, footerPlacement);
+
+        var pdfBytes = builder.Build();
+        var ct = TestContext.Current.CancellationToken;
+        var extractor = CreateExtractor();
+
+        var result = await extractor.ExtractFullAsync(pdfBytes, ct);
+
+        result.IsSuccess.ShouldBeTrue($"ExtractFullAsync failed: {result.Error}");
+        var model = result.Value!;
+        model.Pages.Count.ShouldBe(1, "synthetic PDF has exactly one page");
+
+        var page1 = model.Pages[0];
+        page1.ImageCount.ShouldBeGreaterThanOrEqualTo(1, "the footer-only image must be present");
+        page1.MaxVerticalGapPoints.ShouldBe(
+            0.0,
+            $"A page whose only content is its footer must report no gap, " +
+            $"but got {page1.MaxVerticalGapPoints:F2} pt.");
+    }
 }

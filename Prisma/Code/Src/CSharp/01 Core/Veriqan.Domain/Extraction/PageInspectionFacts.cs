@@ -28,6 +28,9 @@ namespace ExxerCube.Prisma.Veriqan.Domain.Extraction;
 /// A "gap" is the distance between the top of one line-band and the bottom of the next
 /// line-band above it, computed only between content lines (top/bottom page margins are
 /// excluded).  Zero when the page has fewer than two content lines.
+/// RC1.S5 (owner ruling 2026-07-23): content lying entirely within the trailing page-footer
+/// zone (logo/form-code boilerplate near the bottom edge) is excluded before this gap is
+/// measured — the whitespace between real content and a trailing footer is not a violation.
 /// The CL-48 threshold is 56.7 pt (2 cm × 28.35 pt/cm); the CL-48 rule
 /// applies that threshold.
 /// </param>
