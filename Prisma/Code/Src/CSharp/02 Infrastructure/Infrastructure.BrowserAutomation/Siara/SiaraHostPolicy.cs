@@ -44,13 +44,16 @@ public sealed class SiaraHostPolicy
     /// <summary>
     /// Validates that credentials may be entered against the page at <paramref name="url"/>. Fails closed on
     /// the real SIARA production host (or any of its subdomains) unless the deployment opted in, and on any
-    /// URL that cannot be parsed.
+    /// URL that cannot be parsed as an absolute <c>http</c>/<c>https</c> URL (relative, scheme-relative, or
+    /// non-web-scheme values are treated as unparseable).
     /// </summary>
     /// <param name="url">The current page URL the login driver is about to authenticate against.</param>
     /// <returns>Success when the host is allowed; otherwise a failure describing why it is barred.</returns>
     public Result Validate(string? url)
     {
-        if (string.IsNullOrWhiteSpace(url) || !Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        if (string.IsNullOrWhiteSpace(url)
+            || !Uri.TryCreate(url, UriKind.Absolute, out var uri)
+            || !IsHttpOrHttpsScheme(uri.Scheme))
         {
             return Result.WithFailure(
                 "SIARA login host policy could not parse the target URL; refusing to enter credentials.");
@@ -82,4 +85,14 @@ public sealed class SiaraHostPolicy
     private static bool IsProductionHost(string host) =>
         string.Equals(host, ProductionHost, StringComparison.OrdinalIgnoreCase)
         || host.EndsWith("." + ProductionHost, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Restricts accepted targets to <c>http</c>/<c>https</c>. Without this, a relative or scheme-relative
+    /// string (e.g. <c>/relative/path</c>, <c>//host/path</c>) is parsed by <see cref="Uri"/> on Unix-like
+    /// platforms as an absolute <c>file:</c> URI with an empty host, which would otherwise slip past the
+    /// production-host comparison and default to allowed — defeating the fail-closed guarantee.
+    /// </summary>
+    private static bool IsHttpOrHttpsScheme(string scheme) =>
+        string.Equals(scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase);
 }

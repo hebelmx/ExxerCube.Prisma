@@ -59,6 +59,9 @@ public sealed class SiaraHostPolicyTests
     [InlineData("   ")]
     [InlineData("not a url")]
     [InlineData("/relative/path")]
+    [InlineData("//host/path")] // scheme-relative; on Unix-like platforms this parses as an absolute file: URI
+    [InlineData("file:///etc/passwd")] // non-http(s) scheme must fail closed even when it parses cleanly
+    [InlineData("ftp://siara.cnbv.gob.mx/")] // non-http(s) scheme, even against the production hostname
     public void Validate_UnparseableUrl_FailsClosed(string? url)
     {
         var policy = CreatePolicy(allowProductionHost: false);
