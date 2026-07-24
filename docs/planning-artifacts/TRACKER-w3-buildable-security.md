@@ -39,8 +39,9 @@
 - Asymmetric ES256 per-process keys remain owner-gated (RC6 3.6, ADR-012 addendum PROPOSED).
 
 ## Pre-existing reds surfaced (NOT from this epic — owner attention)
-- `SiaraHostPolicyTests.Validate_UnparseableUrl_FailsClosed(url: "/relative/path")` FAILS on `Liv` HEAD (proven via stash re-run without epic changes). A fail-closed guard test failing in the Siara host-policy area (legal-gate adjacent) — worth a look.
-- `IngestionHubWireTests.Broadcast_DocumentDownloadedEvent_IsReceivedByConnectedClient` times out on HEAD (SignalR TestServer delivery flake; auth-rejection tests pass).
+> **BOTH FIXED 2026-07-24** (follow-up stabilization epic, commits `2c246d31` + `55152fad`):
+- ~~`SiaraHostPolicyTests.Validate_UnparseableUrl_FailsClosed(url: "/relative/path")` FAILS on `Liv` HEAD~~ — **real fail-OPEN defect**: on Unix, `Uri.TryCreate("/relative/path", Absolute)` succeeds as a `file:` URI with empty host, slipping past `IsProductionHost`. Fixed `2c246d31`: http/https scheme gate in `SiaraHostPolicy.Validate` + 3 adversarial pins (`//host/path`, `file:///etc/passwd`, `ftp://siara.cnbv.gob.mx/`). 20/20.
+- ~~`IngestionHubWireTests.Broadcast_DocumentDownloadedEvent_IsReceivedByConnectedClient` times out (SignalR delivery flake)~~ — **not a flake, deterministic test bug**: test HubConnection lacked `EnumModelJsonConverterFactory` (which Orion hub + real Athena client both register), so `DocumentDownloadedEvent.Format` (SmartEnum) failed client-side parse and the message was silently dropped. Fixed `55152fad` (test-only). 27/27 ×3.
 
 ## S0.a scout findings (Veriqan bundle — ground truth)
 - Loader: `02 Infrastructure/Veriqan.Infrastructure.ReferenceData/Adapters/CsvReferenceDataAdapter.cs` — `GetBundleAsync` (L97-169, dir resolve L242-247, schema validation L155), `GetChecklistTiersAsync` (L172-238). Options: `CsvReferenceDataOptions.RootDirectory` only; config key `Veriqan:CsvReferenceData:RootDirectory`. DI: `VeriqanReferenceDataServiceCollectionExtensions.AddVeriqanReferenceData`.
