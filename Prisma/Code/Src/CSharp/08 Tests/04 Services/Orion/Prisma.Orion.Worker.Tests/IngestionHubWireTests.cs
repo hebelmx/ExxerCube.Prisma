@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using ExxerCube.Prisma.Domain.Events;
+using ExxerCube.Prisma.Domain.Serialization;
 using IndFusion.Ember.Abstractions.Hubs;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,6 +48,14 @@ public sealed class IngestionHubWireTests
                     options.HttpMessageHandlerFactory = _ => server.CreateHandler();
                     options.AccessTokenProvider = () => Task.FromResult<string?>(token);
                 })
+            // Match the Orion hub's SmartEnum (EnumModel) JSON converter (Program.cs AddSignalR().AddJsonProtocol),
+            // the same pairing the real Athena SiaraIngestionHubClient uses. Without it, System.Text.Json's
+            // default converter cannot parse the wire representation of DocumentDownloadedEvent.Format
+            // (an EnumModel-derived SmartEnum serialized as a bare string) back into an object graph; the
+            // client-side JsonHubProtocol parse of the incoming "ReceiveMessage" invocation throws, the
+            // message is dropped, and the "ReceiveMessage" handler below never fires — see the 2026-06-24
+            // gate-stall repro in JsonHubProtocolCaseFilesTests.
+            .AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new EnumModelJsonConverterFactory()))
             .Build();
 
         DocumentDownloadedEvent? received = null;
