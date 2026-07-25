@@ -5,6 +5,8 @@
 **Branch:** `Liv` · **Started:** 2026-06-18 · **Mode:** PLAN-ONLY → owner approval gate (do NOT implement production fixes this run).
 
 ## Handoff (top — update on each context clear)
+**2026-07-25 — SCOUT EPIC: backlog re-verified from ground truth.** `OPEN-BACKLOG-2026-07-25.md` (this folder) supersedes the RC6 matrix for *what is open today*: only 4 engineering `[now]` items remain OPEN/PARTIAL (O1 Athena container OCR natives — the sole Blocks; O2 Veriqan dead-letter; O3 JobVerdict provenance; O4 CI migrate step) + W3-sec residuals O5/O6 + minors (skipped 50-doc soak, QueueDepth=0, runbook on-call placeholder, simulator load roadmap). Everything else in RC6 W0–W2 is DONE with commit evidence — do NOT re-plan. Next-epic candidates ranked in that doc §4; owner picks.
+
 **PLANNING COMPLETE — AT OWNER APPROVAL GATE (2026-06-18).** All 4 deliverables written + ground-truth-verified (every Blocks gap maps to ≥1 story; zero orphans; all referenced story IDs resolve to real headings). Prisma: 6 epics / 36 stories. Veriqan: 6 epics / 54 stories. Coverage + sprint plan synthesized by orchestrator. **NEXT = owner reviews & approves the plan; on approval, execute unified Wave 0** (do NOT implement production fixes until approved — this run is plan-only). Resume point if cleared: re-read kickoff + this tracker + the 4 deliverables.
 
 ## Owner-confirmed forks (2026-06-18, this session — do not re-litigate)
