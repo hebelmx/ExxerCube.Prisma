@@ -167,6 +167,16 @@ jobs:
           .
       working-directory: ${{ github.workspace }}
 
+    # O1 (TRACKER-O1-athena-container-ocr.md): prove the built image can actually run OCR. The
+    # --ocr-smoke mode renders a marker via Emgu.CV (libcvextern + noble system deps) and OCRs it
+    # back via the production TesseractOcrExecutor (apt tesseract + link shims + spa tessdata) —
+    # guarding against base-image rebases, apt package renames, and soname drift defeating the shims.
+    - name: Athena in-container OCR smoke (--ocr-smoke)
+      run: |
+        docker run --rm --entrypoint dotnet \
+          prisma-athena:${{ github.sha }} \
+          ExxerCube.Prisma.Athena.Worker.dll --ocr-smoke
+
     - name: Build Reconciliator Worker image
       run: |
         docker build \

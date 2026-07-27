@@ -36,6 +36,19 @@ using Prisma.Athena.Worker.Reconciliation;
 // unambiguous.) See LeptonicaInteropGuard for the full root-cause analysis.
 ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.LeptonicaInteropGuard.EnsureSystemLeptonicaLoadedFirst();
 
+// O1 (docs/planning-artifacts/remediation/TRACKER-O1-athena-container-ocr.md): container OCR-stack
+// smoke test. Runs BEFORE any host/DB/config wiring (no ASP.NET Core app, no DI container) so it can
+// prove the runtime image's native OCR stack works with zero external dependencies — deliberately
+// placed after the interop guard above so it exercises the exact same guarded load order production uses.
+if (args.Contains("--ocr-smoke"))
+{
+    using var smokeCts = new CancellationTokenSource();
+    Console.CancelKeyPress += (_, e) => { e.Cancel = true; smokeCts.Cancel(); };
+    var smokeExitCode = await Prisma.Athena.Worker.OcrContainerSmokeTest.RunAsync(smokeCts.Token);
+    Environment.ExitCode = smokeExitCode;
+    return;
+}
+
 var app = Prisma.Athena.Worker.Program.BuildApp(args);
 
 if (args.Contains("--migrate-only"))
