@@ -150,6 +150,12 @@
 		<PackageVersion Include="Emgu.CV.Contrib" Version="4.13.0.5924" />
 		<PackageVersion Include="Emgu.CV.runtime.windows" Version="4.13.0.5924" />
 		<PackageVersion Include="Emgu.CV.runtime.ubuntu-26.04-x64" Version="4.13.0.5924" />
+		<!-- O1: Athena's runtime container image is aspnet:10.0 (Ubuntu 24.04 noble), not the 26.04
+		     dev box, so it needs the 24.04-built native instead of the 26.04 one above. Verified on
+		     NuGet to exist at the exact same pinned Emgu version. Selected via the
+		     EmguLinuxRuntimePackage MSBuild property (Infrastructure.Imaging.csproj), passed as
+		     -p:EmguLinuxRuntimePackage=Emgu.CV.runtime.ubuntu-24.04-x64 by the Athena Dockerfile only. -->
+		<PackageVersion Include="Emgu.CV.runtime.ubuntu-24.04-x64" Version="4.13.0.5924" />
 		<!-- xUnit testing framework packages -->
 		<!-- xUnit v3 3.2.2 with the Microsoft.Testing.Platform v2 variant (xunit.v3.mtp-v2).
 		     Test projects reference xunit.v3.mtp-v2 instead of the default xunit.v3 (which is mtp-v1). -->

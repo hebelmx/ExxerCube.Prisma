@@ -21,12 +21,21 @@
   <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
     <PackageReference Include="Emgu.CV.runtime.windows" />
   </ItemGroup>
+  <!-- O1 (docs/planning-artifacts/remediation/TRACKER-O1-athena-container-ocr.md): the Linux Emgu
+       runtime package is property-driven so container builds can override it without touching this
+       file. Default stays the 26.04 dev-box package (byte-identical host/dev behavior); the Athena
+       Dockerfile passes -p:EmguLinuxRuntimePackage=Emgu.CV.runtime.ubuntu-24.04-x64 because its
+       runtime base image (aspnet:10.0) is Ubuntu 24.04 (noble), whose libcvextern needs VTK 9.1/HDF5
+       103 instead of the 26.04 build's VTK 9.5/HDF5 310. -->
+  <PropertyGroup>
+    <EmguLinuxRuntimePackage Condition="'$(EmguLinuxRuntimePackage)' == ''">Emgu.CV.runtime.ubuntu-26.04-x64</EmguLinuxRuntimePackage>
+  </PropertyGroup>
   <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
-    <!-- Distro-pinned native build (Ubuntu 26.04). The generic ubuntu-x64 package stopped at
-         4.12 and needs FFmpeg.58/VTK-9.1/HDF5-103 (absent on 26.04). NO PrivateAssets so the
+    <!-- Distro-pinned native build (Ubuntu 26.04 by default). The generic ubuntu-x64 package stopped
+         at 4.12 and needs FFmpeg.58/VTK-9.1/HDF5-103 (absent on 26.04). NO PrivateAssets so the
          native libcvextern.so flows to consumer outputs (tests, Web.UI). UseRidGraph=true
          (Directory.Build.props, Linux) lets the SDK resolve this distro-specific RID asset. -->
-    <PackageReference Include="Emgu.CV.runtime.ubuntu-26.04-x64" />
+    <PackageReference Include="$(EmguLinuxRuntimePackage)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
