@@ -97,6 +97,11 @@ services:
     build:
       context: .
       dockerfile: "Prisma/Code/Src/CSharp/04 Services/Veriqan.Worker/Dockerfile"
+      args:
+        # O7: stamps MinVer's version into the image (git-less inside the build context —
+        # see .dockerignore). Defaults to a placeholder when unset so `up --build` still works
+        # without an explicit APP_VERSION in the environment.
+        APP_VERSION: ${APP_VERSION:-0.0.0-compose}
     container_name: veriqan-worker
     image: veriqan-worker:dev
     networks:
@@ -163,6 +168,11 @@ services:
     build:
       context: .
       dockerfile: "Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Veriqan.Web.UI/Dockerfile"
+      args:
+        # O7: stamps MinVer's version into the image (git-less inside the build context —
+        # see .dockerignore). Defaults to a placeholder when unset so `up --build` still works
+        # without an explicit APP_VERSION in the environment.
+        APP_VERSION: ${APP_VERSION:-0.0.0-compose}
     container_name: veriqan-web-ui
     image: veriqan-web-ui:dev
     networks:

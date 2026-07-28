@@ -186,5 +186,10 @@
 		<PackageVersion Include="JsonSchema.Net" Version="7.3.3" />
 		<!-- CSV parsing — Veriqan Story 2.2 -->
 		<PackageVersion Include="CsvHelper" Version="33.0.1" />
+		<!-- MinVer: git-tag-driven SemVer, referenced solution-wide from Directory.Build.props (O7).
+		     Stamps AssemblyInformationalVersionAttribute with full SemVer + build metadata so
+		     provenance fields (e.g. Veriqan JobVerdict/Finding.EngineVersion) discriminate builds
+		     instead of the constant 4-part AssemblyVersion. -->
+		<PackageVersion Include="MinVer" Version="7.0.0" />
 	</ItemGroup>
 </Project>

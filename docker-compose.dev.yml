@@ -173,6 +173,11 @@ services:
     build:
       context: .
       dockerfile: "Prisma/Code/Src/CSharp/04 Services/Orion/Prisma.Orion.Worker/Dockerfile"
+      args:
+        # O7: stamps MinVer's version into the image (git-less inside the build context —
+        # see .dockerignore). Defaults to a placeholder when unset so `up --build` still works
+        # without an explicit APP_VERSION in the environment.
+        APP_VERSION: ${APP_VERSION:-0.0.0-compose}
     container_name: prisma-orion
     image: prisma-orion:dev
     networks:
@@ -220,6 +225,11 @@ services:
     build:
       context: .
       dockerfile: "Prisma/Code/Src/CSharp/04 Services/Athena/Prisma.Athena.Worker/Dockerfile"
+      args:
+        # O7: stamps MinVer's version into the image (git-less inside the build context —
+        # see .dockerignore). Defaults to a placeholder when unset so `up --build` still works
+        # without an explicit APP_VERSION in the environment.
+        APP_VERSION: ${APP_VERSION:-0.0.0-compose}
     container_name: prisma-athena
     image: prisma-athena:dev
     networks:
@@ -259,6 +269,11 @@ services:
     build:
       context: .
       dockerfile: "Prisma/Code/Src/CSharp/04 Services/Reconciliator/Prisma.Reconciliator.Worker/Dockerfile"
+      args:
+        # O7: stamps MinVer's version into the image (git-less inside the build context —
+        # see .dockerignore). Defaults to a placeholder when unset so `up --build` still works
+        # without an explicit APP_VERSION in the environment.
+        APP_VERSION: ${APP_VERSION:-0.0.0-compose}
     container_name: prisma-reconciliator
     image: prisma-reconciliator:dev
     networks:
@@ -301,6 +316,11 @@ services:
     build:
       context: .
       dockerfile: "Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Dockerfile"
+      args:
+        # O7: stamps MinVer's version into the image (git-less inside the build context —
+        # see .dockerignore). Defaults to a placeholder when unset so `up --build` still works
+        # without an explicit APP_VERSION in the environment.
+        APP_VERSION: ${APP_VERSION:-0.0.0-compose}
     container_name: prisma-webui
     image: prisma-webui:dev
     networks:

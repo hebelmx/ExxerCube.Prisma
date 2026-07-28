@@ -16,6 +16,14 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
+# O7: .dockerignore excludes .git/, so MinVer (git-tag-driven SemVer, wired in Directory.Build.props)
+# is blind inside this build — it would fall back to its 0.0.0-alpha default. MinVerVersionOverride
+# bypasses git entirely when set, so the caller (compose `build.args` / CI `--build-arg`) supplies the
+# real version (e.g. `git describe --tags --always`); the 0.0.0-docker default keeps ad-hoc
+# `docker build` invocations (no --build-arg) working without failing.
+ARG APP_VERSION=0.0.0-docker
+ENV MinVerVersionOverride=${APP_VERSION}
+
 # Copy central package management, build props, and NuGet config so dotnet restore works.
 # These files sit at Prisma/Code/Src/CSharp/ in the repo and are needed by every project.
 COPY Prisma/Code/Src/CSharp/Directory.Build.props ./Prisma/Code/Src/CSharp/

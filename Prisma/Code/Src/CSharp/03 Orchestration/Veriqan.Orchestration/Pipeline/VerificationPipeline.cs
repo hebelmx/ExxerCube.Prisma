@@ -56,12 +56,15 @@ internal sealed class VerificationPipeline : IVerificationPipeline
     /// and <see cref="JobVerdict"/> row for auditability (NFR-7, VERIQAN-E3-S4).
     /// </summary>
     /// <remarks>
-    /// Resolved once from this assembly's version at type-load time rather than hardcoded, so the
-    /// stamped provenance tracks the actually-deployed <c>Veriqan.Orchestration</c> build. Falls
-    /// back to <c>"unknown"</c> when the assembly carries no version (e.g. some test hosts).
+    /// Resolved once from this assembly at type-load time via <see cref="EngineVersionResolver"/>
+    /// rather than hardcoded, so the stamped provenance tracks the actually-deployed
+    /// <c>Veriqan.Orchestration</c> build's MinVer-computed SemVer (e.g. <c>1.4.0-rc.1.547+4a933ce8</c>),
+    /// not the constant <c>MAJOR.0.0.0</c> assembly version MinVer deliberately pins. Falls back to
+    /// the assembly version, then <c>"unknown"</c>, when no informational version is available (e.g.
+    /// some test hosts). Length-capped to the <c>EngineVersion</c> column's 50-char limit.
     /// </remarks>
     private static readonly string EngineVersion =
-        typeof(VerificationPipeline).Assembly.GetName().Version?.ToString() ?? "unknown";
+        EngineVersionResolver.Resolve(typeof(VerificationPipeline).Assembly);
 
     /// <summary>
     /// Provenance stamp for <see cref="JobVerdict"/>.<c>ReferenceBundleVersion</c>: prefers the

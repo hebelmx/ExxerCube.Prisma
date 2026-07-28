@@ -52,5 +52,50 @@
 		<!-- Stryker accommodation (see OutputPath note above): also flatten the obj/ path so reference
 		     assemblies resolve at obj\<project>\<tfm>\ref\ instead of obj\<project>\<config>\<tfm>\ref\. -->
 		<IntermediateOutputPath Condition="'$(StrykerCompat)' == 'true'">$(BaseIntermediateOutputPath)</IntermediateOutputPath>
+
+		<!-- MinVer (O7): git-tag-driven SemVer for every project in the solution. Tags in this
+		     repo use a "v" prefix (e.g. v1.4.0-rc.1), so MinVerTagPrefix must match or MinVer
+		     falls back to the 0.0.0-alpha default. MinVer computes AssemblyInformationalVersion
+		     (full SemVer + build metadata) while deliberately keeping AssemblyVersion at
+		     MAJOR.0.0.0 — see the EngineVersion resolution in Veriqan.Orchestration for why the
+		     informational version, not AssemblyVersion, is the provenance source of truth.
+		     MinVerVersionOverride (set by the production Dockerfiles / CI) bypasses git entirely
+		     when set, so this wiring is inert (but harmless) in git-less container builds. -->
+		<MinVerTagPrefix>v</MinVerTagPrefix>
+
+		<!-- The .NET SDK independently appends the full git commit SHA to
+		     AssemblyInformationalVersion (via SourceRevisionId) whenever the project sits in a
+		     git repo, regardless of MinVer. Without disabling this, the informational version
+		     would carry BOTH MinVer's short-SHA build metadata AND the SDK's full-SHA suffix
+		     (e.g. "1.4.0-rc.1.547+4a933ce8.4a933ce877877e3cd895ae5fb68b998440eebaf2"). MinVer is
+		     the single source of truth for version + build metadata here, so suppress the SDK's
+		     redundant addition. -->
+		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- PrivateAssets="all": MinVer is a build-time-only version generator; it must never
+		     flow as a transitive dependency to downstream package consumers. -->
+		<PackageReference Include="MinVer" PrivateAssets="all" />
+	</ItemGroup>
+
+	<!-- Build metadata = short git SHA (e.g. 1.4.0-rc.1.42+a1b2c3d). Runs before MinVer computes
+	     the version so MinVerBuildMetadata is populated in time. Tolerates git being absent or
+	     the tree not being a repo (e.g. some container/CI contexts): a failed/empty Exec just
+	     leaves MinVerBuildMetadata unset, which MinVer treats as "no metadata" — never fails the
+	     build. Docker/CI builds normally bypass this entirely via MinVerVersionOverride. -->
+	<Target Name="SetMinVerBuildMetadataFromGit" BeforeTargets="MinVer">
+		<Exec Command="git rev-parse --short HEAD"
+		      ConsoleToMSBuild="true"
+		      IgnoreExitCode="true"
+		      StandardOutputImportance="low"
+		      StandardErrorImportance="low"
+		      Condition="'$(MinVerVersionOverride)' == ''">
+			<Output TaskParameter="ConsoleOutput" PropertyName="_GitShortSha" />
+			<Output TaskParameter="ExitCode" PropertyName="_GitShortShaExitCode" />
+		</Exec>
+		<PropertyGroup Condition="'$(_GitShortShaExitCode)' == '0' AND '$(_GitShortSha)' != ''">
+			<MinVerBuildMetadata>$(_GitShortSha)</MinVerBuildMetadata>
+		</PropertyGroup>
+	</Target>
 </Project>

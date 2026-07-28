@@ -12,6 +12,12 @@ jobs:
     
     steps:
     - uses: actions/checkout@v3
+      with:
+        # O7: MinVer (git-tag-driven SemVer) needs full history + tags to compute a real version;
+        # actions/checkout's default shallow clone (depth 1, no tags) leaves MinVer blind and it
+        # falls back to its 0.0.0-alpha default. Needed by every job that runs dotnet build/restore
+        # (MinVer) or docker build (--build-arg APP_VERSION=$(git describe ...) below).
+        fetch-depth: 0
     
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
@@ -67,6 +73,12 @@ jobs:
     
     steps:
     - uses: actions/checkout@v3
+      with:
+        # O7: MinVer (git-tag-driven SemVer) needs full history + tags to compute a real version;
+        # actions/checkout's default shallow clone (depth 1, no tags) leaves MinVer blind and it
+        # falls back to its 0.0.0-alpha default. Needed by every job that runs dotnet build/restore
+        # (MinVer) or docker build (--build-arg APP_VERSION=$(git describe ...) below).
+        fetch-depth: 0
     
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
@@ -87,6 +99,12 @@ jobs:
     
     steps:
     - uses: actions/checkout@v3
+      with:
+        # O7: MinVer (git-tag-driven SemVer) needs full history + tags to compute a real version;
+        # actions/checkout's default shallow clone (depth 1, no tags) leaves MinVer blind and it
+        # falls back to its 0.0.0-alpha default. Needed by every job that runs dotnet build/restore
+        # (MinVer) or docker build (--build-arg APP_VERSION=$(git describe ...) below).
+        fetch-depth: 0
     
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
@@ -128,6 +146,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        # O7: MinVer (git-tag-driven SemVer) needs full history + tags to compute a real version;
+        # actions/checkout's default shallow clone (depth 1, no tags) leaves MinVer blind and it
+        # falls back to its 0.0.0-alpha default. Needed by every job that runs dotnet build/restore
+        # (MinVer) or docker build (--build-arg APP_VERSION=$(git describe ...) below).
+        fetch-depth: 0
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
@@ -160,6 +184,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        # O7: MinVer (git-tag-driven SemVer) needs full history + tags to compute a real version;
+        # actions/checkout's default shallow clone (depth 1, no tags) leaves MinVer blind and it
+        # falls back to its 0.0.0-alpha default. Needed by every job that runs dotnet build/restore
+        # (MinVer) or docker build (--build-arg APP_VERSION=$(git describe ...) below).
+        fetch-depth: 0
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
@@ -251,6 +281,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        # O7: MinVer (git-tag-driven SemVer) needs full history + tags to compute a real version;
+        # actions/checkout's default shallow clone (depth 1, no tags) leaves MinVer blind and it
+        # falls back to its 0.0.0-alpha default. Needed by every job that runs dotnet build/restore
+        # (MinVer) or docker build (--build-arg APP_VERSION=$(git describe ...) below).
+        fetch-depth: 0
 
     # Build context is the repo root so all four Dockerfiles can COPY Prisma/Code/Src/CSharp/
     # and the root nuget.config in a single docker build invocation per image.
@@ -258,6 +294,7 @@ jobs:
     - name: Build Orion Worker image
       run: |
         docker build \
+          --build-arg APP_VERSION=$(git describe --tags --always) \
           -f "Prisma/Code/Src/CSharp/04 Services/Orion/Prisma.Orion.Worker/Dockerfile" \
           -t prisma-orion:${{ github.sha }} \
           .
@@ -266,6 +303,7 @@ jobs:
     - name: Build Athena Worker image
       run: |
         docker build \
+          --build-arg APP_VERSION=$(git describe --tags --always) \
           -f "Prisma/Code/Src/CSharp/04 Services/Athena/Prisma.Athena.Worker/Dockerfile" \
           -t prisma-athena:${{ github.sha }} \
           .
@@ -284,6 +322,7 @@ jobs:
     - name: Build Reconciliator Worker image
       run: |
         docker build \
+          --build-arg APP_VERSION=$(git describe --tags --always) \
           -f "Prisma/Code/Src/CSharp/04 Services/Reconciliator/Prisma.Reconciliator.Worker/Dockerfile" \
           -t prisma-reconciliator:${{ github.sha }} \
           .
@@ -292,6 +331,7 @@ jobs:
     - name: Build Web UI image
       run: |
         docker build \
+          --build-arg APP_VERSION=$(git describe --tags --always) \
           -f "Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Dockerfile" \
           -t prisma-webui:${{ github.sha }} \
           .
@@ -337,6 +377,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        # O7: MinVer (git-tag-driven SemVer) needs full history + tags to compute a real version;
+        # actions/checkout's default shallow clone (depth 1, no tags) leaves MinVer blind and it
+        # falls back to its 0.0.0-alpha default. Needed by every job that runs dotnet build/restore
+        # (MinVer) or docker build (--build-arg APP_VERSION=$(git describe ...) below).
+        fetch-depth: 0
 
     # Resolve the target registry + image tag. Prefer a provisioned REGISTRY_URL secret (e.g. a
     # private ACR/ECR/Harbor); default to GitHub Container Registry namespaced to the repo owner.
@@ -365,6 +411,7 @@ jobs:
     - name: Build image (${{ matrix.name }})
       run: |
         docker build \
+          --build-arg APP_VERSION=$(git describe --tags --always) \
           -f "${{ matrix.dockerfile }}" \
           -t "${{ steps.reg.outputs.registry }}/${{ matrix.name }}:${{ steps.reg.outputs.sha }}" \
           -t "${{ steps.reg.outputs.registry }}/${{ matrix.name }}:latest" \
