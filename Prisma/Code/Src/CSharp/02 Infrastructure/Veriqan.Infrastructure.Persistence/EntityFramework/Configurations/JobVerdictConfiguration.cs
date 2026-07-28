@@ -66,5 +66,21 @@ internal sealed class JobVerdictConfiguration : IEntityTypeConfiguration<JobVerd
             .HasColumnType("float")
             .HasDefaultValue(1.0)
             .HasSentinel(-1.0);
+
+        // EngineVersion: semantic version of the verification engine that produced this verdict
+        // (VERIQAN-E3-S4). DB default = "unknown" for pre-migration rows. Max length 50 mirrors
+        // Finding.EngineVersion / Disposition.EngineVersion.
+        builder.Property(v => v.EngineVersion)
+            .IsRequired()
+            .HasMaxLength(50)
+            .HasDefaultValue("unknown");
+
+        // ReferenceBundleVersion: version of the reference-data bundle active when this verdict
+        // was computed (VERIQAN-E3-S4). Nullable — the pipeline's catalog pre-resolve stage
+        // degrades gracefully to a null bundle when no bundle is resolved for the submission's
+        // context key, so this column has no non-null invariant to enforce. Max length 50
+        // mirrors Disposition.ReferenceBundleVersion.
+        builder.Property(v => v.ReferenceBundleVersion)
+            .HasMaxLength(50);
     }
 }

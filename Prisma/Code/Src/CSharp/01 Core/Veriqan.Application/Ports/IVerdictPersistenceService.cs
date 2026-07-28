@@ -56,6 +56,15 @@ public interface IVerdictPersistenceService
     /// when unavailable; unmapped check IDs default to <c>ChecklistTier.Condusef</c>.
     /// </param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <param name="referenceBundleVersion">
+    /// Version of the reference-data bundle (<c>BundleMetadata.SchemaVersion</c>) active when
+    /// this verdict was computed (VERIQAN-E3-S4), stored on the <see cref="JobVerdict"/> row for
+    /// provenance/audit linkage. Pass <see langword="null"/> when no bundle was resolved for the
+    /// run (graceful-degradation path). Deliberately placed after <paramref name="cancellationToken"/>
+    /// (trailing optional parameter added post-hoc) so existing callers compile unchanged — the
+    /// same pattern already used by <c>IStatementFieldExtractor.ExtractFullAsync</c>'s
+    /// <c>referenceBundle</c> parameter.
+    /// </param>
     /// <returns>
     /// A <see cref="Result{T}"/> containing the persisted <see cref="JobVerdict"/> on success.
     /// Returns a failure result on any infrastructure error, and a cancelled result when the
@@ -69,5 +78,6 @@ public interface IVerdictPersistenceService
         Domain.Enums.VerdictSignal bankTierVerdict = Domain.Enums.VerdictSignal.Green,
         Domain.Enums.VerdictSignal condusefTierVerdict = Domain.Enums.VerdictSignal.Green,
         IReadOnlyDictionary<string, Domain.Enums.ChecklistTier>? checklistTiers = null,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        string? referenceBundleVersion = null);
 }

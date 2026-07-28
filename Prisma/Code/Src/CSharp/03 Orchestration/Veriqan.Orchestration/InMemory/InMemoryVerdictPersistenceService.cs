@@ -37,7 +37,8 @@ internal sealed class InMemoryVerdictPersistenceService : IVerdictPersistenceSer
         VerdictSignal bankTierVerdict = VerdictSignal.Green,
         VerdictSignal condusefTierVerdict = VerdictSignal.Green,
         IReadOnlyDictionary<string, ChecklistTier>? checklistTiers = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? referenceBundleVersion = null)
     {
         if (cancellationToken.IsCancellationRequested)
             return Task.FromResult(ResultExtensions.Cancelled<JobVerdict>());
@@ -56,7 +57,9 @@ internal sealed class InMemoryVerdictPersistenceService : IVerdictPersistenceSer
             signal: signal,
             bankTierVerdict: bankTierVerdict,
             condusefTierVerdict: condusefTierVerdict,
-            confidence: verdictConfidence);
+            confidence: verdictConfidence,
+            engineVersion: engineVersion,
+            referenceBundleVersion: referenceBundleVersion);
 
         _verdicts[jobId] = verdict;
 

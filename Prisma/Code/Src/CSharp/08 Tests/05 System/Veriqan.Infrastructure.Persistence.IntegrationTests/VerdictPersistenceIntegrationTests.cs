@@ -204,6 +204,143 @@ public sealed class VerdictPersistenceIntegrationTests
     }
 
     /// <summary>
+    /// VERIQAN-E3-S4 round-trip: <see cref="EfVerdictPersistenceService.PersistAsync"/> stamps
+    /// <see cref="JobVerdict.EngineVersion"/> (non-null, always supplied by the pipeline) and
+    /// <see cref="JobVerdict.ReferenceBundleVersion"/> (round-trips exactly when the caller
+    /// supplies a bundle version — mirroring the pipeline's catalog-pre-resolve success path).
+    /// </summary>
+    [Fact]
+    public async Task PersistAsync_Provenance_EngineVersionNonNullAndReferenceBundleVersionRoundTrips()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        var (scope, _) = await BuildScopeAsync("verdict_persist_provenance", ct);
+
+        await using (scope)
+        {
+            var svc = scope.ServiceProvider.GetRequiredService<EfVerdictPersistenceService>();
+            var ctx = scope.ServiceProvider.GetRequiredService<VeriqanDbContext>();
+
+            var jobId = Guid.NewGuid();
+            const string engineVersion = "9.9.9.9";
+            const string referenceBundleVersion = "1.0.0";
+
+            // Seed the parent VerificationJob (FK required by real SQL).
+            var parentJob = new VerificationJob(
+                id: jobId,
+                contentHash: jobId.ToString("N") + "prov",
+                receivedAtUtc: DateTimeOffset.UtcNow,
+                status: VerificationJobStatus.Pending);
+            await ctx.VerificationJobs.AddAsync(parentJob, ct);
+            await ctx.SaveChangesAsync(ct);
+
+            IReadOnlyList<RuleFinding> ruleFindings =
+            [
+                RuleFinding.Pass("CL-PROV-P", TechniqueClass.Deterministic, engineVersion, "ok"),
+            ];
+
+            // Act
+            var result = await svc.PersistAsync(
+                jobId: jobId,
+                signal: VerdictSignal.Green,
+                findings: ruleFindings,
+                engineVersion: engineVersion,
+                cancellationToken: ct,
+                referenceBundleVersion: referenceBundleVersion);
+
+            // Assert — service call succeeded
+            result.IsSuccess.ShouldBeTrue(
+                $"PersistAsync returned failure: {result.Error}");
+            result.Value.ShouldNotBeNull();
+            result.Value.EngineVersion.ShouldBe(engineVersion);
+            result.Value.ReferenceBundleVersion.ShouldBe(referenceBundleVersion);
+
+            // Assert — JobVerdict provenance columns round-trip from the database
+            var storedVerdict = await ctx.JobVerdicts
+                .AsNoTracking()
+                .Where(v => v.VerificationJobId == jobId)
+                .SingleOrDefaultAsync(ct);
+
+            storedVerdict.ShouldNotBeNull("A JobVerdict row must exist for the given jobId.");
+            storedVerdict.EngineVersion.ShouldNotBeNull(
+                "EngineVersion must never be null on a persisted JobVerdict row (VERIQAN-E3-S4).");
+            storedVerdict.EngineVersion.ShouldBe(engineVersion);
+            storedVerdict.ReferenceBundleVersion.ShouldBe(
+                referenceBundleVersion,
+                "ReferenceBundleVersion must round-trip when the caller supplies a resolved bundle version.");
+
+            _logger.LogInformation(
+                "Provenance round-trip passed: VerdictId={VerdictId} EngineVersion={EngineVersion} ReferenceBundleVersion={ReferenceBundleVersion}",
+                storedVerdict.Id,
+                storedVerdict.EngineVersion,
+                storedVerdict.ReferenceBundleVersion);
+        }
+    }
+
+    /// <summary>
+    /// VERIQAN-E3-S4 graceful-degradation path: when the caller does not supply a
+    /// <c>referenceBundleVersion</c> (mirrors the pipeline's catalog-pre-resolve failure path,
+    /// where <c>catalogBundle</c> is <see langword="null"/>), the persisted
+    /// <see cref="JobVerdict.ReferenceBundleVersion"/> is <see langword="null"/> while
+    /// <see cref="JobVerdict.EngineVersion"/> is still stamped and non-null.
+    /// </summary>
+    [Fact]
+    public async Task PersistAsync_NoReferenceBundleVersionSupplied_PersistsNullReferenceBundleVersion()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        var (scope, _) = await BuildScopeAsync("verdict_persist_no_bundle", ct);
+
+        await using (scope)
+        {
+            var svc = scope.ServiceProvider.GetRequiredService<EfVerdictPersistenceService>();
+            var ctx = scope.ServiceProvider.GetRequiredService<VeriqanDbContext>();
+
+            var jobId = Guid.NewGuid();
+            const string engineVersion = "9.9.9.9";
+
+            var parentJob = new VerificationJob(
+                id: jobId,
+                contentHash: jobId.ToString("N") + "nobundle",
+                receivedAtUtc: DateTimeOffset.UtcNow,
+                status: VerificationJobStatus.Pending);
+            await ctx.VerificationJobs.AddAsync(parentJob, ct);
+            await ctx.SaveChangesAsync(ct);
+
+            IReadOnlyList<RuleFinding> ruleFindings =
+            [
+                RuleFinding.Pass("CL-NOBUNDLE-P", TechniqueClass.Deterministic, engineVersion, "ok"),
+            ];
+
+            // Act — referenceBundleVersion intentionally omitted (defaults to null).
+            var result = await svc.PersistAsync(
+                jobId: jobId,
+                signal: VerdictSignal.Green,
+                findings: ruleFindings,
+                engineVersion: engineVersion,
+                cancellationToken: ct);
+
+            // Assert
+            result.IsSuccess.ShouldBeTrue(
+                $"PersistAsync returned failure: {result.Error}");
+            result.Value.ShouldNotBeNull();
+            result.Value.EngineVersion.ShouldBe(engineVersion);
+            result.Value.ReferenceBundleVersion.ShouldBeNull();
+
+            var storedVerdict = await ctx.JobVerdicts
+                .AsNoTracking()
+                .Where(v => v.VerificationJobId == jobId)
+                .SingleOrDefaultAsync(ct);
+
+            storedVerdict.ShouldNotBeNull("A JobVerdict row must exist for the given jobId.");
+            storedVerdict.EngineVersion.ShouldNotBeNull(
+                "EngineVersion must never be null even on the no-bundle-resolved path.");
+            storedVerdict.ReferenceBundleVersion.ShouldBeNull(
+                "ReferenceBundleVersion must persist as null on the graceful-degradation path.");
+        }
+    }
+
+    /// <summary>
     /// Story 1.4 round-trip: <see cref="EfVerdictPersistenceService.PersistAsync"/> persists
     /// <see cref="JobVerdict.BankTierVerdict"/> + <see cref="JobVerdict.CondusefTierVerdict"/>
     /// and each <see cref="Finding.Tier"/> is stamped from the supplied <c>checklistTiers</c> map.

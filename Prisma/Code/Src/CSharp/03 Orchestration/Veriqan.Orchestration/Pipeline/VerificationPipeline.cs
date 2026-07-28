@@ -53,9 +53,27 @@ internal sealed class VerificationPipeline : IVerificationPipeline
 {
     /// <summary>
     /// Semantic version of the VEC engine stored on every <see cref="Domain.Entities.Finding"/>
-    /// row for auditability (NFR-7).
+    /// and <see cref="JobVerdict"/> row for auditability (NFR-7, VERIQAN-E3-S4).
     /// </summary>
-    private const string EngineVersion = "1.0.0";
+    /// <remarks>
+    /// Resolved once from this assembly's version at type-load time rather than hardcoded, so the
+    /// stamped provenance tracks the actually-deployed <c>Veriqan.Orchestration</c> build. Falls
+    /// back to <c>"unknown"</c> when the assembly carries no version (e.g. some test hosts).
+    /// </remarks>
+    private static readonly string EngineVersion =
+        typeof(VerificationPipeline).Assembly.GetName().Version?.ToString() ?? "unknown";
+
+    /// <summary>
+    /// Provenance stamp for <see cref="JobVerdict"/>.<c>ReferenceBundleVersion</c>: prefers the
+    /// bundle's unique <c>BundleId</c> (discriminates bundle instances) over <c>SchemaVersion</c>
+    /// (a schema constant, identical across all bundles), so a verdict row can be tied to the
+    /// specific bundle that produced it (RC6 W2.4). Capped to the column's 50-char limit.
+    /// </summary>
+    private static string? BundleProvenanceVersion(VecReferenceBundle? bundle)
+    {
+        var value = bundle?.BundleMetadata.BundleId ?? bundle?.BundleMetadata.SchemaVersion;
+        return value is { Length: > 50 } ? value[..50] : value;
+    }
 
     /// <summary>
     /// ActivitySource for distributed-tracing spans emitted by each pipeline stage.
@@ -296,7 +314,8 @@ internal sealed class VerificationPipeline : IVerificationPipeline
                     engineVersion: EngineVersion,
                     bankTierVerdict: coverageBlockedVerdictResult.Value!.BankTierVerdict,
                     condusefTierVerdict: coverageBlockedVerdictResult.Value!.CondusefTierVerdict,
-                    cancellationToken: ct).ConfigureAwait(false);
+                    cancellationToken: ct,
+                    referenceBundleVersion: BundleProvenanceVersion(catalogBundle)).ConfigureAwait(false);
 
             if (coveragePersistResult.IsCancelled())
             {
@@ -438,7 +457,8 @@ internal sealed class VerificationPipeline : IVerificationPipeline
                     engineVersion: EngineVersion,
                     bankTierVerdict: textLayerBlockedVerdictResult.Value!.BankTierVerdict,
                     condusefTierVerdict: textLayerBlockedVerdictResult.Value!.CondusefTierVerdict,
-                    cancellationToken: ct).ConfigureAwait(false);
+                    cancellationToken: ct,
+                    referenceBundleVersion: BundleProvenanceVersion(catalogBundle)).ConfigureAwait(false);
 
             if (textLayerPersistResult.IsCancelled())
             {
@@ -596,7 +616,8 @@ internal sealed class VerificationPipeline : IVerificationPipeline
                     engineVersion: EngineVersion,
                     bankTierVerdict: ambiguousVerdictResult.Value!.BankTierVerdict,
                     condusefTierVerdict: ambiguousVerdictResult.Value!.CondusefTierVerdict,
-                    cancellationToken: ct).ConfigureAwait(false);
+                    cancellationToken: ct,
+                    referenceBundleVersion: BundleProvenanceVersion(catalogBundle)).ConfigureAwait(false);
 
             if (ambiguousPersistResult.IsCancelled())
             {
@@ -749,7 +770,8 @@ internal sealed class VerificationPipeline : IVerificationPipeline
                         engineVersion: EngineVersion,
                         bankTierVerdict: blockedVerdictResult.Value!.BankTierVerdict,
                         condusefTierVerdict: blockedVerdictResult.Value!.CondusefTierVerdict,
-                        cancellationToken: ct).ConfigureAwait(false);
+                        cancellationToken: ct,
+                        referenceBundleVersion: BundleProvenanceVersion(catalogBundle)).ConfigureAwait(false);
 
                 if (blockedPersistResult.IsCancelled())
                 {
@@ -1006,7 +1028,8 @@ internal sealed class VerificationPipeline : IVerificationPipeline
                 bankTierVerdict: summary.BankTierVerdict,
                 condusefTierVerdict: summary.CondusefTierVerdict,
                 checklistTiers: checklistTiers,
-                cancellationToken: ct).ConfigureAwait(false);
+                cancellationToken: ct,
+                referenceBundleVersion: BundleProvenanceVersion(catalogBundle)).ConfigureAwait(false);
 
         if (persistResult.IsCancelled())
         {

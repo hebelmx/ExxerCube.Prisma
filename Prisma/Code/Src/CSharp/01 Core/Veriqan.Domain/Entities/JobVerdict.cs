@@ -30,20 +30,38 @@ public sealed class JobVerdict
     /// (Story 4.1). Ranges from <c>0.0</c> (fully uncertain) to <c>1.0</c> (fully confident).
     /// Defaults to <c>1.0</c> for pre-migration rows and blocked verdicts where no rules ran.
     /// </param>
+    /// <param name="engineVersion">
+    /// Semantic version of the verification engine that produced this verdict (VERIQAN-E3-S4),
+    /// for provenance/audit linkage — mirrors <see cref="Finding.EngineVersion"/>. Defaults to
+    /// <c>"unknown"</c> for pre-migration rows and callers that do not supply a real engine
+    /// version (e.g. unit-test fixtures).
+    /// </param>
+    /// <param name="referenceBundleVersion">
+    /// Version of the reference-data bundle (<c>BundleMetadata.SchemaVersion</c>) active when
+    /// this verdict was computed (VERIQAN-E3-S4), or <see langword="null"/> when no bundle was
+    /// resolved for the run (graceful-degradation path — see
+    /// <c>VerificationPipeline</c>'s catalog pre-resolve stage) or for pre-migration rows.
+    /// </param>
     public JobVerdict(
         Guid id,
         Guid verificationJobId,
         VerdictSignal signal,
         VerdictSignal bankTierVerdict = VerdictSignal.Green,
         VerdictSignal condusefTierVerdict = VerdictSignal.Green,
-        double confidence = 1.0)
+        double confidence = 1.0,
+        string engineVersion = "unknown",
+        string? referenceBundleVersion = null)
     {
+        ArgumentNullException.ThrowIfNull(engineVersion);
+
         Id = id;
         VerificationJobId = verificationJobId;
         Signal = signal;
         BankTierVerdict = bankTierVerdict;
         CondusefTierVerdict = condusefTierVerdict;
         Confidence = confidence;
+        EngineVersion = engineVersion;
+        ReferenceBundleVersion = referenceBundleVersion;
     }
 
     /// <summary>Gets the unique identifier for this verdict record.</summary>
@@ -120,4 +138,27 @@ public sealed class JobVerdict
 
         AlertSentAt = sentAt;
     }
+
+    /// <summary>
+    /// Gets the semantic version of the verification engine that produced this verdict
+    /// (VERIQAN-E3-S4), for provenance/audit linkage.
+    /// </summary>
+    /// <remarks>
+    /// Stamped from <c>VerificationPipeline</c>'s assembly version at persist time.
+    /// <c>"unknown"</c> for pre-migration rows (before migration <c>AddJobVerdictProvenance</c>)
+    /// and for verdicts constructed without a real engine version (e.g. unit-test fixtures).
+    /// </remarks>
+    public string EngineVersion { get; private set; } = "unknown";
+
+    /// <summary>
+    /// Gets the version of the reference-data bundle (<c>BundleMetadata.SchemaVersion</c>) that
+    /// was active when this verdict was computed, or <see langword="null"/> when no bundle was
+    /// resolved for the run.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="null"/> for pre-migration rows and for pipeline runs where the reference-data
+    /// catalog pre-resolve stage degraded gracefully (no matching bundle for the submission's
+    /// context key) — the pipeline continues with a <c>null</c> catalog bundle in that case.
+    /// </remarks>
+    public string? ReferenceBundleVersion { get; private set; }
 }

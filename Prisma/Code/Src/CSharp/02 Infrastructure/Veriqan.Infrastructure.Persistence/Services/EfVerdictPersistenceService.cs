@@ -46,7 +46,8 @@ internal sealed class EfVerdictPersistenceService : IVerdictPersistenceService
         VerdictSignal bankTierVerdict = VerdictSignal.Green,
         VerdictSignal condusefTierVerdict = VerdictSignal.Green,
         IReadOnlyDictionary<string, ChecklistTier>? checklistTiers = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? referenceBundleVersion = null)
     {
         if (cancellationToken.IsCancellationRequested)
             return ResultExtensions.Cancelled<JobVerdict>();
@@ -66,7 +67,9 @@ internal sealed class EfVerdictPersistenceService : IVerdictPersistenceService
             signal: signal,
             bankTierVerdict: bankTierVerdict,
             condusefTierVerdict: condusefTierVerdict,
-            confidence: verdictConfidence);
+            confidence: verdictConfidence,
+            engineVersion: engineVersion,
+            referenceBundleVersion: referenceBundleVersion);
 
         var findingEntities = MapFindings(jobId, findings, engineVersion, checklistTiers);
 

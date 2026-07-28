@@ -227,6 +227,81 @@ public sealed class PipelinePersistStageTests
     }
 
     /// <summary>
+    /// Builds on <see cref="BuildServices"/> but wires a real (non-null) reference bundle into
+    /// <see cref="IVecReferenceDataProvider.GetBundleAsync"/> — mirroring the pipeline's Stage 1b
+    /// catalog pre-resolve success path (VerificationPipeline.cs ~line 199-210) — so the
+    /// <c>referenceBundleVersion</c> threaded into <see cref="IVerdictPersistenceService.PersistAsync"/>
+    /// (VERIQAN-E3-S4) can be asserted by the caller against <paramref name="expectedReferenceBundleVersion"/>.
+    /// </summary>
+    private ServiceCollection BuildServicesWithResolvedCatalogBundle(
+        IVerdictPersistenceService verdictPersistence,
+        out string expectedReferenceBundleVersion)
+    {
+        var services = BuildServices(verdictPersistence);
+
+        var bundleMetadata = new BundleMetadata(
+            SchemaVersion: "2.3.1-catalog-test",
+            Institution: "Test Bank",
+            BundleId: "catalog-pre-resolve-bundle",
+            GeneratedAt: "2025-01-01T00:00:00Z",
+            Period: null,
+            Source: null);
+        var bundle = new VecReferenceBundle(
+            BundleMetadata: bundleMetadata,
+            Products: [],
+            InterestRates: [],
+            ClientAccounts: [],
+            ToleranceConfig: null,
+            ValidationConstants: null,
+            MandatoryLegends: null,
+            SequentialImages: null,
+            Promotions: null,
+            PriorStatements: null,
+            ExpectedTransactions: null);
+        // The pipeline stamps BundleId in preference to SchemaVersion (SchemaVersion is a schema
+        // constant shared by all bundles; BundleId discriminates the bundle instance — RC6 W2.4).
+        expectedReferenceBundleVersion = bundleMetadata.BundleId!;
+
+        // Replace the tier-map provider with one that ALSO resolves a catalog bundle
+        // (GetBundleAsync) — BuildServices' provider only stubs GetChecklistTiersAsync, leaving
+        // GetBundleAsync unconfigured (NSubstitute default → catalogBundle stays null downstream).
+        var tierProvider = Substitute.For<IVecReferenceDataProvider>();
+        tierProvider
+            .GetChecklistTiersAsync(Arg.Any<StatementContextKey>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(
+                Result<IReadOnlyDictionary<string, ChecklistTier>>.WithSuccess(
+                    new Dictionary<string, ChecklistTier>() as IReadOnlyDictionary<string, ChecklistTier>)));
+        tierProvider
+            .GetBundleAsync(Arg.Any<StatementContextKey>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<VecReferenceBundle>.WithSuccess(bundle)));
+        services.Replace(ServiceDescriptor.Singleton<IVecReferenceDataProvider>(_ => tierProvider));
+
+        // BuildServices' extractor mock only matches a null 3rd argument (the default the
+        // pipeline supplies when no catalog bundle resolves) — now that GetBundleAsync resolves a
+        // real bundle, re-stub with a matcher accepting any catalog bundle so extraction still
+        // succeeds regardless of what Stage 1b resolved.
+        var locator = FieldLocator.PageHint(1);
+        var missingStr = ExtractedField<string>.Missing(locator);
+        var missingName = ExtractedField<ExtractedClientName>.Missing(locator);
+        var missingAddr = ExtractedField<ExtractedAddress>.Missing(locator);
+        var statementModel = new StatementModel(
+            clientName: missingName,
+            address: missingAddr,
+            branchNumber: missingStr,
+            cardNumber: missingStr,
+            clabe: missingStr,
+            clientNumber: missingStr,
+            rfc: missingStr);
+        var extractor = Substitute.For<IStatementFieldExtractor>();
+        extractor
+            .ExtractFullAsync(Arg.Any<byte[]>(), Arg.Any<CancellationToken>(), Arg.Any<VecReferenceBundle?>())
+            .Returns(ci => Task.FromResult(Result<StatementModel>.WithSuccess(statementModel)));
+        services.Replace(ServiceDescriptor.Singleton<IStatementFieldExtractor>(_ => extractor));
+
+        return services;
+    }
+
+    /// <summary>
     /// Builds a <see cref="ServiceCollection"/> where the binder returns a BLOCKED outcome,
     /// wired with a caller-supplied <see cref="IVerdictPersistenceService"/> so persist
     /// behaviour can be asserted or injected with a failure.
@@ -525,5 +600,113 @@ public sealed class PipelinePersistStageTests
         result.Error.ShouldNotBeNull();
         (result.Error!.Contains(persistError)).ShouldBeTrue(
             $"Pipeline failure message '{result.Error}' must include the persist-service error '{persistError}'.");
+    }
+
+    // -----------------------------------------------------------------------
+    // VERIQAN-E3-S4: EngineVersion / ReferenceBundleVersion provenance threading.
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// VERIQAN-E3-S4: when the reference-data catalog pre-resolve stage (Stage 1b) resolves a
+    /// bundle, <see cref="VerificationPipeline"/> threads that bundle's
+    /// <c>BundleMetadata.SchemaVersion</c> into <see cref="IVerdictPersistenceService.PersistAsync"/>
+    /// as <c>referenceBundleVersion</c>, and always supplies a non-null, non-empty
+    /// <c>engineVersion</c> (the pipeline's assembly version).
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_CatalogBundleResolved_PersistAsyncReceivesEngineVersionAndReferenceBundleVersion()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+
+        var fakeVerdict = new JobVerdict(Guid.NewGuid(), Guid.NewGuid(), VerdictSignal.Red);
+        var verdictPersistence = Substitute.For<IVerdictPersistenceService>();
+        verdictPersistence
+            .PersistAsync(Arg.Any<Guid>(), Arg.Any<VerdictSignal>(),
+                Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<string>(),
+                Arg.Any<VerdictSignal>(), Arg.Any<VerdictSignal>(),
+                Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>(),
+                Arg.Any<CancellationToken>(), Arg.Any<string?>())
+            .Returns(ci => Task.FromResult(Result<JobVerdict>.WithSuccess(fakeVerdict)));
+
+        var services = BuildServicesWithResolvedCatalogBundle(verdictPersistence, out var expectedReferenceBundleVersion);
+        await using var sp = services.BuildServiceProvider();
+        await using var scope = sp.CreateAsyncScope();
+
+        var pipeline = scope.ServiceProvider.GetRequiredService<IVerificationPipeline>();
+        var submission = new StatementSubmission(
+            Pdf: System.Text.Encoding.ASCII.GetBytes("%PDF-1.4 unit-test"),
+            FileName: "persist-stage-catalog-bundle-test.pdf",
+            ContextKey: new StatementContextKey("Test Bank", "Jan 2025"));
+
+        // Act
+        var result = await pipeline.ProcessAsync(submission, ct);
+
+        // Assert — pipeline still returns success
+        result.IsSuccess.ShouldBeTrue("Pipeline should return success when all stages succeed.");
+
+        // Assert — PersistAsync was called with the resolved bundle's SchemaVersion as
+        // referenceBundleVersion, and a non-null/non-empty engineVersion.
+        await verdictPersistence.Received(1).PersistAsync(
+            Arg.Any<Guid>(),
+            Arg.Any<VerdictSignal>(),
+            Arg.Any<IReadOnlyList<RuleFinding>>(),
+            Arg.Is<string>(v => !string.IsNullOrWhiteSpace(v)),
+            Arg.Any<VerdictSignal>(),
+            Arg.Any<VerdictSignal>(),
+            Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>(),
+            Arg.Any<CancellationToken>(),
+            expectedReferenceBundleVersion);
+    }
+
+    /// <summary>
+    /// VERIQAN-E3-S4 graceful-degradation path: when the reference-data catalog pre-resolve stage
+    /// does NOT resolve a bundle (the default in <see cref="BuildServices"/>, where
+    /// <c>GetBundleAsync</c> is left unconfigured), <see cref="IVerdictPersistenceService.PersistAsync"/>
+    /// is still called with a non-null <c>engineVersion</c> but a <see langword="null"/>
+    /// <c>referenceBundleVersion</c> — the pipeline must not fault just because no bundle resolved.
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_NoCatalogBundleResolved_PersistAsyncReceivesNullReferenceBundleVersion()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+
+        var fakeVerdict = new JobVerdict(Guid.NewGuid(), Guid.NewGuid(), VerdictSignal.Red);
+        var verdictPersistence = Substitute.For<IVerdictPersistenceService>();
+        verdictPersistence
+            .PersistAsync(Arg.Any<Guid>(), Arg.Any<VerdictSignal>(),
+                Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<string>(),
+                Arg.Any<VerdictSignal>(), Arg.Any<VerdictSignal>(),
+                Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>(),
+                Arg.Any<CancellationToken>(), Arg.Any<string?>())
+            .Returns(ci => Task.FromResult(Result<JobVerdict>.WithSuccess(fakeVerdict)));
+
+        var services = BuildServices(verdictPersistence);
+        await using var sp = services.BuildServiceProvider();
+        await using var scope = sp.CreateAsyncScope();
+
+        var pipeline = scope.ServiceProvider.GetRequiredService<IVerificationPipeline>();
+        var submission = new StatementSubmission(
+            Pdf: System.Text.Encoding.ASCII.GetBytes("%PDF-1.4 unit-test"),
+            FileName: "persist-stage-no-catalog-bundle-test.pdf",
+            ContextKey: new StatementContextKey("Test Bank", "Jan 2025"));
+
+        // Act
+        var result = await pipeline.ProcessAsync(submission, ct);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue("Pipeline should return success when all stages succeed.");
+
+        await verdictPersistence.Received(1).PersistAsync(
+            Arg.Any<Guid>(),
+            Arg.Any<VerdictSignal>(),
+            Arg.Any<IReadOnlyList<RuleFinding>>(),
+            Arg.Is<string>(v => !string.IsNullOrWhiteSpace(v)),
+            Arg.Any<VerdictSignal>(),
+            Arg.Any<VerdictSignal>(),
+            Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>(),
+            Arg.Any<CancellationToken>(),
+            (string?)null);
     }
 }
