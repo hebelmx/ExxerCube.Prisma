@@ -29,7 +29,7 @@
 | 1 | O3 JobVerdict provenance (E3-S4) | DONE | `5f0b9794` | build 0/0; Orchestration.Tests 265/265; Persistence.IntegrationTests 33/33 (Testcontainers); migration `20260727233432_AddJobVerdictProvenance` |
 | 2 | O2 BatchExceptionLog dead-letter (E3-S3) | DONE | `368ec43c` | build 0/0 (Worker); Orchestration.Tests 271/271 (+6); Persistence.IntegrationTests 37/37 (+4, Testcontainers second-DbContext durability proof); migration `20260728155959_AddBatchExceptionLog` |
 | 3 | O4 CI migrate wiring (E3-S5 remainder) | DONE | — | `veriqan-migrations` CI job (bundle + from-zero verify); every YAML command executed locally: dotnet-ef 10.0.8 restored, bundle built, all 10 migrations applied to fresh SQL 2022 container (exit 0) + idempotent re-run; runbook §8 extended |
-| 4 | Adversarial review + close-out | PENDING | — | — |
+| 4 | Adversarial review + close-out | DONE | — | plan-completion-reviewer vs specs, verdict COMPLETE WITH GAPS; F2 fixed (`ExceptionsEndpointTests` 5/5; full suite 276/276), F3 fixed, F1→O7 + F4 logged as residuals; backlog updated (O2/O3/O4 struck, O7/O8 added) |
 
 ## Orchestrator decisions (pre-delegation)
 
@@ -60,8 +60,8 @@
 - 2026-07-28: O4 DONE. `veriqan-migrations` job in quality-gates.yml: tool-manifest-pinned
   dotnet-ef 10.0.8 (matches EF Core 10.0.8), `ef migrations bundle --self-contained -r linux-x64`
   (no --startup-project needed — VeriqanDbContextFactory is IDesignTimeDbContextFactory),
-  upload-artifact, from-zero apply against ephemeral SQL 2022 + lineage assert (>=1, non-stale)
-  + always() teardown. All commands proven locally (CI-dormancy caveat below). Runbook §8 got the
+  upload-artifact, from-zero apply against ephemeral SQL 2022 + history-row assert (COUNT>=1;
+  the real from-zero gate is the bundle-apply exit code) + always() teardown. All commands proven locally (CI-dormancy caveat below). Runbook §8 got the
   bundle/DBA path subsection. `.gitignore` excludes `/veriqan-efbundle`.
 - 2026-07-28: **FINDING (epic-external, surface to owner):** there is NO repo-root
   `.github/workflows/` — `quality-gates.yml` lives only under `Prisma/Code/Src/CSharp/.github/`,
@@ -69,3 +69,23 @@
   E2-S8 publish matrix) is dormant. Activating it = move to repo root + fix stale paths
   (root-less `dotnet restore`, e2e job paths) — several jobs would go red immediately.
   Deliberately NOT fixed inside this epic (scope + risk); needs its own decision/pass.
+- 2026-07-28: Adversarial review (plan-completion-reviewer) ran against E3-S3/S4/S5 specs +
+  commits `d7f5b480..841ad6f8`. Verdict: COMPLETE WITH GAPS. Triage:
+  - **F1 (Major, FOLLOW-UP — owner decision):** `EngineVersion` stamp is functionally a constant
+    — no `<Version>`/MinVer/GitVersion anywhere in the repo, so `Assembly.GetName().Version` is
+    always `1.0.0.0` (reviewer proved off the built DLL). The O3 column round-trips but has zero
+    discriminating value until a repo versioning scheme exists (MinVer vs git-SHA-embed vs manual
+    `<Version>` — build-system-wide, needs owner ruling). Test only asserts non-null (trivially
+    satisfied). NOT fixed in-epic.
+  - **F2 (Major, FIXED):** `GET /exceptions` had zero test coverage; spec's literal AC never
+    built. Fixed: `ExceptionsEndpointTests.cs` (5 tests) incl. the literal one-valid+one-malformed
+    POST /batch → GET /exceptions flow, plus 400 missing/garbage batchId, 200-empty unknown
+    batchId, 401 no-token.
+  - **F3 (Minor, FIXED):** tracker "non-stale" assert wording corrected above.
+  - **F4 (Minor, FOLLOW-UP — pre-existing `fb639f6e`):** `--migrate` has no literal
+    "exits without binding HTTP" test (true by construction — `Environment.Exit` precedes host
+    build; happy-path/idempotency tests exist).
+  Reviewer could NOT refute: O3 migration/snapshot integrity (`has-pending-model-changes` clean),
+  O3 real-DB provenance round-trip (6/6 live), O2 repo/processor/DI/guard correctness (4/4 live
+  Testcontainers), O4 YAML accuracy (sqlcmd path + dotnet-ef pin verified against live image),
+  epic hygiene (diff scope clean, solution build 0/0).

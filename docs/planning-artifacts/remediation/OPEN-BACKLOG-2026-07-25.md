@@ -21,15 +21,26 @@ commit-level evidence (§3).
 | # | Item | Origin | Severity | Evidence |
 |---|------|--------|----------|----------|
 | O1 | ~~**Athena container cannot run OCR**~~ — ✅ **DONE 2026-07-27** (`TRACKER-O1-athena-container-ocr.md`): Emgu runtime package made property-driven (`EmguLinuxRuntimePackage`; container uses `ubuntu-24.04-x64` for the noble base, dev box unchanged), Dockerfile runtime stage got tesseract+spa/eng tessdata+both link shims+libcvextern's noble deps, new `--ocr-smoke` self-test proven in-container (EXIT 0, spa model) and wired as a CI step. **New follow-up:** the Web.UI image has the same Emgu hole (only its Tesseract half was fixed by GH#28) — O1's pattern applies verbatim. | RC6 0.9 residual | ~~Blocks~~ CLOSED | `docker run … --ocr-smoke` EXIT 0; CI step in quality-gates.yml |
-| O2 | **Veriqan durable dead-letter absent** — no `BatchExceptionLog` entity/migration/repository anywhere; failed batch items are not durably recorded. | RC6 2.3 | Degrades | repo-wide `git grep BatchExceptionLog` empty |
-| O3 | **JobVerdict rows carry no provenance** — `EngineVersion`/`ReferenceBundleVersion` stamped on `Disposition` (+`EngineVersion` on `Finding`) but **not** on `JobVerdict` (designer entity block L122 has neither). A verdict row alone can't be tied to the engine/bundle that produced it. | RC6 2.4 | Degrades (PARTIAL) | `20260619000001_*.Designer.cs` L29/53 (Disposition), L82/92 (Finding), L122 (JobVerdict — absent) |
-| O4 | **Veriqan migrations not CI-wired** — `--migrate` CLI + `rebuild_migrations.ps1` exist (E6-S6.8, `fb639f6e`) but no `ef migrations bundle` artifact and no `quality-gates.yml` step invokes any migrate stage; Dockerfile documents intended usage in comments only. | RC6 2.5 | Degrades (PARTIAL) | CI YAML has no migrate step |
+| O2 | ~~**Veriqan durable dead-letter absent**~~ — ✅ **DONE 2026-07-28** (`368ec43c` + endpoint tests in close-out commit; `TRACKER-veriqan-w2-closeout.md`): `BatchExceptionLog` entity + migration `20260728155959` + EF/in-memory repos, per-run `BatchId`, never-abort write guard, `GET /exceptions?batchId=`. | RC6 2.3 | ~~Degrades~~ CLOSED | Orchestration.Tests green incl. literal submit→query endpoint AC; Persistence.IntegrationTests 37/37 |
+| O3 | ~~**JobVerdict rows carry no provenance**~~ — ✅ **DONE 2026-07-28** (`5f0b9794`): `EngineVersion` + `ReferenceBundleVersion` (`BundleId ?? SchemaVersion`) on `JobVerdict`, migration `20260727233432`. **CAVEAT (new residual O7):** repo has NO versioning scheme, so `EngineVersion` is always `1.0.0.0` — column is real, value is a constant until an owner-ruled version source (MinVer / git-SHA / manual `<Version>`) exists. | RC6 2.4 | ~~Degrades~~ CLOSED (O7 residual) | live Testcontainers provenance round-trip test |
+| O4 | ~~**Veriqan migrations not CI-wired**~~ — ✅ **DONE 2026-07-28** (`841ad6f8`): `veriqan-migrations` CI job — dotnet-ef 10.0.8 tool-manifest pin, `ef migrations bundle` (self-contained linux-x64) artifact, from-zero apply vs ephemeral SQL 2022; every command proven locally; runbook §8 extended. **CAVEAT:** see dormant-CI finding below. | RC6 2.5 | ~~Degrades~~ CLOSED | local from-zero apply of full 10-migration lineage, exit 0 + idempotent re-run |
 
 ### W3 security residuals (deliberately parked 2026-07-23 — confirmed nothing landed since)
 | # | Item | Notes |
 |---|------|-------|
 | O5 | **S1 bundle freshness/rollback replay** — `generatedAt:` parsed but never enforced (`BundleIntegrityVerifier.cs:38` self-documents "no freshness/TTL policy"); per-row `imageSha256`/`documentRefSha256` remain unverified payload (`CsvReferenceDataAdapter.cs:893`); Veriqan Web.UI `appsettings.json` `CsvReferenceData` section lacks `BundleHmacKey` doc-parity entry. | Needs a design decision (external state / TTL policy) before code. |
 | O6 | **S2 rotation startup diagnostics** — `ProcessIdentitySigningKeys.cs:46` silently filters blank secrets; no weak-key (<128-bit) check; no never-retired-`PreviousJwtSecrets` diagnostic (forgotten Phase C = permanent second key, silently); blank-JwtSecret path asymmetry. Misconfig-only; fails closed. | Small, self-contained. |
+
+### New residuals (2026-07-28 W2-closeout adversarial review)
+- **O7 — no repo versioning scheme → provenance `EngineVersion` is a constant `1.0.0.0`**: no
+  `<Version>`/MinVer/GitVersion anywhere; O3's column (and `Finding.EngineVersion` before it)
+  carries no discriminating value. Needs an owner ruling on the version source, then a small
+  build-props change. (`TRACKER-veriqan-w2-closeout.md` F1.)
+- **O8 — ALL CI is dormant**: no repo-root `.github/workflows/`; `quality-gates.yml` lives only
+  under `Prisma/Code/Src/CSharp/.github/` where GitHub Actions never executes it — O1's
+  `--ocr-smoke`, the E2-S8 publish matrix, and the new `veriqan-migrations` job all included.
+  Activation = move to root + fix stale paths (root-less `dotnet restore`, e2e job paths);
+  several jobs would go red immediately. Needs its own decision-gated pass.
 
 ### Minor / env-gated residuals
 - **Soak (RC6 2.9):** `SiaraSessionLongSoakE2ETests` (N=50) exists but `[Fact(Skip="…needs a dedicated performance pass…")]` (`SoakE2ETests.cs:324`). Mechanism + corpus proven; the soak itself never runs. → needs a dedicated perf pass on a non-contended box.
