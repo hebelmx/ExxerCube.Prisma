@@ -1,6 +1,6 @@
 # Real-Corpus Baseline Measurement (RC1.S2)
 
-Generated: 2026-07-28. Measurement only — no calibration, no
+Generated: 2026-07-23. Measurement only — no calibration, no
 tuning, no assertions on outcomes. Full raw detail (amounts, dates, names) lives
 out-of-repo in `real-corpus-baseline.json` beside the staged corpus. This file
 contains only neutral statement ids, check ids, verdict/status enum names, counts,
@@ -15,18 +15,18 @@ unverified second bundle) is the correct "don't invent a new composition" choice
 
 | Id | Product | Signal | BankTier | CondusefTier | Fail | InsufficientData | Pass | Extraction ms | Verdict ms |
 |---|---|---|---|---|---|---|---|---|---|
-| A-2026-02 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 866 | 648 |
-| A-2026-03 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 889 | 640 |
-| A-2026-04 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 908 | 676 |
-| A-2026-05 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 896 | 679 |
-| B-2026-03 | credit_card | Red | Green | Red | 2 | 35 | 21 | 10940 | 6273 |
-| B-2026-04 | credit_card | Red | Green | Red | 2 | 35 | 21 | 12604 | 6566 |
-| B-2026-05 | credit_card | Red | Green | Red | 2 | 37 | 19 | 11886 | 6563 |
-| B-2026-06 | credit_card | Red | Green | Red | 2 | 36 | 20 | 14656 | 6873 |
-| C-2026-02 | credit_card | Red | Yellow | Red | 6 | 35 | 17 | 16269 | 7028 |
-| C-2026-03 | credit_card | Red | Green | Red | 2 | 35 | 21 | 15967 | 7628 |
-| C-2026-04 | credit_card | Red | Green | Red | 2 | 37 | 19 | 21618 | 9254 |
-| C-2026-05 | credit_card | Red | Green | Red | 2 | 37 | 19 | 18519 | 8434 |
+| A-2026-02 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 927 | 687 |
+| A-2026-03 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 888 | 675 |
+| A-2026-04 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 945 | 668 |
+| A-2026-05 | checking | ExtractionGap | ExtractionGap | ExtractionGap | 0 | 0 | 0 | 900 | 694 |
+| B-2026-03 | credit_card | Red | Green | Red | 2 | 35 | 21 | 11066 | 6602 |
+| B-2026-04 | credit_card | Red | Green | Red | 2 | 35 | 21 | 12735 | 7225 |
+| B-2026-05 | credit_card | Red | Green | Red | 2 | 37 | 19 | 11867 | 7097 |
+| B-2026-06 | credit_card | Red | Green | Red | 2 | 36 | 20 | 15032 | 7336 |
+| C-2026-02 | credit_card | Red | Yellow | Red | 6 | 35 | 17 | 16864 | 7470 |
+| C-2026-03 | credit_card | Red | Green | Red | 2 | 35 | 21 | 26235 | 8404 |
+| C-2026-04 | credit_card | Red | Green | Red | 2 | 37 | 19 | 22656 | 9995 |
+| C-2026-05 | credit_card | Red | Green | Red | 2 | 37 | 19 | 18617 | 9136 |
 
 ## Per-check aggregate — real account statements (12)
 
