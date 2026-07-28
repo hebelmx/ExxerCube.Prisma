@@ -297,6 +297,17 @@ jobs:
           .
       working-directory: ${{ github.workspace }}
 
+    # O1 follow-up (TRACKER-webui-container-ocr.md): prove the built Web.UI image can actually run
+    # OCR, mirroring the Athena in-container OCR smoke above. The --ocr-smoke mode renders a marker
+    # via Emgu.CV (libcvextern + noble system deps) and OCRs it back via the production
+    # TesseractOcrExecutor (apt tesseract + link shims + spa tessdata) — guarding against base-image
+    # rebases, apt package renames, and soname drift defeating the shims.
+    - name: Web UI in-container OCR smoke (--ocr-smoke)
+      run: |
+        docker run --rm --entrypoint dotnet \
+          prisma-webui:${{ github.sha }} \
+          ExxerCube.Prisma.Web.UI.dll --ocr-smoke
+
   publish:
     # PRISMA-E2-S8 (closes D24): build → scan → tag (git SHA + latest) → push the four production
     # host images to a container registry. The multi-stage Dockerfiles run `dotnet publish` internally

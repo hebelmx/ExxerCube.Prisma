@@ -20,10 +20,17 @@ COPY nuget.config ./
 # graph; copying the full tree is the simplest way to guarantee dotnet restore resolves all deps.
 COPY Prisma/Code/Src/CSharp/ ./Prisma/Code/Src/CSharp/
 
-# Restore using the host project. ArtifactsBaseDir override keeps all artifacts inside the container.
+# O1 follow-up (docs/planning-artifacts/remediation/TRACKER-webui-container-ocr.md): the repo's dev
+# box is Ubuntu 26.04, so Infrastructure.Imaging.csproj defaults to Emgu.CV.runtime.ubuntu-26.04-x64
+# — but this image's runtime stage (below) is aspnet:10.0 = Ubuntu 24.04 (noble), whose libcvextern
+# needs VTK 9.1/HDF5 103 instead of 26.04's VTK 9.5/HDF5 310. Override the MSBuild property on BOTH
+# restore (so the right package is resolved) and publish (so the right native asset is copied to
+# publish/). Web.UI references Infrastructure.Imaging directly (EmguCvImageQualityAnalyzer, used by
+# /document-processing quality analysis), so it has the identical Emgu hole Athena had (O1).
 RUN dotnet restore \
     "Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/ExxerCube.Prisma.Web.UI.csproj" \
-    -p:ArtifactsBaseDir=/tmp/build/
+    -p:ArtifactsBaseDir=/tmp/build/ \
+    -p:EmguLinuxRuntimePackage=Emgu.CV.runtime.ubuntu-24.04-x64
 
 # Publish Release build. -o /app/publish sets PublishDir regardless of OutputPath.
 RUN dotnet publish \
@@ -31,7 +38,8 @@ RUN dotnet publish \
     -c Release \
     -o /app/publish \
     --no-restore \
-    -p:ArtifactsBaseDir=/tmp/build/
+    -p:ArtifactsBaseDir=/tmp/build/ \
+    -p:EmguLinuxRuntimePackage=Emgu.CV.runtime.ubuntu-24.04-x64
 
 # ---------------------------------------------------------------------------
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
@@ -49,22 +57,45 @@ EXPOSE 8080
 #   Storage__BasePath
 #   ASPNETCORE_URLS=http://+:8080
 
-COPY --from=build /app/publish .
-
-# GH#28: install the Tesseract OCR native stack for the /document-processing PDF-OCR path.
-# The Tesseract.NET (charlesw) NuGet ships ONLY Windows natives (x64/tesseract50.dll,
+# GH#28 + O1 follow-up (TRACKER-webui-container-ocr.md): install the Tesseract OCR native stack for
+# the /document-processing PDF-OCR path, plus the Emgu.CV noble system deps (mirrors the Athena
+# Worker Dockerfile's apt layer exactly — same list, same rationale). This apt layer is
+# code-independent, so it sits BEFORE the publish COPY below — otherwise every source edit would
+# invalidate the ~1 GB package layer.
+#
+# Tesseract: the Tesseract.NET (charlesw) NuGet ships ONLY Windows natives (x64/tesseract50.dll,
 # x64/leptonica-1.82.0.dll) and on Linux P/Invokes the sonames `libtesseract50.so` /
 # `libleptonica-1.82.0.so` — which apt does not provide (noble ships libtesseract.so.5 /
-# liblept.so.5). So: (1) apt-install tesseract + spa/eng language data (tessdata lands at
-# /usr/share/tesseract-ocr/5/tessdata, which TesseractOcrExecutor already probes); (2) run
-# the repo's link shim to symlink the ABI-compatible system libs to the wrapper's expected
-# names under /app/x64. Without this, PDF OCR fails "OCR failed for all pages".
+# liblept.so.5/liblept.so.6). So: (1) apt-install tesseract + spa/eng language data (tessdata lands
+# at /usr/share/tesseract-ocr/5/tessdata, which TesseractOcrExecutor already probes); (2) run the
+# repo's link shim (below, after the publish COPY) to symlink the ABI-compatible system libs to the
+# wrapper's expected names under /app/x64. Without this, PDF OCR fails "OCR failed for all pages".
+#
+# Emgu.CV: the ubuntu-24.04-x64 native package (selected at build time above) ships libcvextern.so
+# under runtimes/ubuntu-x64/native/ — a more-specific RID than the portable linux-x64 the .NET host
+# resolves at, so the default probing never finds it (see eng/link-emgu-native.sh for the RID-graph
+# detail). The system packages below are libcvextern.so's own shared-library dependencies, the exact
+# same list discovered empirically for the Athena Worker image (O1) via
+# `ldd /app/runtimes/*/native/libcvextern.so` and iterated until clean (noble sonames differ from the
+# 26.04 dev box this project is normally built on).
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         tesseract-ocr tesseract-ocr-spa tesseract-ocr-eng \
+        libvtk9.1t64 libhdf5-103-1t64 libavif16 libgeotiff5 liblapack3 \
+        libgtk-3-0t64 libopenexr-3-1-30 libgdcm3.0t64 libnetcdf19t64 \
+        libavcodec60 libavformat60 libavutil58 libswscale7 \
+        libgstreamer1.0-0 libgstreamer-plugins-base1.0-0 \
     && rm -rf /var/lib/apt/lists/*
+
+COPY --from=build /app/publish .
+
+# The link shims must run AFTER the publish COPY: each gates on files in /app (the tesseract shim on
+# x64/leptonica-1.82.0.dll, the emgu shim on runtimes/*/native/libcvextern.so — note its
+# trailing-slash argument convention).
 COPY "Prisma/Code/Src/CSharp/eng/link-tesseract-natives.sh" /tmp/link-tesseract-natives.sh
 RUN bash /tmp/link-tesseract-natives.sh /app && rm /tmp/link-tesseract-natives.sh
+COPY "Prisma/Code/Src/CSharp/eng/link-emgu-native.sh" /tmp/link-emgu-native.sh
+RUN bash /tmp/link-emgu-native.sh /app/ && rm /tmp/link-emgu-native.sh
 
 # GH#23: bake the PRP1 fixture set into the image for the /document-processing demo.
 # FixtureFinder resolves fixtures by walking up from CWD / AppDomain.BaseDirectory

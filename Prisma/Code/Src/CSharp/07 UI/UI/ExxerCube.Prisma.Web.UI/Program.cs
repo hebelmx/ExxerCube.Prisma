@@ -33,6 +33,28 @@ public class Program
     /// <param name="args">Command-line arguments.</param>
     public static async Task Main(string[] args)
     {
+        // Linux native-interop guard: load the system Leptonica/Tesseract into the global symbol scope
+        // BEFORE Emgu.CV (libcvextern.so, quality-analysis Stage 1) or SkiaSharp can interpose their
+        // bundled Leptonica copy. Without this, Tesseract OCR segfaults (exit 139) once OpenCV is
+        // co-resident. No-op off Linux; idempotent. (The OCR assembly's module initializer also arms
+        // this; the explicit call makes the entrypoint ordering unambiguous.) See
+        // LeptonicaInteropGuard for the full root-cause analysis.
+        ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.LeptonicaInteropGuard.EnsureSystemLeptonicaLoadedFirst();
+
+        // O1 follow-up (docs/planning-artifacts/remediation/TRACKER-webui-container-ocr.md): container
+        // OCR-stack smoke test. Runs BEFORE any host/DB/config wiring (no WebApplicationBuilder, no DI
+        // container) so it can prove the runtime image's native OCR stack works with zero external
+        // dependencies — deliberately placed after the interop guard above so it exercises the exact
+        // same guarded load order production uses.
+        if (args.Contains("--ocr-smoke"))
+        {
+            using var smokeCts = new CancellationTokenSource();
+            Console.CancelKeyPress += (_, e) => { e.Cancel = true; smokeCts.Cancel(); };
+            var smokeExitCode = await OcrContainerSmokeTest.RunAsync(smokeCts.Token);
+            Environment.ExitCode = smokeExitCode;
+            return;
+        }
+
         var builder = WebApplication.CreateBuilder(args);
 
         // RV-3: Pre-set the SEQ_URL env var before building Log.Logger so the appsettings.json
