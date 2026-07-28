@@ -21,6 +21,14 @@ cd <repo-root>   # /home/abel/ExxerProjects/IndFusion/ExxerCube.Prisma
 cp .env.example .env                    # set SA_PASSWORD (strong)
 cp .env.veriqan.example .env.veriqan    # set VERIQAN_SA_PASSWORD + VERIQAN_ENCRYPTION_KEY
 
+# O7: stamp a real, git-traceable MinVer version into the images instead of the
+# .env template's 0.0.0-local placeholder (see §3 and .env.example's APP_VERSION
+# comment for why this is needed — MinVer can't see .git/ inside the build).
+APP_VERSION=$(git describe --tags --always)
+APP_VERSION=${APP_VERSION#v}
+case "$APP_VERSION" in *.*) ;; *) APP_VERSION="0.0.0-sha.$APP_VERSION";; esac
+export APP_VERSION
+
 # Stage Veriqan (2 containers) — ports 1434 (SQL) + 18090 (worker)
 #   -p veriqan            : distinct Compose project (see §1c — MANDATORY)
 #   --env-file .env.veriqan : Veriqan's vars live here, not the default .env (see §5a)
@@ -139,6 +147,15 @@ Optional Veriqan keys (`VERIQAN_SMTP_*`, `VERIQAN_ALERT_RECIPIENTS`) are only
 exercised by RED-verdict alert email dispatch; leave the SMTP host as the
 placeholder for E2E that does not assert on email.
 
+> **`APP_VERSION` (O7):** both templates also declare `APP_VERSION=0.0.0-local` — a
+> build ARG that stamps MinVer's version into every image (`ENV
+> MinVerVersionOverride` in each Dockerfile). The templated value is a harmless
+> ad-hoc placeholder; §4b and §5a below export a real, git-derived value right
+> before `up --build` so staged images carry a traceable provenance stamp instead
+> of the placeholder. Without that export, every image just bakes
+> `APP_VERSION` from whichever `.env`/`.env.veriqan` copy you made — silently
+> reproducing the exact "constant `EngineVersion`" defect O7 fixed.
+
 > On this box both `.env` files already exist and are populated (created 2026-06-26).
 
 ---
@@ -171,6 +188,13 @@ affect.
 ### 4b. Bring it up
 
 ```bash
+# O7: derive a real MinVer version for the images (see §3 / TL;DR) — optional,
+# but without it every image bakes the .env template's 0.0.0-local placeholder.
+APP_VERSION=$(git describe --tags --always)
+APP_VERSION=${APP_VERSION#v}
+case "$APP_VERSION" in *.*) ;; *) APP_VERSION="0.0.0-sha.$APP_VERSION";; esac
+export APP_VERSION
+
 docker compose -p prisma -f docker-compose.dev.yml -f docker-compose.staging.override.yml up --build -d
 ```
 
@@ -210,6 +234,13 @@ No collision override needed — the Veriqan SQL maps to host `1434` and the wor
 to `8080`, both normally free.
 
 ```bash
+# O7: derive a real MinVer version for the images (see §3 / TL;DR) — optional,
+# but without it both images bake the .env.veriqan template's 0.0.0-local placeholder.
+APP_VERSION=$(git describe --tags --always)
+APP_VERSION=${APP_VERSION#v}
+case "$APP_VERSION" in *.*) ;; *) APP_VERSION="0.0.0-sha.$APP_VERSION";; esac
+export APP_VERSION
+
 docker compose -p veriqan --env-file .env.veriqan -f docker-compose.veriqan.yml up --build -d
 ```
 

@@ -32,10 +32,15 @@ commit-level evidence (§3).
 | O6 | **S2 rotation startup diagnostics** — `ProcessIdentitySigningKeys.cs:46` silently filters blank secrets; no weak-key (<128-bit) check; no never-retired-`PreviousJwtSecrets` diagnostic (forgotten Phase C = permanent second key, silently); blank-JwtSecret path asymmetry. Misconfig-only; fails closed. | Small, self-contained. |
 
 ### New residuals (2026-07-28 W2-closeout adversarial review)
-- **O7 — no repo versioning scheme → provenance `EngineVersion` is a constant `1.0.0.0`**: no
-  `<Version>`/MinVer/GitVersion anywhere; O3's column (and `Finding.EngineVersion` before it)
-  carries no discriminating value. Needs an owner ruling on the version source, then a small
-  build-props change. (`TRACKER-veriqan-w2-closeout.md` F1.)
+- ~~**O7 — no repo versioning scheme → provenance `EngineVersion` is a constant `1.0.0.0`**~~ —
+  ✅ **DONE 2026-07-28** (owner ruled **MinVer**; `a1a5f480` + adversarial-gate fix commit;
+  `TRACKER-o7-versioning.md`): MinVer 7.0.0 solution-wide (`MinVerTagPrefix=v`, metadata=short SHA),
+  new `EngineVersionResolver` reads `AssemblyInformationalVersion` → stamps discriminating
+  `1.4.0-rc.1.<height>+<sha>` (proven in compiled attribute + live provenance round-trip tests);
+  git-less Docker/compose/CI paths plumbed via `MinVerVersionOverride` (`v`-prefix MINVER1005 trap
+  fixed, `.env*`/staging-guide wired so the live compose path stamps real versions). Residuals
+  (Notes only): SHA-severing 50-char truncation (unreachable today), `Disposition.EngineVersion`
+  unwired, QaHarness CLI constant — see tracker gate table F6–F8.
 - **O8 — ALL CI is dormant**: no repo-root `.github/workflows/`; `quality-gates.yml` lives only
   under `Prisma/Code/Src/CSharp/.github/` where GitHub Actions never executes it — O1's
   `--ocr-smoke`, the E2-S8 publish matrix, and the new `veriqan-migrations` job all included.

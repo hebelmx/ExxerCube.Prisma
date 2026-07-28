@@ -6,10 +6,24 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 
 /// <summary>
 /// Tests for <see cref="EngineVersionResolver"/> — the provenance-version resolution helper
-/// extracted from <see cref="VerificationPipeline"/> (O7: MinVer wiring). Covers the three
-/// resolution branches (informational version preferred, assembly-version fallback, unknown
-/// fallback) plus the DB column length-cap guard.
+/// extracted from <see cref="VerificationPipeline"/> (O7: MinVer wiring). Covers the informational-
+/// version-preferred and assembly-version-fallback resolution branches plus the DB column
+/// length-cap guard.
 /// </summary>
+/// <remarks>
+/// The third resolution branch — falling back to <see cref="EngineVersionResolver.UnknownVersion"/>
+/// when the assembly has neither an informational-version attribute nor a usable assembly
+/// version — is intentionally NOT covered here. It was empirically confirmed unreachable via the
+/// dynamic-<see cref="AssemblyBuilder"/> technique used by the other tests: even when
+/// <see cref="AssemblyName.Version"/> is left completely unset (verified <see langword="null"/>
+/// immediately before <see cref="AssemblyBuilder.DefineDynamicAssembly(AssemblyName, AssemblyBuilderAccess)"/>
+/// is called), the runtime synthesizes <c>0.0.0.0</c> for the resulting assembly's
+/// <c>GetName().Version</c> rather than leaving it <see langword="null"/> — so
+/// <c>assembly.GetName().Version?.ToString()</c> never actually returns <see langword="null"/> for
+/// an assembly constructible this way. The "unknown" branch in
+/// <see cref="EngineVersionResolver.Resolve"/> remains as defensive code for whatever real-world
+/// assembly-loading path (e.g. reflection-only contexts) can genuinely produce a null version.
+/// </remarks>
 public sealed class EngineVersionResolverTests
 {
     /// <summary>

@@ -35,7 +35,7 @@ Nerdbank.GitVersioning, and manual-only.
 | S3 | `EngineVersionResolver` (new, testable) reads `AssemblyInformationalVersion` (fallback: assembly version → "unknown"); 50-char column-cap guard matching `HasMaxLength(50)` on JobVerdict+Finding configs; `VerificationPipeline.EngineVersion` delegates to it; 4 unit tests | DONE |
 | S4 | Docker: `ARG APP_VERSION=0.0.0-docker` → `ENV MinVerVersionOverride` in the 6 production Dockerfiles; both compose files pass `${APP_VERSION:-0.0.0-compose}`; dormant CI: `fetch-depth: 0` ×7 checkouts + `--build-arg APP_VERSION=$(git describe --tags --always)` ×5 docker steps | DONE |
 | S5 | Verification (orchestrator-run): build 0/0; Orchestration.Tests + Persistence.IntegrationTests green; stamped version proven | DONE |
-| S6 | Docs: backlog O7 closed; memory updated | PENDING |
+| S6 | Docs: backlog O7 closed; memory updated | DONE |
 
 ## Verification log
 
@@ -50,3 +50,37 @@ Nerdbank.GitVersioning, and manual-only.
   incl. 4 new `EngineVersionResolverTests`); `Veriqan.Infrastructure.Persistence.IntegrationTests`
   **37/37** on live Testcontainers SQL (incl. both provenance round-trip tests).
 - 2026-07-28 orchestrator: diffs read in full — scope exactly matches brief (12 modified + 2 new files).
+- 2026-07-28 orchestrator: `a1a5f480` accidentally swept in 2 regenerated calibration side-effect
+  files (my own test runs re-dirtied them post-dev-revert); reverted in `4d3b7f99`.
+
+## Adversarial gate (2026-07-28, post-commit `a1a5f480`+`4d3b7f99`) — 2 independent reviewers
+
+Correctness skeptic (ran the actual MinVer 7.0.0 binary against the shipped strings) + completeness
+auditor (fresh `--no-incremental` build 0/0, every tracker claim re-verified file:line). In-repo
+wiring (props/target/resolver/SDK-suffix suppression) survived all attacks; target name+timing and
+MTP-coupling angles explicitly REFUTED-clean. Real findings, all in the container/CI story:
+
+| F | Severity | Finding | Disposition |
+|---|----------|---------|-------------|
+| F1 | BLOCKER | CI `--build-arg APP_VERSION=$(git describe --tags --always)` emits `v`-prefixed string; MinVer does NOT apply `MinVerTagPrefix` to overrides → `MINVER1005`, exit 2, docker build dies (×5 CI steps). Latent only because CI is dormant (O8). | FIXED (gate-fix commit) |
+| F2 | MAJOR | Nothing in the repo sets `APP_VERSION` (no `.env*`, no script, staging guide silent) → the one LIVE image-build path (compose per STAGING-AND-E2E-GUIDE) stamps constant `0.0.0-compose` — recreates the O7 defect. | FIXED (gate-fix commit) |
+| F3 | Should-fix | Explicitly empty `--build-arg APP_VERSION=` → MinVer treats empty override as unset → silent constant `0.0.0-alpha.0`. | FIXED (gate-fix commit) |
+| F4 | Note | MSBuild Exec captures stderr and `;`-joins lines; MinVer accepts garbage metadata. | FIXED (gate-fix commit) |
+| F5 | Minor | Test-class doc overclaims "three resolution branches"; `"unknown"` branch untested (reachability disputed — empirical check delegated). | FIXED (gate-fix commit) |
+| F6 | Note | `[..50]` truncation would sever `+sha` first — unreachable today (realistic max ~30 chars; canary test exists). | RESIDUAL — logged, not fixed |
+| F7 | Note | `Disposition.EngineVersion` column exists but no production caller wires the resolver into it. | RESIDUAL — follow-up candidate |
+| F8 | Note | QaHarness CLI report header derives from `Assembly.GetName().Version` → still `1.0.0` (pre-existing, unchanged by O7; QA tooling, not a shipped service). | RESIDUAL — no action |
+
+## Gate-fix round (2026-07-28) — orchestrator-verified
+
+- F1: all 5 CI docker steps derive `APP_VERSION` safely (strip `v`, `0.0.0-sha.<hex>` bare-SHA guard).
+- F2: `APP_VERSION` documented in `.env.example` (placeholder `0.0.0-local`) + `.env.veriqan.example`;
+  STAGING-AND-E2E-GUIDE exports the real derivation at TL;DR/§4b/§5a + new §3 callout.
+- F3: `ENV MinVerVersionOverride=${APP_VERSION:-0.0.0-docker}` in all 6 Dockerfiles.
+- F4: `MinVerBuildMetadata` condition also requires `^[0-9a-fA-F]{7,40}$`.
+- F5: reviewer's null-Version claim empirically REFUTED (dynamic assembly synthesizes `0.0.0.0`);
+  test-class doc corrected instead of adding an unreachable-branch test.
+- Orchestrator verification: solution build 0/0; `quality-gates.yml` parses (python yaml);
+  `EngineVersionResolverTests` 4/4 (MTP note: run from project dir, 4-segment filter `/*/*/Class/*`).
+- Residuals F6–F8 stay open as Notes (see gate table); `TRACKER-veriqan-w2-closeout.md` cited by the
+  backlog does not exist in-repo — backlog edit is the canonical O7 closure.

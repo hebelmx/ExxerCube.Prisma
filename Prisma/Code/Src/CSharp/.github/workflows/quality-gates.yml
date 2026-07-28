@@ -291,10 +291,18 @@ jobs:
     # Build context is the repo root so all four Dockerfiles can COPY Prisma/Code/Src/CSharp/
     # and the root nuget.config in a single docker build invocation per image.
 
+    # O7 FIX 1: MinVer 7.0.0 does NOT apply MinVerTagPrefix to MinVerVersionOverride, so a raw
+    # `git describe` (which emits the repo's "v"-prefixed tags, e.g. v1.4.0-rc.1-549-g<sha>) fails
+    # override parsing with MINVER1005 (exit 2), killing the docker build. Strip the tag prefix,
+    # and fall back to a valid-SemVer synthetic version when describe yields a bare hex SHA (no
+    # tag reachable) rather than a `MAJOR.MINOR.PATCH...` string.
     - name: Build Orion Worker image
       run: |
+        APP_VERSION=$(git describe --tags --always)
+        APP_VERSION=${APP_VERSION#v}
+        case "$APP_VERSION" in *.*) ;; *) APP_VERSION="0.0.0-sha.$APP_VERSION";; esac
         docker build \
-          --build-arg APP_VERSION=$(git describe --tags --always) \
+          --build-arg APP_VERSION="$APP_VERSION" \
           -f "Prisma/Code/Src/CSharp/04 Services/Orion/Prisma.Orion.Worker/Dockerfile" \
           -t prisma-orion:${{ github.sha }} \
           .
@@ -302,8 +310,11 @@ jobs:
 
     - name: Build Athena Worker image
       run: |
+        APP_VERSION=$(git describe --tags --always)
+        APP_VERSION=${APP_VERSION#v}
+        case "$APP_VERSION" in *.*) ;; *) APP_VERSION="0.0.0-sha.$APP_VERSION";; esac
         docker build \
-          --build-arg APP_VERSION=$(git describe --tags --always) \
+          --build-arg APP_VERSION="$APP_VERSION" \
           -f "Prisma/Code/Src/CSharp/04 Services/Athena/Prisma.Athena.Worker/Dockerfile" \
           -t prisma-athena:${{ github.sha }} \
           .
@@ -321,8 +332,11 @@ jobs:
 
     - name: Build Reconciliator Worker image
       run: |
+        APP_VERSION=$(git describe --tags --always)
+        APP_VERSION=${APP_VERSION#v}
+        case "$APP_VERSION" in *.*) ;; *) APP_VERSION="0.0.0-sha.$APP_VERSION";; esac
         docker build \
-          --build-arg APP_VERSION=$(git describe --tags --always) \
+          --build-arg APP_VERSION="$APP_VERSION" \
           -f "Prisma/Code/Src/CSharp/04 Services/Reconciliator/Prisma.Reconciliator.Worker/Dockerfile" \
           -t prisma-reconciliator:${{ github.sha }} \
           .
@@ -330,8 +344,11 @@ jobs:
 
     - name: Build Web UI image
       run: |
+        APP_VERSION=$(git describe --tags --always)
+        APP_VERSION=${APP_VERSION#v}
+        case "$APP_VERSION" in *.*) ;; *) APP_VERSION="0.0.0-sha.$APP_VERSION";; esac
         docker build \
-          --build-arg APP_VERSION=$(git describe --tags --always) \
+          --build-arg APP_VERSION="$APP_VERSION" \
           -f "Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Dockerfile" \
           -t prisma-webui:${{ github.sha }} \
           .
@@ -408,10 +425,16 @@ jobs:
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
         fi
 
+    # O7 FIX 1: see the docker-build job's identical comment — MinVer 7.0.0 rejects a raw
+    # "v"-prefixed `git describe` as MinVerVersionOverride (MINVER1005), and a bare hex SHA
+    # (no reachable tag) is not valid SemVer either.
     - name: Build image (${{ matrix.name }})
       run: |
+        APP_VERSION=$(git describe --tags --always)
+        APP_VERSION=${APP_VERSION#v}
+        case "$APP_VERSION" in *.*) ;; *) APP_VERSION="0.0.0-sha.$APP_VERSION";; esac
         docker build \
-          --build-arg APP_VERSION=$(git describe --tags --always) \
+          --build-arg APP_VERSION="$APP_VERSION" \
           -f "${{ matrix.dockerfile }}" \
           -t "${{ steps.reg.outputs.registry }}/${{ matrix.name }}:${{ steps.reg.outputs.sha }}" \
           -t "${{ steps.reg.outputs.registry }}/${{ matrix.name }}:latest" \

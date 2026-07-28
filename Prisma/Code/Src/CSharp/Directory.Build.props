@@ -83,7 +83,12 @@
 	     the version so MinVerBuildMetadata is populated in time. Tolerates git being absent or
 	     the tree not being a repo (e.g. some container/CI contexts): a failed/empty Exec just
 	     leaves MinVerBuildMetadata unset, which MinVer treats as "no metadata" — never fails the
-	     build. Docker/CI builds normally bypass this entirely via MinVerVersionOverride. -->
+	     build. Docker/CI builds normally bypass this entirely via MinVerVersionOverride.
+	     O7 FIX 4: ConsoleToMSBuild captures stderr as well as stdout and joins multi-line output
+	     with ";", and MinVer accepts arbitrary text as build metadata without validating it — so a
+	     git warning/error written to either stream could silently become part of the version
+	     string. The regex below only accepts a clean 7-40 char hex string (a real short/full SHA),
+	     rejecting anything else exactly like the exit-code and non-empty checks already do. -->
 	<Target Name="SetMinVerBuildMetadataFromGit" BeforeTargets="MinVer">
 		<Exec Command="git rev-parse --short HEAD"
 		      ConsoleToMSBuild="true"
@@ -94,7 +99,7 @@
 			<Output TaskParameter="ConsoleOutput" PropertyName="_GitShortSha" />
 			<Output TaskParameter="ExitCode" PropertyName="_GitShortShaExitCode" />
 		</Exec>
-		<PropertyGroup Condition="'$(_GitShortShaExitCode)' == '0' AND '$(_GitShortSha)' != ''">
+		<PropertyGroup Condition="'$(_GitShortShaExitCode)' == '0' AND '$(_GitShortSha)' != '' AND $([System.Text.RegularExpressions.Regex]::IsMatch('$(_GitShortSha)', '^[0-9a-fA-F]{7,40}$'))">
 			<MinVerBuildMetadata>$(_GitShortSha)</MinVerBuildMetadata>
 		</PropertyGroup>
 	</Target>
