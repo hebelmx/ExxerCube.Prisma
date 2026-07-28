@@ -27,8 +27,8 @@
 | # | Task | Status | Commit | Verification |
 |---|------|--------|--------|--------------|
 | 1 | O3 JobVerdict provenance (E3-S4) | DONE | `5f0b9794` | build 0/0; Orchestration.Tests 265/265; Persistence.IntegrationTests 33/33 (Testcontainers); migration `20260727233432_AddJobVerdictProvenance` |
-| 2 | O2 BatchExceptionLog dead-letter (E3-S3) | DONE | — | build 0/0 (Worker); Orchestration.Tests 271/271 (+6); Persistence.IntegrationTests 37/37 (+4, Testcontainers second-DbContext durability proof); migration `20260728155959_AddBatchExceptionLog` |
-| 3 | O4 CI migrate wiring (E3-S5 remainder) | PENDING | — | — |
+| 2 | O2 BatchExceptionLog dead-letter (E3-S3) | DONE | `368ec43c` | build 0/0 (Worker); Orchestration.Tests 271/271 (+6); Persistence.IntegrationTests 37/37 (+4, Testcontainers second-DbContext durability proof); migration `20260728155959_AddBatchExceptionLog` |
+| 3 | O4 CI migrate wiring (E3-S5 remainder) | DONE | — | `veriqan-migrations` CI job (bundle + from-zero verify); every YAML command executed locally: dotnet-ef 10.0.8 restored, bundle built, all 10 migrations applied to fresh SQL 2022 container (exit 0) + idempotent re-run; runbook §8 extended |
 | 4 | Adversarial review + close-out | PENDING | — | — |
 
 ## Orchestrator decisions (pre-delegation)
@@ -57,3 +57,15 @@
   never-abort guard at both failure sites (reason truncated to 2000), `GET /exceptions?batchId=`
   (auth-required; 400 bad guid; 499 cancelled), DI in both EF and in-memory branches.
   Verified from ground truth by orchestrator: build 0/0, both suites green, diff reviewed.
+- 2026-07-28: O4 DONE. `veriqan-migrations` job in quality-gates.yml: tool-manifest-pinned
+  dotnet-ef 10.0.8 (matches EF Core 10.0.8), `ef migrations bundle --self-contained -r linux-x64`
+  (no --startup-project needed — VeriqanDbContextFactory is IDesignTimeDbContextFactory),
+  upload-artifact, from-zero apply against ephemeral SQL 2022 + lineage assert (>=1, non-stale)
+  + always() teardown. All commands proven locally (CI-dormancy caveat below). Runbook §8 got the
+  bundle/DBA path subsection. `.gitignore` excludes `/veriqan-efbundle`.
+- 2026-07-28: **FINDING (epic-external, surface to owner):** there is NO repo-root
+  `.github/workflows/` — `quality-gates.yml` lives only under `Prisma/Code/Src/CSharp/.github/`,
+  where GitHub Actions never executes it. ALL CI (including O1's --ocr-smoke step and the
+  E2-S8 publish matrix) is dormant. Activating it = move to repo root + fix stale paths
+  (root-less `dotnet restore`, e2e job paths) — several jobs would go red immediately.
+  Deliberately NOT fixed inside this epic (scope + risk); needs its own decision/pass.

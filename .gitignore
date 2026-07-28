@@ -695,6 +695,11 @@ git-lfs-tmp/
 # BMAD installs into the repo root, not into a literal "pwd" folder
 pwd/
 
+# Veriqan EF Core migrations bundle (O4/VERIQAN-E3-S5) — self-contained native binary built by
+# `dotnet ef migrations bundle` (see .github/workflows/quality-gates.yml `veriqan-migrations`
+# job and docs/operations/VERIQAN-RUNBOOK.md §8); a CI/local build artifact, never committed.
+/veriqan-efbundle
+
 # Claude Code agent worktrees (transient — never commit)
 .claude/worktrees/
 

@@ -595,6 +595,69 @@ request does not fail). This means:
 > or legal baseline is missing, the host **fails loud at startup** — it does not silently fall
 > back to in-code defaults. Run `--migrate` to completion (exit 0) before starting the host.
 
+### CI artifact path — `ef migrations bundle` (O4, VERIQAN-E3-S5 remainder)
+
+The `--migrate` CLI above requires deploying the full Worker binary. When a DBA needs to apply
+schema changes **without** a Worker deployment — offline apply, a change-control window, or an
+environment where nobody wants to stand up the whole service just to run DDL — use the portable
+EF Core migrations bundle instead. It is a single self-contained native executable with the
+entire migration lineage baked in; it does **not** seed the legal baseline or warm any cache (it
+is DDL-only), so it is a schema-apply tool, not a substitute for `--migrate`.
+
+**Where it comes from:** the `veriqan-migrations` job in
+`Prisma/Code/Src/CSharp/.github/workflows/quality-gates.yml` builds it on every CI run and
+uploads it as the `veriqan-efbundle` artifact. `dotnet-ef` is pinned in
+`.config/dotnet-tools.json` (version `10.0.8`) to match the
+`Microsoft.EntityFrameworkCore.*` `PackageVersion` line in `Directory.Packages.props` — bump
+both together.
+
+**Building it locally** (from the repo root, with the local tool manifest restored):
+
+```bash
+dotnet tool restore
+dotnet ef migrations bundle \
+  --project "Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Persistence/ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.csproj" \
+  --self-contained \
+  -r linux-x64 \
+  --output veriqan-efbundle \
+  --force
+```
+
+No `--startup-project` is needed: `VeriqanDbContextFactory`
+(`EntityFramework/Design/VeriqanDbContextFactory.cs`) is an
+`IDesignTimeDbContextFactory<VeriqanDbContext>`, so EF's tooling resolves the design-time
+context straight from the Persistence project. `--self-contained -r linux-x64` matches the
+container/CI runner target so the bundle runs with no .NET runtime installed on the target box.
+The output binary (`veriqan-efbundle`) is git-ignored — never commit it; treat it as a build
+artifact, rebuild or re-download it per deploy.
+
+**Applying it:**
+
+```bash
+chmod +x veriqan-efbundle
+./veriqan-efbundle --connection "Server=<host>,<port>;Database=<db>;User Id=<user>;Password=<password>;TrustServerCertificate=True;Encrypt=True"
+```
+
+Exit code `0` = success (including the no-op case where the database is already up to date);
+non-zero = failure. The bundle is idempotent — safe to re-run against a database that already
+has some or all migrations applied; it only applies what is missing, in lineage order.
+
+**From-zero CI verification:** the same `veriqan-migrations` job also proves the bundle applies
+the **full** migration lineage cleanly to a brand-new, empty database — the same guarantee a
+first-time production rollout needs. It starts an ephemeral `mssql/server:2022-latest`
+container, polls readiness with `sqlcmd -Q "SELECT 1"` in a bounded retry loop, creates an empty
+database, runs the freshly built bundle against it, and asserts `veriqan.__EFMigrationsHistory`
+contains at least one row. As of the migration lineage ending at
+`20260728155959_AddBatchExceptionLog`, this applies all 10 migrations in order and exits `0`.
+The container is torn down at the end of the job (`if: always()`), so a failed run never leaks a
+container on the runner.
+
+> **Caveat:** `quality-gates.yml` lives at `Prisma/Code/Src/CSharp/.github/workflows/`, not at
+> the repo root, so GitHub Actions does not currently execute it automatically. The repo still
+> treats it as the canonical CI definition; every command in the `veriqan-migrations` job has
+> been verified by running it locally end-to-end (build the bundle, stand up a container, apply
+> from zero, assert, tear down) against a real SQL Server 2022 container.
+
 ---
 
 ## 9. Durable result and reprocess-audit stores
