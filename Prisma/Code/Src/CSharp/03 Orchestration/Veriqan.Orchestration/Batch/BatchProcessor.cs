@@ -53,6 +53,7 @@ internal sealed class BatchProcessor : IBatchProcessor
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IVerificationResultStore _resultStore;
+    private readonly IBatchExceptionLogRepository _exceptionLogRepository;
     private readonly VeriqanMetrics _metrics;
     private readonly ILogger<BatchProcessor> _logger;
     private readonly BatchProcessorOptions _processorOptions;
@@ -63,12 +64,14 @@ internal sealed class BatchProcessor : IBatchProcessor
     public BatchProcessor(
         IServiceScopeFactory scopeFactory,
         IVerificationResultStore resultStore,
+        IBatchExceptionLogRepository exceptionLogRepository,
         VeriqanMetrics metrics,
         ILogger<BatchProcessor> logger,
         IOptions<BatchProcessorOptions> processorOptions)
     {
         _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
         _resultStore = resultStore ?? throw new ArgumentNullException(nameof(resultStore));
+        _exceptionLogRepository = exceptionLogRepository ?? throw new ArgumentNullException(nameof(exceptionLogRepository));
         _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _processorOptions = (processorOptions ?? throw new ArgumentNullException(nameof(processorOptions))).Value;
@@ -89,6 +92,11 @@ internal sealed class BatchProcessor : IBatchProcessor
 
         int total = batch.Count;
 
+        // One BatchId per ProcessBatchAsync run — stamped on every dead-letter row written
+        // during this batch and returned in BatchReport so callers can query
+        // GET /exceptions?batchId= to triage failures from this specific run (VERIQAN-E3-S3).
+        var batchId = Guid.NewGuid();
+
         // Consumer count: an explicit per-call BatchOptions.MaxDegreeOfParallelism (a value
         // other than the default) takes precedence; otherwise the configured global
         // Veriqan:BatchProcessor:MaxConcurrency (default Environment.ProcessorCount) drives it.
@@ -97,7 +105,8 @@ internal sealed class BatchProcessor : IBatchProcessor
             : _processorOptions.EffectiveConcurrency;
 
         _logger.LogInformation(
-            "Batch starting: {Total} items, MaxConcurrency={MaxConcurrency}, Resume={Resume}",
+            "Batch starting: BatchId={BatchId}, {Total} items, MaxConcurrency={MaxConcurrency}, Resume={Resume}",
+            batchId,
             total,
             maxConcurrency,
             options.Resume);
@@ -249,6 +258,9 @@ internal sealed class BatchProcessor : IBatchProcessor
                             "Pipeline failure queued for {FileName}: {Error}",
                             item.FileName,
                             result.Error);
+
+                        await WriteDeadLetterAsync(
+                            batchId, item, result.Error ?? "Pipeline returned failure", ct).ConfigureAwait(false);
                     }
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
@@ -266,6 +278,8 @@ internal sealed class BatchProcessor : IBatchProcessor
                         ex,
                         "Unexpected exception processing {FileName}",
                         item.FileName);
+
+                    await WriteDeadLetterAsync(batchId, item, ex.Message, ct).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -336,6 +350,7 @@ internal sealed class BatchProcessor : IBatchProcessor
         double? p95Ms = ComputeP95Ms(outcomeList);
 
         var report = new BatchReport(
+            BatchId: batchId,
             Outcomes: outcomeList,
             ExceptionQueue: exceptionList,
             TotalSubmitted: total,
@@ -367,6 +382,62 @@ internal sealed class BatchProcessor : IBatchProcessor
             report.P95LatencyMs);
 
         return Result<BatchReport>.WithSuccess(report);
+    }
+
+    /// <summary>
+    /// Writes a durable <see cref="BatchExceptionLogEntry"/> dead-letter row for a single failed
+    /// batch item (VERIQAN-E3-S3). <paramref name="failureReason"/> is truncated to
+    /// <see cref="BatchExceptionLogEntry.MaxFailureReasonLength"/> before the record is
+    /// constructed.
+    /// </summary>
+    /// <remarks>
+    /// <b>Dead-letter write guard:</b> this method never throws and never returns a failure that
+    /// the caller must act on — any <see cref="IBatchExceptionLogRepository.AppendAsync"/> failure
+    /// (including an unexpected exception from the repository itself) is logged as a structured
+    /// warning and swallowed. The in-memory <see cref="BatchReport.ExceptionQueue"/> summary is
+    /// the batch's failure contract; the durable log is best-effort and must never abort or fail
+    /// the batch.
+    /// </remarks>
+    private async Task WriteDeadLetterAsync(
+        Guid batchId,
+        StatementSubmission item,
+        string failureReason,
+        CancellationToken ct)
+    {
+        try
+        {
+            var truncatedReason = failureReason.Length > BatchExceptionLogEntry.MaxFailureReasonLength
+                ? failureReason[..BatchExceptionLogEntry.MaxFailureReasonLength]
+                : failureReason;
+
+            var entry = new BatchExceptionLogEntry(
+                Id: Guid.NewGuid(),
+                BatchId: batchId,
+                StatementHash: ComputeSha256Hex(item.Pdf),
+                InstitutionId: item.ContextKey.Institution,
+                FailureReason: truncatedReason,
+                FailedAt: DateTimeOffset.UtcNow);
+
+            var appendResult = await _exceptionLogRepository.AppendAsync(entry, ct).ConfigureAwait(false);
+
+            if (!appendResult.IsSuccess)
+            {
+                _logger.LogWarning(
+                    "Could not persist dead-letter row for {FileName} (BatchId={BatchId}): {Error}",
+                    item.FileName,
+                    batchId,
+                    appendResult.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Guard: a durable dead-letter write must never abort or fail the batch.
+            _logger.LogWarning(
+                ex,
+                "Unexpected exception persisting dead-letter row for {FileName} (BatchId={BatchId})",
+                item.FileName,
+                batchId);
+        }
     }
 
     /// <summary>

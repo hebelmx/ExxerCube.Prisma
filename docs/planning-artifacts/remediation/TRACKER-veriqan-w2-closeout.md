@@ -26,8 +26,8 @@
 
 | # | Task | Status | Commit | Verification |
 |---|------|--------|--------|--------------|
-| 1 | O3 JobVerdict provenance (E3-S4) | PENDING | — | — |
-| 2 | O2 BatchExceptionLog dead-letter (E3-S3) | PENDING | — | — |
+| 1 | O3 JobVerdict provenance (E3-S4) | DONE | `5f0b9794` | build 0/0; Orchestration.Tests 265/265; Persistence.IntegrationTests 33/33 (Testcontainers); migration `20260727233432_AddJobVerdictProvenance` |
+| 2 | O2 BatchExceptionLog dead-letter (E3-S3) | DONE | — | build 0/0 (Worker); Orchestration.Tests 271/271 (+6); Persistence.IntegrationTests 37/37 (+4, Testcontainers second-DbContext durability proof); migration `20260728155959_AddBatchExceptionLog` |
 | 3 | O4 CI migrate wiring (E3-S5 remainder) | PENDING | — | — |
 | 4 | Adversarial review + close-out | PENDING | — | — |
 
@@ -42,3 +42,18 @@
 ## Log
 
 - 2026-07-27: Epic opened. Scout complete (facts above). No implementation yet.
+- 2026-07-27: O3 DONE (`5f0b9794`). Fork resolved by orchestrator: spec's `BundleMetadata.Version`
+  doesn't exist; dev used `SchemaVersion` (a constant — zero discriminating value); orchestrator
+  changed the stamp to `BundleId ?? SchemaVersion` (helper `BundleProvenanceVersion`, 50-char cap).
+  `ReferenceBundleVersion` nullable — catalog pre-resolve degrades gracefully to null bundle.
+  EngineVersion = Orchestration assembly version (spec said Infrastructure assembly; the stamping
+  pipeline lives in Orchestration — deviation accepted, flagged for adversarial review).
+  Note: `docs/qa/calibration/*.md` regenerate as a Veriqan test side effect — revert before commit.
+- 2026-07-28: O2 DONE. Scaffold (entry record, port, in-memory + EF entity/config) completed with:
+  `EfBatchExceptionLogRepository` (scope-factory pattern, mirrors `EfReprocessAuditRepository`,
+  same Orchestration/Repositories placement precedent), DbSet + migration `AddBatchExceptionLog`
+  (composite index BatchId+FailedAt; deliberately NO immutability trigger — triage columns mutable),
+  per-run `BatchId` stamped on `BatchReport` + `POST /batch` response, `WriteDeadLetterAsync`
+  never-abort guard at both failure sites (reason truncated to 2000), `GET /exceptions?batchId=`
+  (auth-required; 400 bad guid; 499 cancelled), DI in both EF and in-memory branches.
+  Verified from ground truth by orchestrator: build 0/0, both suites green, diff reviewed.

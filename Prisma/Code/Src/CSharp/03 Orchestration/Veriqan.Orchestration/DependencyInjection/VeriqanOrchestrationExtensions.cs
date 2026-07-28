@@ -127,6 +127,11 @@ public static class VeriqanOrchestrationExtensions
             // project reference.
             services.AddSingleton<IVerificationResultStore, EfVerificationResultStore>();
             services.AddSingleton<IReprocessAuditRepository, EfReprocessAuditRepository>();
+
+            // Durable EF-backed dead-letter log for BatchProcessor (VERIQAN-E3-S3). Same
+            // rationale as above: IBatchExceptionLogRepository is defined in this Orchestration
+            // assembly, so the registration lives here rather than in AddVeriqanPersistence.
+            services.AddSingleton<IBatchExceptionLogRepository, EfBatchExceptionLogRepository>();
         }
         else
         {
@@ -187,8 +192,8 @@ public static class VeriqanOrchestrationExtensions
 
     /// <summary>
     /// Registers lightweight in-memory stubs for <see cref="IVerificationJobRepository"/>,
-    /// <see cref="IDispositionRepository"/>, <see cref="IVerificationResultStore"/>, and
-    /// <see cref="IReprocessAuditRepository"/>.
+    /// <see cref="IDispositionRepository"/>, <see cref="IVerificationResultStore"/>,
+    /// <see cref="IReprocessAuditRepository"/>, and <see cref="IBatchExceptionLogRepository"/>.
     /// Intended for use without a database connection (integration tests, local dev, unit test
     /// hosts).
     /// </summary>
@@ -204,6 +209,7 @@ public static class VeriqanOrchestrationExtensions
         services.TryAddScoped<IVerdictPersistenceService, InMemoryVerdictPersistenceService>();
         services.TryAddSingleton<IVerificationResultStore, InMemoryVerificationResultStore>();
         services.TryAddSingleton<IReprocessAuditRepository, InMemoryReprocessAuditRepository>();
+        services.TryAddSingleton<IBatchExceptionLogRepository, InMemoryBatchExceptionLogRepository>();
 
         return services;
     }

@@ -318,10 +318,36 @@ app.MapPost("/batch", async (
     var report = result.Value!;
     return Results.Accepted(value: new
     {
+        batchId = report.BatchId,
         totalSubmitted = report.TotalSubmitted,
         completedCount = report.CompletedCount,
         failedCount = report.FailedCount,
     });
+}).RequireAuthorization();
+
+// GET /exceptions?batchId={guid} — durable dead-letter log lookup for a batch run (VERIQAN-E3-S3).
+app.MapGet("/exceptions", async (
+    [FromQuery] string? batchId,
+    [FromServices] IBatchExceptionLogRepository exceptionLogRepository,
+    HttpContext httpContext) =>
+{
+    var ct = httpContext.RequestAborted;
+
+    if (ct.IsCancellationRequested)
+        return Results.StatusCode(499); // client closed request
+
+    if (!Guid.TryParse(batchId, out var parsedBatchId))
+        return Results.BadRequest(new { error = "batchId is required and must be a valid GUID." });
+
+    var result = await exceptionLogRepository.GetByBatchIdAsync(parsedBatchId, ct);
+
+    if (result.IsCancelled())
+        return Results.StatusCode(499);
+
+    if (!result.IsSuccess)
+        return Results.UnprocessableEntity(new { error = result.Error });
+
+    return Results.Ok(result.Value);
 }).RequireAuthorization();
 
 await app.RunAsync();

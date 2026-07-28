@@ -121,6 +121,8 @@ public sealed class ObservabilityTests : IDisposable
         services.AddLogging();
         services.AddScoped<IVerificationPipeline>(_ => pipeline);
         services.AddSingleton<IVerificationResultStore, InMemoryVerificationResultStore>();
+        // IBatchExceptionLogRepository is required by BatchProcessor (dead-letter persistence, VERIQAN-E3-S3)
+        services.AddSingleton<IBatchExceptionLogRepository, InMemoryBatchExceptionLogRepository>();
         // Register the pre-created metrics instance so measurements go to our listener.
         services.AddSingleton(_metrics);
         services.AddSingleton<IBatchProcessor, BatchProcessor>();

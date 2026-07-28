@@ -79,6 +79,8 @@ public sealed class BatchProcessorTests
         services.AddScoped<IVerificationPipeline>(_ => pipeline);
         // IVerificationResultStore is required by BatchProcessor (used when Resume=true)
         services.AddSingleton<IVerificationResultStore, InMemoryVerificationResultStore>();
+        // IBatchExceptionLogRepository is required by BatchProcessor (dead-letter persistence, VERIQAN-E3-S3)
+        services.AddSingleton<IBatchExceptionLogRepository, InMemoryBatchExceptionLogRepository>();
         services.AddSingleton<VeriqanMetrics>();
         services.AddSingleton<IBatchProcessor, BatchProcessor>();
         return services.BuildServiceProvider().GetRequiredService<IBatchProcessor>();
@@ -222,6 +224,8 @@ public sealed class BatchProcessorTests
             new DelayedPipeline(tracker, delayMs: 30, greenOutcome));
         // IVerificationResultStore required by BatchProcessor constructor
         services.AddSingleton<IVerificationResultStore, InMemoryVerificationResultStore>();
+        // IBatchExceptionLogRepository is required by BatchProcessor (dead-letter persistence, VERIQAN-E3-S3)
+        services.AddSingleton<IBatchExceptionLogRepository, InMemoryBatchExceptionLogRepository>();
         services.AddSingleton<VeriqanMetrics>();
         services.AddSingleton<IBatchProcessor, BatchProcessor>();
         var processor = services.BuildServiceProvider().GetRequiredService<IBatchProcessor>();

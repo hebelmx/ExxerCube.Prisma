@@ -81,6 +81,8 @@ public sealed class ResumeAndReprocessTests
         services.AddLogging();
         services.AddScoped<IVerificationPipeline>(_ => pipeline);
         services.AddSingleton<IVerificationResultStore>(store);
+        // IBatchExceptionLogRepository is required by BatchProcessor (dead-letter persistence, VERIQAN-E3-S3)
+        services.AddSingleton<IBatchExceptionLogRepository, InMemoryBatchExceptionLogRepository>();
         services.AddSingleton<VeriqanMetrics>();
         services.AddSingleton<IBatchProcessor, BatchProcessor>();
 

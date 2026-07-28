@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 
@@ -7,6 +8,12 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 /// Final summary produced by <see cref="IBatchProcessor"/> after all items in a batch
 /// have been processed (or placed on the exception queue).
 /// </summary>
+/// <param name="BatchId">
+/// Unique identifier generated once per <c>ProcessBatchAsync</c> call. Stamped on every
+/// <see cref="ExxerCube.Prisma.Veriqan.Orchestration.Batch.BatchExceptionLogEntry"/> row
+/// written during this run so callers can look up the durable dead-letter log for this
+/// specific batch via <c>GET /exceptions?batchId=</c> (VERIQAN-E3-S3).
+/// </param>
 /// <param name="Outcomes">
 /// All <see cref="VerificationOutcome"/> instances produced by items that completed
 /// the pipeline successfully during this run (including Blocked verdicts).
@@ -74,6 +81,7 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 /// completions).  NFR-1 observability metric.
 /// </param>
 public sealed record BatchReport(
+    Guid BatchId,
     IReadOnlyList<VerificationOutcome> Outcomes,
     IReadOnlyList<ExceptionQueueEntry> ExceptionQueue,
     int TotalSubmitted,

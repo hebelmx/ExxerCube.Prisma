@@ -60,6 +60,13 @@ public sealed class VeriqanDbContext : DbContext
     /// <summary>Gets or sets the append-only reprocess audit log.</summary>
     public DbSet<ReprocessAuditLogEntity> ReprocessAuditLog { get; set; } = null!;
 
+    /// <summary>
+    /// Gets or sets the durable batch-processing dead-letter log (VERIQAN-E3-S3).
+    /// Unlike <see cref="ReprocessAuditLog"/>, rows here are mutable (RetryCount / LastRetryAt /
+    /// ResolvedAt triage lifecycle) — see <see cref="Configurations.BatchExceptionLogConfiguration"/>.
+    /// </summary>
+    public DbSet<BatchExceptionLogEntity> BatchExceptionLog { get; set; } = null!;
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -81,6 +88,7 @@ public sealed class VeriqanDbContext : DbContext
 
         modelBuilder.ApplyConfiguration(new VerificationOutcomeSnapshotConfiguration());
         modelBuilder.ApplyConfiguration(new ReprocessAuditLogConfiguration());
+        modelBuilder.ApplyConfiguration(new BatchExceptionLogConfiguration());
     }
 
     /// <summary>
