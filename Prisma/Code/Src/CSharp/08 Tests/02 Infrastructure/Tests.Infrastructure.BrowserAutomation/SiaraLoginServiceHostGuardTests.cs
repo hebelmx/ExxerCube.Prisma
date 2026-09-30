@@ -36,7 +36,7 @@ public sealed class SiaraLoginServiceHostGuardTests
         var result = await sut.LoginAsync(agent, "user", "pass", TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue("opting in must allow the login to proceed");
-        await agent.Received().FillInputAsync("input[name='username']", "user", Arg.Any<CancellationToken>());
+        await agent.Received().FillInputAsync(SiaraLoginService.UsernameSelector, "user", Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -97,7 +97,7 @@ public sealed class SiaraLoginServiceHostGuardTests
     public async Task LoginAsync_WhenFillUsernameFails_FailsClosed()
     {
         var agent = BuildLoginCapableAgentMock(currentUrl: SimulatorLoginUrl);
-        agent.FillInputAsync("input[name='username']", Arg.Any<string>(), Arg.Any<CancellationToken>())
+        agent.FillInputAsync(SiaraLoginService.UsernameSelector, Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(_ => Result.WithFailure("disabled"));
         var sut = new SiaraLoginService(CreateHostPolicy(allowProductionHost: false), Substitute.For<ILogger<SiaraLoginService>>());
 
@@ -111,7 +111,7 @@ public sealed class SiaraLoginServiceHostGuardTests
     public async Task LoginAsync_WhenFillPasswordFails_FailsClosed()
     {
         var agent = BuildLoginCapableAgentMock(currentUrl: SimulatorLoginUrl);
-        agent.FillInputAsync("input[name='password']", Arg.Any<string>(), Arg.Any<CancellationToken>())
+        agent.FillInputAsync(SiaraLoginService.PasswordSelector, Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(_ => Result.WithFailure("disabled"));
         var sut = new SiaraLoginService(CreateHostPolicy(allowProductionHost: false), Substitute.For<ILogger<SiaraLoginService>>());
 

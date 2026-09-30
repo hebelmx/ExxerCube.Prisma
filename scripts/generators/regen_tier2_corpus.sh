@@ -64,7 +64,7 @@ TYPES=("fiscal" "judicial" "pld" "aseguramiento" "informacion")
 
 BATCHES=$(( (TOTAL + BATCH - 1) / BATCH ))
 GENERATED=0
-SEED=1000
+SEED="${SEED:-1000}"   # override to generate a fresh set of case IDs
 
 for ((i=1; i<=BATCHES; i++)); do
   THIS_BATCH=$BATCH

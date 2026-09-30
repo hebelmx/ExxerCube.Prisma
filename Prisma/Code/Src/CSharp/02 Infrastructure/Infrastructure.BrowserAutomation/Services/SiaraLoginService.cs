@@ -19,6 +19,15 @@ namespace ExxerCube.Prisma.Infrastructure.BrowserAutomation.Services;
 /// </remarks>
 public class SiaraLoginService : ISiaraLoginService
 {
+    /// <summary>
+    /// Username field: a plain form posts <c>name="username"</c>; a Blazor EditForm renders
+    /// <c>name="Model.Username"</c> with <c>id="username"</c>. Either form is accepted.
+    /// </summary>
+    public const string UsernameSelector = "input[name='username'], input#username";
+
+    /// <summary>Password field; same two shapes as <see cref="UsernameSelector"/>.</summary>
+    public const string PasswordSelector = "input[name='password'], input#password";
+
     private readonly SiaraHostPolicy _hostPolicy;
     private readonly ILogger<SiaraLoginService> _logger;
 
@@ -71,7 +80,7 @@ public class SiaraLoginService : ISiaraLoginService
 
             // Wait for username input field to be visible
             _logger.LogDebug("Waiting for username input field");
-            var waitUsernameResult = await agent.WaitForSelectorAsync("input[name='username']", timeoutMs: 10000, cancellationToken);
+            var waitUsernameResult = await agent.WaitForSelectorAsync(UsernameSelector, timeoutMs: 10000, cancellationToken);
             if (!waitUsernameResult.IsSuccess)
             {
                 return Result.WithFailure($"Username input field not found: {waitUsernameResult.Error}");
@@ -79,7 +88,7 @@ public class SiaraLoginService : ISiaraLoginService
 
             // Fill username
             _logger.LogDebug("Filling username field");
-            var fillUsernameResult = await agent.FillInputAsync("input[name='username']", username, cancellationToken);
+            var fillUsernameResult = await agent.FillInputAsync(UsernameSelector, username, cancellationToken);
             if (!fillUsernameResult.IsSuccess)
             {
                 return Result.WithFailure($"Failed to fill username: {fillUsernameResult.Error}");
@@ -87,7 +96,7 @@ public class SiaraLoginService : ISiaraLoginService
 
             // Fill password
             _logger.LogDebug("Filling password field");
-            var fillPasswordResult = await agent.FillInputAsync("input[name='password']", password, cancellationToken);
+            var fillPasswordResult = await agent.FillInputAsync(PasswordSelector, password, cancellationToken);
             if (!fillPasswordResult.IsSuccess)
             {
                 return Result.WithFailure($"Failed to fill password: {fillPasswordResult.Error}");

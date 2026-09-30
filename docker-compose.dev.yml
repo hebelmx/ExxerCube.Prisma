@@ -82,8 +82,8 @@ services:
   # Creates the empty Prisma + PrismaID databases once SQL Server is healthy.
   # Required because the worker hosts configure a Serilog MSSqlServer sink during
   # host-build (before EF Core migrations run); that sink fails with SQL error
-  # 4060 if the target database does not yet exist on a fresh container. EF Core
-  # migrations then create the schema inside these empty databases at worker boot.
+  # 4060 if the target database does not yet exist on a fresh container. The
+  # db-migrate one-shot below then creates the schema inside these databases.
   # ---------------------------------------------------------------------------
   sqlserver-init:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -161,9 +161,47 @@ services:
       Kestrel__Endpoints__Https__Url: "http://+:8443"
       # Override Seq sink URL to the in-network Seq service (port 80 inside Docker).
       Serilog__WriteTo__2__Args__serverUrl: "http://seq:80"
+    # The simulator serves cases from SimulatorSettings:DocumentSourcePath
+    # (../bulk_generated_documents_all_formats relative to /app). The image carries only the app,
+    # so mount the synthetic corpus produced by scripts/generators/regen_tier1_corpus.sh.
+    volumes:
+      - ./Prisma/Deployments/Siara.Simulator/bulk_generated_documents_all_formats:/bulk_generated_documents_all_formats:ro
     restart: unless-stopped
     depends_on:
       - seq
+
+  # ---------------------------------------------------------------------------
+  # Database migrations (one-shot)
+  # The workers do not migrate at boot; they apply EF Core migrations only when
+  # started with --migrate-only. This service does that once, using the Orion
+  # image, before any worker or the Web UI starts.
+  # ---------------------------------------------------------------------------
+  db-migrate:
+    build:
+      context: .
+      dockerfile: "Prisma/Code/Src/CSharp/04 Services/Orion/Prisma.Orion.Worker/Dockerfile"
+      args:
+        APP_VERSION: ${APP_VERSION:-0.0.0-compose}
+    image: prisma-orion:dev
+    container_name: prisma-db-migrate
+    command: ["--migrate-only"]
+    networks:
+      - prisma-dev
+    env_file: .env
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ConnectionStrings__DefaultConnection: >-
+        Server=sqlserver,1433;Database=PrismaID;User Id=sa;Password=${SA_PASSWORD};
+        Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true
+      ConnectionStrings__ApplicationConnection: >-
+        Server=sqlserver,1433;Database=Prisma;User Id=sa;Password=${SA_PASSWORD};
+        Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true
+    restart: "no"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      sqlserver-init:
+        condition: service_completed_successfully
 
   # ---------------------------------------------------------------------------
   # Orion Worker (document ingestion)
@@ -198,6 +236,14 @@ services:
       # SIARA Simulator URL — resolved by service name inside the network.
       NavigationTargets__SiaraUrl: "http://siara-simulator:8080"
       Siara__BaseUrl: "http://siara-simulator:8080"
+      # Dev stack only: sign in to the bundled simulator unattended (ADR-010 AutomatedLogin) with its
+      # public fake credentials. The code default remains SessionPassthrough, and the real portal is
+      # refused unless Siara:AllowProductionHost is set (legal gate, ADR-010).
+      Siara__AuthMode: "AutomatedLogin"
+      Siara__Automated__LoginUrl: "http://siara-simulator:8080/login"
+      Siara__Automated__PostLoginSelector: ".case-list"
+      Siara__Credentials__Username: "BANEJEMPLO"
+      Siara__Credentials__Password: "password123"
       # Document storage path (shared volume).
       Storage__BasePath: "/data/documents"
       # Seq structured logging — override to in-network Seq service (port 80 in datalust/seq).
@@ -210,6 +256,8 @@ services:
       sqlserver:
         condition: service_healthy
       sqlserver-init:
+        condition: service_completed_successfully
+      db-migrate:
         condition: service_completed_successfully
       seq:
         condition: service_started
@@ -247,6 +295,8 @@ services:
         Server=sqlserver,1433;Database=Prisma;User Id=sa;Password=${SA_PASSWORD};
         Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true
       Storage__BasePath: "/data/documents"
+      # Athena subscribes to Orion's ingestion hub for DocumentDownloadedEvent (ADR-011).
+      Ingestion__HubUrl: "http://orion:8080/hubs/ingestion"
       SEQ_URL: "http://seq:80"
       OTLP_ENDPOINT: ${OTLP_ENDPOINT:-http://seq:4317}
     volumes:
@@ -255,6 +305,8 @@ services:
       sqlserver:
         condition: service_healthy
       sqlserver-init:
+        condition: service_completed_successfully
+      db-migrate:
         condition: service_completed_successfully
       seq:
         condition: service_started
@@ -292,7 +344,8 @@ services:
         Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true
       Storage__BasePath: "/data/documents"
       # Athena hub URL for Ember/SignalR reconciliation coordination.
-      ReconciliationClient__HubUrl: "http://athena:8080/hubs/reconciliation"
+      # Reconciliator is a SignalR client of Athena's reconciliation hub (ADR-011/012).
+      Reconciliation__HubUrl: "http://athena:8080/hubs/reconciliation"
       SEQ_URL: "http://seq:80"
       OTLP_ENDPOINT: ${OTLP_ENDPOINT:-http://seq:4317}
     volumes:
@@ -301,6 +354,8 @@ services:
       sqlserver:
         condition: service_healthy
       sqlserver-init:
+        condition: service_completed_successfully
+      db-migrate:
         condition: service_completed_successfully
       seq:
         condition: service_started
@@ -355,6 +410,8 @@ services:
       sqlserver:
         condition: service_healthy
       sqlserver-init:
+        condition: service_completed_successfully
+      db-migrate:
         condition: service_completed_successfully
       seq:
         condition: service_started

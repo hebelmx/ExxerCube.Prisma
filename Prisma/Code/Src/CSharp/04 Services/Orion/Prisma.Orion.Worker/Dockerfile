@@ -61,4 +61,9 @@ EXPOSE 8080
 
 COPY --from=build /app/publish .
 
+# The SIARA downloader drives a headless browser (Microsoft.Playwright). Install the Chromium build
+# that matches the pinned Playwright package, using the CLI bundled in the publish output (same
+# approach as the Web UI image, GH#24). --with-deps adds the OS libraries Chromium needs.
+RUN /app/.playwright/node/*/node /app/.playwright/package/cli.js install --with-deps chromium
+
 ENTRYPOINT ["dotnet", "ExxerCube.Prisma.Orion.Worker.dll"]

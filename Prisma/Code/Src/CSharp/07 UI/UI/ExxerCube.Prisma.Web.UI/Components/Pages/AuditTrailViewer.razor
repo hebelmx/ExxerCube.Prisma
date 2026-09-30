@@ -154,9 +154,9 @@
                                  ValueChanged="@OnFilterSuccessStatusChanged"
                                  Variant="Variant.Outlined"
                                  Dense="true">
-                            <MudSelectItem Value="@((bool?)null)">All</MudSelectItem>
-                            <MudSelectItem Value="@true">Success Only</MudSelectItem>
-                            <MudSelectItem Value="@false">Failed Only</MudSelectItem>
+                            <MudSelectItem T="bool?" Value="@((bool?)null)">All</MudSelectItem>
+                            <MudSelectItem T="bool?" Value="@((bool?)true)">Success Only</MudSelectItem>
+                            <MudSelectItem T="bool?" Value="@((bool?)false)">Failed Only</MudSelectItem>
                         </MudSelect>
                     </MudItem>
                 </MudGrid>
