@@ -1,0 +1,609 @@
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Hosting;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Logs;
+using System.Diagnostics;
+using ExxerCube.Prisma.Infrastructure.Python;
+using ExxerCube.Prisma.Infrastructure.Metrics;
+using ExxerCube.Prisma.Infrastructure.Imaging;
+using IndFusion.Ember.Abstractions.Hubs;
+using ExxerCube.Prisma.Domain.Events;
+using ExxerCube.Prisma.Infrastructure.Classification.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.Extraction.Txt.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection;
+using ExxerCube.Prisma.Web.UI.Middleware;
+using ExxerCube.Prisma.Web.UI.HealthChecks;
+
+namespace ExxerCube.Prisma.Web.UI;
+
+/// <summary>
+/// Main entry point for the ExxerCube.Prisma.Web.UI application.
+/// </summary>
+public class Program
+{
+    /// <summary>
+    /// Application entry point.
+    /// </summary>
+    /// <param name="args">Command-line arguments.</param>
+    public static async Task Main(string[] args)
+    {
+        // Linux native-interop guard: load the system Leptonica/Tesseract into the global symbol scope
+        // BEFORE Emgu.CV (libcvextern.so, quality-analysis Stage 1) or SkiaSharp can interpose their
+        // bundled Leptonica copy. Without this, Tesseract OCR segfaults (exit 139) once OpenCV is
+        // co-resident. No-op off Linux; idempotent. (The OCR assembly's module initializer also arms
+        // this; the explicit call makes the entrypoint ordering unambiguous.) See
+        // LeptonicaInteropGuard for the full root-cause analysis.
+        ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.LeptonicaInteropGuard.EnsureSystemLeptonicaLoadedFirst();
+
+        // O1 follow-up (docs/planning-artifacts/remediation/TRACKER-webui-container-ocr.md): container
+        // OCR-stack smoke test. Runs BEFORE any host/DB/config wiring (no WebApplicationBuilder, no DI
+        // container) so it can prove the runtime image's native OCR stack works with zero external
+        // dependencies — deliberately placed after the interop guard above so it exercises the exact
+        // same guarded load order production uses.
+        if (args.Contains("--ocr-smoke"))
+        {
+            using var smokeCts = new CancellationTokenSource();
+            Console.CancelKeyPress += (_, e) => { e.Cancel = true; smokeCts.Cancel(); };
+            var smokeExitCode = await OcrContainerSmokeTest.RunAsync(smokeCts.Token);
+            Environment.ExitCode = smokeExitCode;
+            return;
+        }
+
+        var builder = WebApplication.CreateBuilder(args);
+
+        // RV-3: Pre-set the SEQ_URL env var before building Log.Logger so the appsettings.json
+        // %SEQ_URL% token resolves via Serilog's environment-variable expansion. Default to
+        // localhost when unset (prevents a boot-time UriFormatException from the Seq sink).
+        Environment.SetEnvironmentVariable(
+            "SEQ_URL",
+            Environment.GetEnvironmentVariable("SEQ_URL") ?? "http://localhost:5341");
+
+        // Configure Serilog from configuration (Console/File/Seq). The SQL audit-log sink is
+        // added in code here, and ONLY when a real connection string is present: the
+        // Serilog.Sinks.MSSqlServer v8 sink constructs eagerly and throws ArgumentNullException
+        // on a null/empty connectionString, so it cannot be a static appsettings sink that
+        // "skips when blank" (it does not — proven by the max-fidelity gate). Binding to
+        // DefaultConnection keeps the structured-log table in the same database as the EF audit ledger (G-S2).
+        var loggerConfiguration = new LoggerConfiguration()
+            .ReadFrom.Configuration(builder.Configuration)
+            .Enrich.FromLogContext();
+
+        var serilogSqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+        if (!string.IsNullOrWhiteSpace(serilogSqlConnection)
+            && !serilogSqlConnection.StartsWith("DEV-PLACEHOLDER", StringComparison.OrdinalIgnoreCase))
+        {
+            loggerConfiguration.WriteTo.MSSqlServer(
+                connectionString: serilogSqlConnection,
+                sinkOptions: new Serilog.Sinks.MSSqlServer.MSSqlServerSinkOptions
+                {
+                    TableName = "SerilogLogs",
+                    SchemaName = "dbo",
+                    AutoCreateSqlTable = true,
+                },
+                restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning);
+        }
+
+        Log.Logger = loggerConfiguration.CreateLogger();
+
+        try
+        {
+            Log.Information("Starting ExxerCube.Prisma.Web.UI application");
+
+            // Use Serilog for logging
+            builder.Host.UseSerilog();
+
+            // Configure OpenTelemetry for telemetry and distributed tracing
+            ConfigureOpenTelemetry(builder.Services, builder.Configuration, builder.Environment);
+
+            // Configure services using the extracted method
+            ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
+
+            WebApplication app;
+            try
+            {
+                Log.Information("Building application and resolving DI container...");
+                app = builder.Build();
+                Log.Information("Application built successfully");
+            }
+            catch (Exception ex)
+            {
+                var errorLogPath = Path.Combine(builder.Environment.ContentRootPath, "di_error.log");
+                var errorDetails = $@"
+=== DI CONTAINER BUILD ERROR ===
+Time: {DateTime.Now:yyyy-MM-dd HH:mm:ss}
+Exception Type: {ex.GetType().FullName}
+Message: {ex.Message}
+
+Stack Trace:
+{ex.StackTrace}
+
+Inner Exception:
+{ex.InnerException?.Message}
+
+Inner Stack Trace:
+{ex.InnerException?.StackTrace}
+====================================
+";
+                File.WriteAllText(errorLogPath, errorDetails);
+                Log.Fatal(ex, "Failed to build application - DI container resolution error. Details written to {ErrorLogPath}", errorLogPath);
+                Console.WriteLine($"\n\n!!! DI CONTAINER ERROR - See details in: {errorLogPath} !!!\n");
+                throw;
+            }
+
+            // Configure the HTTP request pipeline.
+            // Add global exception handler middleware for rich contextual logging
+            // This catches all unhandled exceptions and logs them with request details, user info, etc.
+            app.UseGlobalExceptionHandler();
+
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseMigrationsEndPoint();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Error", createScopeForErrors: true);
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHsts();
+            }
+
+            app.UseHttpsRedirection();
+
+            app.UseAntiforgery();
+
+            // Authentication and authorization middleware must appear after UseAntiforgery
+            // and before any endpoint mapping so that [Authorize] attributes and policy
+            // evaluation are active for all mapped routes (controllers, Razor components,
+            // SignalR hubs, health checks).
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            // Map API controllers
+            app.MapControllers();
+
+            // Map health checks endpoints.
+            // /health       — all registered checks (real DB probe); returns 200/503 based on aggregate status.
+            //                 Response body is structured JSON with per-check name/status/duration entries.
+            // /health/ready — subset tagged "ready" (DB probe); drives load-balancer/K8s readiness gate (E1-S4).
+            // /health/live  — liveness probe; NO dependency checks (DB excluded); always 200 when the process is up.
+            app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+            {
+                ResponseWriter = HealthCheckResponseWriter.WriteJsonResponseAsync
+            });
+            app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+            {
+                Predicate = check => check.Tags.Contains("ready"),
+                ResultStatusCodes =
+                {
+                    [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Healthy] = StatusCodes.Status200OK,
+                    [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Degraded] = StatusCodes.Status200OK,
+                    [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+                }
+            });
+            // G-M1: Liveness endpoint — no dependency checks; returns 200 whenever the process is alive.
+            // Predicate = _ => false means no registered checks are executed, so the aggregate result
+            // is always Healthy regardless of DB state.  Safe to call from load-balancer without a DB.
+            app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+            {
+                Predicate = _ => false
+            }).AllowAnonymous();
+
+            // Map SignalR hub — RequireAuthorization() enforces the [Authorize] on ProcessingHub at the
+            // endpoint level so anonymous WebSocket upgrades are refused with 401 (RV-2).
+            // Blazor circuits connect inside an authenticated context (ASP.NET Core Identity cookie) so
+            // the UI's own hub usage is not affected.
+            // TODO: restrict to a named operator/reviewer policy when role groups are defined (G-H2).
+            app.MapHub<ProcessingHub>("/processingHub").RequireAuthorization();
+
+            app.MapStaticAssets();
+            app.MapRazorComponents<App>()
+                .AddInteractiveServerRenderMode();
+
+            // Add additional endpoints required by the Identity /Account Razor components.
+            app.MapAdditionalIdentityEndpoints();
+
+            // ADR-014 Phase B3: Apply Identity schema migrations and seed roles/users before the
+            // application starts serving requests. Both helpers are fail-open (log errors, do not throw).
+            var startupLogger = app.Services.GetRequiredService<ILogger<Program>>();
+            try
+            {
+                Log.Information("Applying PrismaIdentity EF Core migrations...");
+                await app.Services.MigratePrismaIdentityAsync(startupLogger);
+                Log.Information("Seeding PrismaIdentity roles and users...");
+                await app.Services.SeedPrismaIdentityAsync(app.Configuration);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "PrismaIdentity migration/seeding failed — application will continue");
+            }
+
+            // Seed adaptive export templates (Excel, XML) on startup
+            // This is idempotent - safe to run on every startup
+            try
+            {
+                Log.Information("Seeding adaptive export templates...");
+                await app.Services.SeedTemplatesAsync();
+                Log.Information("Adaptive export templates seeded successfully");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to seed adaptive export templates - application will continue but exports may fail");
+            }
+
+            // GH#26: apply PrismaDbContext (application DB) EF Core migrations at startup.
+            // Runs AFTER template seeding on purpose: TemplateSeeder.EnsureCreatedAsync creates the
+            // Prisma database with only the disjoint Templates tables (no __EFMigrationsHistory); the
+            // migration runner then applies every PrismaDbContext migration, creating OutboxEvents and
+            // the audit/review/SLA tables. Without this the app DB has no OutboxEvents table and
+            // OutboxRetryWorker error-loops on every poll ("Invalid object name 'OutboxEvents'").
+            // Fail-open (log, do not throw) to match the Identity/template blocks above.
+            try
+            {
+                Log.Information("Applying PrismaDbContext (application DB) EF Core migrations...");
+                var migrationExitCode = await ExxerCube.Prisma.Infrastructure.Database.Startup.PrismaDbMigrationRunner
+                    .RunMigrationsAsync(app);
+                if (migrationExitCode != 0)
+                {
+                    Log.Warning("PrismaDbContext migration runner returned {ExitCode} — OutboxEvents/audit tables may be missing; the app will continue", migrationExitCode);
+                }
+                else
+                {
+                    Log.Information("PrismaDbContext migrations applied successfully");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "PrismaDbContext migration failed — application will continue but audit/outbox features may error");
+            }
+
+            Log.Information("Application started successfully");
+            app.Run();
+        }
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "Application terminated unexpectedly");
+            throw;
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
+    }
+
+    /// <summary>
+    /// Configures all services for dependency injection.
+    /// This method is extracted to allow testing of the actual DI configuration.
+    /// </summary>
+    /// <param name="services">The service collection to configure.</param>
+    /// <param name="configuration">The configuration instance.</param>
+    /// <param name="environment">The web host environment.</param>
+    public static void ConfigureServices(IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
+    {
+        // Add MudBlazor services
+        services.AddMudServices();
+
+        // Add SignalR abstractions (Ember) for real-time updates
+        services.AddSignalRAbstractions();
+        services.AddSignalR();
+        services.AddScoped<ProcessingHub>();
+        // FU1 (PRISMA-E5-S2): IExxerHub<DomainEvent> for server-initiated broadcast MUST be an
+        // IHubContext-backed adapter — NOT the ProcessingHub class itself. A Hub resolved from DI has a null
+        // Clients (only the SignalR runtime populates it during an inbound invocation), so the old
+        // `AddScoped<IExxerHub<DomainEvent>, ProcessingHub>()` made SignalREventBroadcaster.SendToAllAsync a
+        // silent no-op and no live UI update ever reached the browser. See HubContextDomainEventBroadcaster.
+        services.AddScoped<IExxerHub<DomainEvent>, Services.HubContextDomainEventBroadcaster>();
+
+        // Add OCR processing services
+        var pythonModulesPath = Path.Combine(environment.ContentRootPath, "..", "..", "Python", "ocr_modules");
+        var pythonConfig = new ExxerCube.Prisma.Infrastructure.Python.PythonConfiguration
+        {
+            ModulesPath = pythonModulesPath,
+            PythonExecutablePath = "python",
+            MaxConcurrency = 5,
+            OperationTimeoutSeconds = 30,
+            EnableDebugging = environment.IsDevelopment()
+        };
+        services.AddOcrProcessingServices(pythonConfig);
+
+        // Register event publisher (needed by legacy services)
+        // NOTE: Must be Singleton because EventPersistenceWorker (IHostedService) is Singleton
+        services.AddSingleton<IEventPublisher, EventPublisher>();
+
+        // Register OCR processing service (Application layer implements Domain interface directly - Liskov principle)
+
+        // Add Python environment services (required for GOT-OCR2)
+        //services.AddPrismaPythonEnvironment();
+
+        // Add metrics services (needed for Dashboard and HealthCheckService)
+        services.AddMetricsServices(pythonConfig.MaxConcurrency);
+
+        // Add health checks (required by app.MapHealthChecks): register real DB-connectivity probe (E1-S4).
+        // PrismaDbHealthCheck calls CanConnectAsync via IDbContextFactory<PrismaIdentityDbContext>; returns
+        // Unhealthy (HTTP 503) when the database is unreachable.
+        services.AddHealthChecks()
+            .AddCheck<ExxerCube.Prisma.Web.UI.HealthChecks.PrismaDbHealthCheck>(
+                "prisma-db",
+                failureStatus: Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy,
+                tags: ["db", "ready"]);
+
+        // Add health check service (needed by Dashboard.razor)
+        services.AddScoped<HealthCheckService>();
+
+        // Add services to the container.
+        services.AddRazorComponents()
+            .AddInteractiveServerComponents();
+
+        // Add API controllers
+        services.AddControllers();
+
+        // Add HttpClient for API calls with proper configuration
+        services.AddHttpClient("api", client =>
+        {
+            client.BaseAddress = new Uri(configuration["ApiBaseUrl"] ?? "https://localhost:7062/");
+            client.Timeout = TimeSpan.FromMinutes(5);
+        });
+
+        // ADR-014: Identity adapter extracted from Web.UI into Infrastructure.Identity.
+        // AddPrismaIdentity registers: DbContextFactory<PrismaIdentityDbContext>, IdentityCore stack,
+        // cookie auth, PrismaNoOpEmailSender, IHttpContextAccessor, IIdentityProvider, IUserContextAccessor.
+        services.AddPrismaIdentity(configuration);
+
+        // AddPrismaIdentity registers the cookie auth scheme + Identity core but NOT the authorization
+        // middleware services. AddAuthorization() is required for app.UseAuthorization() and for
+        // [Authorize] attributes to be evaluated by the ASP.NET Core policy engine.
+        services.AddAuthorization();
+
+        // Web-layer Identity scaffolding (Blazor/Razor abstractions — cannot move to infrastructure):
+        services.AddCascadingAuthenticationState();
+        services.AddScoped<IdentityUserAccessor>();
+        services.AddScoped<IdentityRedirectManager>();
+        services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+
+        // Application database connection (Prisma - for all application tables)
+        var applicationConnectionString = configuration.GetConnectionString("ApplicationConnection") ?? throw new InvalidOperationException("Connection string 'ApplicationConnection' not found.");
+
+        // ADR-023: register the Calendar adapter at the host so the Database and Classification adapters
+        // no longer reference it directly. Required before AddDatabaseServices / AddClassificationServices,
+        // whose SLAEnforcerService / FusionExpedienteService factories resolve IBusinessDayCalculator.
+        ExxerCube.Prisma.Infrastructure.Calendar.DependencyInjection.ServiceCollectionExtensions.AddCalendarServices(services);
+
+        // Add Story 1.1 services: Browser Automation, File Storage, and Database services
+        services.AddDatabaseServices(applicationConnectionString, configuration);
+        services.AddBrowserAutomationServices(options =>
+        {
+            configuration.GetSection("BrowserAutomation").Bind(options);
+        });
+
+        // Configure navigation targets
+        services.Configure<ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.NavigationTargetOptions>(options =>
+        {
+            configuration.GetSection("NavigationTargets").Bind(options);
+        });
+        services.AddFileStorageServices(options =>
+        {
+            configuration.GetSection("FileStorage").Bind(options);
+        });
+        services.AddScoped<DocumentIngestionService>();
+        services.AddScoped<FileMetadataQueryService>();
+        services.AddScoped<FileDownloadService>();
+
+        // Register ISpecificationFactory (created during architecture cleanup)
+        services.AddScoped<ExxerCube.Prisma.Domain.Interfaces.Factories.ISpecificationFactory,
+            ExxerCube.Prisma.Infrastructure.Database.Factories.SpecificationFactory>();
+
+        services.AddClassificationServices(configuration);
+        services.AddScoped<MetadataExtractionService>();
+
+        // Add Extraction services (OCR executors, field extractors, document comparison)
+        services.AddExtractionServices();
+
+        // Add Adaptive TXT Extraction (OCR text field extraction for PDF pipeline)
+        services.AddTxtFieldExtraction();
+
+        // Add Adaptive DOCX Extraction (5-strategy extraction for AdaptiveDocxDemo.razor)
+        services.AddAdaptiveDocxExtraction();
+
+        // Add Imaging services (filters, quality analysis)
+        services.AddImagingInfrastructure(FilterSelectionStrategyType.Analytical);
+
+        // Add Story 1.3 services: Field Matching and Unified Metadata Generation
+        services.AddScoped<FieldMatchingService>();
+        services.AddScoped<IFieldMatchingService, FieldMatchingService>(); // Register interface for DI injection
+
+        // Add Story 1.4 services: Decision Logic (Identity Resolution and Legal Classification)
+        services.AddScoped<DecisionLogicService>();
+
+        // Add Story 1.5 services: SLA Tracking and Escalation
+        services.AddScoped<SLATrackingService>();
+
+        // Add Story 1.7 & 1.8 services: Export Generation (SIRO XML, Excel, PDF Signing)
+        services.AddExportServices(configuration);
+        services.AddAdaptiveExportServices(applicationConnectionString);
+        // "Datos Carga de Oficio" 24-column layout generator (checklist Paso 6) — used by
+        // ExportManagement.razor for the real SIRO load layout (GH #14). Scoped so it can consume
+        // the scoped ITemplateRepository registered by AddAdaptiveExportServices.
+        services.AddDatosCargaOficioExportServices(ServiceLifetime.Scoped);
+        // Legacy ExportService (still used by ExportManagement.razor for SIRO XML + signed PDF)
+        services.AddScoped<ExxerCube.Prisma.Application.Services.ExportService>();
+
+        // Add Story 1.9 services: Audit Reporting
+        // AuditReportingService (still used by Audit/AuditTrailViewer.razor)
+        services.AddScoped<ExxerCube.Prisma.Application.Services.AuditReportingService>();
+
+        // Add Demo Administration service (ONLY for demo environments - performs hard deletes!)
+        services.AddScoped<ExxerCube.Prisma.Web.UI.Services.DemoAdminService>();
+        // Adaptive DOCX fixtures for Mission 7 demo page
+        services.AddScoped<ExxerCube.Prisma.Web.UI.Services.AdaptiveDocxFixtureService>();
+
+        // Add Document Processing page services (refactored architecture)
+        // Phase 1: State management foundation
+        services.AddScoped<ExxerCube.Prisma.Web.UI.Services.DocumentProcessingStateService>();
+        services.AddScoped<ExxerCube.Prisma.Web.UI.Services.FixtureLoaderService>();
+        // Phase 2: Business logic services
+        services.AddScoped<ExxerCube.Prisma.Web.UI.Services.XmlProcessingService>();
+        services.AddScoped<ExxerCube.Prisma.Web.UI.Services.PdfProcessingService>();
+        services.AddScoped<ExxerCube.Prisma.Web.UI.Services.DocumentComparisonCoordinator>();
+
+        //// Add SLA health checks
+        //services.AddHealthChecks()
+        //    .AddCheck<SLAEnforcerHealthCheck>(
+        //        "sla_enforcer",
+        //        tags: new[] { "sla", "database", "ready" })
+        //    .AddCheck<SLABackgroundJobHealthCheck>(
+        //        "sla_background_job",
+        //        tags: new[] { "sla", "background", "ready" });
+
+        // Re-enabled: real-time UI event stream via Ember (ADR-009). Owner-approved in-scope for MVP.
+        // TestWebApplicationFactory removes this during integration tests to avoid SQL connections.
+        services.AddHostedService<Services.SignalREventBroadcaster>();
+    }
+
+    /// <summary>
+    /// Configures OpenTelemetry for telemetry, distributed tracing, and metrics.
+    /// Exports telemetry data to Seq for queryable analysis.
+    /// </summary>
+    /// <param name="services">The service collection to configure.</param>
+    /// <param name="configuration">The configuration instance.</param>
+    /// <param name="environment">The web host environment.</param>
+    private static void ConfigureOpenTelemetry(IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
+    {
+        var otelConfig = configuration.GetSection("OpenTelemetry");
+        var serviceName = otelConfig["ServiceName"] ?? "ExxerCube.Prisma.Web.UI";
+        var serviceVersion = otelConfig["ServiceVersion"] ?? "1.0.0";
+        var seqEndpoint = otelConfig["Seq:Endpoint"] ?? "http://localhost:5341";
+        var seqApiKey = otelConfig["Seq:ApiKey"];
+        var tracingEnabled = otelConfig.GetValue<bool>("Tracing:Enabled", true);
+        var metricsEnabled = otelConfig.GetValue<bool>("Metrics:Enabled", true);
+        var samplingRatio = otelConfig.GetValue<double>("Tracing:SamplingRatio", 1.0);
+
+        // Build resource attributes
+        var resourceBuilder = ResourceBuilder.CreateDefault()
+            .AddService(serviceName, serviceVersion)
+            .AddAttributes(new Dictionary<string, object>
+            {
+                ["deployment.environment"] = environment.EnvironmentName,
+                ["service.instance.id"] = Environment.MachineName
+            });
+
+        // Configure OpenTelemetry services
+        services.AddOpenTelemetry()
+            .WithTracing(tracerProviderBuilder =>
+            {
+                if (tracingEnabled)
+                {
+                    tracerProviderBuilder
+                        .SetResourceBuilder(resourceBuilder)
+                        .SetSampler(new TraceIdRatioBasedSampler(samplingRatio))
+                        // Add ASP.NET Core instrumentation
+                        .AddAspNetCoreInstrumentation(options =>
+                        {
+                            options.RecordException = true;
+                            options.EnrichWithHttpRequest = (activity, request) =>
+                            {
+                                activity.SetTag("http.request.method", request.Method);
+                                activity.SetTag("http.request.path", request.Path);
+                            };
+                            options.EnrichWithHttpResponse = (activity, response) =>
+                            {
+                                activity.SetTag("http.response.status_code", response.StatusCode);
+                            };
+                        })
+                        // Add HTTP client instrumentation
+                        .AddHttpClientInstrumentation(options =>
+                        {
+                            options.RecordException = true;
+                            options.EnrichWithHttpRequestMessage = (activity, request) =>
+                            {
+                                activity.SetTag("http.client.request.method", request.Method?.Method);
+                                activity.SetTag("http.client.request.uri", request.RequestUri?.ToString());
+                            };
+                        })
+                        // Add Entity Framework Core instrumentation
+                        .AddEntityFrameworkCoreInstrumentation(options =>
+                        {
+                            //  options.SetDbStatementForText = true;
+                            options.EnrichWithIDbCommand = (activity, command) =>
+                            {
+                                activity.SetTag("db.command.text", command.CommandText);
+                            };
+                        })
+                        // Note: SignalR instrumentation is automatically included in ASP.NET Core instrumentation
+                        // No separate SignalR instrumentation package exists
+                        // Export to Seq via OTLP (OpenTelemetry Protocol)
+                        // Seq supports OTLP endpoint at http://localhost:5341/ingest/otlp/v1
+                        .AddOtlpExporter(options =>
+                        {
+                            options.Endpoint = new Uri($"{seqEndpoint.TrimEnd('/')}/ingest/otlp/v1/traces");
+                            options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+                            if (!string.IsNullOrEmpty(seqApiKey))
+                            {
+                                options.Headers = $"X-Seq-ApiKey={seqApiKey}";
+                            }
+                        })
+                        // Also export to console for development
+                        .AddConsoleExporter();
+                }
+            })
+            .WithMetrics(metricsProviderBuilder =>
+            {
+                if (metricsEnabled)
+                {
+                    metricsProviderBuilder
+                        .SetResourceBuilder(resourceBuilder)
+                        // Export the application's custom SLA meter (SLAMetricsCollector) so the SLA
+                        // counters/histograms/gauges reach Seq/OTLP. Without this the meter is created
+                        // but never collected.
+                        .AddMeter("ExxerCube.Prisma.SLA")
+                        // Add ASP.NET Core metrics
+                        .AddAspNetCoreInstrumentation()
+                        // Add HTTP client metrics
+                        .AddHttpClientInstrumentation()
+                        // Add runtime metrics (GC, memory, etc.)
+                        .AddRuntimeInstrumentation()
+                        // Add process metrics
+                        .AddProcessInstrumentation()
+                        // Export to Seq via OTLP (OpenTelemetry Protocol)
+                        // Seq supports OTLP endpoint at http://localhost:5341/ingest/otlp/v1
+                        .AddOtlpExporter(options =>
+                        {
+                            options.Endpoint = new Uri($"{seqEndpoint.TrimEnd('/')}/ingest/otlp/v1/metrics");
+                            options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+                            if (!string.IsNullOrEmpty(seqApiKey))
+                            {
+                                options.Headers = $"X-Seq-ApiKey={seqApiKey}";
+                            }
+                        })
+                        // Also export to console for development
+                        .AddConsoleExporter();
+                }
+            });
+
+        // Configure logging to use OpenTelemetry (integrates with Serilog)
+        // Note: Serilog already exports to Seq, so OpenTelemetry logs will also go there
+        // This adds structured OpenTelemetry log attributes for better querying
+        services.AddLogging(loggingBuilder =>
+        {
+            loggingBuilder.AddOpenTelemetry(options =>
+            {
+                options.SetResourceBuilder(resourceBuilder);
+                // Export logs to Seq via OTLP (OpenTelemetry Protocol)
+                options.AddOtlpExporter(otlpOptions =>
+                {
+                    otlpOptions.Endpoint = new Uri($"{seqEndpoint.TrimEnd('/')}/ingest/otlp/v1/logs");
+                    otlpOptions.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+                    if (!string.IsNullOrEmpty(seqApiKey))
+                    {
+                        otlpOptions.Headers = $"X-Seq-ApiKey={seqApiKey}";
+                    }
+                });
+                // Also export to console for development
+                options.AddConsoleExporter();
+            });
+        });
+    }
+}

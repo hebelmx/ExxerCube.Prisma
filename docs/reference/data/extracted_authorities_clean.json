@@ -1,0 +1,703 @@
+[
+  {
+    "source_file": "Fiscalias_Estatales.pdf",
+    "entidades": [
+      {
+        "nombre": "Fiscalía General del Estado de Baja California Dirección",
+        "tipo": "Fiscalía",
+        "jurisdiccion": "Aguascalientes",
+        "source": "regex",
+        "merged_count": 7
+      },
+      {
+        "nombre": "Fiscalía General de Justicia del Estado de Tamaulipas Dirección",
+        "tipo": "Fiscalía",
+        "jurisdiccion": "Nayarit",
+        "source": "regex",
+        "merged_count": 5
+      },
+      {
+        "nombre": "Fiscalía General del Estado de Guanajuato Dirección",
+        "tipo": "Fiscalía",
+        "jurisdiccion": "Durango",
+        "source": "regex",
+        "merged_count": 15
+      },
+      {
+        "nombre": "Fiscalía General del Estado de San Luis Potosí Dirección",
+        "tipo": "Fiscalía",
+        "jurisdiccion": "Quintana Roo",
+        "source": "regex",
+        "merged_count": 2
+      },
+      {
+        "nombre": "Fiscalía General de Justicia del Estado de",
+        "tipo": "Fiscalía",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 5
+      },
+      {
+        "nombre": "Procuraduría Gener al de Justicia de Baja California Sur Dirección",
+        "tipo": "Procuraduría",
+        "jurisdiccion": "Baja California",
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Procuraduría General de Justicia de Hidalgo Dirección",
+        "tipo": "Procuraduría",
+        "jurisdiccion": "Hidalgo",
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Procuraduría General de Justicia del Estado de Tlaxcala Dirección",
+        "tipo": "Procuraduría",
+        "jurisdiccion": "Tlaxcala",
+        "source": [
+          "regex",
+          "llm:llama3:8b"
+        ],
+        "merged_count": 2
+      },
+      {
+        "nombre": "Fiscalía General de Justicia del Estado de",
+        "tipo": "Unknown",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 22
+      },
+      {
+        "nombre": "Procuraduría General de Justicia de Baja California",
+        "tipo": "Unknown",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 2
+      },
+      {
+        "nombre": "Fiscalía General de Justicia de la",
+        "tipo": "Unknown",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Fiscalía General del Estado de San Luis Potosí",
+        "tipo": "Unknown",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      }
+    ],
+    "stats": {
+      "original_count": 64,
+      "clean_count": 12,
+      "reduction_pct": 81.2
+    }
+  },
+  {
+    "source_file": "UIF_Presentacion.pdf",
+    "entidades": [
+      {
+        "nombre": "SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO INTRODUCCIÓN Con el propósito de",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Secretaría de Hacienda y Crédito Público, es la instancia central nacional",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO cumplimiento técnico de las 40 Recomendaciones del GAFI y el nivel de",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO Dominicana y México",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "regex",
+        "merged_count": 2
+      },
+      {
+        "nombre": "SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO general es proveer un foro para que las UIF alrededor del mundo mejoren sus",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO el nivel de cumplimiento de los países con respecto a las nuevas 40",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO con las Recomendaciones 5 a 8 del GAFI, así como aquellos factores que tengan",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "comisión de los s iguientes delitos previstos en el Código Penal",
+        "tipo": "Comisión",
+        "jurisdiccion": "Federal",
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "comisión de tal delito o delitos a eludir las con secuencias jurídicas de sus",
+        "tipo": "Comisión",
+        "jurisdiccion": null,
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "pleno derecho del Grupo",
+        "tipo": "Pleno",
+        "jurisdiccion": null,
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "pleno derecho del GAFILAT desde el año",
+        "tipo": "Pleno",
+        "jurisdiccion": null,
+        "source": "regex",
+        "merged_count": 2
+      },
+      {
+        "nombre": "Unidad de Inteligencia",
+        "tipo": "SECRETARÍA",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      }
+    ],
+    "stats": {
+      "original_count": 16,
+      "clean_count": 12,
+      "reduction_pct": 25.0
+    }
+  },
+  {
+    "source_file": "Fiscalias_GOB_2018.pdf",
+    "entidades": [
+      {
+        "nombre": "DIRECCIÓN GENERAL PARA UNA VIDA LIBRE DE VIOLENCIA Y PARA LA IGUALDAD POLÍTICA Y SOCIAL Dirección de Seguimiento a la",
+        "tipo": "Dirección",
+        "jurisdiccion": "Aguascalientes",
+        "source": [
+          "regex",
+          "llm:llama3:8b"
+        ],
+        "merged_count": 11
+      },
+      {
+        "nombre": "Dirección de Seguimiento a la Política Nacional para Combatir la Violencia contra las",
+        "tipo": "Dirección",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Fiscalía General del Estado Aguascalientes Avenida Héroe de Nacozari",
+        "tipo": "Fiscalía",
+        "jurisdiccion": "Aguascalientes",
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Fiscalía General del Estado de Chihuahua",
+        "tipo": "Fiscalía",
+        "jurisdiccion": "Campeche",
+        "source": [
+          "regex",
+          "llm:llama3:8b"
+        ],
+        "merged_count": 19
+      },
+      {
+        "nombre": "Fiscalía General del Estado de Guerrero Boulevard René Juárez Cisneros s",
+        "tipo": "Fiscalía",
+        "jurisdiccion": "Guerrero",
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Fiscalía General del Estado de San Luis Potosí",
+        "tipo": "Fiscalía",
+        "jurisdiccion": "Morelos",
+        "source": [
+          "regex",
+          "llm:llama3:8b"
+        ],
+        "merged_count": 11
+      },
+      {
+        "nombre": "Fiscalía General de Justicia del Estado de Nuevo León Melchor Ocampo",
+        "tipo": "Fiscalía",
+        "jurisdiccion": "Nuevo León",
+        "source": [
+          "regex",
+          "llm:llama3:8b"
+        ],
+        "merged_count": 2
+      },
+      {
+        "nombre": "Fiscalía General del Estado de Oaxaca Centro Administrativo del Poder Ejecutivo y Judicial, General Porfirio Díaz,",
+        "tipo": "Fiscalía",
+        "jurisdiccion": "Oaxaca",
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Fiscalía General del Estado de Puebla Boulevard Hé roes del 5 de Mayo y 31 Oriente",
+        "tipo": "Fiscalía",
+        "jurisdiccion": "Puebla",
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Fiscalía General del Estado de Querétaro Autopista México - Querétaro",
+        "tipo": "Fiscalía",
+        "jurisdiccion": "Querétaro",
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Fiscalía General del Estado de San Luis Potosí Eje",
+        "tipo": "Fiscalía",
+        "jurisdiccion": "San Luis Potosí",
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Fiscalía General del Estado de Veracruz Circuito R afael Guisar y Valencia",
+        "tipo": "Fiscalía",
+        "jurisdiccion": "Federal",
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Fiscal General de Justicia del Estado de México",
+        "tipo": "Fiscalía",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Procuraduría General de Justicia del Estado de Michoacán",
+        "tipo": "Fiscalía",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Fiscalías Generales de",
+        "tipo": "Fiscalía",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Procuraduría General de Justicia del Estado Baja California Calzada de los Presidentes número",
+        "tipo": "Procuraduría",
+        "jurisdiccion": "Baja California",
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Procuraduría General de Justicia del Estado Baja California Sur Boulevard",
+        "tipo": "Procuraduría",
+        "jurisdiccion": "Baja California",
+        "source": [
+          "regex",
+          "llm:llama3:8b"
+        ],
+        "merged_count": 2
+      },
+      {
+        "nombre": "Procuraduría General de Justicia de la Ciudad de México General Gabriel Hernández Núm",
+        "tipo": "Procuraduría",
+        "jurisdiccion": "Ciudad De México",
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Procuraduría General de Justicia del Estado de Guanajuato Complejo Miguel Hidalgo, camino a San José de",
+        "tipo": "Procuraduría",
+        "jurisdiccion": "Hidalgo",
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Procuraduría General de Justicia del Estado Baja",
+        "tipo": "Procuraduría",
+        "jurisdiccion": "Hidalgo",
+        "source": [
+          "regex",
+          "llm:llama3:8b"
+        ],
+        "merged_count": 7
+      },
+      {
+        "nombre": "Procuraduría General de Justicia del Estado de Michoacán Periférico República",
+        "tipo": "Procuraduría",
+        "jurisdiccion": "Michoacán",
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Procuraduría General de Justicia del Estado de Tlaxcala Libramiento Poniente S",
+        "tipo": "Procuraduría",
+        "jurisdiccion": "Tlaxcala",
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Procuraduría General de Justicia del Estado de Zacatecas Circuito Zacatec as",
+        "tipo": "Procuraduría",
+        "jurisdiccion": "Federal",
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Procuraduría General de la República",
+        "tipo": "Procuraduría",
+        "jurisdiccion": null,
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Procuraduría General de Justicia de la Ciudad de México",
+        "tipo": "Procuraduría",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      }
+    ],
+    "stats": {
+      "original_count": 71,
+      "clean_count": 25,
+      "reduction_pct": 64.8
+    }
+  },
+  {
+    "source_file": "FGR_Delegaciones.pdf",
+    "entidades": [
+      {
+        "nombre": "FISCALÍA GENERAL DE LA REPÚBLICA AGUASCALIENTES SEDE AGUASCALIENTES",
+        "tipo": "Fiscalía",
+        "jurisdiccion": "Aguascalientes",
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "FISCALÍA GENERAL DE LA REPÚBLICA",
+        "tipo": "Fiscalía",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "DIRECTORIO DE LAS DELEGACIONES DE LA FISCALÍA GENERAL DE LA REPÚBLICA",
+        "tipo": "Dirección",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "AGENCIA ORIENTADORA TULA DE",
+        "tipo": "Dirección",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 10
+      },
+      {
+        "nombre": "AGENCIA ORIENTADORA SAN MIGUEL",
+        "tipo": "Dirección",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "AGENCIA ORIENTADORA TULANCINGO DE",
+        "tipo": "Dirección",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "AGENCIA ORIENTADORA CABO SAN",
+        "tipo": "Agencia Orientadora",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 10
+      },
+      {
+        "nombre": "AGENCIA ORIENTADORA CIUDAD CONSTITUCIÓN",
+        "tipo": "Agencia Orientadora",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "AGENCIA ORIENTADORA SANTA ROSALÍA",
+        "tipo": "Agencia Orientadora",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "Agencia Orientadora Escárcega",
+        "tipo": "Agencia Orientadora",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "AGENCIA ORIENTADORA CIUDAD CUAUHTÉMOC",
+        "tipo": "Agencia Orientadora",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "BAJA CALIFORNIA SUR SEDE LA",
+        "tipo": "Sede",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "CHIAPAS SEDE TUXTLA",
+        "tipo": "Sede",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SEDE PACHUCA DE",
+        "tipo": "Sede",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SUBDELEGACIÓN CIUDAD DEL",
+        "tipo": "Subdelegación",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SUBDELEGACIÓN SAN CRISTÓBAL DE LAS",
+        "tipo": "Subdelegación",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SUBDELEGACIÓN HIDALGO DEL",
+        "tipo": "Subdelegación",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "CHIHUAHUA SEDE CIUDAD",
+        "tipo": "Sede Ciudad Juárez",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "CIUDAD DE MÉXICO SEDE CIUDAD DE MÉXICO",
+        "tipo": "Sede Ciudad de México",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "ZONA CENTRO CIUDAD DE MÉXICO",
+        "tipo": "Zona Centro",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      }
+    ],
+    "stats": {
+      "original_count": 52,
+      "clean_count": 20,
+      "reduction_pct": 61.5
+    }
+  },
+  {
+    "source_file": "SAT_Organigrama.pdf",
+    "entidades": [
+      {
+        "nombre": "COMISIÓN NACIONAL DE HONOR Y",
+        "tipo": "Comisión",
+        "jurisdiccion": null,
+        "source": "regex",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SECRETARIA DE ORGANIZACIÓN",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SECRETARIA DE COMUNICACIÓN",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SECRETARIA DE PENSIONES Y",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 3
+      },
+      {
+        "nombre": "SECRETARIA DE SERVICIOS",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SECRETARIA DE DESARROLLO DE LA",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SECRETARIA DE PROM. Y CAPAC. ADMVA. TEC Y PROF",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SECRETARIA DE PROMOCIÓN Y FOMENTO DE",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SECRETARIA DE PRESTACIONES ECONÓMICAS",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SECRETARIA DE SERVICIO CIVIL Y FISCAL DE",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SECRETARIA DE CAPACITACIÓN POLÍTICA Y",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SECRETARIA DE ACCIÓN POLÍTICA Y DIVULGACIÓN IDEOLÓGICA",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SECRETARIA DE ACTAS Y",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SECRETARIA DE PROMOCIÓN CULTURAL TURISTICA Y",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SECRETARIA DE FOMENTO",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "SECRETARIA DE TRABAJO Y",
+        "tipo": "Secretaría",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "COMITÉS Y COMISIONES",
+        "tipo": "Comités y Comisiones",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "COMITÉ EJECUTIVO",
+        "tipo": "Comité",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "COMITÉ NACIONAL DE",
+        "tipo": "Comité",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "COMITÉ TÉCNICO DE ENTIDADES ECONÓMICAS",
+        "tipo": "Comité",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      },
+      {
+        "nombre": "HONORABLE COMISIÓN NACIONAL DE HONOR Y",
+        "tipo": "Fiscalía",
+        "jurisdiccion": null,
+        "source": "llm:llama3:8b",
+        "merged_count": 1
+      }
+    ],
+    "stats": {
+      "original_count": 26,
+      "clean_count": 21,
+      "reduction_pct": 19.2
+    }
+  }
+]

@@ -1,0 +1,9 @@
+Loading ground truths...
+Combined clusters 2+3: 6 images
+Initial best: 126.2
+Gen 5: best=97.0
+Gen 10: best=95.2
+Gen 15: best=83.8
+
+DONE - Best edit distance: 83.83
+Params: {'contrast': 1.516, 'brightness': 0.927, 'sharpness': 0.86, 'median_size': 1, 'unsharp_radius': 0.466, 'unsharp_percent': 18, 'unsharp_threshold': 2, 'scan_removal': 0, 'morph_kernel_w': 8, 'morph_kernel_h': 3, 'bilateral': 2}

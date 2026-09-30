@@ -1,0 +1,29 @@
+@using ExxerCube.Prisma.Domain.Llm
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1"
+          Style="color: var(--mud-palette-text-disabled);">
+    <MudIcon Icon="@StatusIcon" Size="Size.Small" />
+    <MudText Typo="Typo.caption" Style="font-style: italic;">@StatusLabel</MudText>
+</MudStack>
+
+@code {
+    /// <summary>The track status for the cell that did not produce a value.</summary>
+    [Parameter, EditorRequired]
+    public TrackStatus Status { get; set; }
+
+    private string StatusLabel => Status switch
+    {
+        TrackStatus.SkippedByFlag       => "Skipped (flag off)",
+        TrackStatus.SkippedNoCapability => "Skipped (no capability)",
+        TrackStatus.Failed              => "Failed",
+        _                               => "Abstained"
+    };
+
+    private string StatusIcon => Status switch
+    {
+        TrackStatus.SkippedByFlag       => Icons.Material.Filled.Block,
+        TrackStatus.SkippedNoCapability => Icons.Material.Filled.Warning,
+        TrackStatus.Failed              => Icons.Material.Filled.Error,
+        _                               => Icons.Material.Filled.Shield
+    };
+}

@@ -1,0 +1,50 @@
+{
+  "docId": "CONDUSEF-2023-360663_20260719_152616",
+  "seed": 5003,
+  "chaosLevel": "none",
+  "requirementType": "aseguramiento",
+  "folioSiara": "CONDUSEF/2023/360663",
+  "numeroOficio": "CONDUSEF/2023/360663",
+  "numeroExpediente": "A/PL1 - 2382 - 904687 - SAT",
+  "autoridadNombre": "Comisión Nacional para la Protección y Defensa de los Usuarios de Servicios Financieros",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Fabiola Alba de la Garza",
+  "personaNombre": "Rosario Valle Reséndez",
+  "personaRfc": "VARR06030713Y",
+  "solicitudPartes": [
+    {
+      "nombre": "Rosario Valle Reséndez",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$3,351,908.10",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Comisión Nacional para la Protección y Defensa de los Usuarios de Servicios Financieros",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

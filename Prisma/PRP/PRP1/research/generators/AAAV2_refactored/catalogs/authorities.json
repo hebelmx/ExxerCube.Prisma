@@ -1,0 +1,186 @@
+{
+  "authorities": {
+    "IMSS": {
+      "nombre": "Instituto Mexicano del Seguro Social",
+      "siglas": "IMSS",
+      "tipo": "fiscal",
+      "areas": [
+        "Oficina para Cobros 8 San Ángel",
+        "Subdelegación 8 San Ángel del IMSS",
+        "Delegación Sur del Distrito Federal",
+        "Departamento de Cobranza",
+        "Jefatura de Servicios de Cobranza",
+        "División de Recuperación de Créditos Fiscales"
+      ],
+      "legal_articles": [
+        "Art. 251 fracción VII, XXV y XXXVII de la Ley del Seguro Social",
+        "Art. 251-A de la Ley del Seguro Social",
+        "Art. 270, 287 y 291 de la Ley del Seguro Social",
+        "Reglamento Interior del Instituto Mexicano del Seguro Social artículos 142 fracción III, 149, 150, 154"
+      ],
+      "requirement_types": ["fiscal", "aseguramiento", "informacion"]
+    },
+    "SAT": {
+      "nombre": "Servicio de Administración Tributaria",
+      "siglas": "SAT",
+      "tipo": "fiscal",
+      "areas": [
+        "Administración General de Auditoría Fiscal Federal",
+        "Administración Desconcentrada de Auditoría Fiscal de Sonora \"2\"",
+        "Administración Local de Auditoría Fiscal",
+        "Administración General de Recaudación",
+        "Administración Desconcentrada de Auditoría Fiscal de Nuevo León",
+        "Administración Desconcentrada de Auditoría Fiscal de Jalisco",
+        "Administración Central de Fiscalización Estratégica"
+      ],
+      "legal_articles": [
+        "Art. 42 del Código Fiscal de la Federación",
+        "Artículos 145, 151, 152, 153, 154 del Código Fiscal de la Federación",
+        "Art. 16 de la Constitución Política de los Estados Unidos Mexicanos",
+        "Art. 3 fracción I y 45 de la Ley Orgánica de la Administración Pública Federal",
+        "Art. 160 del Código Fiscal de la Federación"
+      ],
+      "requirement_types": ["fiscal", "aseguramiento", "informacion"]
+    },
+    "UIF": {
+      "nombre": "Unidad de Inteligencia Financiera",
+      "siglas": "UIF",
+      "tipo": "pld",
+      "areas": [
+        "Dirección General de Análisis de Operaciones",
+        "Dirección General de Investigación",
+        "Subdirección de Análisis Financiero",
+        "Subdirección de Investigaciones Especiales",
+        "Dirección de Cooperación Internacional"
+      ],
+      "legal_articles": [
+        "Art. 15 de la Ley Federal para la Prevención e Identificación de Operaciones con Recursos de Procedencia Ilícita",
+        "LFPIORPI artículos 17, 18 y 23",
+        "Art. 400 bis del Código Penal Federal",
+        "Art. 53 de la Ley de Instituciones de Crédito"
+      ],
+      "requirement_types": ["pld", "aseguramiento", "informacion"]
+    },
+    "FGR": {
+      "nombre": "Fiscalía General de la República",
+      "siglas": "FGR",
+      "tipo": "judicial",
+      "areas": [
+        "Fiscalía Especializada en Materia de Delincuencia Organizada",
+        "Subprocuraduría Especializada en Investigación de Delitos Federales",
+        "Fiscalía Especializada en Materia de Derechos Humanos",
+        "Unidad Especializada en Investigación de Terrorismo",
+        "Fiscalía Especializada en Combate a la Corrupción"
+      ],
+      "legal_articles": [
+        "Artículos 21 y 102 de la Constitución Política de los Estados Unidos Mexicanos",
+        "Art. 2 de la Ley Federal contra la Delincuencia Organizada",
+        "Art. 40 del Código Nacional de Procedimientos Penales",
+        "Art. 181 del Código Nacional de Procedimientos Penales"
+      ],
+      "requirement_types": ["judicial", "aseguramiento", "informacion"]
+    },
+    "SEIDO": {
+      "nombre": "Subprocuraduría Especializada en Investigación de Delincuencia Organizada",
+      "siglas": "SEIDO",
+      "tipo": "judicial",
+      "areas": [
+        "Unidad Especializada en Investigación de Terrorismo, Acopio y Tráfico de Armas",
+        "Unidad Especializada en Investigación de Delitos contra la Salud",
+        "Unidad Especializada en Investigación de Operaciones con Recursos de Procedencia Ilícita",
+        "Unidad Especializada en Investigación de Secuestro"
+      ],
+      "legal_articles": [
+        "Art. 2 de la Ley Federal contra la Delincuencia Organizada",
+        "Art. 400 bis del Código Penal Federal",
+        "Art. 194 del Código Federal de Procedimientos Penales",
+        "LFCDO artículos 11, 16 y 50"
+      ],
+      "requirement_types": ["judicial", "pld", "aseguramiento"]
+    },
+    "PJF": {
+      "nombre": "Poder Judicial de la Federación",
+      "siglas": "PJF",
+      "tipo": "judicial",
+      "areas": [
+        "Juzgado Primero de Distrito en Materia Penal",
+        "Juzgado Segundo de Distrito en Materia Civil",
+        "Tribunal Colegiado en Materia Penal del Primer Circuito",
+        "Juzgado de Distrito en Materia de Amparo",
+        "Juzgado Federal de Procedimientos Penales"
+      ],
+      "legal_articles": [
+        "Artículos 94 a 107 de la Constitución Política de los Estados Unidos Mexicanos",
+        "Art. 16 Constitucional",
+        "Art. 142 de la Ley de Instituciones de Crédito",
+        "Ley Orgánica del Poder Judicial de la Federación"
+      ],
+      "requirement_types": ["judicial", "informacion"]
+    },
+    "INFONAVIT": {
+      "nombre": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+      "siglas": "INFONAVIT",
+      "tipo": "fiscal",
+      "areas": [
+        "Dirección de Cobranza",
+        "Subdirección de Recuperación de Cartera",
+        "Departamento de Ejecución Fiscal",
+        "Coordinación de Cobranza Coactiva"
+      ],
+      "legal_articles": [
+        "Art. 30 de la Ley del Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+        "Art. 145, 151, 152, 153, 154 del Código Fiscal de la Federación",
+        "Art. 29 y 30 de la Ley del INFONAVIT"
+      ],
+      "requirement_types": ["fiscal", "aseguramiento", "informacion"]
+    },
+    "SHCP": {
+      "nombre": "Secretaría de Hacienda y Crédito Público",
+      "siglas": "SHCP",
+      "tipo": "fiscal",
+      "areas": [
+        "Subsecretaría de Ingresos",
+        "Unidad de Inteligencia Financiera",
+        "Dirección General de Análisis Económico",
+        "Coordinación General de Asuntos Hacendarios"
+      ],
+      "legal_articles": [
+        "Art. 31 de la Ley Orgánica de la Administración Pública Federal",
+        "Art. 16 Constitucional",
+        "Ley de Instituciones de Crédito artículos 117, 142"
+      ],
+      "requirement_types": ["fiscal", "informacion"]
+    },
+    "CONDUSEF": {
+      "nombre": "Comisión Nacional para la Protección y Defensa de los Usuarios de Servicios Financieros",
+      "siglas": "CONDUSEF",
+      "tipo": "informacion",
+      "areas": [
+        "Dirección General de Atención a Usuarios",
+        "Dirección de Orientación Legal",
+        "Subdirección de Dictámenes Técnicos"
+      ],
+      "legal_articles": [
+        "Ley de Protección y Defensa al Usuario de Servicios Financieros",
+        "Art. 11 de la Ley de la CONDUSEF",
+        "Disposiciones de carácter general"
+      ],
+      "requirement_types": ["informacion"]
+    },
+    "PGR_VISITADURIA": {
+      "nombre": "Procuraduría General de la República - Visitaduría General",
+      "siglas": "PGR",
+      "tipo": "judicial",
+      "areas": [
+        "Visitaduría General",
+        "Unidad de Asuntos Internos",
+        "Dirección de Control y Evaluación"
+      ],
+      "legal_articles": [
+        "Ley Orgánica de la Procuraduría General de la República",
+        "Art. 21 y 102 Constitucional"
+      ],
+      "requirement_types": ["judicial", "informacion"]
+    }
+  }
+}

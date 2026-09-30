@@ -1,0 +1,50 @@
+{
+  "docId": "PJFMX-2024-415897_20260704_050219",
+  "seed": 1000,
+  "chaosLevel": "none",
+  "requirementType": "judicial",
+  "folioSiara": "PJFMX/2024/415897",
+  "numeroOficio": "PJFMX/2024/415897",
+  "numeroExpediente": "H/AS1-5886-149949-AAA",
+  "autoridadNombre": "Poder Judicial de la Federación",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Reina Tamez Solorio",
+  "personaNombre": "Jorge Feliciano Cisneros",
+  "personaRfc": "FECJ5109151ZY",
+  "solicitudPartes": [
+    {
+      "nombre": "Jorge Feliciano Cisneros",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$8,617,721.53",
+  "fechaDiligencia": "04/07/2026",
+  "juzgadoNombre": "Poder Judicial de la Federación",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

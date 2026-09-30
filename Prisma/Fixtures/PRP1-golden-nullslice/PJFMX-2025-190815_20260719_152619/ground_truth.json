@@ -1,0 +1,50 @@
+{
+  "docId": "PJFMX-2025-190815_20260719_152619",
+  "seed": 5003,
+  "chaosLevel": "none",
+  "requirementType": "pld",
+  "folioSiara": "PJFMX/2025/190815",
+  "numeroOficio": "PJFMX/2025/190815",
+  "numeroExpediente": "H/JU1 - 9233 - 567118 - SAT",
+  "autoridadNombre": "Poder Judicial de la Federación",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Emilio Razo Vanegas",
+  "personaNombre": "Yolanda Chávez Esquivel",
+  "personaRfc": "CHEY990224MS3",
+  "solicitudPartes": [
+    {
+      "nombre": "Yolanda Chávez Esquivel",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$8,251,007.19",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Poder Judicial de la Federación",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

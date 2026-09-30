@@ -1,0 +1,50 @@
+{
+  "docId": "CNBV-2025-605483_20260704_050221",
+  "seed": 1000,
+  "chaosLevel": "none",
+  "requirementType": "judicial",
+  "folioSiara": "CNBV/2025/605483",
+  "numeroOficio": "CNBV/2025/605483",
+  "numeroExpediente": "B/PL1-9497-933469-BBB",
+  "autoridadNombre": "Procuraduría General de la República - Visitaduría General",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Abigail Almonte Pelayo",
+  "personaNombre": "Aurelio Laboy Alcaraz",
+  "personaRfc": "LAAA680429GKG",
+  "solicitudPartes": [
+    {
+      "nombre": "Aurelio Laboy Alcaraz",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$7,634,504.74",
+  "fechaDiligencia": "04/07/2026",
+  "juzgadoNombre": "Procuraduría General de la República - Visitaduría General",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

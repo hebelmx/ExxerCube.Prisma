@@ -1,0 +1,50 @@
+{
+  "docId": "INFONAVIT-2023-987247_20260719_152604",
+  "seed": 5002,
+  "chaosLevel": "none",
+  "requirementType": "fiscal",
+  "folioSiara": "INFONAVIT/2023/987247",
+  "numeroOficio": "INFONAVIT/2023/987247",
+  "numeroExpediente": "B/IN1—8571—802278—FGR",
+  "autoridadNombre": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "José Carlos Barreto Matías",
+  "personaNombre": "Helena Fernández Bustos",
+  "personaRfc": "FEBH870223ZQE",
+  "solicitudPartes": [
+    {
+      "nombre": "Helena Fernández Bustos",
+      "caracter": "Contribuyente"
+    }
+  ],
+  "monto": "$8,779,398.37",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

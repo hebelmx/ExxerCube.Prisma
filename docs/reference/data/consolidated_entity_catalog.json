@@ -1,0 +1,4505 @@
+{
+  "catalog_name": "autoridades_mexicanas_consolidado",
+  "version": "2025-11-30",
+  "description": "Consolidated catalog of Mexican authorities for Prisma system",
+  "sources": [
+    "phase1_pjf_extracted.json",
+    "extracted_authorities_clean.json",
+    "sat_reglamento_extracted.json",
+    "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json"
+  ],
+  "stats": {
+    "total_entities": 549,
+    "by_type": {
+      "Juzgado": 124,
+      "Tribunal": 93,
+      "Secretaría": 78,
+      "Dirección": 65,
+      "Consejo": 33,
+      "Procuraduría": 25,
+      "Comisión": 20,
+      "Fiscalía": 20,
+      "Pleno": 19,
+      "Administración": 14,
+      "Sala": 11,
+      "Administración General": 11,
+      "Centro": 5,
+      "Agencia Orientadora": 5,
+      "Dirección General": 5,
+      "Sede": 3,
+      "Subdelegación": 3,
+      "Comité": 3,
+      "Cámara": 1,
+      "CENTRO": 1,
+      "SECRETARÍA": 1,
+      "Sede Ciudad Juárez": 1,
+      "Sede Ciudad de México": 1,
+      "Zona Centro": 1,
+      "Comités y Comisiones": 1,
+      "Órgano Desconcentrado": 1,
+      "Jefatura": 1,
+      "Unidad Administrativa": 1,
+      "Secretariado": 1,
+      "Órgano Interno de Control": 1
+    }
+  },
+  "entities": [
+    {
+      "nombre": "TRIBUNAL ELECTORAL, SALA SUPERIOR Sala Superior Mgdo",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL ELECTORAL DEL PODERJUDICIAL DE LA FEDERACIÓN",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Electoral del Poder Judicial de la Federación",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Electoral del Poder Judicial de la Federación tiene competencia para pronunciarsesobre la inconstitucionalidad de leyes",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Electoral del Poder Judicial de la Federación, los Tribunales Cole- giados y Unitarios de Circuito y Juzgados de Distrito,así como del Consejo de la Judicatura Federal y sus órganos auxiliares, la cual ilustra particularmente los16 procesos y procedimientos de su competencia",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Electoral del Poder Judicial de la Federación, los Magistrados de los Tribunales de Circuito",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Electoral del Poder Judicial de la Federación, como órgano jurisdiccional especia- lizado en esa materia, resolver en forma definitiva einatacable conflictos e impugnaciones contra actos de autoridades electorales",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Electoral es un órgano especializado del Poder Judicial de la Federación y máxima autoridad jurisdiccional en materia electoral, excepto cuando se trate de acciones de inconstitucionalidad de leyeselectorales federales y locales, cuya resolución co- rresponde a la Suprema Corte de Justicia de la Nación",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Electoral del Poder Judicial de la Federación está facultado para resolver, de maneradefinitiva e inatacable, los medios de impugnaciónprevistos en la Ley General de Sistemas de Mediosde Impugnación en Materia Electoral, ya sea en una oen dos instancias",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Electoral del Poder Judicial de laFederación",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Electoral cuenta con una Comisión de Administración, encargada de la adminis-tración, vigilancia, disciplina y carrera judicial de eseórgano jurisdiccional",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Electoral conoce y re- suelve, entre otros, los siguientes asuntos",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Electoral del Poder Judicial de la Federa-ción o el Instituto Federal Electoral, con sus respecti-vos trabajadores",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Electoral sólo puede manifestarse res-pecto de algún acto o resolución o sobre la interpre-tación de un precepto constitucional, siempre que éstano sea para verificar la conformidad de una ley electo-ral con el propio Ordenamiento Supremo, ya que delo contrario estaría ejerciendo una facultad que cons-titucionalmente no le corresponde",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Colegiado de Circuito representa al tribunal, distribuye los asun- tos entre los Magistrados y dirige los debates que sepresentan a la hora de resolver los juicios, además de que firma las resoluciones del tribunal, con el Magis- trado ponente y el secretario de acuerdos",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Electoral del Poder Judicial de laFederación, a través de su Sala Superior y de las Salas Regionales, y los Tribunales Colegiados de Circuito",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Colegiado de Circuito",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Electoral, se requieren tressentencias de la Sala Superior o cinco de las Salas Regionales",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Electoral, decide entre doso más criterios contradictorios cuál de ellos debe pre- valecer o, en su caso, emite un criterio propio que se impone a los criterios encontrados",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la NaciónAv",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "SUPREMA CORTE DE JUSTICIA DE LA NACIÓN 5DIRECTORIO TRIBUNAL ELECTORAL, SALA SUPERIOR Sala Superior Mgdo",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la Nación, consciente de la importancia de que la sociedad civil conozca qué es el Poder Judicial de la Federación y cuál es su fun- cionamiento, ha decidido publicar, por cuarta vez, laobra",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la Nación enfatiza su intención de abundar sobre aspec-tos que solamente en raras ocasiones llaman laatención del público, como son el trabajo de los secre-tarios y actuarios",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la Nación Ministro Mariano Azuela Güitrón Ministra Margarita Beatriz Luna Ramos Ministra Olga María Sánchez Cordero de García VillegasEn el artículo 133 de la Constitución Política de los Estados Unidos Mexicanos se establece el principio de supremacía constitucional, por el cual la Constitu-ción Federal y las leyes que de ella emanen, así como los tratados celebrados con potencias extranjeras, suscritos por el presidente de la República con apro-bación del Senado, constituyen la Ley Suprema de toda la Unión",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la Nación, los Ma- gistrados del Tribunal Electoral del Poder Judicial de la Federación, los Magistrados de los Tribunales de Circuito",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la Nación, los Magistrados electorales, los Magistradosde Tribunales de Circuito",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la Nación o en materia pe-nal, en la que la suplencia opera aun ante laausencia de conceptos de violación del reo",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la Nación, cuando se suscitan conflictos entre Poderes",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la Nación, en los que se denuncia la posible contradicción entre normas de carácter general",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia, mediante un análisis abstracto de la constitucionalidad de la norma, la declara inconstitucional, ésta no puede volver a tenervigencia ni aplicársele a nadie, lo que significa que las sentencias dictadas en las acciones de inconstitu- cionalidad tienen efectos generales, siempre que laresolución se adopte mediante el voto de ocho o más de sus Ministros",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la Nación está facul- tada para averiguar algún hecho o hechos que cons-tituyan una grave violación de garantías individuales",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la Nación está facultada para practicar de oficio la averigua-ción de algún hecho que constituya la violación del votopúblico, cuando a su juicio pueda ponerse en duda lalegalidad de todo el proceso de elección de algúnPoder de la Unión",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia dela Nación emite una opinión autorizada que remite a losórganos competentes",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la Nación es el Máximo Tribunal del país",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia se requiereser mexicano por nacimiento, tener cuando menos 35años cumplidos y título profesional de licenciado enderecho expedido por lo menos diez años antes dela designación",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la Nación funciona en Pleno",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la Nación puede conocer, entre otros, de los siguientesasuntos",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de laNación y del Tribunal Electoral",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justiciade la Nación, quienes son designados por el Senado deuna terna que propone el presidente de la República,así como del personal jurisdiccional adscrito al TribunalElectoral, el cual se rige por las disposiciones que esta-blece su Comisión de Administración",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la Nación y de algunosfuncionarios del Tribunal Electoral",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la Nación, México, 2002, pp",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la Nación, mediante laelaboración de los correspondientes proyectos deresolución, con los que dan cuenta a los Ministros,quienes resuelven en definitiva",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la Nación, los Magistrados deCircuito o los Jueces de Distrito, en los juicios o proce-dimientos legales que se tramitan ante ellos",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia, de carácter oficial y permanente que tiene por objetodifundir los criterios aislados y de jurisprudencia emitidos por los órganos jurisdiccionales competen- tes del Poder Judicial de la Federación, esto es, porel Pleno y las Salas de la Suprema Corte de Justicia de la Nación y los Tribunales Colegiados de Circuito, así como los Acuerdos del más Alto Tribunal del país,del Consejo de la Judicatura Federal y los que éstos emitan en forma conjunta",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "SUPREMA CORTE DE JUSTICIA DE LA NACIÓN, El concurso mercantil y el IFECOM , Suprema Corte de Justicia de la Nación, México, 2002",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "SUPREMA CORTE DE JUSTICIA DE LA NACIÓN, CD-ROM Jurisprudencia y Tesis Aisladas 1917-2002,IUS 2002, México, 2002",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la Nación, rela- tivo al envío de asuntos de su competencia origina- ria a las Salas",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Suprema Corte de Justicia de la Nación, rela- tivo a la determinación de los asuntos que conser- vará para su resolución y el envío de los de sucompetencia originaria a las Salas y a los Tribuna- les Colegiados de Circuito",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Electoral",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:PJF",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunales Unitarios de Circuito",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:PJF",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunales Colegiados y Unitarios de Circuito",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:PJF",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE CHALCO Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 EJECUCION DE SENTENCIAS JUZGADO DE EJECUCION DE SENTENCIAS DE CHALCO Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACUSATORI JUZGADO DE EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACU DE CHALCO Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 CONTROL Y JUICIOS ORALES JUZGADO DE JUICIO ORAL DE CHALCO JUZGADO FAMILIAR DEL DISTRITO JUDICIAL DE CHALCO JUZGADO PENAL DE PRIMERA INSTANCIA DE CHALCO Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 FAMILIARES Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 PENAL Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 CIVILES PRIMERA INSTANCIA JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE CHALCO JUZGADO QUINTO CIVIL DEL DISTRITO JUDICIAL DE CHALCO CON RESIDENCIA EN AMECAMECA Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 Fracción del lote",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Chalco",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE CUAUTITLÁN Calle Porfirio Díaz s",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE ECATEPEC DE MORELOS Cerro de Chiconautla s",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Morelos",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Independencia s",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE IXTLAHUACA JUZGADO DE EJECUCION DE SENTENCIAS DE IXTLAHUACA DIRECCIÓN",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE JILOTEPEC JUZGADO DE EJECUCION DE SENTENCIAS DE JILOTEPEC Ignacio Allende No",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE LERMA Ignacio Allende No",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Prolongación Av",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Carretera a Santa Bárbara S",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Libramiento Sultepec S",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL DE ENJUICIAMIENTO DE Plaza Principal Juarez No,1, Centro, 51300 TEMASCALTEPEC EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACUSATORI JUZGADO DE EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACU Plaza Principal Juarez No,1, Centro, 51300 TEMASCALTEPEC CONTROL Y JUICIOS ORALES JUZGADO DE JUICIO ORAL DE TEMASCALTEPEC Plaza Principal Juarez No,1, Centro, 51300 DISTRITO TENANGO DEL VALLE CIVILES DE CUANTIA MENOR JUZGADO CIVIL DE CUANTIA MENOR DE SANTIAGO TIANGUISTENCO Carretera la Marquesa- Tenango km 18",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO k",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Privada de Héctor Gordillo, Barrio El Salitre, 52400 JUDICIAL DE TENANCINGO EJECUCION DE SENTENCIAS JUZGADO DE EJECUCION DE SENTENCIAS DE TENANCINGO Privada de Héctor Gordillo, Barrio El Salitre, 52400 EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACUSATORI JUZGADO DE EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACU DE Privada de Héctor Gordillo, Barrio El Salitre, 52400 TENANCINGO JUZGADO DE JUICIO ORAL DE TENANCINGO JUZGADO PENAL DE TENANCINGO CONTROL Y JUICIOS ORALES Privada de Héctor Gordillo, Barrio El Salitre, 52400 PENAL Privada de Héctor Gordillo, Barrio El Salitre, 52400 CIVILES PRIMERA INSTANCIA JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE TENANCINGO Privada de Héctor Gordillo, Barrio El Salitre, 52400 JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE TENANCINGO CON Carretera Federal Ixtapan de la Sal 8 Tonatico S",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Carretera a San Miguel Tlaixpan S",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Cerrada de Fray Gregorio Jimenez de la Cuenca s",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Antiguo camino a Jilotzingo s",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal de Enjuiciamiento del Distrito Judicial de Cuautitlán",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunales laborales federales",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "llm:PJF_Organos",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunales colegiados de apelación",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:PJF_Organos",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Colegiado en Materia de Trabajo del Sexto Circuito, inicialmente con domicilio en Puebla, presenta diversas modificaciones, entre ellas cambios de residencia entre Pu ebla y Tlaxcala , hasta pasar de un carácter ordinario a auxiliar y viceversa",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL COLEGIADO EN MATERIA DE TRABAJO DEL SEXTO CIRCUITO, CON RESIDENCIA EN PUEBLA, PUEBLA N154020",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL COLEGIADO DEL VIGÉSIMO OCTAVO CIRCUITO CON RESIDENCIA EN TLAXCALA, TLAXCALA W150000 N154020 2 5 PRIMER TRIBUNAL COLEGIADO DEL VIGÉSIMO OCTAVO CIRCUITO, CON RESIDENCIA EN APIZACO, TLAXCALA W250010 N154020 3 5 CUARTO TRIBUNAL COLEGIADO DE CIRCUITO DEL CENTRO AUXILIAR DE LA SEGUNDA REGIÓN, CON RESIDENCIA EN SAN ANDRÉS CHOLULA, PUEBLA N25C040 N154020 4 5 SEGUNDO TRIBUNAL COLEGIADO EN MATERIA DE TRABAJO DEL SEXTO CIRCUITO, CON RESIDENCIA EN PUEBLA, PUEBLA N154020",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "tribunal colegiado tendrá el consecutivo 02 y un Tribunal colegiado sin numeración tendrá el consecutivo 00",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Unitario del Decimoquinto Circuito, con Residencia en Tijuana, Baja California , con la clave interna de 23600 E0, con la fecha de alta del 3 de septiembre de 2001 e identificada en el acuerdo número 41",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL UNITARIO DEL DECIMOQUINTO CIRCUITO, CON RESIDENCIA EN TIJUANA, BAJA CALIFORNIA 23600E0 23600E0 03",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Colegiado del Décimo Sexto Circuito, con Residencia en Guanajuato, Guanajuato , con fundamento en el Acuerdo General 3",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Colegiado en Materias Civil y de Trabajo a Segundo Tribunal Colegiado en Materia Civil",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Colegiado del Décimo Sexto Circuito y el Cuarto Tribunal Colegiado del Décimo Sexto Circuito",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL COLEGIADO DEL DECIMOSEXTO CIRCUITO, CON RESIDENCIA EN GUANAJUATO, GUANAJUATO C150040 C150040 01",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "TRIBUNAL COLEGIADO EN MATERIA CIVIL DEL DECIMOSEXTO CIRCUITO, CON RESIDENCIA EN GUANAJUATO, GUANAJUATO C153020",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Segundo Tribunal Colegiado en Materia de Trabajo del Sexto Circuito",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:PJF_Metodologia",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Colegiado del Vigésimo Octavo Circuito",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:PJF_Metodologia",
+      "competencia": []
+    },
+    {
+      "nombre": "Cuatro Tribunal Colegiado de Circuito del Centro Auxiliar de la Segunda Región",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:PJF_Metodologia",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Federal de Justicia Fiscal y Administrativa que se dicten en los juicios contenciosos administrativos",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Federal de Justicia Fiscal y Administrativa, contra resoluciones o actos de éstos o de las autoridades fiscales de las entidades federativas que deriven de la aplicación que dichas autoridades hagan de las leyes fiscales federales en cumplimiento de los convenios de coordinación fiscal, así como para ejercer las acciones, excepciones y defensas que correspondan a las autoridades señaladas en los juicios ante dicho Tribunal",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Federal de Justicia Fiscal y Administrativa, respecto de los juicios que deriven de las atribuciones a que se refiere este artículo, así como representar a las mencionadas autoridades en los juicios de amparo que interpongan los particulare s en contra de las sentencias y resoluciones definitivas dictadas por el Tribunal Federal de Justicia Fiscal y Administrativa, respecto de los juicios de su competencia",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Federal de Justicia Fiscal y Administrativa",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Federal de Justicia Fiscal y Administrativa, contra resoluciones o actos de éstos o de las autoridad es fiscales de las entidades federativas por la aplicación que dichas autoridades hagan de las leyes REGLAMENTO INTERIOR DEL SERVICIO DE ADMINI STRACION TRIBUTARIA Publicado",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Federal de Justicia Fiscal y Administrativa, respecto de los juicios de su com petencia, y el amparo adhesivo, así como comparecer y alegar en los juicios de amparo que interpongan los particulares en contra de las sentencias y resoluciones definitivas dictadas por el Tribunal Federal de Justicia Fiscal y Administrativa",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Tribunal Federal de Conciliación y Arbitra je y demás autoridades del trabajo, en las controversias y juicios laborales que se susciten con el personal que le preste sus servicios al citado órgano administrativo desconcentrado",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de lo Contencioso de Hidrocarburos",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de lo Contencioso",
+      "tipo": "Tribunal",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "CONSEJO DE LA JUDICATURA FEDERAL Ministro Mariano Azuela Güitrón Presidente Consejeros Luis María Aguilar Morales Adolfo O",
+      "tipo": "Consejo",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "CONSEJO DE LA JUDICATURA FEDERAL",
+      "tipo": "Consejo",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Consejo de la Judicatura Federal y sus órganos auxiliares, la cual ilustra particularmente los16 procesos y procedimientos de su competencia",
+      "tipo": "Consejo",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Consejo de la Judicatura Federal que cumple con importantes funciones de carácter admi-nistrativo, de disciplina y vigilancia y tiene bajo su res- ponsabilidad al Instituto de la Judicatura Federal que se preocupa de la formación de Magistrados,Jueces, Secretarios y Actuarios a fin de que posean los atributos constitucionales de independencia, impar- cialidad, objetividad, profesionalismo y excelencia quedeben regir la carrera judicial",
+      "tipo": "Consejo",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Consejo de la Judicatura Federal es un órgano del Poder Judicial de la Federación con independencia técnica, de gestión y para emitir sus resoluciones, quetiene a su cargo la administración, vigilancia, disciplina y carrera judicial del Poder Judicial de la Federación, con excepción de la Suprema Corte de Justicia de laNación y del Tribunal Electoral",
+      "tipo": "Consejo",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Consejo de la Judicatura Federal apoya a los juzgados y tribunales federales con la dotación de re- cursos materiales",
+      "tipo": "Consejo",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "CONSEJO DE LA JUDICATURA FEDERAL76 Dentro del Poder Judicial de la Federación existe la carrera judicial, que es el sistema de ingreso y promo-ción de los servidores públicos de carácter jurisdiccio-nal",
+      "tipo": "Consejo",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Consejo de la JudicaturaFederal, con excepción del Instituto Federal de Defen- soría Pública",
+      "tipo": "Consejo",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Consejo de la Judicatura Fede- ral que está encargado de la prestación de los serviciosde defensa penal y asesoría jurídica administrativa,fiscal y civil en forma gratuita, bajo los principios deprobidad, honradez y profesionalismo, a la poblaciónque carece de medios para pagar un abogado",
+      "tipo": "Consejo",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Consejo de la Judicatura Federal y los que éstos emitan en forma conjunta",
+      "tipo": "Consejo",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Consejo de la Judicatura Federal , Supre- ma Corte de Justicia de la Nación, México, 2002",
+      "tipo": "Consejo",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Consejo de la Judicatura Federal, que regula la or-ganización y funcionamiento del Consejo de la Ju-dicatura Federal",
+      "tipo": "Consejo",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Comité Editorial",
+      "tipo": "Consejo",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:PJF",
+      "competencia": []
+    },
+    {
+      "nombre": "Instituto de la Judicatura Federal",
+      "tipo": "Consejo",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "llm:PJF",
+      "competencia": []
+    },
+    {
+      "nombre": "Visitaduría Judicial",
+      "tipo": "Consejo",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:PJF",
+      "competencia": []
+    },
+    {
+      "nombre": "Contraloría del Poder Judicial de la Federación",
+      "tipo": "Consejo",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:PJF",
+      "competencia": []
+    },
+    {
+      "nombre": "Instituto Federal de Defensoría Pública",
+      "tipo": "Consejo",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "llm:PJF",
+      "competencia": []
+    },
+    {
+      "nombre": "Instituto Federal de Especialistas de Concursos Mercantiles",
+      "tipo": "Consejo",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "llm:PJF",
+      "competencia": []
+    },
+    {
+      "nombre": "CONSEJO DE LA JUDICATURA FEDERAL DIRECCIÓN GENERAL DE ESTADÍSTICA JUDICIAL 1 DISTRIBUCIÓN DE LOS ÓRGANOS JURISDICCIONALES POR CIRCUITO JUDICIAL AL 31 DE DICIEMBRE DE 2020 Fuente",
+      "tipo": "Consejo",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración General de Auditoría Fiscal Federal",
+      "tipo": "Consejo",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración General de Auditoría de Comercio Exterior",
+      "tipo": "Consejo",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración General de Grandes Contribuyentes",
+      "tipo": "Consejo",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración General de Hidrocarburos",
+      "tipo": "Consejo",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Apoyo Jurídico y Normatividad de Hidrocarburos",
+      "tipo": "Consejo",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración General de Servicios al Contribuyente",
+      "tipo": "Consejo",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Apoyo Jurídico de Servicios al Contribuyente",
+      "tipo": "Consejo",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Comunicación Institucional",
+      "tipo": "Consejo",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Programas Interinstitucionales de Servicios",
+      "tipo": "Consejo",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración General Jurídica",
+      "tipo": "Consejo",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración General de Comunicaciones y Tecnologías de la Información",
+      "tipo": "Consejo",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración General de Evaluación",
+      "tipo": "Consejo",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Coordinación de Evaluación de Comunicaciones y Tecnologías de la Información",
+      "tipo": "Consejo",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Coordinación de Procedimientos Penales",
+      "tipo": "Consejo",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Dirección General de la Coordinación de Compilación y Sistematización de Tesis de la Suprema Corte de Justicia de la Nación",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Dirección General de la Coordinación de Compilación y Sistematización",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:PJF",
+      "competencia": []
+    },
+    {
+      "nombre": "Poder Judicial del Estado de México",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado Dirección",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "DIRECCIÓN GENERAL DE ESTADÍSTICA JUDICIAL 1 DISTRIBUCIÓN DE LOS ÓRGANOS JURISDICCIONALES POR CIRCUITO JUDICIAL AL 31 DE DICIEMBRE DE 2020 Fuente",
+      "tipo": "Dirección",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Dirección General de Estadística Judicial",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:PJF_Organos",
+      "competencia": []
+    },
+    {
+      "nombre": "Dirección General de Estadística Judicial 6 de octubre de 202 2 1 Metodología para integrar el directorio de órganos jurisdiccionales Los sistemas de gestión del Consejo de la Judicatura Federal",
+      "tipo": "Dirección",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Dirección General de Estadística Judicial 6 de octubre de 202 2 2 Un emplo de esta historia se muestra en el cuadro 2 , donde el Segundo Tribunal Colegiado en Materia de Trabajo del Sexto Circuito, inicialmente con domicilio en Puebla, presenta diversas modificaciones, entre ellas cambios de residencia entre Pu ebla y Tlaxcala , hasta pasar de un carácter ordinario a auxiliar y viceversa",
+      "tipo": "Dirección",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Dirección General de Estadística Judicial 6 de octubre de 202 2 3 Cuadro 3",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Dirección General de Estadística Judicial 6 de octubre de 202 2 4 Para el caso de los órgan os del tipo de plenos de circuito, los cuales se componen por los magistrados adscritos a los tribunales colegiados del circuito respectivo o, en su caso, por sus presidentes , el sistema de recursos humanos y de presupuesto sólo dispone del registro de aqu ellos plenos que cuenten con una plantilla laboral a su cargo",
+      "tipo": "Dirección",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Dirección General de Estadística Judicial 6 de octubre de 202 2 5 Esta estimación se colecta a partir d el Sistema Integral para la Administración de Recursos Humanos",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Dirección General de Estadística Judicial 6 de octubre de 202 2 6 Nombre órgano Clave interna cjf Clave inicial Fecha inicial Fecha final No",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Dirección General de Estadística Judicial 6 de octubre de 202 2 7 fundamento en el Acuerdo General 39",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "DIRECCIÓN GENERAL PARA UNA VIDA LIBRE DE VIOLENCIA Y PARA LA IGUALDAD POLÍTICA Y SOCIAL Dirección de Seguimiento a la",
+      "tipo": "Dirección",
+      "jurisdiccion": "Aguascalientes",
+      "nombre_corto": null,
+      "source": [
+        "regex",
+        "llm:llama3:8b"
+      ],
+      "competencia": []
+    },
+    {
+      "nombre": "Dirección de Seguimiento a la Política Nacional para Combatir la Violencia contra las",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "DIRECTORIO DE LAS DELEGACIONES DE LA FISCALÍA GENERAL DE LA REPÚBLICA",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "AGENCIA ORIENTADORA TULA DE",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "AGENCIA ORIENTADORA SAN MIGUEL",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Dirección General de Evaluación de la Agencia Nacional, de conformidad con la legislación aplicable",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Apoyo Júridico de Recaudación",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Operación de la Fiscalización Nacional",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Análisis Técnico Fiscal",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Planeación y Programación de Auditoría Fiscal Federal",
+      "tipo": "Dirección",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Verificación y Evaluación de Entidades Federativas en Materia de Coordinación Fiscal",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Fiscalización Estratégica",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Apoyo Jurídico de Auditoría Fiscal Federal",
+      "tipo": "Dirección",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Devoluciones y Compensaciones",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Planeación y Programación de Comercio Exterior",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Apoyo Jurídico de Auditoría de Comercio Exterior",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Investigación y Análisis de Comercio Exterior",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Operaciones Especiales de Comercio Exterior",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Certificación y Asuntos Internacionales de Auditoría de Comercio Exterior",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Coordinación Estratégica de Auditoría de Comercio Exterior",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Planeación y Programación de Fiscalización a Grandes Contribuyentes",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Fiscalización al Sector Financiero",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Fiscalización a Grupos de Sociedades",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Fiscalización a Grandes Contribuyentes Diversos",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Fiscalización Internacional",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Fiscalización de Precios de Transferencia",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Apoyo Jurídico y Normatividad de Grandes Contribuyentes",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Apoyo Jurídico y Normatividad Internacional",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de lo Contencioso de Grandes Contribuyentes",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Coordinación Estratégica de Grandes Contribuyentes",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Planeación y Programación de Hidrocarburos",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Verificación de Hidrocarburos",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Servicios Tributarios al Contribuyente",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Gestión de Servicios y Trámites con Medios Electrónicos",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Operación de Padrones",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Coordinación Nacional de las Administraciones Desconcentradas de Servicios al Contribuyente",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Planeación y Proyectos",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Operación de Recursos y Servicios",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Fideicomisos",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Control y Seguridad Institucional",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Operación y Servicios Tecnológicos",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Soluciones de Negocio",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Transformación Tecnológica",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Desarrollo y Mantenimiento de Aplicaciones",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Coordinación Evaluatoria",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Análisis y Evaluación de Riesgos",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Evaluación de la Confiabilidad",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Evaluación de Comercio Exterior",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Evaluación de Impuestos Internos",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Evaluación de Seguimiento",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Procedimientos Especiales",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Evaluación de Procesos e Información",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "comisión de un delito",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Comisión Permanente",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Comisión de Administración, encargada de la adminis-tración, vigilancia, disciplina y carrera judicial de eseórgano jurisdiccional",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Comisión de Administración",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Comisión de Creación de Nuevos Órganos y del Pleno del Consejo y otras fuentes de información que se detallan más adelante , se integró un directorio de órganos jurisdiccionales activos entre enero de 2015 a la fecha1",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "comisión de los s iguientes delitos previstos en el Código Penal",
+      "tipo": "Comisión",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "comisión de tal delito o delitos a eludir las con secuencias jurídicas de sus",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "COMISIÓN NACIONAL DE HONOR Y",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Comisión del Servicio Fiscal de Carrera a que se refiere la Ley del Servicio de Administración Tributaria, estará presidida por el Jefe del Servicio de Administración Tributaria y constituida por los demás servidores públicos que determine el Estatuto del Servicio Fiscal de Carrera, quienes ejercerán las facultades que dicho Estatuto les confiera",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "comisión de una probable conducta delictiva, deberá adoptar las medidas conducentes conforme a la Constitución Pol ítica de los Estados Unidos Mexicanos y las disposiciones aplicables en materia de detención, uso de la fuerza y, en particular, de protección a los derechos humanos que correspondan",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Comisión del Servicio Fiscal de Carrera a que se refiere la Ley del Servicio de Administración Tributaria",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Comisión del Servicio Fiscal de Carrera y demás disposiciones jurídicas aplicables",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Comisión Nacional Bancaria y de Valores, a la Comisión Nacional de Seguros y Fianzas o a la Comisión Nacional del Sistema de A horro para el Retiro, según proceda, o a la entidad financiera o sociedad cooperativa de ahorro y préstamo a la que corresponda la cuenta, la inmovilización y conservación de los depósitos bancarios, componentes de ahorro o inversión asociados a seguros de vida que no formen parte de la prima que haya de erogarse para el pago de dicho seguro, o cualquier otro depósito en moneda nacional o extranjera que se realicen en cualquier tipo de cuenta o contrato que tenga a su nombre el contribuyente en alguna de la s entidades financieras o sociedades cooperativas de ahorro y préstamo y ordenar levantar la inmovilización, de conformidad con el Código Fiscal de la Federación",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Comisión Nacional Bancaria y de Valores, de la Comisión Nacional del Sistema de Ahorro para el Retiro o de la Comisión Nacional de Seguros y Fianzas, según corresponda, la información de las cuentas, los REGLAMENTO INTERIOR DEL SERVICIO DE ADMINI STRACION TRIBUTARIA Publicado",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Comisión Nacional Bancaria y de Valores, a la Comisión Nacional de Seguros y Fianzas o a la Comisión Nacional del Sistema de Ahorro para el Retiro, según proceda, o bien a las entidades financieras y sociedades cooperativas de ahorro y préstamo, que ejecuten embargos o aseguramientos de los bienes a que se refiere el artículo 40 -A, fracción III, in ciso f",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "comisión de cualquier ilícito en cuanto al valor, origen, clasificación arancelaria de mercancías, evasión en el pago de contribuciones, cuotas compensatorias u otros aprovechamientos y derechos, incumplimiento de regulaciones y restricciones no arancelarias, incl usive normas oficiales mexicanas, e infracciones administrativas, así como investigar y dar seguimiento a las denuncias presentadas dentro del ámbito de su competencia",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Comisión Nacional Bancaria y de Valores, la Comisión Nacional de Seguros y Fianzas, la Comisión Nacional del Sistema de Ahorro para el Retiro o cualquier otra autoridad compete nte para otorgar dichas autorizaciones conforme a las citadas disposiciones",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "comisión de delitos fiscales previstos en el mismo, así como respecto de otros delitos establecidos en las demás disposiciones legales aplicables",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Comisión Mixta de Escalafón, así como mantener actu alizado el escalafón y difundirlo entre los trabajadores",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Comisión del Servicio Fiscal de Carrera a las sesiones que se requieran, en términos del Estatuto del Servicio Fiscal de Carrera, así como formular y someter a la aprobación de dicha Comisión las propuestas relativas al Servicio Fiscal de Carrera tomando las medidas para que se cumplan los acuerdos de la misma",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "SALA SUPERIOR Sala Superior Mgdo",
+      "tipo": "Sala",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Sala Superior y de sus Salas Regionales",
+      "tipo": "Sala",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Sala Superior es un órgano per-manente, con sede en el Distrito Federal",
+      "tipo": "Sala",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Sala Superior y duran en su cargo un periodo im-prorrogable de ocho años",
+      "tipo": "Sala",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Sala Superior del Tribunal Electoral conoce y re- suelve, entre otros, los siguientes asuntos",
+      "tipo": "Sala",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Sala Superior y de las Salas Regionales, y los Tribunales Colegiados de Circuito",
+      "tipo": "Sala",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Sala Superior o cinco de las Salas Regionales",
+      "tipo": "Sala",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Sala Superior p ara que sea obligatoria",
+      "tipo": "Sala",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Sala Superior del Tribunal Electoral, decide entre doso más criterios contradictorios cuál de ellos debe pre- valecer o, en su caso, emite un criterio propio que se impone a los criterios encontrados",
+      "tipo": "Sala",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Primera Sala",
+      "tipo": "Sala",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:PJF",
+      "competencia": []
+    },
+    {
+      "nombre": "Segunda Sala",
+      "tipo": "Sala",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:PJF",
+      "competencia": []
+    },
+    {
+      "nombre": "Pleno tengan validez, excepto cuando se trate decontroversias constitucionales o acciones de incons- titucionalidad, en las que se requiere la presencia de al menos ocho Ministros",
+      "tipo": "Pleno",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Pleno de la Suprema Corte de Justicia de la Nación puede conocer, entre otros, de los siguientesasuntos",
+      "tipo": "Pleno",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Pleno puede resol- ver directamente los asuntos o expedir acuerdos pararemitirlos a las Salas y a los Tribunales Colegiados de Circuito, para lograr mayor prontitud en su despacho",
+      "tipo": "Pleno",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Pleno de la Suprema Corte",
+      "tipo": "Pleno",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Pleno de la Suprema Corte de Justicia de la Nación",
+      "tipo": "Pleno",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Pleno o en Comisiones",
+      "tipo": "Pleno",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "pleno ejercicio de sus derechos civi les y políticos",
+      "tipo": "Pleno",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Pleno de la Corte, de entre los Magis- trados de Circuito y Jueces de Distrito",
+      "tipo": "Pleno",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Pleno de la SupremaCorte alcance un número calificado de ocho votos",
+      "tipo": "Pleno",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Pleno y las Salas de la Suprema Corte de Justicia de la Nación y los Tribunales Colegiados de Circuito, así como los Acuerdos del más Alto Tribunal del país,del Consejo de la Judicatura Federal y los que éstos emitan en forma conjunta",
+      "tipo": "Pleno",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Pleno de la Suprema Corte de Justicia de la Nación, rela- tivo al envío de asuntos de su competencia origina- ria a las Salas",
+      "tipo": "Pleno",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Pleno de la Suprema Corte de Justicia de la Nación, rela- tivo a la determinación de los asuntos que conser- vará para su resolución y el envío de los de sucompetencia originaria a las Salas y a los Tribuna- les Colegiados de Circuito",
+      "tipo": "Pleno",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Pleno del Consejo de la Judicatura Federal, que regula la or-ganización y funcionamiento del Consejo de la Ju-dicatura Federal",
+      "tipo": "Pleno",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Plenos regionales",
+      "tipo": "Pleno",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:PJF_Organos",
+      "competencia": []
+    },
+    {
+      "nombre": "Pleno del Consejo y otras fuentes de información que se detallan más adelante , se integró un directorio de órganos jurisdiccionales activos entre enero de 2015 a la fecha1",
+      "tipo": "Pleno",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Pleno del Consejo, relativo a la integración y funcionamiento de los Plenos de Circuito, y que enlista a los plenos especializados y sin especialización que comenzaron funciones a partir del 24 de junio de 2013",
+      "tipo": "Pleno",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Pleno del Consejo",
+      "tipo": "Pleno",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "pleno derecho del Grupo",
+      "tipo": "Pleno",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "pleno derecho del GAFILAT desde el año",
+      "tipo": "Pleno",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO INTRODUCCIÓN Con el propósito de",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, es la instancia central nacional",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO cumplimiento técnico de las 40 Recomendaciones del GAFI y el nivel de",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO Dominicana y México",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO general es proveer un foro para que las UIF alrededor del mundo mejoren sus",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO el nivel de cumplimiento de los países con respecto a las nuevas 40",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO con las Recomendaciones 5 a 8 del GAFI, así como aquellos factores que tengan",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARIA DE ORGANIZACIÓN",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARIA DE COMUNICACIÓN",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARIA DE PENSIONES Y",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARIA DE SERVICIOS",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARIA DE DESARROLLO DE LA",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARIA DE PROM. Y CAPAC. ADMVA. TEC Y PROF",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARIA DE PROMOCIÓN Y FOMENTO DE",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARIA DE PRESTACIONES ECONÓMICAS",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARIA DE SERVICIO CIVIL Y FISCAL DE",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARIA DE CAPACITACIÓN POLÍTICA Y",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARIA DE ACCIÓN POLÍTICA Y DIVULGACIÓN IDEOLÓGICA",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARIA DE ACTAS Y",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARIA DE PROMOCIÓN CULTURAL TURISTICA Y",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARIA DE FOMENTO",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "SECRETARIA DE TRABAJO Y",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, tiene a su cargo el ejercicio de las atribuciones y el despacho de los asuntos que le otorgan la Ley del Servicio de Administración Tributaria, otras leyes, reglamentos, decretos, acuerdos y demás disposiciones jurídicas aplicables, así como los asuntos que el Secretario de Hacienda y Crédito Público le encomiende ejecutar y coordinar en las materias a que se refiere el presente Reglamento",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público y de la Agencia Nacional de Aduanas de México",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público la información que requieran para la evaluación y diseño de la política fiscal y aduanera, y para elaborar los infor mes que la Secretaría esté obligada a presentar",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, y VIII",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, en la elaboración de los convenios y acuerdos de coordinación en materia fiscal federal con las autoridades fiscales de las entidades federativas y, en el ámbito de su co mpetencia, emitir los lineamientos que se deban aplicar con motivo de los convenios o acuerdos que se celebren, así como solicitar y entregar información relacionada con los mismos a las propias entidades federativas y evaluar los resultados de la aplicaci ón de dichos convenios y acuerdos",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público y proporcionar a la Unidad de Inteligencia Financiera de dicha dependencia, la información y documentación necesaria para el ejerc icio de sus atribuciones, incluido el acceso a las bases de datos que contengan la referida información",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público y del Servicio de Administración Tribut aria, en el diseño de los procesos de recaudación de ingresos federales por las instituciones de crédito, terceros u oficinas de recaudación autorizadas",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público la información de los ingresos recaudados, a través de las instituciones de crédito, terceros u ofi cinas de recaudación autorizadas",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público y del Servicio de Administración Tributaria, en la elaboración de los lineamientos para depurar y cancelar créditos fiscales",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, información relativa a los créditos fiscales firmes de los contribuyentes",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Públic o y con las demás unidades administrativas del Servicio de Administración Tributaria, a efecto de dar seguimiento a las funciones conferidas a las entidades federativas en materia de impuestos federales, conforme a los convenios de colaboración administrat iva en materia fiscal federal, así como para evaluar el grado de avance de los programas operativos e intercambiar, solicitar y entregar información a las entidades federativas, en las materias de su competencia",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, previa opinión de la Administración General de Planeación",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público y del Servicio de Administración Tributaria, en la vigilancia, promoción y aplicación de las medidas preventivas y correctivas derivadas de los convenios de colaboración administrati va en materia fiscal federal y sus anexos",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, en el estudio y elaboración de propuestas de políticas y programas relativos al desarrollo de la franja y región fronteriza del país, al fomento de las industrias de exportación y regíme nes aduaneros",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Públi co participen con otras autoridades competentes, así como emitir opinión sobre los precios estimados que fije dicha Secretaría, respecto de las mercancías de comercio exterior que sean objeto de subvaluación o sobrevaloración",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, las dependencias y entidades de la Administración Pública Federal y las autoridades de las entidades federativ as y municipios, de conformidad con las disposiciones jurídicas aplicables sobre la aplicación de las medidas de seguridad y control que deben realizarse en el territorio nacional en los que pueda ejercer sus atribuciones, así como establecer las acciones de coordinación con las dependencias y entidades de la Administración Pública Federal que lleven a cabo sus funciones en dichos lugares",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Relaciones Exteriores, estados extranjeros y organismos internacionales, en materia de comercio exterior",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, en las negociaciones de convenios y tratados internacionales en materia de comercio exterior",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, de los asuntos de que tenga conocimiento con motivo del ejercicio de sus facultades de comprobación y supervisión, que estén o pudieran estar relacionados con los delitos a que se refiere el Código Penal Federal respecto de las atribuciones de dicha Unidad de Inteligencia Financiera",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público en la formulación de los anteproyectos de acuerdos interinstitucionales en el ámbito internacional con cláusula fiscal, acuerdos, convenios y tratados internacionales en materia fiscal o de intercambio de información fiscal u otros que contengan disposiciones sobre dichas materias, así como en las negociaciones respectivas y asistir a los servidores públicos del Servicio de Administración Tributaria en sus relaciones con los funcionarios o autoridades de otros países, respecto de dichos instrumentos",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público en los grupos de trabajo que se establezcan al amparo de los acuerdos interinstitucionales en el ámbito internacional con cláusula fiscal, acuerdos, convenios o tratados fiscales o de intercambio de información fiscal de los que México sea parte u otros que contengan disposiciones en materia fiscal, aduanera y de comercio exterior",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, la Comisión Nacional Bancaria y de Valores, la Comisión Nacional de Seguros y Fianzas, la Comisión Nacional del Sistema de Ahorro para el Retiro o cualquier otra autoridad compete nte para otorgar dichas autorizaciones conforme a las citadas disposiciones",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hac ienda y Crédito Público, las auditorías para verificar que las operaciones y registros contables derivadas de los contratos estén conforme a los propios contratos y a lo dispuesto en los lineamientos que al efecto emita dicha Secretaría, en términos de los artículos 37, apartado B, fracción VII y 63 de la Ley de Ingresos sobre Hidrocarburos",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, en la formulación de los programas relativos a la aplicación de las disposiciones en materia de participación de los trabajadores en las utilidades de las empresas",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público y los medios de comunicació n nacionales e internacionales, coordinando todo tipo de actividades con ellos",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, las actividades de información, difusión y re laciones públicas del Servicio de Administración Tributaria",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, las estrategias y campañas de comunicación del Servicio de Administración Tributaria, así como ejecuta r los programas y acciones que deriven de ellas",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público en las referidas materias, así como solicitar a las unidades administrativas del Servicio de Administración Tributaria la información necesaria para los efectos de la presente fracción, emitir opinión respecto de las propuestas referidas y fungir como enlace del Servicio de Administración Tributaria ante dicha Secretaría en los asuntos a que se refiere esta fracci ón",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público o de los organismos fiscales autónomos",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Relaciones Exteriores, estados extranjeros y organismos internacionales en las materias a que se refiere este artículo",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público y de la Agencia Nacional de Aduanas de México, en las negociaciones de convenios en materia aduanera y de comercio exterior",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público y de la Agencia Nacional de Aduanas de México, en los grupos de trabajo que se establezcan al amparo de tratados, convenios o acuerdos internacionales, incluso en comités y reuniones de carácter interinstitucional en materia aduanera, de comercio exterior o de intercambio de información, u otros instrumentos jurídicos internacionales que contengan disposiciones sobre dichas materias",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público y, tratándose de hechos u omisiones que puedan constituir delitos en que el Servicio de Administración Tri butaria resulte afectado o aquéllos de que tenga conocimiento o interés, así como coadyuvar en los supuestos anteriores con el agente del Ministerio Público de la Federación competente y designar asesores jurídicos en el procedimiento penal",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público el resultado de las operaciones de recaudación de ingresos federales para su integración a la contabilidad, de conformidad con la Ley General de Contabilidad Gubernamental",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Relaciones Exteriores y dichos estados extranjeros y organismos internacionales",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, la información y los datos estadísticos necesarios para que el Ejecutivo Federal proporcione al Congreso de la Unión lo s informes mensuales y trimestrales sobre la evolución de la recaudación y el presupuesto anual de gastos fiscales a que se refiere la Ley del Servicio de Administración Tributaria",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público l os informes financieros correspondientes de este órgano administrativo desconcentrado",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, como del Servicio de Administración Tributaria que mediante acuerdo determine el Presidente de la Jun ta de Gobierno de este órgano administrativo desconcentrado, en los términos que se establezcan en dicho acuerdo, y LIII",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y C rédito Público, con grupos de contribuyentes de los diversos sectores, asociaciones, cámaras, colegios e institutos académicos y de investigación, a fin de conocer la percepción sobre los aspectos tributarios, y coadyuvar en la mejora de procesos, el comba te a la corrupción, el fomento de la transparencia y la legalidad, la difusión de los medios de recepción de quejas y denuncias con los que cuenta el Servicio de Administración Tributaria",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, los programas, actividades, lineamientos, directric es y procedimientos, así como coordinar las acciones que le correspondan al Servicio de Administración Tributaria para el cumplimiento de la Ley Federal para la Prevención e Identificación de Operaciones con Recursos de Procedencia Ilícita, su Reglamento y las demás disposiciones jurídicas aplicables, en relación con las atribuciones previstas en el presente artículo",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, en el diseño y formulación de las guías de apoyo para la presentación de los avisos de actividades vulnerables establecidas en el artículo 17 de la Ley Federal para la Prevención e Identificación de Operaciones con Recursos de Procedencia Ilícita, así como para la implementación de los medios electrónicos requer idos para dicha presentación",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público sobre los formatos oficiales para el alta de quienes realicen las actividades vulnerables establecidas en el artículo 17 de la Ley Federal para la Prevención e Identificación de Operaciones con Recursos de Procedencia Ilícita, así como participar, en coordinación con la Administración General de Comunicaciones y Tecnologías de la Información, en la determinación de los medios electrónicos pa ra el alta de quienes realicen las actividades vulnerables establecidas en el artículo 17 de la citada Ley",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, respect o del diseño, formulación y determinación de las mejores prácticas para la elaboración y el envío de los formatos oficiales para la presentación de los avisos de actividades vulnerables establecidas en el artículo 17 de la Ley Federal para la Prevención e Identificación de Operaciones con Recursos de Procedencia Ilícita",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público o con cualquier otra autoridad competente para el cumplimiento de la Ley Federal para la Prevención e Identificación de Operaciones con Recursos de Procedencia Ilícita",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, los resultados de las visitas de verificación, así como de los requerimientos de información y documentación a que se refiere este artículo",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, la información que en uso de sus atribuciones referidas en el presente artículo obtenga, para la presentación de denuncias o querellas ante el Ministerio Público de la Federación por los hechos que puedan constituir conductas delictivas",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, relacionados con la realización de acciones para el cumplimien to de la Ley Federal para la Prevención e Identificación de Operaciones con Recursos de Procedencia Ilícita y su Reglamento, respecto de las atribuciones que correspondan al Servicio de Administración Tributaria",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, en el estudio y elaboración de iniciativas de leyes o decretos",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, en la suscripción de los convenios con las entidades colegiadas",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, en la determinación, implementación y vigilancia de medios electrónicos para el alta de las personas que reali cen actividades vulnerables establecidas en dicha Ley, y para la identificación de las entidades colegiadas, así como para la recepción de los avisos correspondientes en términos de la citada Ley y su Reglamento",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público publicado en el Diario Oficial de la Federación el 14 de julio de 2021",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público en el Presupuesto de Egresos de la Federación para el ejercicio fiscal correspondiente, por lo que no se autorizarán recursos adicionales y no se incrementará su presupuesto regularizable durante el ejercicio fiscal respectivo",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretaría de la Defensa Nacional y la Secretaría de Marina podrán constituir fideicomisos públicos sin estructura, que servirán como vehículos financieros para recibir y administrar los recursos que deriven de cualquier otro vehículo que reciba la contraprestación prevista en el artículo 16 de la Ley Aduanera, con objeto de que con cargo a los patrimonio de los fideicomisos que lleguen a constituirse, se realicen los pagos correspondientes a los servicios u obra pública contrat ados para los puntos de entrada y salida del país que coordinan, en cumplimiento estricto a lo previsto en el artículo 16 de la Ley Aduanera",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Normatividad en Impuestos Internos",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Normatividad en Comercio Exterior",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Ración Central de Apoyo Jurídico de Recursos y Servicios",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Congreso de la Unión",
+      "tipo": "Cámara",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:PJF",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE AMECAMECA JUZGADO CIVIL DE CUANTÍA MENOR DEL DISTRITO JUDICIAL DE CHALCO JUZGADO CIVIL DE CUANTÍA MENOR DEL DISTRITO JUDICIAL DE CHALCO CON RESIDENCIA EN IXTAPALUCA JUZGADO CIVIL DE CUANTÍA MENOR DEL DISTRITO JUDICIAL DE CHALCO CON RESIDENCIA EN VALLE DE CHALCO SOLIDARIDAD Fracción del lote",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Chalco",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL DE CHALCO JUZGADO DE CONTROL Y DE JUICIO ORAL DE CHALCO JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE CHALCO Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 EJECUCION DE SENTENCIAS JUZGADO DE EJECUCION DE SENTENCIAS DE CHALCO Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACUSATORI JUZGADO DE EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACU DE CHALCO Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 CONTROL Y JUICIOS ORALES JUZGADO DE JUICIO ORAL DE CHALCO JUZGADO FAMILIAR DEL DISTRITO JUDICIAL DE CHALCO JUZGADO PENAL DE PRIMERA INSTANCIA DE CHALCO Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 FAMILIARES Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 PENAL Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 CIVILES PRIMERA INSTANCIA JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE CHALCO JUZGADO QUINTO CIVIL DEL DISTRITO JUDICIAL DE CHALCO CON RESIDENCIA EN AMECAMECA Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 Fracción del lote",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Chalco",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DEL DISTRITO JUDICIAL DE CUAUTITLAN CON RESIDENCIA EN CUAUTITLAN IZCALLI Calle cisnes",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE TULTITLAN JUZGADO CIVIL DE CUANTÍA MENOR DEL DISTRITO JUDICIAL DE CUAUTITLÁN Plaza Hidalgo Esquina Francisco Villa, Centro, 54900 Calle Artículo 123 Esquina Maestro Alfonso Reyes, Guadalupe, 54805 CIVILES PRIMERA INSTANCIA JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE CUAUTITLAN JUZGADO CUARTO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLÁN Calle Artículo 123 Esquina Maestro Alfonso Reyes, Guadalupe, 54805 FAMILIARES Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Hidalgo",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL DE CUAUTITLÁN JUZGADO DE CONTROL Y DE JUICIO ORAL DE CUAUTITLAN JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE CUAUTITLÁN Calle Porfirio Díaz s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLAN CON RESIDENCIA EN CUAUTITLAN IZCALLI JUZGADO OCTAVO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLAN CON RESIDENCIA EN CUAUTITLAN IZCALLI JUZGADO PENAL DE PRIMERA INSTANCIA DE CUAUTITLAN Calle Porfirio Díaz s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE COACALCO Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL DE ECATEPEC JUZGADO DE CONTROL Y DE JUICIO ORAL DE ECATEPEC JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE ECATEPEC DE MORELOS Cerro de Chiconautla s",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Morelos",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PENAL DEL DISTRITO JUDICIAL DE ECATEPEC DE MORELOS Cerro de Chiconautla s",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Morelos",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE ACAMBAY Plaza Higaldo No",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE ATLACOMULCO Adolfo López Mateos 106, esquina cerrada Adolfo López Mateos, Lic",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL DE EL ORO Independencia s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL Y DE JUICIO ORAL DE EL ORO Independencia s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Independencia s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PENAL DE EL ORO JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE EL ORO JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE EL ORO CON RESIDENCIA EN ATLACOMULCO JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE EL ORO CON RESIDENCIA EN ATLACOMULCO JUZGADO CIVIL DE CUANTIA MENOR DE SAN FELIPE DEL PROGRESO JUZGADO DE CONTROL DE IXTLAHUACA JUZGADO DE CONTROL Y DE JUICIO ORAL DE IXTLAHUACA JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE IXTLAHUACA JUZGADO DE EJECUCION DE SENTENCIAS DE IXTLAHUACA DIRECCIÓN",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PENAL DE PRIMERA INSTANCIA DEL DISTRITO JUDICIAL Di IXTLAHUACA, ESTADO DE MÉXICO JUZGADO PENAL DEL DISTRITO JUDICIAL DE IXTLAHUACA JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE IXTLAHUACA JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE IXTLAHUACA ALMACEN INDEPENDENCIA JUZGADO CIVIL DE CUANTIA MENOR DE JILOTEPEC JUZGADO CIVIL DE JILOTEPEC JUZGADO DE CONTROL DE JILOTEPEC DE Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Estado De México",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE JILOTEPEC JUZGADO DE EJECUCION DE SENTENCIAS DE JILOTEPEC Ignacio Allende No",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PENAL DE JILOTEPEC JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE JILOTEPEC JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE JILOTEPEC JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE JILOTEPEC, CON RESIDENCIA EN ACULCO JUZGADO CIVIL DE CUANTIA MENOR DE OTZOLOTEPEC JUZGADO CIVIL DE CUANTIA MENOR DE TEMOAYA JUZGADO CIVIL DE CUANTIA MENOR DE XONACATLAN JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE LERMA CON RESIDENCIA EN XONACATLAN JUZGADO DE CONTROL DE LERMA JUZGADO DE CONTROL Y DE JUICIO ORAL DE LERMA JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE LERMA Ignacio Allende No",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PENAL DE LERMA JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE LERMA JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE LERMA JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE LERMA JUZGADO CIVIL DE CUANTIA MENOR DE LA PAZ Carretera Mexico-Toluca k",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Toluca",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL DE NEZAHUALCÓYOTL Prolongación Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Nezahualcóyotl",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Prolongación Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PENAL DEL DISTRITO JUDICIAL DE NEZAHUALCÓYOTL Prolongación Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Nezahualcóyotl",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE TEOTIHUACAN Calle Potrero s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL DE OTUMBA CONTROL Y JUICIOS ORALES Carretera a Santa Barbara S",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Carretera a Santa Bárbara S",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL DE SULTEPEC DISTRITO SULTEPEC CONTROL Y JUICIOS ORALES Libramiento Sultepec S",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL Y DE JUICIO ORAL DE SULTEPEC Libramiento Sultepec S",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Libramiento Sultepec S",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE TEJUPILCO Sor Juana Inés de la Cruz s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL DE TEMASCALTEPEC Plaza Principal Juarez No,1, Centro, 51300 JUZGADO DE CONTROL Y DE JUICIO ORAL DE TEMASCALTEPEC Plaza Principal Juarez No,1, Centro, 51300 JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DE Plaza Principal Juarez No,1, Centro, 51300 TEMASCALTEPEC EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACUSATORI JUZGADO DE EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACU Plaza Principal Juarez No,1, Centro, 51300 TEMASCALTEPEC CONTROL Y JUICIOS ORALES JUZGADO DE JUICIO ORAL DE TEMASCALTEPEC Plaza Principal Juarez No,1, Centro, 51300 DISTRITO TENANGO DEL VALLE CIVILES DE CUANTIA MENOR JUZGADO CIVIL DE CUANTIA MENOR DE SANTIAGO TIANGUISTENCO Carretera la Marquesa- Tenango km 18",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE XALATLACO Paraje Denominado Tlilac Entre Manuela Ortíz, Eustolgio Galindo Y Camina Público Vecinal, Barrio De San Agustín, 52680 CIVILES PRIMERA INSTANCIA JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE TENANGO DEL VALLE Carretera la Marquesa- Tenango km 18",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL DE TENANGO DEL VALLE k",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL Y DE JUICIO ORAL DE TENANGO DEL VALLE k",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PENAL DE PRIMERA INSTANCIA DEL DISTRITO JUDICIAL DE k",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PENAL DEL DISTRITO JUDICIAL TENANGO DEL VALLE k",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE IXTAPAN DE LA SAL Carretera Federal Ixtapan de la Sal Y Tonalico S",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE TENANCINGO Privada de Héctor Gordillo, Barrio El Salitre, 52400 JUZGADO DE CONTROL DE TENANCINGO CONTROL Y JUICIOS ORALES Privada de Héctor Gordillo, Barrio El Salitre, 52400 JUZGADO DE CONTROL Y DE JUICIO ORAL DE TENANCINGO Privada de Héctor Gordillo, Barrio El Salitre, 52400 JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Privada de Héctor Gordillo, Barrio El Salitre, 52400 JUDICIAL DE TENANCINGO EJECUCION DE SENTENCIAS JUZGADO DE EJECUCION DE SENTENCIAS DE TENANCINGO Privada de Héctor Gordillo, Barrio El Salitre, 52400 EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACUSATORI JUZGADO DE EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACU DE Privada de Héctor Gordillo, Barrio El Salitre, 52400 TENANCINGO JUZGADO DE JUICIO ORAL DE TENANCINGO JUZGADO PENAL DE TENANCINGO CONTROL Y JUICIOS ORALES Privada de Héctor Gordillo, Barrio El Salitre, 52400 PENAL Privada de Héctor Gordillo, Barrio El Salitre, 52400 CIVILES PRIMERA INSTANCIA JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE TENANCINGO Privada de Héctor Gordillo, Barrio El Salitre, 52400 JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE TENANCINGO CON Carretera Federal Ixtapan de la Sal 8 Tonatico S",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE CHIAUTLA DISTRITO TEXCOCO CIVILES DE CUANTIA MENOR Calle 2 de Abril s",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Texcoco",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE CHICOLOAPAN Plaza de la Constitución s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE CHICONCUAC Calle Basilio Cantabrana s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL DE TEXCOCO Miguel Chiconcuac, 55800 CONTROL Y JUICIOS ORALES Carretera a San Miguel Tlaixpan S",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Texcoco",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL Y DE JUICIO ORAL DE TEXCOCO Carretera a San Miguel Tlaixpan S",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Texcoco",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PENAL DE PRIMERA INSTANCIA DEL DISTRITO JUDICIAL DE Carretera a San Miguel Tlaixpan S",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE NAUCALPAN Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL DE TLALNEPANTLA Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL Y DE JUICIO ORAL DE TLALNEPANTLA Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PENAL DEL DISTRITO JUDICIAL DE TLALNEPANTLA Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE METEPEC Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE VILLA VICTORIA Calle 13 de Mayo s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE ZINACANTEPEC Jardín Constitución No",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL DE TOLUCA k",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Toluca",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL Y DE JUICIO ORAL DE TOLUCA k",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Toluca",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DEL DISTRITO JUDICIAL DE VALLE DE BRAVO Cerrada de Fray Gregorio Jimenez de la Cuenca s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Cerrada de Fray Gregorio Jimenez de la Cuenca s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE ZUMPANGO Antiguo camino a Jilotzingo s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CIVIL DEL DISTRITO JUDICIAL DE ZUMPANGO Antiguo camino a Jilotzingo s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL Y DE JUICIO ORAL DE ZUMPANGO Antiguo camino a Jilotzingo s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Antiguo camino a Jilotzingo s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO FAMILIAR DE PRIMERA INSTANCIA DE ZUMPANGO Antiguo camino a Jilotzingo s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PENAL DE PRIMERA INSTANCIA DE ZUMPANGO Calle Plaza Juárez s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE CHALCO CON RESIDENCIA EN VALLE DE CHALCO SOLIDARIDAD Popocatepetl s",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Chalco",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE CHALCO JUZGADO QUINTO CIVIL DEL DISTRITO JUDICIAL DE CHALCO CON RESIDENCIA EN AMECAMECA Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 Fracción del lote",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Chalco",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO SEXTO CIVIL DEL DISTRITO JUDICIAL DE CHALCO CON RESIDENCIA EN IXTAPALUCA JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE CHALCO CON RESIDENCIA EN AMECAMECA WWW PJEDOMEX",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Chalco",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE CUAUTITLAN JUZGADO CUARTO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLÁN Calle Artículo 123 Esquina Maestro Alfonso Reyes, Guadalupe, 54805 FAMILIARES Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO OCTAVO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLAN CON RESIDENCIA EN CUAUTITLAN IZCALLI JUZGADO PENAL DE PRIMERA INSTANCIA DE CUAUTITLAN Calle Porfirio Díaz s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO QUINTO CIVIL DEL DISTRITO JUDICIAL DE CUAUTITLAN Calle Artículo 123 Esquina Maestro Alfonso Reyes, Guadalupe, 54805 FAMILIARES",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE CUAUTITLÁN JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE CUAUTITLAN CON RESIDENCIA EN CUAUTITLAN IZCALLI JUZGADO SEGUNDO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLAN CON RESIDENCIA EN CUAUTITLAN IZCALLI JUZGADO SEPTIMO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLAN JUZGADO SEPTIMO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLÁN CON RESIDENCIA EN CUAUTITLÁN IZCALLI JUZGADO SEXTO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLAN Calle Artículo 123 Esquina Maestro Alfonso Reyes, Guadalupe, 54805 Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE CUAUTITLAN CON RESIDENCIA EN CUAUTITLAN IZCALLI JUZGADO TERCERO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLÁN CON RESIDENCIA EN CUAUTITLÁN IZCALLI Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE ECATEPEC DE MORELOS CON RESIDENCIA EN COACALCO DE BERRIOZÁBAL JUZGADO CUARTO FAMILIAR DEL DISTRITO JUDICIAL DE ECATEPEC DE MORELOS CON RESIDENCIA EN COACALCO DE BERRIOZÁBAL Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Morelos",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO OCTAVO FAMILIAR DEL DISTRITO JUDICIAL DE ECATEPEC DE Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Ecatepec",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PRIMERO MERCANTIL DEL DISTRITO JUDICIAL DE ECATEPECDE Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Ecatepec",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO QUINTO CIVIL DEL DISTRITO JUDICIAL DE ECATEPEC DE Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Ecatepec",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE IXTLAHUACA JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE IXTLAHUACA ALMACEN INDEPENDENCIA JUZGADO CIVIL DE CUANTIA MENOR DE JILOTEPEC JUZGADO CIVIL DE JILOTEPEC JUZGADO DE CONTROL DE JILOTEPEC DE Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE NEZAHUALCÓYOTL Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Nezahualcóyotl",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CUARTO FAMILIAR DEL DISTRITO JUDICIAL DE Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PRIMERO FAMILIAR DEL DISTRITO JUDICIAL DE Prolongación Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO QUINTO CIVIL DE NEZAHUALCÓYOTL",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Nezahualcóyotl",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE NEZAHUALCOYOTL Prolongación Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO SEXTO FAMILIAR DEL DISTRITO JUDICIAL DE NEZAHUALCÓYOTL Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Nezahualcóyotl",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE OTUMBA Carretera a Santa Barbara S",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE OTUMBA CON Calle Potrero s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE TENANGO DEL VALLE Carretera la Marquesa- Tenango km 18",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE TENANGO DEL VALLE",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE TENANCINGO Privada de Héctor Gordillo, Barrio El Salitre, 52400 JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE TENANCINGO CON Carretera Federal Ixtapan de la Sal 8 Tonatico S",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE TENANCINGO Privada de Héctor Gordillo, Barrio El Salitre, 52400 JUZGADO CIVIL DE CUANTIA MENOR DE CHIAUTLA DISTRITO TEXCOCO CIVILES DE CUANTIA MENOR Calle 2 de Abril s",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Texcoco",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PRIMERO FAMILIAR DEL DISTRITO JUDICIAL DE TEXCOCO Carretera Texcoco- Molino De Flores Km",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Texcoco",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE TLALNEPANTLA CON Ay",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO DÉCIMO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE Fernando Montes de Oca s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO NOVENO CIVIL DEL DISTRITO JUDICIAL DE TLALNEPANTLA CON Prolongación Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO NOVENO FAMILIAR DEL DISTRITO JUDICIAL DE TLALNEPANTLA Paseo del Ferrocarril s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PRIMERO MERCANTIL DEL DISTRITO JUDICIAL DE Paseo del Ferrocarril s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO QUINTO FAMILIAR DEL DISTRITO JUDICIAL DE TLALNEPANTLA Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE TLALNEPANTLA Paseo del Ferrocarril s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO SEXTO CIVIL DEL DISTRITO JUDICIAL DE TLALNEPANTLA CON Fernando Montes de Oca s",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CUARTO MERCANTIL DEL DISTRITO JUDICIAL DE TOLUCA Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Toluca",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO NOVENO FAMILIAR DEL DISTRITO JUDICIAL DE TOLUCA JUZGADO OCTAVO FAMILIAR DEL DISTRITO JUDICIAL DE TOLUCA JUZGADO OCTAVO MERCANTIL DEL DISTRITO JUDICIAL DE TOLUCA JUZGADO PENAL DEL DISTRITO JUDICIAL DE TOLUCA k",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Toluca",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO PRIMERO CIVIL DE CUANTIA MENOR DE TOLUCA JUZGADO PRIMERO FAMILIAR DEL DISTRITO JUDICIAL DE TOLUCA JUZGADO PRIMERO MERCANTIL DEL DISTRITO JUDICIAL DE TOLUCA JUZGADO PRIMERO PENAL DE PRIMERA INSTANCIA DEL DISTRITO JUDICIAL DE TOLUCA Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Toluca",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO QUINTO CIVIL DEL DISTRITO JUDICIAL DE TOLUCA CON RESIDENCIA EN METEPEC JUZGADO QUINTO FAMILIAR DEL DISTRITO JUDICIAL DE TOLUCA JUZGADO QUINTO MERCANTIL DEL DISTRITO JUDICIAL DE TOLUCA Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Toluca",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO SEXTO CIVIL DEL DISTRITO JUDICIAL DE TOLUCA CON Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Toluca",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO SEXTO FAMILIAR DEL DISTRITO JUDICIAL DE TOLUCA Av",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Toluca",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado Civil de Cuantia Menor de Amecameca",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado Civil de Cuantía Menor del Distrito Judicial de Chalco",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado Civil de Cuantía Menor del Distrito Judicial de Chalco con residencia en Ixtapaluca",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado de Control de Chalco",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado de Control y De Juicio Oral de Chalco",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado de Control y Tribunal de Enjuiciamiento del Distrito Judicial de Chalco",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado de Ejecución de Sentencias de Chalco",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado de Ejecución de Sentencias Sistema Procesal Acusatorio de Chalco",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado de Juicio Oral de Chalco",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado Penal de Primera Instancia de Chalco",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado Quinto Civil del Distrito Judicial de Chalco con residencia en Amecameca",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado Civil del Distrito Judicial de Cuautitlán",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado Civil de Cuantia Menor de Tultitlán",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado de Ejecución de Sentencias de Cuautitlán (Cuautitlán Izcalli)",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado Familiar del Distrito Judicial de Cuautitlán con residencia en Cuautitlán Izcalli",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "STRITO JUDICIAL DE CUAUTITLÁN",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO SEPTIMO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLÁN",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado de Judio Oral de Ecatepec",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado Decimo Primerio Familiar del Distrito Judicial de Ecatepec de Morelos con residencia en Tecamac",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado Penal del Distrito Judicial de Ecatepec de Morelos",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "Juzgado Quinto Civil del Distrito Judicial de Ecatepec de Morelos con residencia en Tecamac progresivo, santo Tomás Chiconautla, 55740",
+      "tipo": "Juzgado",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:Juzgados_EdoMex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO CUARTO DE DISTRITO EN EL ESTADO DE AGUASCALIENTES, CON RESIDENCIA EN LA CIUDAD DEL MISMO NOMBRE 1140040 1140040 01",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Aguascalientes",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO QUINTO DE DISTRITO EN EL ESTADO DE BAJA CALIFORNIA, CON RESIDENCIA EN TIJUANA",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Baja California",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "JUZGADO SEGUNDO DE DISTRITO DE PROCESOS PENALES FEDERALES EN EL ESTADO DE BAJA CALIFORNIA, CON RESIDENCIA EN TIJUANA 234A020 2340050 01",
+      "tipo": "Juzgado",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "centro de justicia estatal,, 52600 JUZGADO CIVIL DE CUANTIA MENOR DE XALATLACO Paraje Denominado Tlilac Entre Manuela Ortíz, Eustolgio Galindo Y Camina Público Vecinal, Barrio De San Agustín, 52680 CIVILES PRIMERA INSTANCIA JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE TENANGO DEL VALLE Carretera la Marquesa- Tenango km 18",
+      "tipo": "Centro",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "centro de justicia CON RESIDENCIA EN TIANGUISTENCO estatal,, 52600 CONTROL Y JUICIOS ORALES JUZGADO DE CONTROL DE TENANGO DEL VALLE k",
+      "tipo": "Centro",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "centro de justicia VALLE CON RESIDENCIA EN TIANGUISTENCO estatal,, 52600 JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE TENANGO DEL VALLE",
+      "tipo": "Centro",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Centro nacional de justicia especializadoTribunales laborales federalesTribunales colegiados de circuitoTribunales unitarios de circuitoPlenos de circuitoTotalJuzgados de distrito auxiliaresTribunales unitarios auxiliaresTribunales colegiados auxiliaresTotal 1",
+      "tipo": "Centro",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Centro nacional de justicia especializadoTribunales laborales federalesTribunales colegiados de circuitoTribunales colegiados de apelaciónPlenos de circuitoTotalJuzgados de distrito auxiliaresTribunales colegiados auxiliaresTotal 1",
+      "tipo": "Centro",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Centro Nacional de Justicia Especializado",
+      "tipo": "CENTRO",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:PJF_Organos",
+      "competencia": []
+    },
+    {
+      "nombre": "Fiscalía General del Estado de Baja California Dirección",
+      "tipo": "Fiscalía",
+      "jurisdiccion": "Aguascalientes",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Fiscalía General de Justicia del Estado de Tamaulipas Dirección",
+      "tipo": "Fiscalía",
+      "jurisdiccion": "Nayarit",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Fiscalía General del Estado de Guanajuato Dirección",
+      "tipo": "Fiscalía",
+      "jurisdiccion": "Durango",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Fiscalía General del Estado de San Luis Potosí Dirección",
+      "tipo": "Fiscalía",
+      "jurisdiccion": "Quintana Roo",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Fiscalía General de Justicia del Estado de",
+      "tipo": "Fiscalía",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Fiscalía General de Justicia de la",
+      "tipo": "Fiscalía",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Fiscalía General del Estado Aguascalientes Avenida Héroe de Nacozari",
+      "tipo": "Fiscalía",
+      "jurisdiccion": "Aguascalientes",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Fiscalía General del Estado de Chihuahua",
+      "tipo": "Fiscalía",
+      "jurisdiccion": "Campeche",
+      "nombre_corto": null,
+      "source": [
+        "regex",
+        "llm:llama3:8b"
+      ],
+      "competencia": []
+    },
+    {
+      "nombre": "Fiscalía General del Estado de Guerrero Boulevard René Juárez Cisneros s",
+      "tipo": "Fiscalía",
+      "jurisdiccion": "Guerrero",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Fiscalía General de Justicia del Estado de Nuevo León Melchor Ocampo",
+      "tipo": "Fiscalía",
+      "jurisdiccion": "Nuevo León",
+      "nombre_corto": null,
+      "source": [
+        "regex",
+        "llm:llama3:8b"
+      ],
+      "competencia": []
+    },
+    {
+      "nombre": "Fiscalía General del Estado de Oaxaca Centro Administrativo del Poder Ejecutivo y Judicial, General Porfirio Díaz",
+      "tipo": "Fiscalía",
+      "jurisdiccion": "Oaxaca",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Fiscalía General del Estado de Puebla Boulevard Hé roes del 5 de Mayo y 31 Oriente",
+      "tipo": "Fiscalía",
+      "jurisdiccion": "Puebla",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Fiscalía General del Estado de Querétaro Autopista México - Querétaro",
+      "tipo": "Fiscalía",
+      "jurisdiccion": "Querétaro",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Fiscalía General del Estado de Veracruz Circuito R afael Guisar y Valencia",
+      "tipo": "Fiscalía",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría General de Justicia del Estado de Michoacán",
+      "tipo": "Fiscalía",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Fiscalías Generales de",
+      "tipo": "Fiscalía",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "FISCALÍA GENERAL DE LA REPÚBLICA AGUASCALIENTES SEDE AGUASCALIENTES",
+      "tipo": "Fiscalía",
+      "jurisdiccion": "Aguascalientes",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "FISCALÍA GENERAL DE LA REPÚBLICA",
+      "tipo": "Fiscalía",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "HONORABLE COMISIÓN NACIONAL DE HONOR Y",
+      "tipo": "Fiscalía",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Fiscalización de Hidrocarburos",
+      "tipo": "Fiscalía",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría Gener al de Justicia de Baja California Sur Dirección",
+      "tipo": "Procuraduría",
+      "jurisdiccion": "Baja California",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría General de Justicia de Hidalgo Dirección",
+      "tipo": "Procuraduría",
+      "jurisdiccion": "Hidalgo",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría General de Justicia del Estado de Tlaxcala Dirección",
+      "tipo": "Procuraduría",
+      "jurisdiccion": "Tlaxcala",
+      "nombre_corto": null,
+      "source": [
+        "regex",
+        "llm:llama3:8b"
+      ],
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría General de Justicia de Baja California",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría General de Justicia del Estado Baja California Calzada de los Presidentes número",
+      "tipo": "Procuraduría",
+      "jurisdiccion": "Baja California",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría General de Justicia del Estado Baja California Sur Boulevard",
+      "tipo": "Procuraduría",
+      "jurisdiccion": "Baja California",
+      "nombre_corto": null,
+      "source": [
+        "regex",
+        "llm:llama3:8b"
+      ],
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría General de Justicia de la Ciudad de México General Gabriel Hernández Núm",
+      "tipo": "Procuraduría",
+      "jurisdiccion": "Ciudad De México",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría General de Justicia del Estado de Guanajuato Complejo Miguel Hidalgo, camino a San José de",
+      "tipo": "Procuraduría",
+      "jurisdiccion": "Hidalgo",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría General de Justicia del Estado Baja",
+      "tipo": "Procuraduría",
+      "jurisdiccion": "Hidalgo",
+      "nombre_corto": null,
+      "source": [
+        "regex",
+        "llm:llama3:8b"
+      ],
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría General de Justicia del Estado de Michoacán Periférico República",
+      "tipo": "Procuraduría",
+      "jurisdiccion": "Michoacán",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría General de Justicia del Estado de Tlaxcala Libramiento Poniente S",
+      "tipo": "Procuraduría",
+      "jurisdiccion": "Tlaxcala",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría General de Justicia del Estado de Zacatecas Circuito Zacatec as",
+      "tipo": "Procuraduría",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría General de la República",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría General de Justicia de la Ciudad de México",
+      "tipo": "Procuraduría",
+      "jurisdiccion": "Ciudad de México",
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría de la Defensa del Contribuyente sobre la interpretación de las disposiciones fiscales y en materia de comercio exterior, y XXI",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría General de la República, o cualquier otra autoridad competente",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría de la Defensa del Contribuyente",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría Fiscal de la Federación o de la au toridad judicial en los procesos por delitos fiscales",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría de la Defensa del Contribuyente, vinculados con quejas o reclamaciones en las que sea señalada como responsable algun a de las unidades administrativas adscritas a dicha Administración General",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría de la Defensa del Contribuyente, vinculados con quejas o reclamaciones en las que sea señalada como responsable alguna de las unidades administrativas adscritas a dicha Administración General y en las p ropuestas de modificación a las disposiciones o estrategias internas cuando la materia de las mismas resulte de su competencia, así como coadyuvar en la suscripción de acuerdos conclusivos que lleven a cabo la referida Administración General y sus unidades administrativas y participar en las reuniones en las que sea convocado el Servicio de Administración Tributaria derivadas de la atención de los asuntos que correspondan a la Administración General de Auditoría Fiscal Federal, y",
+      "tipo": "Procuraduría",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría convoque al Servicio de Administración Tributaria",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría de la Defensa del Contribuyente tramitadas por los contribuyentes presuntamente afectados por actos de las unidades administrativas del Servicio de Administración Tributaria",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría General de la Repúbli ca y las procuradurías generales de justicia de las entidades federativas, en las investigaciones relacionadas con los vehículos asignados al Servicio de Administración Tributaria, para formular denuncias de hechos y querellas y, en su caso, otorgar el per dón en los términos de las disposiciones aplicables, cuando el daño causado haya sido reparado plenamente y a entera satisfacción, así como recibir el importe de los daños que se causen a los propios vehículos y retirarlos de los lugares en que se encuentr en depositados, en el ámbito de competencia a que se refiere este artículo",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría General de la República, en la integración de las investigaciones y en el trámite de los procesos que afecten al Servicio de Administración Tr ibutaria o en los que tenga interés jurídico, respecto de los asuntos a que se refiere este artículo, así como solicitar la intervención del Procurador General de la República en todos aquellos asuntos contenciosos que le competan en términos del artículo 102 de la Constitución Política de los Estados Unidos Mexicanos",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Procuraduría Fiscal de la Federación, la Procuraduría General de la República, instancias de seguridad nacional, las demás unidades administrativas del Servicio de Administración Tributaria y el Órgano Interno de Control en dicho órgano administrativo desconcentrado, para dar seguimiento a lo s asuntos relacionados con la transparencia, la rendición de cuentas, prevención y combate de actos de corrupción",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "regex",
+      "competencia": []
+    },
+    {
+      "nombre": "Unidad de Inteligencia",
+      "tipo": "SECRETARÍA",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "AGENCIA ORIENTADORA CABO SAN",
+      "tipo": "Agencia Orientadora",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "AGENCIA ORIENTADORA CIUDAD CONSTITUCIÓN",
+      "tipo": "Agencia Orientadora",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "AGENCIA ORIENTADORA SANTA ROSALÍA",
+      "tipo": "Agencia Orientadora",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Agencia Orientadora Escárcega",
+      "tipo": "Agencia Orientadora",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "AGENCIA ORIENTADORA CIUDAD CUAUHTÉMOC",
+      "tipo": "Agencia Orientadora",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "BAJA CALIFORNIA SUR SEDE LA",
+      "tipo": "Sede",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "CHIAPAS SEDE TUXTLA",
+      "tipo": "Sede",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "SEDE PACHUCA DE",
+      "tipo": "Sede",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "SUBDELEGACIÓN CIUDAD DEL",
+      "tipo": "Subdelegación",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "SUBDELEGACIÓN SAN CRISTÓBAL DE LAS",
+      "tipo": "Subdelegación",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "SUBDELEGACIÓN HIDALGO DEL",
+      "tipo": "Subdelegación",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "CHIHUAHUA SEDE CIUDAD",
+      "tipo": "Sede Ciudad Juárez",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "CIUDAD DE MÉXICO SEDE CIUDAD DE MÉXICO",
+      "tipo": "Sede Ciudad de México",
+      "jurisdiccion": "Ciudad de México",
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "ZONA CENTRO CIUDAD DE MÉXICO",
+      "tipo": "Zona Centro",
+      "jurisdiccion": "Ciudad de México",
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "COMITÉS Y COMISIONES",
+      "tipo": "Comités y Comisiones",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "COMITÉ EJECUTIVO",
+      "tipo": "Comité",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "COMITÉ NACIONAL DE",
+      "tipo": "Comité",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "COMITÉ TÉCNICO DE ENTIDADES ECONÓMICAS",
+      "tipo": "Comité",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Amparo e Instancias Judiciales",
+      "tipo": "Administración",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Asuntos Penales y Especiales",
+      "tipo": "Administración",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Operación de Jurídica",
+      "tipo": "Administración",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Asuntos Jurídicos de Actividades Vulnerables",
+      "tipo": "Administración",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración General de Planeación",
+      "tipo": "Administración",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Planeación, Análisis e Información",
+      "tipo": "Administración",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Proyectos y Vinculación Institucional",
+      "tipo": "Administración",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Estudios Tributarios",
+      "tipo": "Administración",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Modelos de Riesgo",
+      "tipo": "Administración",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Modelos de Integración de Información",
+      "tipo": "Administración",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración General de Recursos y Servicios",
+      "tipo": "Administración",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Recursos Financieros",
+      "tipo": "Administración",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central del Ciclo de Capital Humano",
+      "tipo": "Administración",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración Central de Destino de Bienes",
+      "tipo": "Administración",
+      "jurisdiccion": null,
+      "nombre_corto": null,
+      "source": "llm:llama3:8b",
+      "competencia": []
+    },
+    {
+      "nombre": "Servicio de Administración Tributaria",
+      "tipo": "Órgano Desconcentrado",
+      "jurisdiccion": "Federal",
+      "nombre_corto": "SAT",
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": []
+    },
+    {
+      "nombre": "Jefatura del Servicio de Administración Tributaria",
+      "tipo": "Jefatura",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": []
+    },
+    {
+      "nombre": "Administración General de Recaudación",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "nombre_corto": "AGR",
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": [
+        "recaudación",
+        "cobranza",
+        "embargos",
+        "remates"
+      ]
+    },
+    {
+      "nombre": "Administración General de Auditoría Fiscal Federal",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "nombre_corto": "AGAFF",
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": [
+        "auditoría",
+        "revisiones",
+        "devoluciones"
+      ]
+    },
+    {
+      "nombre": "Administración General de Auditoría de Comercio Exterior",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "nombre_corto": "AGACE",
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": [
+        "comercio exterior",
+        "aduanas",
+        "importaciones",
+        "exportaciones"
+      ]
+    },
+    {
+      "nombre": "Administración General de Grandes Contribuyentes",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "nombre_corto": "AGGC",
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": [
+        "grandes contribuyentes",
+        "empresas mayores"
+      ]
+    },
+    {
+      "nombre": "Administración General de Hidrocarburos",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "nombre_corto": "AGH",
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": [
+        "hidrocarburos",
+        "petróleo",
+        "gas",
+        "PEMEX"
+      ]
+    },
+    {
+      "nombre": "Administración General de Servicios al Contribuyente",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "nombre_corto": "AGSC",
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": [
+        "atención",
+        "orientación",
+        "trámites",
+        "RFC"
+      ]
+    },
+    {
+      "nombre": "Administración General Jurídica",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "nombre_corto": "AGJ",
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": [
+        "jurídico",
+        "juicios",
+        "amparos",
+        "consultas"
+      ]
+    },
+    {
+      "nombre": "Administración General de Aduanas",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "nombre_corto": "AGA",
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": [
+        "aduanas",
+        "comercio exterior",
+        "fronteras"
+      ]
+    },
+    {
+      "nombre": "Administración General de Recursos y Servicios",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "nombre_corto": "AGRS",
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": [
+        "recursos humanos",
+        "recursos materiales",
+        "servicios"
+      ]
+    },
+    {
+      "nombre": "Administración General de Comunicaciones y Tecnologías de la Información",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "nombre_corto": "AGCTI",
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": [
+        "sistemas",
+        "tecnología",
+        "comunicaciones"
+      ]
+    },
+    {
+      "nombre": "Administración General de Evaluación",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "nombre_corto": "AGE",
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": [
+        "evaluación",
+        "control interno"
+      ]
+    },
+    {
+      "nombre": "Unidad de Comunicación Social",
+      "tipo": "Unidad Administrativa",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": []
+    },
+    {
+      "nombre": "Secretariado Técnico de la Comisión del Servicio Fiscal de Carrera",
+      "tipo": "Secretariado",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": []
+    },
+    {
+      "nombre": "Dirección General de Interventoría",
+      "tipo": "Dirección General",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": []
+    },
+    {
+      "nombre": "Dirección General de Planeación Tributaria",
+      "tipo": "Dirección General",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": []
+    },
+    {
+      "nombre": "Dirección General de Asuntos Fiscales Internacionales",
+      "tipo": "Dirección General",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": []
+    },
+    {
+      "nombre": "Dirección General de Coordinación con Entidades Federativas",
+      "tipo": "Dirección General",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": []
+    },
+    {
+      "nombre": "Dirección General de Tecnología de la Información",
+      "tipo": "Dirección General",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": []
+    },
+    {
+      "nombre": "Órgano Interno de Control en el SAT",
+      "tipo": "Órgano Interno de Control",
+      "jurisdiccion": "Federal",
+      "nombre_corto": null,
+      "source": "Prisma/Entidades Legales/Sources/SAT_Estructura_Manual.json",
+      "competencia": []
+    }
+  ]
+}

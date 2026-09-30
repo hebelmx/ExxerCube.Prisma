@@ -1,0 +1,77 @@
+[
+  {
+    "id": 0,
+    "genome": {
+      "denoise_h": 8,
+      "clahe_clip": 1.318374041612186,
+      "bilateral_d": 9,
+      "bilateral_sigma_color": 68,
+      "bilateral_sigma_space": 96,
+      "unsharp_amount": 1.3945707041371298,
+      "unsharp_radius": 2.6498459913385983
+    },
+    "objectives": {
+      "Q1_222AAA": 144,
+      "Q1_333BBB": 174,
+      "Q1_333ccc": 167,
+      "Q1_555CCC": 6,
+      "Q2_222AAA": 688,
+      "Q2_333BBB": 924,
+      "Q2_333ccc": 888,
+      "Q2_555CCC": 667
+    },
+    "total_edits_Q1": 491,
+    "total_edits_Q2": 3167,
+    "total_edits_all": 3658
+  },
+  {
+    "id": 1,
+    "genome": {
+      "denoise_h": 16,
+      "clahe_clip": 1.4030281026454188,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 53,
+      "bilateral_sigma_space": 91,
+      "unsharp_amount": 1.3738294785075102,
+      "unsharp_radius": 3.9113948303841823
+    },
+    "objectives": {
+      "Q1_222AAA": 169,
+      "Q1_333BBB": 164,
+      "Q1_333ccc": 186,
+      "Q1_555CCC": 18,
+      "Q2_222AAA": 918,
+      "Q2_333BBB": 1291,
+      "Q2_333ccc": 893,
+      "Q2_555CCC": 782
+    },
+    "total_edits_Q1": 537,
+    "total_edits_Q2": 3884,
+    "total_edits_all": 4421
+  },
+  {
+    "id": 2,
+    "genome": {
+      "denoise_h": 13,
+      "clahe_clip": 1.6056244840068012,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 54,
+      "bilateral_sigma_space": 59,
+      "unsharp_amount": 1.0924199336549498,
+      "unsharp_radius": 0.8508695527634018
+    },
+    "objectives": {
+      "Q1_222AAA": 223,
+      "Q1_333BBB": 212,
+      "Q1_333ccc": 191,
+      "Q1_555CCC": 26,
+      "Q2_222AAA": 1105,
+      "Q2_333BBB": 1213,
+      "Q2_333ccc": 934,
+      "Q2_555CCC": 663
+    },
+    "total_edits_Q1": 652,
+    "total_edits_Q2": 3915,
+    "total_edits_all": 4567
+  }
+]

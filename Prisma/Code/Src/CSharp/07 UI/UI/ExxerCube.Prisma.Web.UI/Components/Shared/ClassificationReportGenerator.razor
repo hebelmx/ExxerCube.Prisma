@@ -1,0 +1,297 @@
+@using ExxerCube.Prisma.Application.Services
+@using MudBlazor
+@inject ILogger<ClassificationReportGenerator> Logger
+
+<MudDialog @bind-IsVisible="@IsVisible" MaxWidth="MaxWidth.Medium">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Generate Classification Report</MudText>
+    </TitleContent>
+    <DialogContent>
+        <EditForm Model="@reportRequest" OnValidSubmit="GenerateReport">
+            <DataAnnotationsValidator />
+            
+            <!-- Date Range Selection -->
+            <MudItem xs="12" Class="mb-4">
+                <MudText Typo="Typo.subtitle1" Class="mb-2">Date Range</MudText>
+                <MudDatePicker T="DateTime?" Label="From Date" 
+                             @bind-Date="@reportRequest.FromDate"
+                             Variant="Variant.Outlined"
+                             Required="true"
+                             RequiredError="From date is required" />
+                <MudDatePicker T="DateTime?" Label="To Date" 
+                             @bind-Date="@reportRequest.ToDate"
+                             Variant="Variant.Outlined"
+                             Required="true"
+                             RequiredError="To date is required"
+                             Class="mt-2" />
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+                    Select the date range for classification data
+                </MudText>
+            </MudItem>
+            
+            <!-- Format Selection -->
+            <MudItem xs="12" Class="mb-4">
+                <MudText Typo="Typo.subtitle1" Class="mb-2">Export Format</MudText>
+                <MudRadioGroup T="ReportFormat" @bind-SelectedValue="@reportRequest.Format">
+                    <MudRadio T="ReportFormat" Value="@ReportFormat.Csv" Color="Color.Primary" HelperText="Best for Excel and data analysis">
+                        CSV (Comma-Separated Values)
+                    </MudRadio>
+                    <MudRadio T="ReportFormat" Value="@ReportFormat.Json" Color="Color.Primary" HelperText="Best for programmatic processing">
+                        JSON (JavaScript Object Notation)
+                    </MudRadio>
+                </MudRadioGroup>
+            </MudItem>
+            
+            <!-- Report Options -->
+            <MudItem xs="12" Class="mb-4">
+                <MudText Typo="Typo.subtitle1" Class="mb-2">Report Options</MudText>
+                <MudCheckBox T="bool" @bind-Checked="@reportRequest.IncludeStatistics" 
+                           Label="Include classification statistics" />
+                <MudCheckBox T="bool" @bind-Checked="@reportRequest.IncludeConfidenceScores" 
+                           Label="Include confidence scores" />
+                <MudCheckBox T="bool" @bind-Checked="@reportRequest.IncludeMetadata" 
+                           Label="Include file metadata" />
+            </MudItem>
+            
+            <!-- Preview Section -->
+            @if (reportPreview != null)
+            {
+                <MudItem xs="12" Class="mb-4">
+                    <MudDivider Class="my-2" />
+                    <MudText Typo="Typo.subtitle1" Class="mb-2">Report Preview</MudText>
+                    <MudAlert Severity="Severity.Info" Class="mb-2">
+                        <MudText Typo="Typo.body2">
+                            Records to include: @reportPreview.RecordCount
+                        </MudText>
+                        <MudText Typo="Typo.body2">
+                            Date range: @reportPreview.FromDate.ToString("d") - @reportPreview.ToDate.ToString("d")
+                        </MudText>
+                        <MudText Typo="Typo.body2">
+                            Estimated file size: @FormatFileSize(reportPreview.EstimatedSize)
+                        </MudText>
+                    </MudAlert>
+                    
+                    @if (reportPreview.SampleData.Any())
+                    {
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">Sample Data (first 5 records)</MudText>
+                        <MudTable T="ClassificationRecordPreview" Items="@reportPreview.SampleData" 
+                                 Dense="true" 
+                                 Hover="true"
+                                 MaxHeight="200px">
+                            <HeaderContent>
+                                <MudTh>File ID</MudTh>
+                                <MudTh>Classification</MudTh>
+                                <MudTh>Confidence</MudTh>
+                                <MudTh>Date</MudTh>
+                            </HeaderContent>
+                            <RowTemplate Context="record">
+                                <MudTd>@TruncateString(record.FileId, 12)</MudTd>
+                                <MudTd>
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Info">
+                                        @record.Classification
+                                    </MudChip>
+                                </MudTd>
+                                <MudTd>@record.ConfidenceScore.ToString("P0")</MudTd>
+                                <MudTd>@record.ClassificationDate.ToString("g")</MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    }
+                </MudItem>
+            }
+            
+            <!-- Actions -->
+            <MudItem xs="12">
+                <MudButton Variant="Variant.Outlined" 
+                          Color="Color.Secondary"
+                          OnClick="PreviewReport"
+                          Disabled="@(isGenerating || !IsDateRangeValid)">
+                    Preview Report
+                </MudButton>
+                <MudButton Variant="Variant.Filled" 
+                          Color="Color.Primary"
+                          ButtonType="ButtonType.Submit"
+                          StartIcon="@Icons.Material.Filled.FileDownload"
+                          Disabled="@(isGenerating || !IsDateRangeValid)"
+                          Class="ml-2">
+                    @(isGenerating ? "Generating..." : "Generate Report")
+                </MudButton>
+            </MudItem>
+        </EditForm>
+        
+        <!-- Progress Indicator -->
+        @if (isGenerating)
+        {
+            <MudProgressLinear Indeterminate="true" Class="mt-4" />
+        }
+        
+        <!-- Error Display -->
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mt-4">
+                @errorMessage
+            </MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => IsVisible = false)" Disabled="@isGenerating">
+            Cancel
+        </MudButton>
+        @if (generatedReportUrl != null)
+        {
+            <MudButton Variant="Variant.Filled" 
+                      Color="Color.Success"
+                      StartIcon="@Icons.Material.Filled.Download"
+                      Href="@generatedReportUrl"
+                      Download="@downloadFileName">
+                Download Report
+            </MudButton>
+        }
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+    
+    private ClassificationReportRequest reportRequest = new();
+    private ClassificationReportPreview? reportPreview;
+    private bool isGenerating = false;
+    private string? errorMessage;
+    private string? generatedReportUrl;
+
+    private bool IsDateRangeValid => reportRequest.FromDate.HasValue && 
+                                     reportRequest.ToDate.HasValue &&
+                                     reportRequest.FromDate.Value <= reportRequest.ToDate.Value;
+
+    private string downloadFileName => $"classification-report.{reportRequest.Format.ToString().ToLower()}";
+
+    private async Task PreviewReport()
+    {
+        if (!IsDateRangeValid)
+        {
+            errorMessage = "Please select a valid date range";
+            return;
+        }
+
+        try
+        {
+            errorMessage = null;
+            // TODO: Call AuditReportingService to get preview when available
+            // reportPreview = await AuditReportingService.PreviewClassificationReportAsync(...);
+            
+            // Placeholder preview data
+            reportPreview = new ClassificationReportPreview
+            {
+                RecordCount = 150,
+                FromDate = reportRequest.FromDate!.Value,
+                ToDate = reportRequest.ToDate!.Value,
+                EstimatedSize = 1024 * 50, // 50 KB estimate
+                SampleData = new List<ClassificationRecordPreview>
+                {
+                    new() { FileId = "FILE001", Classification = "Bloqueo", ConfidenceScore = 0.95m, ClassificationDate = DateTime.Now.AddDays(-1) },
+                    new() { FileId = "FILE002", Classification = "Desbloqueo", ConfidenceScore = 0.88m, ClassificationDate = DateTime.Now.AddDays(-2) },
+                    new() { FileId = "FILE003", Classification = "Documentacion", ConfidenceScore = 0.92m, ClassificationDate = DateTime.Now.AddDays(-3) },
+                    new() { FileId = "FILE004", Classification = "Transferencia", ConfidenceScore = 0.87m, ClassificationDate = DateTime.Now.AddDays(-4) },
+                    new() { FileId = "FILE005", Classification = "Informacion", ConfidenceScore = 0.91m, ClassificationDate = DateTime.Now.AddDays(-5) }
+                }
+            };
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error previewing classification report");
+            errorMessage = $"Error generating preview: {ex.Message}";
+            StateHasChanged();
+        }
+    }
+
+    private async Task GenerateReport()
+    {
+        if (!IsDateRangeValid)
+        {
+            errorMessage = "Please select a valid date range";
+            return;
+        }
+
+        isGenerating = true;
+        errorMessage = null;
+        generatedReportUrl = null;
+        StateHasChanged();
+
+        try
+        {
+            // TODO: Call AuditReportingService to generate report when available
+            // var result = await AuditReportingService.GenerateClassificationReportAsync(...);
+            
+            // Placeholder: simulate report generation
+            await Task.Delay(2000);
+            
+            // In real implementation, this would be the URL to download the generated report
+            generatedReportUrl = $"/api/reports/classification/{Guid.NewGuid()}.{reportRequest.Format.ToString().ToLower()}";
+            
+            Logger.LogInformation("Classification report generated successfully");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error generating classification report");
+            errorMessage = $"Error generating report: {ex.Message}";
+        }
+        finally
+        {
+            isGenerating = false;
+            StateHasChanged();
+        }
+    }
+
+    private string TruncateString(string value, int maxLength)
+    {
+        return value.Length > maxLength ? value.Substring(0, maxLength) + "..." : value;
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len /= 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+
+    private enum ReportFormat
+    {
+        Csv,
+        Json
+    }
+
+    private class ClassificationReportRequest
+    {
+        public DateTime? FromDate { get; set; }
+        public DateTime? ToDate { get; set; }
+        public ReportFormat Format { get; set; } = ReportFormat.Csv;
+        public bool IncludeStatistics { get; set; } = true;
+        public bool IncludeConfidenceScores { get; set; } = true;
+        public bool IncludeMetadata { get; set; } = false;
+    }
+
+    private class ClassificationReportPreview
+    {
+        public int RecordCount { get; set; }
+        public DateTime FromDate { get; set; }
+        public DateTime ToDate { get; set; }
+        public long EstimatedSize { get; set; }
+        public List<ClassificationRecordPreview> SampleData { get; set; } = new();
+    }
+
+    private class ClassificationRecordPreview
+    {
+        public string FileId { get; set; } = string.Empty;
+        public string Classification { get; set; } = string.Empty;
+        public decimal ConfidenceScore { get; set; }
+        public DateTime ClassificationDate { get; set; }
+    }
+}
+

@@ -1,0 +1,240 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ExxerCube.Prisma.Infrastructure</name>
+    </assembly>
+    <members>
+        <member name="T:ExxerCube.Prisma.Infrastructure.DependencyInjection.ServiceCollectionExtensions">
+            <summary>
+            Extension methods for configuring dependency injection.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.DependencyInjection.ServiceCollectionExtensions.AddOcrProcessingServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String)">
+            <summary>
+            Adds OCR processing services to the service collection.
+            </summary>
+            <param name="services">The service collection.</param>
+            <param name="pythonModulesPath">The path to the Python modules.</param>
+            <returns>The service collection for chaining.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemLoader">
+            <summary>
+            File system loader adapter that implements IFileLoader with Railway Oriented Programming.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemLoader.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemLoader})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemLoader"/> class.
+            </summary>
+            <param name="logger">The logger.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemLoader.LoadImageAsync(System.String)">
+            <summary>
+            Loads an image from a file path.
+            </summary>
+            <param name="filePath">The path to the image file.</param>
+            <returns>A result containing the loaded image data or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemLoader.LoadImagesFromDirectoryAsync(System.String,System.String[])">
+            <summary>
+            Loads multiple images from a directory.
+            </summary>
+            <param name="directoryPath">The path to the directory containing images.</param>
+            <param name="supportedExtensions">The supported file extensions.</param>
+            <returns>A result containing the list of loaded image data or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemLoader.GetSupportedExtensions">
+            <summary>
+            Gets the list of supported file extensions.
+            </summary>
+            <returns>An array of supported file extensions.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemLoader.ValidateFilePathAsync(System.String)">
+            <summary>
+            Validates if a file path is valid and accessible.
+            </summary>
+            <param name="filePath">The file path to validate.</param>
+            <returns>A result indicating validation success or failure.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemLoader.ValidateFilePath(System.String)">
+            <summary>
+            Validates a file path synchronously.
+            </summary>
+            <param name="filePath">The file path to validate.</param>
+            <returns>A result indicating validation success or failure.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemLoader.LoadImageFile(System.String)">
+            <summary>
+            Loads an image file as byte array.
+            </summary>
+            <param name="filePath">The path to the image file.</param>
+            <returns>The image data as byte array.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemLoader.LoadPdfAsImage(System.String)">
+            <summary>
+            Loads a PDF file as image (simplified implementation).
+            </summary>
+            <param name="filePath">The path to the PDF file.</param>
+            <returns>The image data as byte array.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemOutputWriter">
+            <summary>
+            File system output writer adapter that implements IOutputWriter with Railway Oriented Programming.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemOutputWriter.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemOutputWriter})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemOutputWriter"/> class.
+            </summary>
+            <param name="logger">The logger.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemOutputWriter.WriteResultAsync(ExxerCube.Prisma.Domain.Entities.ProcessingResult,System.String)">
+            <summary>
+            Writes a processing result to the specified output path.
+            </summary>
+            <param name="result">The processing result to write.</param>
+            <param name="outputPath">The output file path.</param>
+            <returns>A result indicating success or failure.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemOutputWriter.WriteResultsAsync(System.Collections.Generic.IEnumerable{ExxerCube.Prisma.Domain.Entities.ProcessingResult},System.String)">
+            <summary>
+            Writes multiple processing results to a directory.
+            </summary>
+            <param name="results">The list of processing results to write.</param>
+            <param name="outputDirectory">The output directory path.</param>
+            <returns>A result indicating success or failure.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemOutputWriter.WriteJsonAsync(ExxerCube.Prisma.Domain.Entities.ProcessingResult,System.String)">
+            <summary>
+            Writes results in JSON format.
+            </summary>
+            <param name="result">The processing result to write.</param>
+            <param name="outputPath">The output file path.</param>
+            <returns>A result indicating success or failure.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemOutputWriter.WriteTextAsync(ExxerCube.Prisma.Domain.Entities.ProcessingResult,System.String)">
+            <summary>
+            Writes results in text format.
+            </summary>
+            <param name="result">The processing result to write.</param>
+            <param name="outputPath">The output file path.</param>
+            <returns>A result indicating success or failure.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemOutputWriter.ValidateOutputPath(System.String)">
+            <summary>
+            Validates the output path for writing.
+            </summary>
+            <param name="outputPath">The output path to validate.</param>
+            <returns>A result indicating validation success or failure.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Python.PythonOcrProcessingAdapter">
+            <summary>
+            Python OCR processing adapter that integrates with existing Python modules.
+            Implements Railway Oriented Programming for error handling.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Python.PythonOcrProcessingAdapter.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Python.PythonOcrProcessingAdapter},System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Python.PythonOcrProcessingAdapter"/> class.
+            </summary>
+            <param name="logger">The logger.</param>
+            <param name="pythonModulesPath">The path to the Python modules.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Python.PythonOcrProcessingAdapter.ExecuteOcrAsync(ExxerCube.Prisma.Domain.Entities.ImageData,ExxerCube.Prisma.Domain.Entities.OCRConfig)">
+            <summary>
+            Executes OCR on an image using Python modules.
+            </summary>
+            <param name="imageData">The image data to process.</param>
+            <param name="config">The OCR configuration.</param>
+            <returns>A result containing the OCR result or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Python.PythonOcrProcessingAdapter.PreprocessAsync(ExxerCube.Prisma.Domain.Entities.ImageData,ExxerCube.Prisma.Domain.Entities.ProcessingConfig)">
+            <summary>
+            Preprocesses an image using Python modules.
+            </summary>
+            <param name="imageData">The image data to preprocess.</param>
+            <param name="config">The processing configuration.</param>
+            <returns>A result containing the preprocessed image or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Python.PythonOcrProcessingAdapter.ExtractFieldsAsync(System.String,System.Single)">
+            <summary>
+            Extracts structured fields from OCR text using Python modules.
+            </summary>
+            <param name="text">The OCR text to process.</param>
+            <param name="confidence">The OCR confidence score.</param>
+            <returns>A result containing the extracted fields or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Python.PythonOcrProcessingAdapter.RemoveWatermarkAsync(ExxerCube.Prisma.Domain.Entities.ImageData)">
+            <summary>
+            Removes watermarks from an image using Python modules.
+            </summary>
+            <param name="imageData">The image data to process.</param>
+            <returns>A result containing the processed image or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Python.PythonOcrProcessingAdapter.DeskewAsync(ExxerCube.Prisma.Domain.Entities.ImageData)">
+            <summary>
+            Deskews an image using Python modules.
+            </summary>
+            <param name="imageData">The image data to process.</param>
+            <returns>A result containing the processed image or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Python.PythonOcrProcessingAdapter.BinarizeAsync(ExxerCube.Prisma.Domain.Entities.ImageData)">
+            <summary>
+            Binarizes an image using Python modules.
+            </summary>
+            <param name="imageData">The image data to process.</param>
+            <returns>A result containing the processed image or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Python.PythonOcrProcessingAdapter.ExtractExpedienteAsync(System.String)">
+            <summary>
+            Extracts expediente (file number) from text.
+            </summary>
+            <param name="text">The text to process.</param>
+            <returns>A result containing the extracted expediente or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Python.PythonOcrProcessingAdapter.ExtractCausaAsync(System.String)">
+            <summary>
+            Extracts causa (cause) from text.
+            </summary>
+            <param name="text">The text to process.</param>
+            <returns>A result containing the extracted causa or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Python.PythonOcrProcessingAdapter.ExtractAccionSolicitadaAsync(System.String)">
+            <summary>
+            Extracts accion solicitada (requested action) from text.
+            </summary>
+            <param name="text">The text to process.</param>
+            <returns>A result containing the extracted accion solicitada or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Python.PythonOcrProcessingAdapter.ExtractDatesAsync(System.String)">
+            <summary>
+            Extracts dates from text.
+            </summary>
+            <param name="text">The text to process.</param>
+            <returns>A result containing the extracted dates or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Python.PythonOcrProcessingAdapter.ExtractAmountsAsync(System.String)">
+            <summary>
+            Extracts monetary amounts from text.
+            </summary>
+            <param name="text">The text to process.</param>
+            <returns>A result containing the extracted amounts or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Python.PythonOcrProcessingAdapter.InitializePython">
+            <summary>
+            Initializes the Python runtime.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Python.PythonOcrProcessingAdapter.Dispose">
+            <summary>
+            Disposes the Python adapter and releases resources.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Python.PythonOcrProcessingAdapter.Dispose(System.Boolean)">
+            <summary>
+            Disposes the Python adapter and releases resources.
+            </summary>
+            <param name="disposing">Whether to dispose managed resources.</param>
+        </member>
+    </members>
+</doc>

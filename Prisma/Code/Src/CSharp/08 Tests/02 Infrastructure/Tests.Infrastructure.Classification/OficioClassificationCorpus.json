@@ -1,0 +1,170 @@
+[
+  {
+    "id": "bloqueo-cnbv-aseguramiento",
+    "assertPrimary": true,
+    "primary": "Bloqueo",
+    "expected": { "Bloqueo": true, "Desbloqueo": false, "Documentacion": false, "Transferencia": false, "InformacionGeneral": false },
+    "variantClass": "authority=CNBV; phrasing=aseguramiento precautorio; multi-account; monto",
+    "text": "La COMISION NACIONAL BANCARIA Y DE VALORES, con fundamento en la Ley de Instituciones de Credito, instruye el ASEGURAMIENTO DE CUENTAS y BLOQUEO DE CUENTAS a nombre de INMOBILIARIA DEL VALLE SA DE CV, RFC IVA950101AB2. Se ordena el aseguramiento precautorio de las cuentas 0011223344 y 5566778899 por un monto de $1,250,000.00 pesos. Atentamente, Vicepresidencia de Supervision."
+  },
+  {
+    "id": "bloqueo-sat-embargo",
+    "assertPrimary": true,
+    "primary": "Bloqueo",
+    "expected": { "Bloqueo": true, "Desbloqueo": false, "Documentacion": false, "Transferencia": false, "InformacionGeneral": false },
+    "variantClass": "authority=SAT; phrasing=embargo precautorio; single account",
+    "text": "El SERVICIO DE ADMINISTRACION TRIBUTARIA ordena el aseguramiento y bloqueo de cuentas del contribuyente COMERCIALIZADORA XYZ, en relacion con el credito fiscal determinado. Se solicita inmovilizar los fondos de la cuenta 4400330022 hasta por la cantidad de $780,500.00 pesos. Administracion Desconcentrada de Recaudacion."
+  },
+  {
+    "id": "bloqueo-fgr-parcial",
+    "assertPrimary": true,
+    "primary": "Bloqueo",
+    "expected": { "Bloqueo": true, "Desbloqueo": false, "Documentacion": false, "Transferencia": false, "InformacionGeneral": false },
+    "variantClass": "authority=FGR; phrasing=orden judicial; parcial; producto=inversion",
+    "text": "En cumplimiento a la orden judicial dictada por el JUZGADO SEGUNDO DE DISTRITO, esta FISCALIA GENERAL DE LA REPUBLICA instruye el ASEGURAMIENTO DE CUENTAS y bloqueo de cuentas del indiciado. El bloqueo es de caracter parcial sobre la cuenta 9988776655 y los productos PAGARE CON RENDIMIENTO LIQUIDABLE AL VENCIMIENTO asociados, por $300,000.00 pesos."
+  },
+  {
+    "id": "bloqueo-uif-listas",
+    "assertPrimary": true,
+    "primary": "Bloqueo",
+    "expected": { "Bloqueo": true, "Desbloqueo": false, "Documentacion": false, "Transferencia": false, "InformacionGeneral": false },
+    "variantClass": "authority=UIF; phrasing=lista de personas bloqueadas; total",
+    "text": "La UNIDAD DE INTELIGENCIA FINANCIERA instruye el BLOQUEO DE CUENTAS de manera inmediata y total, derivado de la inclusion en la Lista de Personas Bloqueadas. Se ordena el aseguramiento de la totalidad de las cuentas y productos a nombre del titular referido. Titular de la Unidad."
+  },
+  {
+    "id": "bloqueo-subdeleg-tarjeta",
+    "assertPrimary": true,
+    "primary": "Bloqueo",
+    "expected": { "Bloqueo": true, "Desbloqueo": false, "Documentacion": false, "Transferencia": false, "InformacionGeneral": false },
+    "variantClass": "authority=SUBDELEGACION; phrasing=demo-like; tarjeta de credito",
+    "text": "Por medio del presente oficio, esta autoridad instruye al banco el ASEGURAMIENTO DE CUENTAS y BLOQUEO DE CUENTAS a nombre de AEROLINEAS PAYASO ORGULLO NACIONAL, RFC APON333334. Se ordena el aseguramiento precautorio de la cuenta 12345678, asi como de los productos TARJETA DE CREDITO asociados. El monto asciende a $500,000.00 pesos. Atentamente, SUBDELEGACION 8 SAN ANGEL."
+  },
+  {
+    "id": "desbloqueo-levantamiento",
+    "assertPrimary": true,
+    "primary": "Desbloqueo",
+    "expected": { "Bloqueo": false, "Desbloqueo": true, "Documentacion": false, "Transferencia": false, "InformacionGeneral": false },
+    "variantClass": "authority=SUBDELEGACION; phrasing=levantamiento del aseguramiento",
+    "text": "Por medio del presente oficio se ordena el DESBLOQUEO DE CUENTAS y el levantamiento del aseguramiento que fue decretado previamente. Se solicita la liberacion de fondos de la cuenta 12345678, que corresponde al expediente A/AS1-2505-088637-PHM que origino el bloqueo inicial. Atentamente, SUBDELEGACION 8 SAN ANGEL."
+  },
+  {
+    "id": "desbloqueo-cnbv-revocacion",
+    "assertPrimary": true,
+    "primary": "Desbloqueo",
+    "expected": { "Bloqueo": false, "Desbloqueo": true, "Documentacion": false, "Transferencia": false, "InformacionGeneral": false },
+    "variantClass": "authority=CNBV; phrasing=revocacion / dejar sin efectos",
+    "text": "La COMISION NACIONAL BANCARIA Y DE VALORES comunica la revocacion de la medida de aseguramiento. Se instruye dejar sin efectos el bloqueo y proceder al desbloqueo de cuentas y liberacion de los recursos de la cuenta 0011223344 a favor de su titular."
+  },
+  {
+    "id": "desbloqueo-judicial",
+    "assertPrimary": true,
+    "primary": "Desbloqueo",
+    "expected": { "Bloqueo": false, "Desbloqueo": true, "Documentacion": false, "Transferencia": false, "InformacionGeneral": false },
+    "variantClass": "authority=Juzgado; phrasing=liberacion de fondos por resolucion",
+    "text": "En cumplimiento a la resolucion del JUZGADO SEGUNDO DE DISTRITO, se ordena el levantamiento del aseguramiento y el desbloqueo de cuentas del quejoso. Se solicita la liberacion de fondos previamente inmovilizados en la cuenta 9988776655."
+  },
+  {
+    "id": "documentacion-estados-cuenta",
+    "assertPrimary": true,
+    "primary": "Documentacion",
+    "expected": { "Bloqueo": false, "Desbloqueo": false, "Documentacion": true, "Transferencia": false, "InformacionGeneral": false },
+    "variantClass": "authority=SUBDELEGACION; phrasing=estados de cuenta + certificacion",
+    "text": "Por medio del presente oficio se requiere la presentacion de documentacion correspondiente al cliente identificado. Se solicita la entrega de documentacion requerida, incluyendo estados de cuenta del periodo, asi como la certificacion de saldos y movimientos de la cuenta 12345678. Atentamente, SUBDELEGACION 8 SAN ANGEL."
+  },
+  {
+    "id": "documentacion-kyc",
+    "assertPrimary": true,
+    "primary": "Documentacion",
+    "expected": { "Bloqueo": false, "Desbloqueo": false, "Documentacion": true, "Transferencia": false, "InformacionGeneral": false },
+    "variantClass": "authority=CNBV; phrasing=expediente de identificacion KYC",
+    "text": "La COMISION NACIONAL BANCARIA Y DE VALORES requiere la presentacion de documentacion consistente en el expediente de identificacion del cliente, copia de los contratos de apertura y los comprobantes que integran el expediente. Se solicita remitir la documentacion certificada en un plazo de cinco dias habiles."
+  },
+  {
+    "id": "documentacion-contratos",
+    "assertPrimary": true,
+    "primary": "Documentacion",
+    "expected": { "Bloqueo": false, "Desbloqueo": false, "Documentacion": true, "Transferencia": false, "InformacionGeneral": false },
+    "variantClass": "authority=SAT; phrasing=copia certificada de contratos",
+    "text": "El SERVICIO DE ADMINISTRACION TRIBUTARIA solicita la exhibicion y entrega de documentacion, consistente en copia certificada de los contratos, estados de cuenta y comprobantes de operaciones del contribuyente para el ejercicio revisado."
+  },
+  {
+    "id": "transferencia-abono",
+    "assertPrimary": true,
+    "primary": "Transferencia",
+    "expected": { "Bloqueo": false, "Desbloqueo": false, "Documentacion": false, "Transferencia": true, "InformacionGeneral": false },
+    "variantClass": "authority=SUBDELEGACION; phrasing=transferencia de fondos a cuenta de abono; monto",
+    "text": "Por medio del presente oficio se ordena la transferencia de fondos de la cuenta del cliente hacia la cuenta de abono 002180012345678901. El monto a transferir es de $250,000.00 pesos. Se instruye realizar la transferencia de recursos a la brevedad. Atentamente, SUBDELEGACION 8 SAN ANGEL."
+  },
+  {
+    "id": "transferencia-tesoferia",
+    "assertPrimary": true,
+    "primary": "Transferencia",
+    "expected": { "Bloqueo": false, "Desbloqueo": false, "Documentacion": false, "Transferencia": true, "InformacionGeneral": false },
+    "variantClass": "authority=SAT; phrasing=entero/transferencia a la TESOFE",
+    "text": "El SERVICIO DE ADMINISTRACION TRIBUTARIA instruye realizar la transferencia de los recursos embargados hacia la cuenta de la Tesoreria de la Federacion numero 646180000000000001, por la cantidad de $95,300.00 pesos, en concepto de entero del credito fiscal."
+  },
+  {
+    "id": "transferencia-restitucion",
+    "assertPrimary": true,
+    "primary": "Transferencia",
+    "expected": { "Bloqueo": false, "Desbloqueo": false, "Documentacion": false, "Transferencia": true, "InformacionGeneral": false },
+    "variantClass": "authority=Juzgado; phrasing=transferir/restituir a cuenta de la victima",
+    "text": "En cumplimiento a la sentencia, el JUZGADO SEGUNDO DE DISTRITO ordena la transferencia de fondos por $410,000.00 pesos a la cuenta de abono 014180567890123456 a favor de la parte ofendida, por concepto de reparacion del dano."
+  },
+  {
+    "id": "informacion-movimientos",
+    "assertPrimary": true,
+    "primary": "InformacionGeneral",
+    "expected": { "Bloqueo": false, "Desbloqueo": false, "Documentacion": false, "Transferencia": false, "InformacionGeneral": true },
+    "variantClass": "authority=SUBDELEGACION; phrasing=información de movimientos y saldos (canonical, accented)",
+    "text": "Por medio del presente oficio se requiere información relativa a las operaciones del cliente. Se solicita información sobre los movimientos y saldos, así como cualquier dato de identificación disponible. Atentamente, SUBDELEGACIÓN 8 SAN ÁNGEL."
+  },
+  {
+    "id": "informacion-titularidad",
+    "assertPrimary": false,
+    "primary": "InformacionGeneral",
+    "expected": { "Bloqueo": false, "Desbloqueo": false, "Documentacion": false, "Transferencia": false, "InformacionGeneral": true },
+    "variantClass": "authority=UIF; phrasing=informe de titularidad (BRITTLE: un-accented/varied — measure-only, agent-track candidate)",
+    "text": "La UNIDAD DE INTELIGENCIA FINANCIERA requiere informacion respecto de la titularidad de las cuentas, los beneficiarios controladores y el detalle de las operaciones relevantes. Se solicita rendir un informe pormenorizado de los movimientos identificados."
+  },
+  {
+    "id": "informacion-saldos",
+    "assertPrimary": false,
+    "primary": "InformacionGeneral",
+    "expected": { "Bloqueo": false, "Desbloqueo": false, "Documentacion": false, "Transferencia": false, "InformacionGeneral": true },
+    "variantClass": "authority=CONSAR; phrasing=informe de saldos de subcuenta (BRITTLE: un-accented/varied — measure-only, agent-track candidate)",
+    "text": "La COMISION NACIONAL DEL SISTEMA DE AHORRO PARA EL RETIRO solicita informacion sobre los saldos de la subcuenta de retiro del trabajador y los movimientos registrados en el periodo, a fin de integrar el expediente correspondiente."
+  },
+  {
+    "id": "multi-bloqueo-documentacion",
+    "assertPrimary": true,
+    "primary": "Bloqueo",
+    "expected": { "Bloqueo": true, "Desbloqueo": false, "Documentacion": true, "Transferencia": false, "InformacionGeneral": false },
+    "variantClass": "MULTI-LABEL; bloqueo + documentacion in one oficio",
+    "text": "La COMISION NACIONAL BANCARIA Y DE VALORES instruye el ASEGURAMIENTO DE CUENTAS y bloqueo de cuentas de la cuenta 0011223344, y ademas requiere la presentacion de documentacion consistente en los estados de cuenta y la certificacion de saldos y movimientos del periodo."
+  },
+  {
+    "id": "multi-transferencia-informacion",
+    "assertPrimary": true,
+    "primary": "Transferencia",
+    "expected": { "Bloqueo": false, "Desbloqueo": false, "Documentacion": false, "Transferencia": true, "InformacionGeneral": true },
+    "variantClass": "MULTI-LABEL; transferencia + informacion",
+    "text": "El SERVICIO DE ADMINISTRACION TRIBUTARIA instruye la transferencia de fondos por $95,300.00 pesos a la cuenta de la Tesoreria de la Federacion, y adicionalmente requiere informacion sobre los movimientos y saldos de la cuenta origen."
+  },
+  {
+    "id": "edge-negacion-bloqueo",
+    "assertPrimary": false,
+    "primary": "InformacionGeneral",
+    "expected": { "Bloqueo": false, "Desbloqueo": false, "Documentacion": false, "Transferencia": false, "InformacionGeneral": true },
+    "variantClass": "EDGE; negation — informa que NO procede el bloqueo (measure-only)",
+    "text": "La autoridad hace del conocimiento que en el presente caso NO procede el bloqueo de cuentas ni el aseguramiento de recursos. Unicamente se solicita informacion general sobre la situacion de la cuenta para efectos estadisticos."
+  },
+  {
+    "id": "edge-ambiguo-generico",
+    "assertPrimary": false,
+    "primary": "InformacionGeneral",
+    "expected": { "Bloqueo": false, "Desbloqueo": false, "Documentacion": false, "Transferencia": false, "InformacionGeneral": true },
+    "variantClass": "EDGE; vague/ambiguous wording (measure-only)",
+    "text": "Por medio del presente se hace un atento recordatorio respecto del oficio anterior. Se agradece dar seguimiento al asunto de referencia conforme a las disposiciones aplicables y remitir lo conducente a esta autoridad."
+  }
+]

@@ -1,0 +1,144 @@
+{
+  "source": "DOF Manual de Organización General del SAT 2024 + Reglamento Interior",
+  "extraction_date": "2025-11-30",
+  "method": "manual_from_official_sources",
+  "entidades": [
+    {
+      "nombre": "Servicio de Administración Tributaria",
+      "nombre_corto": "SAT",
+      "tipo": "Órgano Desconcentrado",
+      "jurisdiccion": "Federal",
+      "nivel": "Jefatura"
+    },
+    {
+      "nombre": "Jefatura del Servicio de Administración Tributaria",
+      "tipo": "Jefatura",
+      "jurisdiccion": "Federal",
+      "nivel": "Titular"
+    },
+    {
+      "nombre": "Administración General de Recaudación",
+      "nombre_corto": "AGR",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "competencia": ["recaudación", "cobranza", "embargos", "remates"]
+    },
+    {
+      "nombre": "Administración General de Auditoría Fiscal Federal",
+      "nombre_corto": "AGAFF",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "competencia": ["auditoría", "revisiones", "devoluciones"]
+    },
+    {
+      "nombre": "Administración General de Auditoría de Comercio Exterior",
+      "nombre_corto": "AGACE",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "competencia": ["comercio exterior", "aduanas", "importaciones", "exportaciones"]
+    },
+    {
+      "nombre": "Administración General de Grandes Contribuyentes",
+      "nombre_corto": "AGGC",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "competencia": ["grandes contribuyentes", "empresas mayores"]
+    },
+    {
+      "nombre": "Administración General de Hidrocarburos",
+      "nombre_corto": "AGH",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "competencia": ["hidrocarburos", "petróleo", "gas", "PEMEX"]
+    },
+    {
+      "nombre": "Administración General de Servicios al Contribuyente",
+      "nombre_corto": "AGSC",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "competencia": ["atención", "orientación", "trámites", "RFC"]
+    },
+    {
+      "nombre": "Administración General Jurídica",
+      "nombre_corto": "AGJ",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "competencia": ["jurídico", "juicios", "amparos", "consultas"]
+    },
+    {
+      "nombre": "Administración General de Aduanas",
+      "nombre_corto": "AGA",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "competencia": ["aduanas", "comercio exterior", "fronteras"]
+    },
+    {
+      "nombre": "Administración General de Planeación",
+      "nombre_corto": "AGP",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "competencia": ["planeación", "estrategia"]
+    },
+    {
+      "nombre": "Administración General de Recursos y Servicios",
+      "nombre_corto": "AGRS",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "competencia": ["recursos humanos", "recursos materiales", "servicios"]
+    },
+    {
+      "nombre": "Administración General de Comunicaciones y Tecnologías de la Información",
+      "nombre_corto": "AGCTI",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "competencia": ["sistemas", "tecnología", "comunicaciones"]
+    },
+    {
+      "nombre": "Administración General de Evaluación",
+      "nombre_corto": "AGE",
+      "tipo": "Administración General",
+      "jurisdiccion": "Federal",
+      "competencia": ["evaluación", "control interno"]
+    },
+    {
+      "nombre": "Unidad de Comunicación Social",
+      "tipo": "Unidad Administrativa",
+      "jurisdiccion": "Federal"
+    },
+    {
+      "nombre": "Secretariado Técnico de la Comisión del Servicio Fiscal de Carrera",
+      "tipo": "Secretariado",
+      "jurisdiccion": "Federal"
+    },
+    {
+      "nombre": "Dirección General de Interventoría",
+      "tipo": "Dirección General",
+      "jurisdiccion": "Federal"
+    },
+    {
+      "nombre": "Dirección General de Planeación Tributaria",
+      "tipo": "Dirección General",
+      "jurisdiccion": "Federal"
+    },
+    {
+      "nombre": "Dirección General de Asuntos Fiscales Internacionales",
+      "tipo": "Dirección General",
+      "jurisdiccion": "Federal"
+    },
+    {
+      "nombre": "Dirección General de Coordinación con Entidades Federativas",
+      "tipo": "Dirección General",
+      "jurisdiccion": "Federal"
+    },
+    {
+      "nombre": "Dirección General de Tecnología de la Información",
+      "tipo": "Dirección General",
+      "jurisdiccion": "Federal"
+    },
+    {
+      "nombre": "Órgano Interno de Control en el SAT",
+      "tipo": "Órgano Interno de Control",
+      "jurisdiccion": "Federal"
+    }
+  ]
+}

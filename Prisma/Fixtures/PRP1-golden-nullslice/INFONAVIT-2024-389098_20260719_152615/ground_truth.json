@@ -1,0 +1,50 @@
+{
+  "docId": "INFONAVIT-2024-389098_20260719_152615",
+  "seed": 5003,
+  "chaosLevel": "none",
+  "requirementType": "informacion",
+  "folioSiara": "INFONAVIT/2024/389098",
+  "numeroOficio": "INFONAVIT/2024/389098",
+  "numeroExpediente": "H/AS2 - 2108 - 458945 - FGR",
+  "autoridadNombre": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Bruno Barela Villegas",
+  "personaNombre": "Salvador Borrego Pedraza",
+  "personaRfc": "BOPS710924DTY",
+  "solicitudPartes": [
+    {
+      "nombre": "Salvador Borrego Pedraza",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$3,633,537.71",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  }
+}

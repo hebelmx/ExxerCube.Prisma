@@ -1,0 +1,214 @@
+---
+globs: *.cs
+description: Professional software engineering standards for C# .NET development
+---
+
+# Code Enhancer Standards
+
+## Meta
+**Title**: Code Enhancer Standards
+**Description**: Professional software engineering standards for C# .NET development
+**Applies-to**: C# code development and review
+
+## Requirements
+
+<requirement priority="critical">
+**Description**: Use meaningful and descriptive names for all code elements
+**Examples**:
+<correct-example>
+```csharp
+var customerOrder = new Order();
+var isValid = ValidateOrder(customerOrder);
+var worldClassOeeThreshold = 0.85m;
+var accelerationGravity = 9.8m;
+```
+</correct-example>
+<incorrect-example>
+```csharp
+var x = new Order();
+var y = ValidateOrder(x);
+var magicNumber = 0.85m;
+var g = 9.8m;
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Follow Single Responsibility Principle (SRP) over DRY
+**Examples**:
+<correct-example>
+```csharp
+public class OrderValidator
+{
+    public bool ValidateCustomer(Customer customer) { /* ... */ }
+    public bool ValidateItems(List<Item> items) { /* ... */ }
+    public bool ValidatePayment(Payment payment) { /* ... */ }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public class OrderValidator
+{
+    public bool ValidateEverything(Customer customer, List<Item> items, Payment payment) { /* ... */ }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Avoid regions, prefer sub-classes for organization
+**Examples**:
+<correct-example>
+```csharp
+public class OrderProcessor
+{
+    private readonly OrderValidator _validator;
+    private readonly OrderCalculator _calculator;
+
+    public OrderProcessor(OrderValidator validator, OrderCalculator calculator)
+    {
+        _validator = validator;
+        _calculator = calculator;
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public class OrderProcessor
+{
+    #region Validation
+    // validation methods
+    #endregion
+
+    #region Calculation
+    // calculation methods
+    #endregion
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use constants for magic numbers and strings
+**Examples**:
+<correct-example>
+```csharp
+public static class OrderConstants
+{
+    public const decimal WorldClassOeeThreshold = 0.85m;
+    public const decimal AccelerationGravity = 9.8m;
+    public const string DefaultCurrency = "USD";
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public decimal CalculateOee()
+{
+    return currentValue / 0.85m; // Magic number
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Return Result<T> instead of throwing exceptions
+**Examples**:
+<correct-example>
+```csharp
+public Result<Order> ProcessOrder(OrderRequest request)
+{
+    if (request == null)
+        return Result<Order>.WithFailure("Request cannot be null");
+
+    // Process order logic
+    return Result<Order>.Success(processedOrder);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public Order ProcessOrder(OrderRequest request)
+{
+    if (request == null)
+        throw new ArgumentNullException(nameof(request));
+
+    // Process order logic
+    return processedOrder;
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Use XML documentation for public APIs
+**Examples**:
+<correct-example>
+```csharp
+/// <summary>
+/// Processes an order request and returns the result.
+/// </summary>
+/// <param name="request">The order request to process.</param>
+/// <returns>A result containing the processed order or error information.</returns>
+public Result<Order> ProcessOrder(OrderRequest request)
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public Result<Order> ProcessOrder(OrderRequest request)
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use modern .NET tooling standards
+**Examples**:
+<correct-example>
+- Use .NET 10 or .NET 9 for C# projects
+- Use NSubstitute, Shouldly, XUnit v3 for testing
+- Avoid FluentAssertions, Moq, MediaTr, AutoMapper
+</correct-example>
+<incorrect-example>
+- Using older .NET versions unnecessarily
+- Using deprecated testing frameworks
+- Using banned packages like Moq or AutoMapper
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Write self-documenting code with minimal comments
+**Examples**:
+<correct-example>
+```csharp
+public bool IsValidCustomer(Customer customer)
+{
+    return customer != null &&
+           !string.IsNullOrEmpty(customer.Email) &&
+           customer.Age >= MinimumAge;
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public bool IsValidCustomer(Customer customer)
+{
+    // Check if customer is not null
+    if (customer == null) return false;
+
+    // Check if email is not empty
+    if (string.IsNullOrEmpty(customer.Email)) return false;
+
+    // Check if age is valid
+    if (customer.Age < MinimumAge) return false;
+
+    return true;
+}
+```
+</incorrect-example>
+</requirement>
+
+## References
+<reference as="dependency" href=".cursor/rules/0000_RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/1001_CSharpCodingStandards.mdc" reason="Related C# standards">C# Coding Standards</reference>

@@ -1,0 +1,29 @@
+---
+description: Initiate Not Null Refeference Properties
+globs:
+alwaysApply: false
+---
+
+Scope:
+--Only affect public, non-nullable reference type auto-properties (e.g., public string Name { get; set; }).
+--Only apply to properties that do not already have an initializer (e.g., not = string.Empty;, = new();, etc.).
+--Do not change value types (int, bool, DateTime, etc.) or nullable reference types (string?).
+Property Initialization
+--For each affected property, add: this initializer = null!;
+This suppresses the nullable warning and signals to the compiler that the property will be set later.
+XML Documentation
+If the property already has an XML <summary> comment:
+Append the following note to the end of the summary:
+/// Set by EF or by builder on runtime, consumer must check for null before accessing.
+If the property does not have an XML comment:
+Add a new XML <summary> relevant comment with the note:
+/// Set by EF or by builder on runtime, consumer must check for null before accessing.
+using
+--Properties that already have an initializer (e.g., = string.Empty;, = new();).
+Properties that are value types or nullable reference types.
+
+Comment Consistency
+The comment must always be: (either as a new XML comment or appended to an existing one).
+--No Behavioral Change
+--This update is only to suppress nullable warnings and improve documentation.
+--No runtime behavior or logic must be changed.

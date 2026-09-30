@@ -1,0 +1,595 @@
+# Diagnostics and Troubleshooting Standards
+
+## Meta
+**Title**: Diagnostics and Troubleshooting Standards
+**Description**: Comprehensive diagnostics and troubleshooting standards for debug patterns and error tracking
+**Applies-to**: All C# code in ExxerAI project
+
+## Requirements
+
+<requirement priority="critical">
+**Description**: Use comprehensive error tracking and diagnostics
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Comprehensive error tracking and diagnostics
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+    private readonly IDiagnosticsService _diagnostics;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository, IDiagnosticsService diagnostics)
+    {
+        _logger = logger;
+        _repository = repository;
+        _diagnostics = diagnostics;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        var diagnosticContext = new DiagnosticContext
+        {
+            Operation = "CreateAgent",
+            Parameters = new Dictionary<string, object>
+            {
+                ["agent_name"] = name,
+                ["capabilities"] = capabilities.ToString(),
+                ["correlation_id"] = Activity.Current?.Id ?? "unknown"
+            }
+        };
+
+        try
+        {
+            _logger.LogInformation("Creating agent: {AgentName}", name);
+
+            // Track operation start
+            _diagnostics.TrackOperationStart(diagnosticContext);
+
+            var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+            // Track operation completion
+            _diagnostics.TrackOperationComplete(diagnosticContext, result.IsSuccess);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation("Agent created successfully: {AgentId}", result.Value.Id);
+                _diagnostics.TrackSuccess(diagnosticContext, result.Value.Id);
+            }
+            else
+            {
+                _logger.LogError("Agent creation failed: {AgentName}, Errors: {Errors}",
+                    name, string.Join(", ", result.Errors));
+                _diagnostics.TrackFailure(diagnosticContext, result.Errors);
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _diagnostics.TrackException(diagnosticContext, ex);
+            _logger.LogError(ex, "Agent creation threw exception: {AgentName}", name);
+            throw;
+        }
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No error tracking or diagnostics
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository)
+    {
+        _logger = logger;
+        _repository = repository;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", name);
+
+        var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Implement debug patterns and diagnostic information
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Debug patterns and diagnostic information
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+    private readonly IDebugService _debugService;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository, IDebugService debugService)
+    {
+        _logger = logger;
+        _repository = repository;
+        _debugService = debugService;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        var debugInfo = new DebugInfo
+        {
+            Operation = "CreateAgent",
+            Timestamp = DateTime.UtcNow,
+            CorrelationId = Activity.Current?.Id ?? Guid.NewGuid().ToString(),
+            Parameters = new Dictionary<string, object>
+            {
+                ["name"] = name,
+                ["capabilities"] = capabilities.ToString(),
+                ["cancellation_requested"] = cancellationToken.IsCancellationRequested
+            }
+        };
+
+        _debugService.LogDebugInfo(debugInfo);
+        _logger.LogDebug("Starting agent creation with debug info: {@DebugInfo}", debugInfo);
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _debugService.LogCancellation(debugInfo);
+            _logger.LogWarning("Agent creation cancelled");
+            return ResultExtensions.Cancelled<Agent>();
+        }
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            _debugService.LogValidationError(debugInfo, "Agent name is empty");
+            _logger.LogError("Agent creation failed: name is empty");
+            return Result<Agent>.WithFailure("Agent name cannot be empty");
+        }
+
+        var agent = new Agent { Name = new AgentName(name), Capabilities = capabilities };
+
+        var result = await _repository.AddAsync(agent, cancellationToken);
+
+        debugInfo.Result = result.IsSuccess ? "Success" : "Failure";
+        debugInfo.Errors = result.Errors.ToArray();
+
+        _debugService.LogOperationResult(debugInfo);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created successfully: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Agent creation failed: {AgentName}, Errors: {Errors}",
+                name, string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No debug patterns or diagnostic information
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository)
+    {
+        _logger = logger;
+        _repository = repository;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", name);
+
+        var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use diagnostic tools and performance profiling
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Diagnostic tools and performance profiling
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+    private readonly IPerformanceProfiler _profiler;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository, IPerformanceProfiler profiler)
+    {
+        _logger = logger;
+        _repository = repository;
+        _profiler = profiler;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        using var profile = _profiler.BeginProfile("CreateAgent");
+        profile.SetTag("agent_name", name);
+        profile.SetTag("capabilities", capabilities.ToString());
+
+        try
+        {
+            _logger.LogInformation("Creating agent: {AgentName}", name);
+
+            // Profile validation step
+            using (var validationProfile = _profiler.BeginProfile("Validation"))
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    validationProfile.SetTag("result", "cancelled");
+                    _logger.LogWarning("Agent creation cancelled");
+                    return ResultExtensions.Cancelled<Agent>();
+                }
+
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    validationProfile.SetTag("result", "validation_failed");
+                    validationProfile.SetTag("error", "name_empty");
+                    _logger.LogError("Agent creation failed: name is empty");
+                    return Result<Agent>.WithFailure("Agent name cannot be empty");
+                }
+
+                validationProfile.SetTag("result", "validation_passed");
+            }
+
+            // Profile repository operation
+            using (var repositoryProfile = _profiler.BeginProfile("RepositoryOperation"))
+            {
+                var agent = new Agent { Name = new AgentName(name), Capabilities = capabilities };
+                var result = await _repository.AddAsync(agent, cancellationToken);
+
+                repositoryProfile.SetTag("result", result.IsSuccess ? "success" : "failure");
+                if (!result.IsSuccess)
+                {
+                    repositoryProfile.SetTag("errors", string.Join(", ", result.Errors));
+                }
+
+                if (result.IsSuccess)
+                {
+                    _logger.LogInformation("Agent created successfully: {AgentId}", result.Value.Id);
+                }
+                else
+                {
+                    _logger.LogError("Agent creation failed: {AgentName}, Errors: {Errors}",
+                        name, string.Join(", ", result.Errors));
+                }
+
+                return result;
+            }
+        }
+        catch (Exception ex)
+        {
+            profile.SetTag("exception", ex.GetType().Name);
+            profile.SetTag("exception_message", ex.Message);
+            _logger.LogError(ex, "Agent creation threw exception: {AgentName}", name);
+            throw;
+        }
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No diagnostic tools or performance profiling
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository)
+    {
+        _logger = logger;
+        _repository = repository;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", name);
+
+        var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Implement error correlation and root cause analysis
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Error correlation and root cause analysis
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+    private readonly IErrorCorrelationService _errorCorrelation;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository, IErrorCorrelationService errorCorrelation)
+    {
+        _logger = logger;
+        _repository = repository;
+        _errorCorrelation = errorCorrelation;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        var correlationId = Activity.Current?.Id ?? Guid.NewGuid().ToString();
+        var errorContext = new ErrorContext
+        {
+            CorrelationId = correlationId,
+            Operation = "CreateAgent",
+            Parameters = new Dictionary<string, object>
+            {
+                ["agent_name"] = name,
+                ["capabilities"] = capabilities.ToString()
+            }
+        };
+
+        try
+        {
+            _logger.LogInformation("Creating agent: {AgentName}, CorrelationId: {CorrelationId}", name, correlationId);
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _errorCorrelation.TrackCancellation(errorContext);
+                _logger.LogWarning("Agent creation cancelled, CorrelationId: {CorrelationId}", correlationId);
+                return ResultExtensions.Cancelled<Agent>();
+            }
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                _errorCorrelation.TrackValidationError(errorContext, "Agent name is empty");
+                _logger.LogError("Agent creation failed: name is empty, CorrelationId: {CorrelationId}", correlationId);
+                return Result<Agent>.WithFailure("Agent name cannot be empty");
+            }
+
+            var agent = new Agent { Name = new AgentName(name), Capabilities = capabilities };
+            var result = await _repository.AddAsync(agent, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                _errorCorrelation.TrackSuccess(errorContext, result.Value.Id);
+                _logger.LogInformation("Agent created successfully: {AgentId}, CorrelationId: {CorrelationId}",
+                    result.Value.Id, correlationId);
+            }
+            else
+            {
+                _errorCorrelation.TrackFailure(errorContext, result.Errors);
+                _logger.LogError("Agent creation failed: {AgentName}, CorrelationId: {CorrelationId}, Errors: {Errors}",
+                    name, correlationId, string.Join(", ", result.Errors));
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _errorCorrelation.TrackException(errorContext, ex);
+            _logger.LogError(ex, "Agent creation threw exception: {AgentName}, CorrelationId: {CorrelationId}",
+                name, correlationId);
+            throw;
+        }
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No error correlation or root cause analysis
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository)
+    {
+        _logger = logger;
+        _repository = repository;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", name);
+
+        var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Use diagnostic middleware and interceptors
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Diagnostic middleware and interceptors
+public class DiagnosticMiddleware
+{
+    private readonly RequestDelegate _next;
+    private readonly ILogger<DiagnosticMiddleware> _logger;
+    private readonly IDiagnosticsService _diagnostics;
+
+    public DiagnosticMiddleware(RequestDelegate next, ILogger<DiagnosticMiddleware> logger, IDiagnosticsService diagnostics)
+    {
+        _next = next;
+        _logger = logger;
+        _diagnostics = diagnostics;
+    }
+
+    public async Task InvokeAsync(HttpContext context)
+    {
+        var correlationId = context.Request.Headers["X-Correlation-ID"].FirstOrDefault() ?? Guid.NewGuid().ToString();
+        context.Response.Headers["X-Correlation-ID"] = correlationId;
+
+        var diagnosticContext = new DiagnosticContext
+        {
+            CorrelationId = correlationId,
+            Operation = $"{context.Request.Method} {context.Request.Path}",
+            Parameters = new Dictionary<string, object>
+            {
+                ["method"] = context.Request.Method,
+                ["path"] = context.Request.Path.ToString(),
+                ["user_agent"] = context.Request.Headers["User-Agent"].FirstOrDefault() ?? "unknown"
+            }
+        };
+
+        _diagnostics.TrackRequestStart(diagnosticContext);
+        _logger.LogDebug("Request started: {Method} {Path}, CorrelationId: {CorrelationId}",
+            context.Request.Method, context.Request.Path, correlationId);
+
+        var stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            await _next(context);
+
+            stopwatch.Stop();
+            _diagnostics.TrackRequestComplete(diagnosticContext, context.Response.StatusCode, stopwatch.ElapsedMilliseconds);
+
+            _logger.LogInformation("Request completed: {Method} {Path}, Status: {StatusCode}, Duration: {DurationMs}ms, CorrelationId: {CorrelationId}",
+                context.Request.Method, context.Request.Path, context.Response.StatusCode, stopwatch.ElapsedMilliseconds, correlationId);
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            _diagnostics.TrackRequestException(diagnosticContext, ex, stopwatch.ElapsedMilliseconds);
+
+            _logger.LogError(ex, "Request failed: {Method} {Path}, Duration: {DurationMs}ms, CorrelationId: {CorrelationId}",
+                context.Request.Method, context.Request.Path, stopwatch.ElapsedMilliseconds, correlationId);
+            throw;
+        }
+    }
+}
+
+// Service with diagnostic interceptor
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository)
+    {
+        _logger = logger;
+        _repository = repository;
+    }
+
+    [DiagnosticInterceptor]
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", name);
+
+        var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created successfully: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Agent creation failed: {AgentName}, Errors: {Errors}",
+                name, string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No diagnostic middleware or interceptors
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository)
+    {
+        _logger = logger;
+        _repository = repository;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", name);
+
+        var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>

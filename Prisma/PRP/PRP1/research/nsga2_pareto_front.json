@@ -1,0 +1,2502 @@
+[
+  {
+    "id": 0,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.0812983172890192,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 52,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.641004883292234,
+      "unsharp_radius": 1.4641477270608014
+    },
+    "objectives": {
+      "Q1_222AAA": 89,
+      "Q1_333BBB": 66,
+      "Q1_333ccc": 116,
+      "Q1_555CCC": 36,
+      "Q2_222AAA": 556,
+      "Q2_333BBB": 664,
+      "Q2_333ccc": 594,
+      "Q2_555CCC": 1558
+    },
+    "total_edits_Q1": 307,
+    "total_edits_Q2": 3372,
+    "total_edits_all": 3679
+  },
+  {
+    "id": 1,
+    "genome": {
+      "denoise_h": 13,
+      "clahe_clip": 2.009678766294647,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 65,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.649443349755495,
+      "unsharp_radius": 2.733346654757642
+    },
+    "objectives": {
+      "Q1_222AAA": 207,
+      "Q1_333BBB": 202,
+      "Q1_333ccc": 181,
+      "Q1_555CCC": 4,
+      "Q2_222AAA": 1071,
+      "Q2_333BBB": 1053,
+      "Q2_333ccc": 1097,
+      "Q2_555CCC": 484
+    },
+    "total_edits_Q1": 594,
+    "total_edits_Q2": 3705,
+    "total_edits_all": 4299
+  },
+  {
+    "id": 2,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.1673310327458202,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 53,
+      "bilateral_sigma_space": 91,
+      "unsharp_amount": 1.6584187786131834,
+      "unsharp_radius": 3.9113948303841823
+    },
+    "objectives": {
+      "Q1_222AAA": 87,
+      "Q1_333BBB": 94,
+      "Q1_333ccc": 89,
+      "Q1_555CCC": 0,
+      "Q2_222AAA": 614,
+      "Q2_333BBB": 1105,
+      "Q2_333ccc": 1032,
+      "Q2_555CCC": 824
+    },
+    "total_edits_Q1": 270,
+    "total_edits_Q2": 3575,
+    "total_edits_all": 3845
+  },
+  {
+    "id": 3,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.067198713542715,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 53,
+      "bilateral_sigma_space": 80,
+      "unsharp_amount": 1.930251476954923,
+      "unsharp_radius": 2.7333071712548853
+    },
+    "objectives": {
+      "Q1_222AAA": 58,
+      "Q1_333BBB": 66,
+      "Q1_333ccc": 110,
+      "Q1_555CCC": 14,
+      "Q2_222AAA": 527,
+      "Q2_333BBB": 661,
+      "Q2_333ccc": 694,
+      "Q2_555CCC": 665
+    },
+    "total_edits_Q1": 248,
+    "total_edits_Q2": 2547,
+    "total_edits_all": 2795
+  },
+  {
+    "id": 4,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.0647586982433601,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 89,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.9039115000996596,
+      "unsharp_radius": 2.651636593488262
+    },
+    "objectives": {
+      "Q1_222AAA": 94,
+      "Q1_333BBB": 168,
+      "Q1_333ccc": 159,
+      "Q1_555CCC": 13,
+      "Q2_222AAA": 505,
+      "Q2_333BBB": 538,
+      "Q2_333ccc": 683,
+      "Q2_555CCC": 709
+    },
+    "total_edits_Q1": 434,
+    "total_edits_Q2": 2435,
+    "total_edits_all": 2869
+  },
+  {
+    "id": 5,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.1768750556687997,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 85,
+      "bilateral_sigma_space": 50,
+      "unsharp_amount": 1.7387607973301453,
+      "unsharp_radius": 3.9790103914034494
+    },
+    "objectives": {
+      "Q1_222AAA": 100,
+      "Q1_333BBB": 133,
+      "Q1_333ccc": 198,
+      "Q1_555CCC": 86,
+      "Q2_222AAA": 490,
+      "Q2_333BBB": 684,
+      "Q2_333ccc": 553,
+      "Q2_555CCC": 596
+    },
+    "total_edits_Q1": 517,
+    "total_edits_Q2": 2323,
+    "total_edits_all": 2840
+  },
+  {
+    "id": 6,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.1601727613681,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 70,
+      "bilateral_sigma_space": 78,
+      "unsharp_amount": 1.9027127572713471,
+      "unsharp_radius": 2.6040244706514253
+    },
+    "objectives": {
+      "Q1_222AAA": 93,
+      "Q1_333BBB": 86,
+      "Q1_333ccc": 166,
+      "Q1_555CCC": 12,
+      "Q2_222AAA": 524,
+      "Q2_333BBB": 644,
+      "Q2_333ccc": 459,
+      "Q2_555CCC": 636
+    },
+    "total_edits_Q1": 357,
+    "total_edits_Q2": 2263,
+    "total_edits_all": 2620
+  },
+  {
+    "id": 7,
+    "genome": {
+      "denoise_h": 14,
+      "clahe_clip": 1.049073856284131,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 70,
+      "bilateral_sigma_space": 74,
+      "unsharp_amount": 1.8583969043380195,
+      "unsharp_radius": 1.868100696914087
+    },
+    "objectives": {
+      "Q1_222AAA": 157,
+      "Q1_333BBB": 162,
+      "Q1_333ccc": 196,
+      "Q1_555CCC": 4,
+      "Q2_222AAA": 1243,
+      "Q2_333BBB": 1424,
+      "Q2_333ccc": 899,
+      "Q2_555CCC": 509
+    },
+    "total_edits_Q1": 519,
+    "total_edits_Q2": 4075,
+    "total_edits_all": 4594
+  },
+  {
+    "id": 8,
+    "genome": {
+      "denoise_h": 13,
+      "clahe_clip": 1.0885971045260638,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 86,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.6266996865200198,
+      "unsharp_radius": 2.6997629186726657
+    },
+    "objectives": {
+      "Q1_222AAA": 110,
+      "Q1_333BBB": 126,
+      "Q1_333ccc": 169,
+      "Q1_555CCC": 31,
+      "Q2_222AAA": 335,
+      "Q2_333BBB": 722,
+      "Q2_333ccc": 643,
+      "Q2_555CCC": 570
+    },
+    "total_edits_Q1": 436,
+    "total_edits_Q2": 2270,
+    "total_edits_all": 2706
+  },
+  {
+    "id": 9,
+    "genome": {
+      "denoise_h": 14,
+      "clahe_clip": 1.1585441435067265,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 70,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.8617189875166378,
+      "unsharp_radius": 2.6500376100324945
+    },
+    "objectives": {
+      "Q1_222AAA": 152,
+      "Q1_333BBB": 147,
+      "Q1_333ccc": 179,
+      "Q1_555CCC": 4,
+      "Q2_222AAA": 1307,
+      "Q2_333BBB": 1285,
+      "Q2_333ccc": 868,
+      "Q2_555CCC": 599
+    },
+    "total_edits_Q1": 482,
+    "total_edits_Q2": 4059,
+    "total_edits_all": 4541
+  },
+  {
+    "id": 10,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.0485250521786496,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 88,
+      "bilateral_sigma_space": 50,
+      "unsharp_amount": 1.8566200436127254,
+      "unsharp_radius": 3.914711710237714
+    },
+    "objectives": {
+      "Q1_222AAA": 120,
+      "Q1_333BBB": 131,
+      "Q1_333ccc": 243,
+      "Q1_555CCC": 54,
+      "Q2_222AAA": 499,
+      "Q2_333BBB": 619,
+      "Q2_333ccc": 527,
+      "Q2_555CCC": 623
+    },
+    "total_edits_Q1": 548,
+    "total_edits_Q2": 2268,
+    "total_edits_all": 2816
+  },
+  {
+    "id": 11,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.1415033245547612,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 50,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.747700754684191,
+      "unsharp_radius": 3.9434866161576485
+    },
+    "objectives": {
+      "Q1_222AAA": 92,
+      "Q1_333BBB": 82,
+      "Q1_333ccc": 80,
+      "Q1_555CCC": 10,
+      "Q2_222AAA": 603,
+      "Q2_333BBB": 997,
+      "Q2_333ccc": 797,
+      "Q2_555CCC": 715
+    },
+    "total_edits_Q1": 264,
+    "total_edits_Q2": 3112,
+    "total_edits_all": 3376
+  },
+  {
+    "id": 12,
+    "genome": {
+      "denoise_h": 17,
+      "clahe_clip": 2.751893044412879,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 88,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.6455172737958748,
+      "unsharp_radius": 4.03855475155694
+    },
+    "objectives": {
+      "Q1_222AAA": 180,
+      "Q1_333BBB": 246,
+      "Q1_333ccc": 241,
+      "Q1_555CCC": 7,
+      "Q2_222AAA": 514,
+      "Q2_333BBB": 875,
+      "Q2_333ccc": 688,
+      "Q2_555CCC": 454
+    },
+    "total_edits_Q1": 674,
+    "total_edits_Q2": 2531,
+    "total_edits_all": 3205
+  },
+  {
+    "id": 13,
+    "genome": {
+      "denoise_h": 14,
+      "clahe_clip": 3.3527555206330586,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 86,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.6347385365720783,
+      "unsharp_radius": 2.6997629186726657
+    },
+    "objectives": {
+      "Q1_222AAA": 165,
+      "Q1_333BBB": 177,
+      "Q1_333ccc": 216,
+      "Q1_555CCC": 6,
+      "Q2_222AAA": 583,
+      "Q2_333BBB": 798,
+      "Q2_333ccc": 700,
+      "Q2_555CCC": 356
+    },
+    "total_edits_Q1": 564,
+    "total_edits_Q2": 2437,
+    "total_edits_all": 3001
+  },
+  {
+    "id": 14,
+    "genome": {
+      "denoise_h": 17,
+      "clahe_clip": 2.6117477679868397,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 88,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.649898620000624,
+      "unsharp_radius": 3.9834943949315886
+    },
+    "objectives": {
+      "Q1_222AAA": 232,
+      "Q1_333BBB": 203,
+      "Q1_333ccc": 235,
+      "Q1_555CCC": 7,
+      "Q2_222AAA": 471,
+      "Q2_333BBB": 852,
+      "Q2_333ccc": 703,
+      "Q2_555CCC": 466
+    },
+    "total_edits_Q1": 677,
+    "total_edits_Q2": 2492,
+    "total_edits_all": 3169
+  },
+  {
+    "id": 15,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.0611171364573837,
+      "bilateral_d": 7,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.858067197787388,
+      "unsharp_radius": 2.614223834567655
+    },
+    "objectives": {
+      "Q1_222AAA": 86,
+      "Q1_333BBB": 46,
+      "Q1_333ccc": 98,
+      "Q1_555CCC": 36,
+      "Q2_222AAA": 526,
+      "Q2_333BBB": 781,
+      "Q2_333ccc": 673,
+      "Q2_555CCC": 604
+    },
+    "total_edits_Q1": 266,
+    "total_edits_Q2": 2584,
+    "total_edits_all": 2850
+  },
+  {
+    "id": 16,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.078430042720038,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 52,
+      "bilateral_sigma_space": 71,
+      "unsharp_amount": 1.8627933723571222,
+      "unsharp_radius": 1.4546239676571635
+    },
+    "objectives": {
+      "Q1_222AAA": 101,
+      "Q1_333BBB": 93,
+      "Q1_333ccc": 104,
+      "Q1_555CCC": 3,
+      "Q2_222AAA": 572,
+      "Q2_333BBB": 874,
+      "Q2_333ccc": 621,
+      "Q2_555CCC": 926
+    },
+    "total_edits_Q1": 301,
+    "total_edits_Q2": 2993,
+    "total_edits_all": 3294
+  },
+  {
+    "id": 17,
+    "genome": {
+      "denoise_h": 6,
+      "clahe_clip": 1.0976476234611765,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.6738420057030863,
+      "unsharp_radius": 3.914800549728294
+    },
+    "objectives": {
+      "Q1_222AAA": 78,
+      "Q1_333BBB": 86,
+      "Q1_333ccc": 96,
+      "Q1_555CCC": 1,
+      "Q2_222AAA": 616,
+      "Q2_333BBB": 1066,
+      "Q2_333ccc": 793,
+      "Q2_555CCC": 1198
+    },
+    "total_edits_Q1": 261,
+    "total_edits_Q2": 3673,
+    "total_edits_all": 3934
+  },
+  {
+    "id": 18,
+    "genome": {
+      "denoise_h": 12,
+      "clahe_clip": 3.2192959338759106,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 90,
+      "bilateral_sigma_space": 92,
+      "unsharp_amount": 1.7538938317027906,
+      "unsharp_radius": 4.105639170064951
+    },
+    "objectives": {
+      "Q1_222AAA": 217,
+      "Q1_333BBB": 185,
+      "Q1_333ccc": 226,
+      "Q1_555CCC": 15,
+      "Q2_222AAA": 506,
+      "Q2_333BBB": 899,
+      "Q2_333ccc": 642,
+      "Q2_555CCC": 403
+    },
+    "total_edits_Q1": 643,
+    "total_edits_Q2": 2450,
+    "total_edits_all": 3093
+  },
+  {
+    "id": 19,
+    "genome": {
+      "denoise_h": 13,
+      "clahe_clip": 1.9929063760344776,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 65,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.649443349755495,
+      "unsharp_radius": 2.762967507438098
+    },
+    "objectives": {
+      "Q1_222AAA": 210,
+      "Q1_333BBB": 217,
+      "Q1_333ccc": 185,
+      "Q1_555CCC": 4,
+      "Q2_222AAA": 864,
+      "Q2_333BBB": 1144,
+      "Q2_333ccc": 1088,
+      "Q2_555CCC": 464
+    },
+    "total_edits_Q1": 616,
+    "total_edits_Q2": 3560,
+    "total_edits_all": 4176
+  },
+  {
+    "id": 20,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.1624005037186702,
+      "bilateral_d": 7,
+      "bilateral_sigma_color": 87,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.8608438009010808,
+      "unsharp_radius": 3.914884528903741
+    },
+    "objectives": {
+      "Q1_222AAA": 152,
+      "Q1_333BBB": 231,
+      "Q1_333ccc": 176,
+      "Q1_555CCC": 20,
+      "Q2_222AAA": 503,
+      "Q2_333BBB": 749,
+      "Q2_333ccc": 620,
+      "Q2_555CCC": 487
+    },
+    "total_edits_Q1": 579,
+    "total_edits_Q2": 2359,
+    "total_edits_all": 2938
+  },
+  {
+    "id": 21,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.0976476234611765,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 73,
+      "unsharp_amount": 1.9017819656142483,
+      "unsharp_radius": 2.6436496805912246
+    },
+    "objectives": {
+      "Q1_222AAA": 93,
+      "Q1_333BBB": 85,
+      "Q1_333ccc": 89,
+      "Q1_555CCC": 23,
+      "Q2_222AAA": 688,
+      "Q2_333BBB": 967,
+      "Q2_333ccc": 735,
+      "Q2_555CCC": 1362
+    },
+    "total_edits_Q1": 290,
+    "total_edits_Q2": 3752,
+    "total_edits_all": 4042
+  },
+  {
+    "id": 22,
+    "genome": {
+      "denoise_h": 8,
+      "clahe_clip": 1.140729855813075,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.7462412150346451,
+      "unsharp_radius": 3.9576261094224754
+    },
+    "objectives": {
+      "Q1_222AAA": 84,
+      "Q1_333BBB": 86,
+      "Q1_333ccc": 94,
+      "Q1_555CCC": 19,
+      "Q2_222AAA": 587,
+      "Q2_333BBB": 1018,
+      "Q2_333ccc": 818,
+      "Q2_555CCC": 1261
+    },
+    "total_edits_Q1": 283,
+    "total_edits_Q2": 3684,
+    "total_edits_all": 3967
+  },
+  {
+    "id": 23,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.078430042720038,
+      "bilateral_d": 13,
+      "bilateral_sigma_color": 52,
+      "bilateral_sigma_space": 71,
+      "unsharp_amount": 1.8613446930561313,
+      "unsharp_radius": 4.046077274378849
+    },
+    "objectives": {
+      "Q1_222AAA": 77,
+      "Q1_333BBB": 97,
+      "Q1_333ccc": 99,
+      "Q1_555CCC": 1,
+      "Q2_222AAA": 570,
+      "Q2_333BBB": 975,
+      "Q2_333ccc": 695,
+      "Q2_555CCC": 890
+    },
+    "total_edits_Q1": 274,
+    "total_edits_Q2": 3130,
+    "total_edits_all": 3404
+  },
+  {
+    "id": 24,
+    "genome": {
+      "denoise_h": 17,
+      "clahe_clip": 2.751893044412879,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 88,
+      "bilateral_sigma_space": 84,
+      "unsharp_amount": 1.6477209669705095,
+      "unsharp_radius": 4.03855475155694
+    },
+    "objectives": {
+      "Q1_222AAA": 175,
+      "Q1_333BBB": 237,
+      "Q1_333ccc": 236,
+      "Q1_555CCC": 7,
+      "Q2_222AAA": 497,
+      "Q2_333BBB": 883,
+      "Q2_333ccc": 687,
+      "Q2_555CCC": 446
+    },
+    "total_edits_Q1": 655,
+    "total_edits_Q2": 2513,
+    "total_edits_all": 3168
+  },
+  {
+    "id": 25,
+    "genome": {
+      "denoise_h": 14,
+      "clahe_clip": 1.1429724111871207,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 70,
+      "bilateral_sigma_space": 74,
+      "unsharp_amount": 1.8583969043380195,
+      "unsharp_radius": 1.8598355120623147
+    },
+    "objectives": {
+      "Q1_222AAA": 167,
+      "Q1_333BBB": 198,
+      "Q1_333ccc": 182,
+      "Q1_555CCC": 5,
+      "Q2_222AAA": 1158,
+      "Q2_333BBB": 1388,
+      "Q2_333ccc": 892,
+      "Q2_555CCC": 501
+    },
+    "total_edits_Q1": 552,
+    "total_edits_Q2": 3939,
+    "total_edits_all": 4491
+  },
+  {
+    "id": 26,
+    "genome": {
+      "denoise_h": 14,
+      "clahe_clip": 3.680826164675902,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 86,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.756278433123104,
+      "unsharp_radius": 2.6997629186726657
+    },
+    "objectives": {
+      "Q1_222AAA": 188,
+      "Q1_333BBB": 191,
+      "Q1_333ccc": 219,
+      "Q1_555CCC": 11,
+      "Q2_222AAA": 712,
+      "Q2_333BBB": 817,
+      "Q2_333ccc": 674,
+      "Q2_555CCC": 389
+    },
+    "total_edits_Q1": 609,
+    "total_edits_Q2": 2592,
+    "total_edits_all": 3201
+  },
+  {
+    "id": 27,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.0961504757202556,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 87,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.9003500006849017,
+      "unsharp_radius": 3.8750520371701196
+    },
+    "objectives": {
+      "Q1_222AAA": 149,
+      "Q1_333BBB": 144,
+      "Q1_333ccc": 185,
+      "Q1_555CCC": 60,
+      "Q2_222AAA": 521,
+      "Q2_333BBB": 706,
+      "Q2_333ccc": 499,
+      "Q2_555CCC": 555
+    },
+    "total_edits_Q1": 538,
+    "total_edits_Q2": 2281,
+    "total_edits_all": 2819
+  },
+  {
+    "id": 28,
+    "genome": {
+      "denoise_h": 13,
+      "clahe_clip": 1.0453626816745052,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 70,
+      "bilateral_sigma_space": 79,
+      "unsharp_amount": 1.649443349755495,
+      "unsharp_radius": 2.733346654757642
+    },
+    "objectives": {
+      "Q1_222AAA": 156,
+      "Q1_333BBB": 151,
+      "Q1_333ccc": 176,
+      "Q1_555CCC": 5,
+      "Q2_222AAA": 1216,
+      "Q2_333BBB": 1327,
+      "Q2_333ccc": 891,
+      "Q2_555CCC": 528
+    },
+    "total_edits_Q1": 488,
+    "total_edits_Q2": 3962,
+    "total_edits_all": 4450
+  },
+  {
+    "id": 29,
+    "genome": {
+      "denoise_h": 17,
+      "clahe_clip": 2.751893044412879,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 88,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.6455172737958748,
+      "unsharp_radius": 2.610619995320032
+    },
+    "objectives": {
+      "Q1_222AAA": 226,
+      "Q1_333BBB": 214,
+      "Q1_333ccc": 219,
+      "Q1_555CCC": 8,
+      "Q2_222AAA": 465,
+      "Q2_333BBB": 880,
+      "Q2_333ccc": 685,
+      "Q2_555CCC": 471
+    },
+    "total_edits_Q1": 667,
+    "total_edits_Q2": 2501,
+    "total_edits_all": 3168
+  },
+  {
+    "id": 30,
+    "genome": {
+      "denoise_h": 13,
+      "clahe_clip": 2.009678766294647,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 65,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.9047894945659127,
+      "unsharp_radius": 3.944810840151069
+    },
+    "objectives": {
+      "Q1_222AAA": 126,
+      "Q1_333BBB": 222,
+      "Q1_333ccc": 156,
+      "Q1_555CCC": 5,
+      "Q2_222AAA": 490,
+      "Q2_333BBB": 800,
+      "Q2_333ccc": 714,
+      "Q2_555CCC": 597
+    },
+    "total_edits_Q1": 509,
+    "total_edits_Q2": 2601,
+    "total_edits_all": 3110
+  },
+  {
+    "id": 31,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.1845998369427184,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.650232425087997,
+      "unsharp_radius": 2.5560318531848543
+    },
+    "objectives": {
+      "Q1_222AAA": 68,
+      "Q1_333BBB": 74,
+      "Q1_333ccc": 105,
+      "Q1_555CCC": 0,
+      "Q2_222AAA": 647,
+      "Q2_333BBB": 975,
+      "Q2_333ccc": 923,
+      "Q2_555CCC": 1202
+    },
+    "total_edits_Q1": 247,
+    "total_edits_Q2": 3747,
+    "total_edits_all": 3994
+  },
+  {
+    "id": 32,
+    "genome": {
+      "denoise_h": 13,
+      "clahe_clip": 1.9917050711930944,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 65,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.6470100952458786,
+      "unsharp_radius": 3.8287220890887106
+    },
+    "objectives": {
+      "Q1_222AAA": 207,
+      "Q1_333BBB": 193,
+      "Q1_333ccc": 189,
+      "Q1_555CCC": 2,
+      "Q2_222AAA": 958,
+      "Q2_333BBB": 1079,
+      "Q2_333ccc": 970,
+      "Q2_555CCC": 611
+    },
+    "total_edits_Q1": 591,
+    "total_edits_Q2": 3618,
+    "total_edits_all": 4209
+  },
+  {
+    "id": 33,
+    "genome": {
+      "denoise_h": 14,
+      "clahe_clip": 3.680826164675902,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 86,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.632133403714989,
+      "unsharp_radius": 2.6997629186726657
+    },
+    "objectives": {
+      "Q1_222AAA": 176,
+      "Q1_333BBB": 165,
+      "Q1_333ccc": 234,
+      "Q1_555CCC": 13,
+      "Q2_222AAA": 749,
+      "Q2_333BBB": 845,
+      "Q2_333ccc": 700,
+      "Q2_555CCC": 371
+    },
+    "total_edits_Q1": 588,
+    "total_edits_Q2": 2665,
+    "total_edits_all": 3253
+  },
+  {
+    "id": 34,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.1669408670127919,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 85,
+      "bilateral_sigma_space": 50,
+      "unsharp_amount": 1.9113739921622663,
+      "unsharp_radius": 4.022969880369634
+    },
+    "objectives": {
+      "Q1_222AAA": 111,
+      "Q1_333BBB": 105,
+      "Q1_333ccc": 202,
+      "Q1_555CCC": 80,
+      "Q2_222AAA": 505,
+      "Q2_333BBB": 683,
+      "Q2_333ccc": 555,
+      "Q2_555CCC": 643
+    },
+    "total_edits_Q1": 498,
+    "total_edits_Q2": 2386,
+    "total_edits_all": 2884
+  },
+  {
+    "id": 35,
+    "genome": {
+      "denoise_h": 8,
+      "clahe_clip": 1.203409013854301,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 62,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.71231809281059,
+      "unsharp_radius": 3.9576261094224754
+    },
+    "objectives": {
+      "Q1_222AAA": 141,
+      "Q1_333BBB": 146,
+      "Q1_333ccc": 170,
+      "Q1_555CCC": 0,
+      "Q2_222AAA": 913,
+      "Q2_333BBB": 1168,
+      "Q2_333ccc": 818,
+      "Q2_555CCC": 750
+    },
+    "total_edits_Q1": 457,
+    "total_edits_Q2": 3649,
+    "total_edits_all": 4106
+  },
+  {
+    "id": 36,
+    "genome": {
+      "denoise_h": 14,
+      "clahe_clip": 1.1429724111871207,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 70,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.9020544068199452,
+      "unsharp_radius": 1.8598355120623147
+    },
+    "objectives": {
+      "Q1_222AAA": 158,
+      "Q1_333BBB": 144,
+      "Q1_333ccc": 181,
+      "Q1_555CCC": 5,
+      "Q2_222AAA": 1118,
+      "Q2_333BBB": 1373,
+      "Q2_333ccc": 874,
+      "Q2_555CCC": 546
+    },
+    "total_edits_Q1": 488,
+    "total_edits_Q2": 3911,
+    "total_edits_all": 4399
+  },
+  {
+    "id": 37,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.141450022313361,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 50,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.7428120314801143,
+      "unsharp_radius": 4.0233744085372685
+    },
+    "objectives": {
+      "Q1_222AAA": 97,
+      "Q1_333BBB": 89,
+      "Q1_333ccc": 81,
+      "Q1_555CCC": 10,
+      "Q2_222AAA": 597,
+      "Q2_333BBB": 951,
+      "Q2_333ccc": 794,
+      "Q2_555CCC": 781
+    },
+    "total_edits_Q1": 277,
+    "total_edits_Q2": 3123,
+    "total_edits_all": 3400
+  },
+  {
+    "id": 38,
+    "genome": {
+      "denoise_h": 14,
+      "clahe_clip": 3.3527555206330586,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 86,
+      "bilateral_sigma_space": 86,
+      "unsharp_amount": 1.7468052078808656,
+      "unsharp_radius": 2.7010382397023096
+    },
+    "objectives": {
+      "Q1_222AAA": 148,
+      "Q1_333BBB": 174,
+      "Q1_333ccc": 220,
+      "Q1_555CCC": 7,
+      "Q2_222AAA": 578,
+      "Q2_333BBB": 814,
+      "Q2_333ccc": 659,
+      "Q2_555CCC": 395
+    },
+    "total_edits_Q1": 549,
+    "total_edits_Q2": 2446,
+    "total_edits_all": 2995
+  },
+  {
+    "id": 39,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.0613227094780204,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 53,
+      "bilateral_sigma_space": 80,
+      "unsharp_amount": 1.9279251186816224,
+      "unsharp_radius": 2.7403656728475707
+    },
+    "objectives": {
+      "Q1_222AAA": 58,
+      "Q1_333BBB": 59,
+      "Q1_333ccc": 109,
+      "Q1_555CCC": 14,
+      "Q2_222AAA": 529,
+      "Q2_333BBB": 737,
+      "Q2_333ccc": 694,
+      "Q2_555CCC": 608
+    },
+    "total_edits_Q1": 240,
+    "total_edits_Q2": 2568,
+    "total_edits_all": 2808
+  },
+  {
+    "id": 40,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.078430042720038,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 52,
+      "bilateral_sigma_space": 87,
+      "unsharp_amount": 1.6421673786629447,
+      "unsharp_radius": 1.4641477270608014
+    },
+    "objectives": {
+      "Q1_222AAA": 67,
+      "Q1_333BBB": 65,
+      "Q1_333ccc": 116,
+      "Q1_555CCC": 35,
+      "Q2_222AAA": 546,
+      "Q2_333BBB": 676,
+      "Q2_333ccc": 590,
+      "Q2_555CCC": 1543
+    },
+    "total_edits_Q1": 283,
+    "total_edits_Q2": 3355,
+    "total_edits_all": 3638
+  },
+  {
+    "id": 41,
+    "genome": {
+      "denoise_h": 13,
+      "clahe_clip": 1.9970785078706792,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 64,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.649443349755495,
+      "unsharp_radius": 2.733346654757642
+    },
+    "objectives": {
+      "Q1_222AAA": 196,
+      "Q1_333BBB": 213,
+      "Q1_333ccc": 180,
+      "Q1_555CCC": 2,
+      "Q2_222AAA": 884,
+      "Q2_333BBB": 1079,
+      "Q2_333ccc": 954,
+      "Q2_555CCC": 523
+    },
+    "total_edits_Q1": 591,
+    "total_edits_Q2": 3440,
+    "total_edits_all": 4031
+  },
+  {
+    "id": 42,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.15869748761925,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 88,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.6558203774673945,
+      "unsharp_radius": 3.916917866974367
+    },
+    "objectives": {
+      "Q1_222AAA": 119,
+      "Q1_333BBB": 114,
+      "Q1_333ccc": 193,
+      "Q1_555CCC": 54,
+      "Q2_222AAA": 455,
+      "Q2_333BBB": 804,
+      "Q2_333ccc": 570,
+      "Q2_555CCC": 620
+    },
+    "total_edits_Q1": 480,
+    "total_edits_Q2": 2449,
+    "total_edits_all": 2929
+  },
+  {
+    "id": 43,
+    "genome": {
+      "denoise_h": 9,
+      "clahe_clip": 1.167224020496369,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 50,
+      "unsharp_amount": 1.6584187786131834,
+      "unsharp_radius": 3.9113948303841823
+    },
+    "objectives": {
+      "Q1_222AAA": 96,
+      "Q1_333BBB": 93,
+      "Q1_333ccc": 99,
+      "Q1_555CCC": 12,
+      "Q2_222AAA": 665,
+      "Q2_333BBB": 994,
+      "Q2_333ccc": 827,
+      "Q2_555CCC": 1292
+    },
+    "total_edits_Q1": 300,
+    "total_edits_Q2": 3778,
+    "total_edits_all": 4078
+  },
+  {
+    "id": 44,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.078430042720038,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 52,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.6491142825938743,
+      "unsharp_radius": 1.4641477270608014
+    },
+    "objectives": {
+      "Q1_222AAA": 85,
+      "Q1_333BBB": 63,
+      "Q1_333ccc": 112,
+      "Q1_555CCC": 26,
+      "Q2_222AAA": 545,
+      "Q2_333BBB": 588,
+      "Q2_333ccc": 665,
+      "Q2_555CCC": 1511
+    },
+    "total_edits_Q1": 286,
+    "total_edits_Q2": 3309,
+    "total_edits_all": 3595
+  },
+  {
+    "id": 45,
+    "genome": {
+      "denoise_h": 13,
+      "clahe_clip": 1.159932802326897,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 69,
+      "bilateral_sigma_space": 78,
+      "unsharp_amount": 1.9027127572713471,
+      "unsharp_radius": 2.6040244706514253
+    },
+    "objectives": {
+      "Q1_222AAA": 91,
+      "Q1_333BBB": 80,
+      "Q1_333ccc": 153,
+      "Q1_555CCC": 12,
+      "Q2_222AAA": 371,
+      "Q2_333BBB": 739,
+      "Q2_333ccc": 642,
+      "Q2_555CCC": 552
+    },
+    "total_edits_Q1": 336,
+    "total_edits_Q2": 2304,
+    "total_edits_all": 2640
+  },
+  {
+    "id": 46,
+    "genome": {
+      "denoise_h": 8,
+      "clahe_clip": 1.140729855813075,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.6220961856264404,
+      "unsharp_radius": 3.9576261094224754
+    },
+    "objectives": {
+      "Q1_222AAA": 101,
+      "Q1_333BBB": 92,
+      "Q1_333ccc": 88,
+      "Q1_555CCC": 23,
+      "Q2_222AAA": 596,
+      "Q2_333BBB": 987,
+      "Q2_333ccc": 856,
+      "Q2_555CCC": 1319
+    },
+    "total_edits_Q1": 304,
+    "total_edits_Q2": 3758,
+    "total_edits_all": 4062
+  },
+  {
+    "id": 47,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.0786453607907223,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 88,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.9055262717989736,
+      "unsharp_radius": 1.4897336862290436
+    },
+    "objectives": {
+      "Q1_222AAA": 105,
+      "Q1_333BBB": 121,
+      "Q1_333ccc": 124,
+      "Q1_555CCC": 40,
+      "Q2_222AAA": 548,
+      "Q2_333BBB": 669,
+      "Q2_333ccc": 613,
+      "Q2_555CCC": 542
+    },
+    "total_edits_Q1": 390,
+    "total_edits_Q2": 2372,
+    "total_edits_all": 2762
+  },
+  {
+    "id": 48,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.013509807288226,
+      "bilateral_d": 7,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.85817844061093,
+      "unsharp_radius": 2.652606031781906
+    },
+    "objectives": {
+      "Q1_222AAA": 80,
+      "Q1_333BBB": 52,
+      "Q1_333ccc": 89,
+      "Q1_555CCC": 39,
+      "Q2_222AAA": 513,
+      "Q2_333BBB": 765,
+      "Q2_333ccc": 646,
+      "Q2_555CCC": 1417
+    },
+    "total_edits_Q1": 260,
+    "total_edits_Q2": 3341,
+    "total_edits_all": 3601
+  },
+  {
+    "id": 49,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.0611056848399039,
+      "bilateral_d": 7,
+      "bilateral_sigma_color": 52,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.8450982439973558,
+      "unsharp_radius": 1.6948685788120463
+    },
+    "objectives": {
+      "Q1_222AAA": 83,
+      "Q1_333BBB": 54,
+      "Q1_333ccc": 105,
+      "Q1_555CCC": 38,
+      "Q2_222AAA": 567,
+      "Q2_333BBB": 741,
+      "Q2_333ccc": 648,
+      "Q2_555CCC": 1463
+    },
+    "total_edits_Q1": 280,
+    "total_edits_Q2": 3419,
+    "total_edits_all": 3699
+  },
+  {
+    "id": 50,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.0770353210459995,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 70,
+      "bilateral_sigma_space": 87,
+      "unsharp_amount": 1.6470908392469084,
+      "unsharp_radius": 1.4727287133450582
+    },
+    "objectives": {
+      "Q1_222AAA": 94,
+      "Q1_333BBB": 94,
+      "Q1_333ccc": 127,
+      "Q1_555CCC": 47,
+      "Q2_222AAA": 475,
+      "Q2_333BBB": 633,
+      "Q2_333ccc": 577,
+      "Q2_555CCC": 670
+    },
+    "total_edits_Q1": 362,
+    "total_edits_Q2": 2355,
+    "total_edits_all": 2717
+  },
+  {
+    "id": 51,
+    "genome": {
+      "denoise_h": 14,
+      "clahe_clip": 1.9755844790939965,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 65,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.8494695945998088,
+      "unsharp_radius": 2.5817041790836632
+    },
+    "objectives": {
+      "Q1_222AAA": 211,
+      "Q1_333BBB": 198,
+      "Q1_333ccc": 192,
+      "Q1_555CCC": 0,
+      "Q2_222AAA": 932,
+      "Q2_333BBB": 1129,
+      "Q2_333ccc": 966,
+      "Q2_555CCC": 626
+    },
+    "total_edits_Q1": 601,
+    "total_edits_Q2": 3653,
+    "total_edits_all": 4254
+  },
+  {
+    "id": 52,
+    "genome": {
+      "denoise_h": 13,
+      "clahe_clip": 2.0064554661076803,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 65,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.8617169470227906,
+      "unsharp_radius": 2.693943838687249
+    },
+    "objectives": {
+      "Q1_222AAA": 178,
+      "Q1_333BBB": 189,
+      "Q1_333ccc": 185,
+      "Q1_555CCC": 2,
+      "Q2_222AAA": 908,
+      "Q2_333BBB": 1097,
+      "Q2_333ccc": 931,
+      "Q2_555CCC": 509
+    },
+    "total_edits_Q1": 554,
+    "total_edits_Q2": 3445,
+    "total_edits_all": 3999
+  },
+  {
+    "id": 53,
+    "genome": {
+      "denoise_h": 16,
+      "clahe_clip": 2.6314898456337503,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 54,
+      "bilateral_sigma_space": 87,
+      "unsharp_amount": 1.6421673786629447,
+      "unsharp_radius": 1.4070800037261042
+    },
+    "objectives": {
+      "Q1_222AAA": 199,
+      "Q1_333BBB": 177,
+      "Q1_333ccc": 209,
+      "Q1_555CCC": 5,
+      "Q2_222AAA": 536,
+      "Q2_333BBB": 878,
+      "Q2_333ccc": 706,
+      "Q2_555CCC": 531
+    },
+    "total_edits_Q1": 590,
+    "total_edits_Q2": 2651,
+    "total_edits_all": 3241
+  },
+  {
+    "id": 54,
+    "genome": {
+      "denoise_h": 14,
+      "clahe_clip": 1.9970785078706792,
+      "bilateral_d": 13,
+      "bilateral_sigma_color": 64,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.649443349755495,
+      "unsharp_radius": 2.733346654757642
+    },
+    "objectives": {
+      "Q1_222AAA": 197,
+      "Q1_333BBB": 200,
+      "Q1_333ccc": 195,
+      "Q1_555CCC": 0,
+      "Q2_222AAA": 1171,
+      "Q2_333BBB": 1193,
+      "Q2_333ccc": 893,
+      "Q2_555CCC": 635
+    },
+    "total_edits_Q1": 592,
+    "total_edits_Q2": 3892,
+    "total_edits_all": 4484
+  },
+  {
+    "id": 55,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.0976476234611765,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.9023261837673284,
+      "unsharp_radius": 3.915423929281391
+    },
+    "objectives": {
+      "Q1_222AAA": 94,
+      "Q1_333BBB": 95,
+      "Q1_333ccc": 96,
+      "Q1_555CCC": 25,
+      "Q2_222AAA": 825,
+      "Q2_333BBB": 1076,
+      "Q2_333ccc": 777,
+      "Q2_555CCC": 789
+    },
+    "total_edits_Q1": 310,
+    "total_edits_Q2": 3467,
+    "total_edits_all": 3777
+  },
+  {
+    "id": 56,
+    "genome": {
+      "denoise_h": 6,
+      "clahe_clip": 1.0994484330360694,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.6762752602127025,
+      "unsharp_radius": 2.849045967410608
+    },
+    "objectives": {
+      "Q1_222AAA": 75,
+      "Q1_333BBB": 87,
+      "Q1_333ccc": 88,
+      "Q1_555CCC": 0,
+      "Q2_222AAA": 565,
+      "Q2_333BBB": 1029,
+      "Q2_333ccc": 821,
+      "Q2_555CCC": 1356
+    },
+    "total_edits_Q1": 250,
+    "total_edits_Q2": 3771,
+    "total_edits_all": 4021
+  },
+  {
+    "id": 57,
+    "genome": {
+      "denoise_h": 14,
+      "clahe_clip": 1.1545234516181355,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 70,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.8617189875166378,
+      "unsharp_radius": 2.6913670956995834
+    },
+    "objectives": {
+      "Q1_222AAA": 152,
+      "Q1_333BBB": 190,
+      "Q1_333ccc": 168,
+      "Q1_555CCC": 4,
+      "Q2_222AAA": 1297,
+      "Q2_333BBB": 1353,
+      "Q2_333ccc": 889,
+      "Q2_555CCC": 509
+    },
+    "total_edits_Q1": 514,
+    "total_edits_Q2": 4048,
+    "total_edits_all": 4562
+  },
+  {
+    "id": 58,
+    "genome": {
+      "denoise_h": 13,
+      "clahe_clip": 1.6036041252431406,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 64,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.649443349755495,
+      "unsharp_radius": 2.733346654757642
+    },
+    "objectives": {
+      "Q1_222AAA": 190,
+      "Q1_333BBB": 194,
+      "Q1_333ccc": 182,
+      "Q1_555CCC": 2,
+      "Q2_222AAA": 815,
+      "Q2_333BBB": 1107,
+      "Q2_333ccc": 841,
+      "Q2_555CCC": 471
+    },
+    "total_edits_Q1": 568,
+    "total_edits_Q2": 3234,
+    "total_edits_all": 3802
+  },
+  {
+    "id": 59,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.0090715500180552,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 50,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.747700754684191,
+      "unsharp_radius": 3.9434866161576485
+    },
+    "objectives": {
+      "Q1_222AAA": 96,
+      "Q1_333BBB": 87,
+      "Q1_333ccc": 97,
+      "Q1_555CCC": 1,
+      "Q2_222AAA": 632,
+      "Q2_333BBB": 1000,
+      "Q2_333ccc": 767,
+      "Q2_555CCC": 749
+    },
+    "total_edits_Q1": 281,
+    "total_edits_Q2": 3148,
+    "total_edits_all": 3429
+  },
+  {
+    "id": 60,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.1674280630564442,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 83,
+      "bilateral_sigma_space": 78,
+      "unsharp_amount": 1.7415158074702923,
+      "unsharp_radius": 2.6040244706514253
+    },
+    "objectives": {
+      "Q1_222AAA": 92,
+      "Q1_333BBB": 120,
+      "Q1_333ccc": 183,
+      "Q1_555CCC": 30,
+      "Q2_222AAA": 492,
+      "Q2_333BBB": 575,
+      "Q2_333ccc": 524,
+      "Q2_555CCC": 681
+    },
+    "total_edits_Q1": 425,
+    "total_edits_Q2": 2272,
+    "total_edits_all": 2697
+  },
+  {
+    "id": 61,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.167614704293242,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 88,
+      "bilateral_sigma_space": 50,
+      "unsharp_amount": 1.7417699967243598,
+      "unsharp_radius": 3.914711710237714
+    },
+    "objectives": {
+      "Q1_222AAA": 120,
+      "Q1_333BBB": 118,
+      "Q1_333ccc": 195,
+      "Q1_555CCC": 51,
+      "Q2_222AAA": 442,
+      "Q2_333BBB": 655,
+      "Q2_333ccc": 558,
+      "Q2_555CCC": 657
+    },
+    "total_edits_Q1": 484,
+    "total_edits_Q2": 2312,
+    "total_edits_all": 2796
+  },
+  {
+    "id": 62,
+    "genome": {
+      "denoise_h": 13,
+      "clahe_clip": 1.1893852321119482,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 65,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.5601978395541616,
+      "unsharp_radius": 2.672974870416939
+    },
+    "objectives": {
+      "Q1_222AAA": 159,
+      "Q1_333BBB": 179,
+      "Q1_333ccc": 171,
+      "Q1_555CCC": 3,
+      "Q2_222AAA": 949,
+      "Q2_333BBB": 1241,
+      "Q2_333ccc": 858,
+      "Q2_555CCC": 576
+    },
+    "total_edits_Q1": 512,
+    "total_edits_Q2": 3624,
+    "total_edits_all": 4136
+  },
+  {
+    "id": 63,
+    "genome": {
+      "denoise_h": 13,
+      "clahe_clip": 2.026376076128574,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 65,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.8646928872914017,
+      "unsharp_radius": 2.693943838687249
+    },
+    "objectives": {
+      "Q1_222AAA": 181,
+      "Q1_333BBB": 201,
+      "Q1_333ccc": 187,
+      "Q1_555CCC": 1,
+      "Q2_222AAA": 1021,
+      "Q2_333BBB": 1133,
+      "Q2_333ccc": 939,
+      "Q2_555CCC": 559
+    },
+    "total_edits_Q1": 570,
+    "total_edits_Q2": 3652,
+    "total_edits_all": 4222
+  },
+  {
+    "id": 64,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.0786794130892852,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 71,
+      "unsharp_amount": 1.6738420057030863,
+      "unsharp_radius": 3.914800549728294
+    },
+    "objectives": {
+      "Q1_222AAA": 93,
+      "Q1_333BBB": 82,
+      "Q1_333ccc": 105,
+      "Q1_555CCC": 10,
+      "Q2_222AAA": 572,
+      "Q2_333BBB": 1018,
+      "Q2_333ccc": 748,
+      "Q2_555CCC": 1366
+    },
+    "total_edits_Q1": 290,
+    "total_edits_Q2": 3704,
+    "total_edits_all": 3994
+  },
+  {
+    "id": 65,
+    "genome": {
+      "denoise_h": 6,
+      "clahe_clip": 1.0984772319448197,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 85,
+      "bilateral_sigma_space": 79,
+      "unsharp_amount": 1.6821272781316505,
+      "unsharp_radius": 1.8326003443216266
+    },
+    "objectives": {
+      "Q1_222AAA": 93,
+      "Q1_333BBB": 109,
+      "Q1_333ccc": 132,
+      "Q1_555CCC": 44,
+      "Q2_222AAA": 496,
+      "Q2_333BBB": 663,
+      "Q2_333ccc": 678,
+      "Q2_555CCC": 600
+    },
+    "total_edits_Q1": 378,
+    "total_edits_Q2": 2437,
+    "total_edits_all": 2815
+  },
+  {
+    "id": 66,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.0802690730784001,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 52,
+      "bilateral_sigma_space": 87,
+      "unsharp_amount": 1.644717602509997,
+      "unsharp_radius": 1.4727287133450582
+    },
+    "objectives": {
+      "Q1_222AAA": 72,
+      "Q1_333BBB": 69,
+      "Q1_333ccc": 118,
+      "Q1_555CCC": 14,
+      "Q2_222AAA": 527,
+      "Q2_333BBB": 636,
+      "Q2_333ccc": 608,
+      "Q2_555CCC": 1489
+    },
+    "total_edits_Q1": 273,
+    "total_edits_Q2": 3260,
+    "total_edits_all": 3533
+  },
+  {
+    "id": 67,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.1471301327848074,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 91,
+      "unsharp_amount": 1.6468635101559168,
+      "unsharp_radius": 4.140186800031575
+    },
+    "objectives": {
+      "Q1_222AAA": 80,
+      "Q1_333BBB": 93,
+      "Q1_333ccc": 93,
+      "Q1_555CCC": 11,
+      "Q2_222AAA": 617,
+      "Q2_333BBB": 1018,
+      "Q2_333ccc": 885,
+      "Q2_555CCC": 838
+    },
+    "total_edits_Q1": 277,
+    "total_edits_Q2": 3358,
+    "total_edits_all": 3635
+  },
+  {
+    "id": 68,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.1768750556687997,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 85,
+      "bilateral_sigma_space": 50,
+      "unsharp_amount": 1.7409644905047803,
+      "unsharp_radius": 3.9790103914034494
+    },
+    "objectives": {
+      "Q1_222AAA": 101,
+      "Q1_333BBB": 115,
+      "Q1_333ccc": 203,
+      "Q1_555CCC": 84,
+      "Q2_222AAA": 491,
+      "Q2_333BBB": 685,
+      "Q2_333ccc": 547,
+      "Q2_555CCC": 609
+    },
+    "total_edits_Q1": 503,
+    "total_edits_Q2": 2332,
+    "total_edits_all": 2835
+  },
+  {
+    "id": 69,
+    "genome": {
+      "denoise_h": 14,
+      "clahe_clip": 1.0285672724723682,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 65,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.8438633047276456,
+      "unsharp_radius": 2.650212867455006
+    },
+    "objectives": {
+      "Q1_222AAA": 117,
+      "Q1_333BBB": 148,
+      "Q1_333ccc": 146,
+      "Q1_555CCC": 2,
+      "Q2_222AAA": 1082,
+      "Q2_333BBB": 1380,
+      "Q2_333ccc": 908,
+      "Q2_555CCC": 465
+    },
+    "total_edits_Q1": 413,
+    "total_edits_Q2": 3835,
+    "total_edits_all": 4248
+  },
+  {
+    "id": 70,
+    "genome": {
+      "denoise_h": 14,
+      "clahe_clip": 1.0245696121406134,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 65,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.643989257082016,
+      "unsharp_radius": 2.6909379871312553
+    },
+    "objectives": {
+      "Q1_222AAA": 129,
+      "Q1_333BBB": 132,
+      "Q1_333ccc": 203,
+      "Q1_555CCC": 4,
+      "Q2_222AAA": 1060,
+      "Q2_333BBB": 1377,
+      "Q2_333ccc": 920,
+      "Q2_555CCC": 497
+    },
+    "total_edits_Q1": 468,
+    "total_edits_Q2": 3854,
+    "total_edits_all": 4322
+  },
+  {
+    "id": 71,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.1415033245547612,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 50,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.747700754684191,
+      "unsharp_radius": 3.9111931035983076
+    },
+    "objectives": {
+      "Q1_222AAA": 93,
+      "Q1_333BBB": 77,
+      "Q1_333ccc": 87,
+      "Q1_555CCC": 10,
+      "Q2_222AAA": 616,
+      "Q2_333BBB": 1008,
+      "Q2_333ccc": 838,
+      "Q2_555CCC": 690
+    },
+    "total_edits_Q1": 267,
+    "total_edits_Q2": 3152,
+    "total_edits_all": 3419
+  },
+  {
+    "id": 72,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.168318662134462,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 53,
+      "bilateral_sigma_space": 91,
+      "unsharp_amount": 1.658396486387999,
+      "unsharp_radius": 3.9142608653034774
+    },
+    "objectives": {
+      "Q1_222AAA": 87,
+      "Q1_333BBB": 94,
+      "Q1_333ccc": 89,
+      "Q1_555CCC": 0,
+      "Q2_222AAA": 614,
+      "Q2_333BBB": 1105,
+      "Q2_333ccc": 1032,
+      "Q2_555CCC": 824
+    },
+    "total_edits_Q1": 270,
+    "total_edits_Q2": 3575,
+    "total_edits_all": 3845
+  },
+  {
+    "id": 73,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.0199280912015296,
+      "bilateral_d": 7,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.8593789743338192,
+      "unsharp_radius": 2.652606031781906
+    },
+    "objectives": {
+      "Q1_222AAA": 79,
+      "Q1_333BBB": 52,
+      "Q1_333ccc": 93,
+      "Q1_555CCC": 39,
+      "Q2_222AAA": 511,
+      "Q2_333BBB": 781,
+      "Q2_333ccc": 644,
+      "Q2_555CCC": 1434
+    },
+    "total_edits_Q1": 263,
+    "total_edits_Q2": 3370,
+    "total_edits_all": 3633
+  },
+  {
+    "id": 74,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.0647586982433601,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 53,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.9023644459278777,
+      "unsharp_radius": 1.4430586273990826
+    },
+    "objectives": {
+      "Q1_222AAA": 69,
+      "Q1_333BBB": 70,
+      "Q1_333ccc": 115,
+      "Q1_555CCC": 14,
+      "Q2_222AAA": 596,
+      "Q2_333BBB": 794,
+      "Q2_333ccc": 670,
+      "Q2_555CCC": 1377
+    },
+    "total_edits_Q1": 268,
+    "total_edits_Q2": 3437,
+    "total_edits_all": 3705
+  },
+  {
+    "id": 75,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.1655335867701766,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 85,
+      "bilateral_sigma_space": 50,
+      "unsharp_amount": 1.9113739921622663,
+      "unsharp_radius": 1.393267951155104
+    },
+    "objectives": {
+      "Q1_222AAA": 102,
+      "Q1_333BBB": 119,
+      "Q1_333ccc": 162,
+      "Q1_555CCC": 42,
+      "Q2_222AAA": 509,
+      "Q2_333BBB": 652,
+      "Q2_333ccc": 526,
+      "Q2_555CCC": 541
+    },
+    "total_edits_Q1": 425,
+    "total_edits_Q2": 2228,
+    "total_edits_all": 2653
+  },
+  {
+    "id": 76,
+    "genome": {
+      "denoise_h": 14,
+      "clahe_clip": 1.9847183683556364,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 65,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.8567004819018322,
+      "unsharp_radius": 2.5812257940066274
+    },
+    "objectives": {
+      "Q1_222AAA": 207,
+      "Q1_333BBB": 200,
+      "Q1_333ccc": 191,
+      "Q1_555CCC": 0,
+      "Q2_222AAA": 987,
+      "Q2_333BBB": 1109,
+      "Q2_333ccc": 870,
+      "Q2_555CCC": 508
+    },
+    "total_edits_Q1": 598,
+    "total_edits_Q2": 3474,
+    "total_edits_all": 4072
+  },
+  {
+    "id": 77,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.1673310327458202,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 53,
+      "bilateral_sigma_space": 91,
+      "unsharp_amount": 1.6584187786131834,
+      "unsharp_radius": 3.943688342943523
+    },
+    "objectives": {
+      "Q1_222AAA": 88,
+      "Q1_333BBB": 93,
+      "Q1_333ccc": 95,
+      "Q1_555CCC": 0,
+      "Q2_222AAA": 801,
+      "Q2_333BBB": 963,
+      "Q2_333ccc": 808,
+      "Q2_555CCC": 793
+    },
+    "total_edits_Q1": 276,
+    "total_edits_Q2": 3365,
+    "total_edits_all": 3641
+  },
+  {
+    "id": 78,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.1841961232848508,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 85,
+      "bilateral_sigma_space": 50,
+      "unsharp_amount": 1.7421269858754915,
+      "unsharp_radius": 4.214810416637723
+    },
+    "objectives": {
+      "Q1_222AAA": 103,
+      "Q1_333BBB": 135,
+      "Q1_333ccc": 158,
+      "Q1_555CCC": 70,
+      "Q2_222AAA": 459,
+      "Q2_333BBB": 677,
+      "Q2_333ccc": 607,
+      "Q2_555CCC": 634
+    },
+    "total_edits_Q1": 466,
+    "total_edits_Q2": 2377,
+    "total_edits_all": 2843
+  },
+  {
+    "id": 79,
+    "genome": {
+      "denoise_h": 15,
+      "clahe_clip": 1.1486555462942647,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 54,
+      "bilateral_sigma_space": 87,
+      "unsharp_amount": 1.6421673786629447,
+      "unsharp_radius": 1.4070800037261042
+    },
+    "objectives": {
+      "Q1_222AAA": 110,
+      "Q1_333BBB": 127,
+      "Q1_333ccc": 138,
+      "Q1_555CCC": 17,
+      "Q2_222AAA": 401,
+      "Q2_333BBB": 755,
+      "Q2_333ccc": 664,
+      "Q2_555CCC": 603
+    },
+    "total_edits_Q1": 392,
+    "total_edits_Q2": 2423,
+    "total_edits_all": 2815
+  },
+  {
+    "id": 80,
+    "genome": {
+      "denoise_h": 6,
+      "clahe_clip": 1.0965359084552213,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 87,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.9286174443220685,
+      "unsharp_radius": 3.8750520371701196
+    },
+    "objectives": {
+      "Q1_222AAA": 104,
+      "Q1_333BBB": 149,
+      "Q1_333ccc": 145,
+      "Q1_555CCC": 72,
+      "Q2_222AAA": 539,
+      "Q2_333BBB": 657,
+      "Q2_333ccc": 564,
+      "Q2_555CCC": 610
+    },
+    "total_edits_Q1": 470,
+    "total_edits_Q2": 2370,
+    "total_edits_all": 2840
+  },
+  {
+    "id": 81,
+    "genome": {
+      "denoise_h": 14,
+      "clahe_clip": 3.3527555206330586,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 84,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.9011994550385383,
+      "unsharp_radius": 1.9099339829389175
+    },
+    "objectives": {
+      "Q1_222AAA": 160,
+      "Q1_333BBB": 161,
+      "Q1_333ccc": 215,
+      "Q1_555CCC": 8,
+      "Q2_222AAA": 625,
+      "Q2_333BBB": 851,
+      "Q2_333ccc": 675,
+      "Q2_555CCC": 474
+    },
+    "total_edits_Q1": 544,
+    "total_edits_Q2": 2625,
+    "total_edits_all": 3169
+  },
+  {
+    "id": 82,
+    "genome": {
+      "denoise_h": 17,
+      "clahe_clip": 2.751893044412879,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 84,
+      "unsharp_amount": 1.6477209669705095,
+      "unsharp_radius": 3.916856799560861
+    },
+    "objectives": {
+      "Q1_222AAA": 167,
+      "Q1_333BBB": 172,
+      "Q1_333ccc": 189,
+      "Q1_555CCC": 13,
+      "Q2_222AAA": 469,
+      "Q2_333BBB": 838,
+      "Q2_333ccc": 691,
+      "Q2_555CCC": 518
+    },
+    "total_edits_Q1": 541,
+    "total_edits_Q2": 2516,
+    "total_edits_all": 3057
+  },
+  {
+    "id": 83,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.1669408670127919,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 85,
+      "bilateral_sigma_space": 51,
+      "unsharp_amount": 1.6381807402092223,
+      "unsharp_radius": 4.1018827076798825
+    },
+    "objectives": {
+      "Q1_222AAA": 102,
+      "Q1_333BBB": 110,
+      "Q1_333ccc": 204,
+      "Q1_555CCC": 77,
+      "Q2_222AAA": 458,
+      "Q2_333BBB": 684,
+      "Q2_333ccc": 587,
+      "Q2_555CCC": 626
+    },
+    "total_edits_Q1": 493,
+    "total_edits_Q2": 2355,
+    "total_edits_all": 2848
+  },
+  {
+    "id": 84,
+    "genome": {
+      "denoise_h": 16,
+      "clahe_clip": 2.619205244925673,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 88,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.6499165210605256,
+      "unsharp_radius": 3.9834943949315886
+    },
+    "objectives": {
+      "Q1_222AAA": 206,
+      "Q1_333BBB": 202,
+      "Q1_333ccc": 216,
+      "Q1_555CCC": 10,
+      "Q2_222AAA": 448,
+      "Q2_333BBB": 838,
+      "Q2_333ccc": 706,
+      "Q2_555CCC": 450
+    },
+    "total_edits_Q1": 634,
+    "total_edits_Q2": 2442,
+    "total_edits_all": 3076
+  },
+  {
+    "id": 85,
+    "genome": {
+      "denoise_h": 13,
+      "clahe_clip": 1.1427357228375572,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 53,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.8976678144629555,
+      "unsharp_radius": 4.041741245708304
+    },
+    "objectives": {
+      "Q1_222AAA": 96,
+      "Q1_333BBB": 82,
+      "Q1_333ccc": 135,
+      "Q1_555CCC": 28,
+      "Q2_222AAA": 411,
+      "Q2_333BBB": 829,
+      "Q2_333ccc": 671,
+      "Q2_555CCC": 586
+    },
+    "total_edits_Q1": 341,
+    "total_edits_Q2": 2497,
+    "total_edits_all": 2838
+  },
+  {
+    "id": 86,
+    "genome": {
+      "denoise_h": 13,
+      "clahe_clip": 1.9580778506940906,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 64,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.6347385365720783,
+      "unsharp_radius": 2.6997629186726657
+    },
+    "objectives": {
+      "Q1_222AAA": 198,
+      "Q1_333BBB": 203,
+      "Q1_333ccc": 183,
+      "Q1_555CCC": 3,
+      "Q2_222AAA": 851,
+      "Q2_333BBB": 1028,
+      "Q2_333ccc": 906,
+      "Q2_555CCC": 537
+    },
+    "total_edits_Q1": 587,
+    "total_edits_Q2": 3322,
+    "total_edits_all": 3909
+  },
+  {
+    "id": 87,
+    "genome": {
+      "denoise_h": 17,
+      "clahe_clip": 2.013384440235039,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 88,
+      "bilateral_sigma_space": 82,
+      "unsharp_amount": 1.6465826256160971,
+      "unsharp_radius": 4.137915103241838
+    },
+    "objectives": {
+      "Q1_222AAA": 218,
+      "Q1_333BBB": 168,
+      "Q1_333ccc": 189,
+      "Q1_555CCC": 7,
+      "Q2_222AAA": 435,
+      "Q2_333BBB": 858,
+      "Q2_333ccc": 680,
+      "Q2_555CCC": 502
+    },
+    "total_edits_Q1": 582,
+    "total_edits_Q2": 2475,
+    "total_edits_all": 3057
+  },
+  {
+    "id": 88,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.078430042720038,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 52,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.7482195035168064,
+      "unsharp_radius": 1.4641477270608014
+    },
+    "objectives": {
+      "Q1_222AAA": 71,
+      "Q1_333BBB": 60,
+      "Q1_333ccc": 113,
+      "Q1_555CCC": 24,
+      "Q2_222AAA": 542,
+      "Q2_333BBB": 711,
+      "Q2_333ccc": 642,
+      "Q2_555CCC": 1519
+    },
+    "total_edits_Q1": 268,
+    "total_edits_Q2": 3414,
+    "total_edits_all": 3682
+  },
+  {
+    "id": 89,
+    "genome": {
+      "denoise_h": 6,
+      "clahe_clip": 1.05695420988369,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 81,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.8566200436127254,
+      "unsharp_radius": 4.096960500983585
+    },
+    "objectives": {
+      "Q1_222AAA": 94,
+      "Q1_333BBB": 106,
+      "Q1_333ccc": 156,
+      "Q1_555CCC": 50,
+      "Q2_222AAA": 464,
+      "Q2_333BBB": 686,
+      "Q2_333ccc": 485,
+      "Q2_555CCC": 703
+    },
+    "total_edits_Q1": 406,
+    "total_edits_Q2": 2338,
+    "total_edits_all": 2744
+  },
+  {
+    "id": 90,
+    "genome": {
+      "denoise_h": 14,
+      "clahe_clip": 3.3462045487187986,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 86,
+      "unsharp_amount": 1.7468052078808656,
+      "unsharp_radius": 2.7010382397023096
+    },
+    "objectives": {
+      "Q1_222AAA": 143,
+      "Q1_333BBB": 204,
+      "Q1_333ccc": 201,
+      "Q1_555CCC": 5,
+      "Q2_222AAA": 502,
+      "Q2_333BBB": 755,
+      "Q2_333ccc": 664,
+      "Q2_555CCC": 564
+    },
+    "total_edits_Q1": 553,
+    "total_edits_Q2": 2485,
+    "total_edits_all": 3038
+  },
+  {
+    "id": 91,
+    "genome": {
+      "denoise_h": 17,
+      "clahe_clip": 2.034793395407386,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 89,
+      "bilateral_sigma_space": 82,
+      "unsharp_amount": 1.6581156018481793,
+      "unsharp_radius": 3.91198916851374
+    },
+    "objectives": {
+      "Q1_222AAA": 187,
+      "Q1_333BBB": 167,
+      "Q1_333ccc": 205,
+      "Q1_555CCC": 9,
+      "Q2_222AAA": 430,
+      "Q2_333BBB": 841,
+      "Q2_333ccc": 682,
+      "Q2_555CCC": 499
+    },
+    "total_edits_Q1": 568,
+    "total_edits_Q2": 2452,
+    "total_edits_all": 3020
+  },
+  {
+    "id": 92,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.1670570277932786,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 53,
+      "bilateral_sigma_space": 91,
+      "unsharp_amount": 1.6492653895194478,
+      "unsharp_radius": 3.9142462340439192
+    },
+    "objectives": {
+      "Q1_222AAA": 96,
+      "Q1_333BBB": 95,
+      "Q1_333ccc": 95,
+      "Q1_555CCC": 0,
+      "Q2_222AAA": 759,
+      "Q2_333BBB": 1108,
+      "Q2_333ccc": 1031,
+      "Q2_555CCC": 833
+    },
+    "total_edits_Q1": 286,
+    "total_edits_Q2": 3731,
+    "total_edits_all": 4017
+  },
+  {
+    "id": 93,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.064503481189388,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 89,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.9039115000996596,
+      "unsharp_radius": 2.651636593488262
+    },
+    "objectives": {
+      "Q1_222AAA": 94,
+      "Q1_333BBB": 168,
+      "Q1_333ccc": 159,
+      "Q1_555CCC": 13,
+      "Q2_222AAA": 505,
+      "Q2_333BBB": 538,
+      "Q2_333ccc": 683,
+      "Q2_555CCC": 709
+    },
+    "total_edits_Q1": 434,
+    "total_edits_Q2": 2435,
+    "total_edits_all": 2869
+  },
+  {
+    "id": 94,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.1622111976284677,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 88,
+      "bilateral_sigma_space": 73,
+      "unsharp_amount": 1.8559200777812823,
+      "unsharp_radius": 4.013280639598856
+    },
+    "objectives": {
+      "Q1_222AAA": 134,
+      "Q1_333BBB": 101,
+      "Q1_333ccc": 187,
+      "Q1_555CCC": 50,
+      "Q2_222AAA": 502,
+      "Q2_333BBB": 658,
+      "Q2_333ccc": 508,
+      "Q2_555CCC": 607
+    },
+    "total_edits_Q1": 472,
+    "total_edits_Q2": 2275,
+    "total_edits_all": 2747
+  },
+  {
+    "id": 95,
+    "genome": {
+      "denoise_h": 13,
+      "clahe_clip": 1.1501369876670462,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 64,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.7440412966806123,
+      "unsharp_radius": 4.122721317934989
+    },
+    "objectives": {
+      "Q1_222AAA": 118,
+      "Q1_333BBB": 157,
+      "Q1_333ccc": 178,
+      "Q1_555CCC": 2,
+      "Q2_222AAA": 1043,
+      "Q2_333BBB": 1178,
+      "Q2_333ccc": 894,
+      "Q2_555CCC": 575
+    },
+    "total_edits_Q1": 455,
+    "total_edits_Q2": 3690,
+    "total_edits_all": 4145
+  },
+  {
+    "id": 96,
+    "genome": {
+      "denoise_h": 14,
+      "clahe_clip": 1.911057352502809,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 86,
+      "bilateral_sigma_space": 84,
+      "unsharp_amount": 1.865600995942909,
+      "unsharp_radius": 2.6997629186726657
+    },
+    "objectives": {
+      "Q1_222AAA": 133,
+      "Q1_333BBB": 152,
+      "Q1_333ccc": 176,
+      "Q1_555CCC": 6,
+      "Q2_222AAA": 413,
+      "Q2_333BBB": 719,
+      "Q2_333ccc": 664,
+      "Q2_555CCC": 524
+    },
+    "total_edits_Q1": 467,
+    "total_edits_Q2": 2320,
+    "total_edits_all": 2787
+  },
+  {
+    "id": 97,
+    "genome": {
+      "denoise_h": 14,
+      "clahe_clip": 3.680826164675902,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 86,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.8467094945685276,
+      "unsharp_radius": 2.6997629186726657
+    },
+    "objectives": {
+      "Q1_222AAA": 146,
+      "Q1_333BBB": 161,
+      "Q1_333ccc": 229,
+      "Q1_555CCC": 13,
+      "Q2_222AAA": 660,
+      "Q2_333BBB": 863,
+      "Q2_333ccc": 683,
+      "Q2_555CCC": 440
+    },
+    "total_edits_Q1": 549,
+    "total_edits_Q2": 2646,
+    "total_edits_all": 3195
+  },
+  {
+    "id": 98,
+    "genome": {
+      "denoise_h": 17,
+      "clahe_clip": 2.687426897613033,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 87,
+      "bilateral_sigma_space": 80,
+      "unsharp_amount": 1.8826340431748594,
+      "unsharp_radius": 3.9138979296185186
+    },
+    "objectives": {
+      "Q1_222AAA": 211,
+      "Q1_333BBB": 211,
+      "Q1_333ccc": 230,
+      "Q1_555CCC": 11,
+      "Q2_222AAA": 466,
+      "Q2_333BBB": 847,
+      "Q2_333ccc": 704,
+      "Q2_555CCC": 485
+    },
+    "total_edits_Q1": 663,
+    "total_edits_Q2": 2502,
+    "total_edits_all": 3165
+  },
+  {
+    "id": 99,
+    "genome": {
+      "denoise_h": 17,
+      "clahe_clip": 1.0864061601457804,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 92,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.6583625152862382,
+      "unsharp_radius": 3.9107139868402556
+    },
+    "objectives": {
+      "Q1_222AAA": 114,
+      "Q1_333BBB": 160,
+      "Q1_333ccc": 212,
+      "Q1_555CCC": 48,
+      "Q2_222AAA": 409,
+      "Q2_333BBB": 867,
+      "Q2_333ccc": 669,
+      "Q2_555CCC": 512
+    },
+    "total_edits_Q1": 534,
+    "total_edits_Q2": 2457,
+    "total_edits_all": 2991
+  }
+]

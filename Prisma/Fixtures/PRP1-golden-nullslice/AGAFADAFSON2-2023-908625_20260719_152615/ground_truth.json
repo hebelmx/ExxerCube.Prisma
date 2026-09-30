@@ -1,0 +1,50 @@
+{
+  "docId": "AGAFADAFSON2-2023-908625_20260719_152615",
+  "seed": 5003,
+  "chaosLevel": "none",
+  "requirementType": "informacion",
+  "folioSiara": "AGAFADAFSON2/2023/908625",
+  "numeroOficio": "AGAFADAFSON2/2023/908625",
+  "numeroExpediente": "H/IN1 - 8591 - 509299 - IMX",
+  "autoridadNombre": "Servicio de Administración Tributaria",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Dulce María Salgado Valentín",
+  "personaNombre": "Juan Carlos de Jesús Santillán",
+  "personaRfc": "DESJ560503Y6R",
+  "solicitudPartes": [
+    {
+      "nombre": "Juan Carlos de Jesús Santillán",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$9,284,532.50",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Servicio de Administración Tributaria",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  }
+}

@@ -1,0 +1,22 @@
+================================================================================
+DEGRADATION CURVE SUMMARY
+================================================================================
+
+LOW SENSITIVITY (0 documents):
+
+MEDIUM SENSITIVITY (0 documents):
+
+HIGH SENSITIVITY (4 documents):
+  222AAA: 202.5 edits/step, Q2 distance: 810 edits
+  333BBB: 184.5 edits/step, Q2 distance: 738 edits
+  333ccc: 207.2 edits/step, Q2 distance: 829 edits
+  555CCC: 415.5 edits/step, Q2 distance: 1662 edits
+
+================================================================================
+CLUSTER RECOMMENDATION
+================================================================================
+
+Cluster 3 (HIGH sensitivity - Fragile documents):
+  Documents: 222AAA, 333BBB, 333ccc, 555CCC
+  Strategy: Aggressive enhancement, Q2 focus
+

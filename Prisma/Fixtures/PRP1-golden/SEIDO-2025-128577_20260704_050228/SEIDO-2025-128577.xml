@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>SEIDO/2025/128577</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>SEIDO/2025/128577</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Unidad Especializada en Investigación de Delitos contra la Salud</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>SEIDO/2025/128577</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>B/FI1-7854-155349-SAT</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>9</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>Eva Carbajal Macías</NombreSolicitante>
+  <Referencia>REF-4630</Referencia>
+  <Referencia1>REF1-4397</Referencia1>
+  <Referencia2>REF2-4217</Referencia2>
+  <TieneAseguramiento>true</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Inés Solorzano Piña</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Incluir números de cuenta, saldos y movimientos
+- Notificar el monto total asegurado
+- Especificar fechas de apertura y cierre de cuentas
+- Impedir cualquier disposición de los recursos
+- Indicar titulares y co-titulares de las cuentas</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Inés Solorzano Piña</Nombre>
+    <Rfc>SOPI980125FXZ</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Continuación Sepúlveda No. 3079, Col. Nueva Libia, Municipio San Raquel de la Montaña, Campeche, C.P. 95383</Domicilio>
+    <Complementarios>Tel: +30(9)9731037193, Email: leyvaeugenia@example.com</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

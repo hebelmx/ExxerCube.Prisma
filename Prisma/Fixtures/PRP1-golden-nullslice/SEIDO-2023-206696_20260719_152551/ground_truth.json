@@ -1,0 +1,50 @@
+{
+  "docId": "SEIDO-2023-206696_20260719_152551",
+  "seed": 5001,
+  "chaosLevel": "none",
+  "requirementType": "aseguramiento",
+  "folioSiara": "SEIDO/2023/206696",
+  "numeroOficio": "SEIDO/2023/206696",
+  "numeroExpediente": "A/FI1-1456-614418-SAT",
+  "autoridadNombre": "Subprocuraduría Especializada en Investigación de Delincuencia Organizada",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "José María Alemán Rodríguez",
+  "personaNombre": "Ángela Garrido Nieves",
+  "personaRfc": "GANÁ820217ZA6",
+  "solicitudPartes": [
+    {
+      "nombre": "Ángela Garrido Nieves",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$8,734,299.28",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Subprocuraduría Especializada en Investigación de Delincuencia Organizada",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

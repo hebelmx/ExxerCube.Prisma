@@ -1,0 +1,137 @@
+@using ExxerCube.Prisma.Domain.Entities
+@using ExxerCube.Prisma.Domain.Enum
+@using MudBlazor
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudText Typo="Typo.subtitle2" Class="mb-2">Timeline</MudText>
+        <div class="position-relative" style="height: 80px;">
+            <!-- Timeline Bar -->
+            <MudProgressLinear Value="@GetProgressPercentage()" 
+                             Color="@GetTimelineColor()"
+                             Variant="Variant.Filled"
+                             Class="mt-3"
+                             Style="height: 8px;" />
+            
+            <!-- Markers -->
+            <div class="position-absolute" style="left: 0; top: 0;">
+                <MudIcon Icon="@Icons.Material.Filled.Circle" 
+                        Size="Size.Small" 
+                        Color="Color.Success" />
+                <MudText Typo="Typo.caption">Intake</MudText>
+            </div>
+            
+            <div class="position-absolute" style="left: @GetCurrentPosition()%; top: 0;">
+                <MudIcon Icon="@Icons.Material.Filled.Circle" 
+                        Size="Size.Small" 
+                        Color="Color.Info" />
+                <MudText Typo="Typo.caption">Now</MudText>
+            </div>
+            
+            <div class="position-absolute" style="right: 0; top: 0;">
+                <MudIcon Icon="@Icons.Material.Filled.Circle" 
+                        Size="Size.Small" 
+                        Color="@GetDeadlineColor()" />
+                <MudText Typo="Typo.caption">Deadline</MudText>
+            </div>
+        </div>
+        
+        <!-- Time Labels -->
+        <MudGrid Class="mt-2">
+            <MudItem xs="4">
+                <MudText Typo="Typo.caption">@SLAStatus.IntakeDate.ToString("g")</MudText>
+            </MudItem>
+            <MudItem xs="4" Class="text-center">
+                <MudText Typo="Typo.caption">@DateTime.Now.ToString("g")</MudText>
+            </MudItem>
+            <MudItem xs="4" Class="text-right">
+                <MudText Typo="Typo.caption">@SLAStatus.Deadline.ToString("g")</MudText>
+            </MudItem>
+        </MudGrid>
+        
+        <!-- Remaining Time Display -->
+        <MudGrid Class="mt-3">
+            <MudItem xs="12">
+                <MudText Typo="Typo.subtitle2">Time Remaining</MudText>
+                <MudText Typo="Typo.h6" Color="@GetRemainingTimeColor(SLAStatus.RemainingTime)">
+                    @FormatRemainingTime(SLAStatus.RemainingTime)
+                </MudText>
+            </MudItem>
+            <MudItem xs="12">
+                <MudChip T="string" Size="Size.Small" 
+                        Color="@GetEscalationColor(SLAStatus.EscalationLevel)"
+                        Icon="@GetEscalationIcon(SLAStatus.EscalationLevel)">
+                    @SLAStatus.EscalationLevel
+                </MudChip>
+            </MudItem>
+        </MudGrid>
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter] public SLAStatus SLAStatus { get; set; } = default!;
+    
+    private double GetProgressPercentage()
+    {
+        var total = SLAStatus.Deadline - SLAStatus.IntakeDate;
+        if (total.TotalMilliseconds <= 0) return 0;
+        
+        var elapsed = DateTime.Now - SLAStatus.IntakeDate;
+        var percentage = (elapsed.TotalMilliseconds / total.TotalMilliseconds) * 100;
+        return Math.Min(100, Math.Max(0, percentage));
+    }
+    
+    private double GetCurrentPosition()
+    {
+        return GetProgressPercentage();
+    }
+    
+    private Color GetTimelineColor()
+    {
+        if (SLAStatus.IsBreached) return Color.Error;
+        if (SLAStatus.IsAtRisk) return Color.Warning;
+        return Color.Success;
+    }
+    
+    private Color GetDeadlineColor()
+    {
+        if (SLAStatus.IsBreached) return Color.Error;
+        if (SLAStatus.IsAtRisk) return Color.Warning;
+        return Color.Success;
+    }
+    
+    private Color GetRemainingTimeColor(TimeSpan remaining)
+    {
+        if (remaining.TotalHours < 4) return Color.Error;
+        if (remaining.TotalHours < 24) return Color.Warning;
+        return Color.Success;
+    }
+    
+    private Color GetEscalationColor(EscalationLevel level) => level.Value switch
+    {
+        2 => Color.Error,
+        1 => Color.Warning,
+        3 => Color.Dark,
+        _ => Color.Default
+    };
+    
+    private string GetEscalationIcon(EscalationLevel level) => level.Value switch
+    {
+        2 => Icons.Material.Filled.Warning,
+        1 => Icons.Material.Filled.Info,
+        3 => Icons.Material.Filled.Error,
+        _ => Icons.Material.Filled.CheckCircle
+    };
+    
+    private string FormatRemainingTime(TimeSpan remaining)
+    {
+        if (remaining.TotalDays >= 1)
+            return $"{(int)remaining.TotalDays}d {remaining.Hours}h";
+        if (remaining.TotalHours >= 1)
+            return $"{(int)remaining.TotalHours}h {remaining.Minutes}m";
+        if (remaining.TotalMinutes >= 1)
+            return $"{(int)remaining.TotalMinutes}m";
+        return $"{remaining.TotalSeconds}s";
+    }
+}
+

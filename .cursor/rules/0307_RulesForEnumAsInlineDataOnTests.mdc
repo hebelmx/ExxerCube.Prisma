@@ -1,0 +1,65 @@
+---
+description: Patter For EnumModel InlineData
+globs:
+alwaysApply: false
+---
+
+*** Scope: This is the patter needed to when needed to inline data from a class derived from EnumModel, because Xunit Dont Support
+
+
+// This is a test that uses an enum as inline data.
+// The enum is defined in the test file.
+// The test is a theory test that uses the enum as inline data.
+// The test is a test that uses the enum as inline data.
+Create this error message:
+
+An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+***Incorrect***
+[Theory]
+    [InlineData(PartStatus.Rejected, "Rejected part")]
+    [InlineData(PartStatus.Scrap, "Scrap part")]
+    public void Should_HandleDifferentPartStatuses_When_VariousPartStatesProvided2(PartStatus partStatusName, string statusDescription)
+    {
+        // Arrange
+        var command = new CreateCyclesCommand();
+        var statusRequest = new TaskGatewayRequest
+        {
+            MachineId = 1001,
+            PartNumber = "TEST-PART"
+        };
+
+        // Act
+        command.WithPartStatus(partStatusName);
+        var factoryResult = command.Create(statusRequest);
+
+        // Assert
+        var statusCommand = factoryResult as CreateCyclesCommand;
+        statusCommand.Command.PartStatus.ShouldBe(partStatusName);
+    }
+
+this way don't generate errors
+***Correct***
+[Theory]
+    [InlineData(nameof(PartStatus.Ok), "Good part")]
+    [InlineData(nameof(PartStatus.NOk), "Defective part")]
+    [InlineData(nameof(PartStatus.Restored), "Restored part")]
+    [InlineData(nameof(PartStatus.Rejected), "Rejected part")]
+    [InlineData(nameof(PartStatus.Scrap), "Scrap part")]
+    public void Should_HandleDifferentPartStatuses_When_VariousPartStatesProvided(string partStatusName, string statusDescription)
+    {
+        // Arrange
+        var command = new CreateCyclesCommand();
+        var statusRequest = new TaskGatewayRequest
+        {
+            MachineId = 1001,
+            PartNumber = "TEST-PART"
+        };
+
+        // Act
+        command.WithPartStatus(partStatusName);
+        var factoryResult = command.Create(statusRequest);
+
+        // Assert
+        var statusCommand = factoryResult as CreateCyclesCommand;
+        statusCommand.Command.PartStatus.ShouldBe(EnumModel.FromName<PartStatus>(partStatusName));
+    }

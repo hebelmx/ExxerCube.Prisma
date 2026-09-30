@@ -1,0 +1,50 @@
+{
+  "docId": "AGAFF-2025-798196_20260719_152552",
+  "seed": 5001,
+  "chaosLevel": "none",
+  "requirementType": "pld",
+  "folioSiara": "AGAFF/2025/798196",
+  "numeroOficio": "AGAFF/2025/798196",
+  "numeroExpediente": "A/FI1-6462-159084-UIF",
+  "autoridadNombre": "Servicio de Administración Tributaria",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Elias Villareal Páez",
+  "personaNombre": "Tania Páez Muñoz",
+  "personaRfc": "PÁMT990517J6H",
+  "solicitudPartes": [
+    {
+      "nombre": "Tania Páez Muñoz",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$8,081,712.64",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Servicio de Administración Tributaria",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

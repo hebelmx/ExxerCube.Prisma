@@ -1,0 +1,167 @@
+using ExxerCube.Prisma.Web.UI.Services;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using System.Net;
+
+namespace ExxerCube.Prisma.Tests.UI.Infrastructure;
+
+/// <summary>
+/// Web application factory for integration testing of the Prisma UI.
+/// Starts the web server programmatically for Playwright tests.
+/// </summary>
+public class PrismaWebApplicationFactory : WebApplicationFactory<ExxerCube.Prisma.Web.UI.Program>
+{
+    private IHost? _host;
+    public Uri? HostedBaseAddress { get; private set; }
+
+    /// <summary>
+    /// Services of the REAL Kestrel host (the one Playwright connects to). This is distinct from
+    /// <see cref="WebApplicationFactory{TEntryPoint}.Services"/>, which belongs to the in-memory TestServer
+    /// host. Code that must interact with the same singleton instances the browser-facing circuit uses
+    /// (e.g. publishing a domain event the hosted broadcaster will pick up) MUST resolve from here.
+    /// </summary>
+    public IServiceProvider? HostedServices => _host?.Services;
+
+    /// <summary>
+    /// Starts the Kestrel host if it is not already running.
+    /// </summary>
+    public void EnsureStarted()
+    {
+        if (_host is not null)
+        {
+            return;
+        }
+
+        // Trigger WebApplicationFactory's host bootstrap (StartServer → our CreateHost override), which
+        // builds the in-memory TestServer host AND starts a real Kestrel host on a dynamic port so an
+        // out-of-process Playwright browser can reach it. CreateDefaultClient is the correct trigger for
+        // minimal-hosting apps (WebApplication.CreateBuilder); the previous manual
+        // `CreateHostBuilder()!`/CreateHost call NRE'd (CreateHostBuilder returns null for those).
+        using var _ = CreateDefaultClient();
+    }
+
+    /// <summary>
+    /// Configures the web host for testing.
+    /// </summary>
+    /// <param name="builder">The web host builder to configure.</param>
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.ConfigureServices(services =>
+        {
+            // Remove the Python environment registration (not needed for UI tests)
+            var pythonEnvDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IPythonEnvironment));
+            if (pythonEnvDescriptor != null)
+            {
+                services.Remove(pythonEnvDescriptor);
+            }
+
+            // Remove GOT-OCR2 executor registration (not needed for UI tests)
+            var ocrExecutorDescriptors = services.Where(d => d.ServiceType == typeof(IOcrExecutor)).ToList();
+            foreach (var descriptor in ocrExecutorDescriptors)
+            {
+                services.Remove(descriptor);
+            }
+
+            // Add a mock OCR executor for UI tests
+            services.AddScoped<IOcrExecutor, MockOcrExecutor>();
+
+            // Remove SignalREventBroadcaster from the hosted-service list so the 21 shared
+            // Tests.UI tests keep their prior behaviour: no live Rx subscription open during
+            // teardown, no risk of SQL-connection races on CI boxes without a running DB.
+            // Mirrors the same removal in TestWebApplicationFactory (Tests.EndToEnd).
+            // Note: the /processingHub negotiate endpoint (MapHub) is independent of this
+            // hosted service — it works regardless of whether the broadcaster is registered.
+            var broadcasterDescriptors = services
+                .Where(d =>
+                    d.ServiceType == typeof(IHostedService) &&
+                    d.ImplementationType == typeof(SignalREventBroadcaster))
+                .ToList();
+            foreach (var descriptor in broadcasterDescriptors)
+            {
+                services.Remove(descriptor);
+            }
+        });
+
+        builder.UseEnvironment("Development");
+    }
+
+    /// <summary>
+    /// Override host creation to run Kestrel instead of the in-memory TestServer so Playwright can reach it.
+    /// </summary>
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        // Build the in-memory TestServer host FIRST. WebApplicationFactory requires the returned host to
+        // expose a TestServer (its Server/CreateClient contract), so this is the host we return below.
+        var testHost = builder.Build();
+
+        // Reconfigure the SAME (deferred) builder to use Kestrel and build a SECOND host that listens on a
+        // real dynamic loopback port — this is the one an out-of-process Playwright browser connects to.
+        // Building the deferred minimal-hosting builder twice is the documented pattern for getting both a
+        // TestServer (for WAF) and a real Kestrel endpoint (for Playwright) from one factory.
+        builder.ConfigureWebHost(webHost =>
+        {
+            webHost.UseKestrel(options =>
+            {
+                // Bind to a dynamic port to avoid collisions with a locally running instance.
+                options.Listen(System.Net.IPAddress.Loopback, 0);
+            });
+        });
+
+        try
+        {
+            _host = builder.Build();
+            _host.Start();
+
+            // Capture the bound address so Playwright can navigate to the actual port.
+            var addresses = _host.Services.GetRequiredService<IServer>()
+                .Features.Get<IServerAddressesFeature>()?.Addresses;
+            var firstAddress = addresses?.FirstOrDefault();
+            if (firstAddress is not null)
+            {
+                HostedBaseAddress = new Uri(firstAddress);
+            }
+
+            // Return the TestServer host (WAF casts Server to TestServer); the Kestrel host runs alongside it.
+            testHost.Start();
+            return testHost;
+        }
+        catch
+        {
+            // If the Kestrel host fails to build/start (e.g. a port collision), dispose the already-built
+            // TestServer host so its IHostedServices don't leak — WAF only owns the host we return.
+            testHost.Dispose();
+            throw;
+        }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _host?.Dispose();
+        }
+
+        base.Dispose(disposing);
+    }
+
+    /// <summary>
+    /// Mock OCR executor for UI testing that doesn't require Python.
+    /// </summary>
+    private class MockOcrExecutor : IOcrExecutor
+    {
+        public Task<IndQuestResults.Result<ExxerCube.Prisma.Domain.ValueObjects.OCRResult>> ExecuteOcrAsync(
+            ExxerCube.Prisma.Domain.ValueObjects.ImageData imageData,
+            ExxerCube.Prisma.Domain.Models.OCRConfig config)
+        {
+            // Return a mock success result for UI tests
+            var mockResult = new ExxerCube.Prisma.Domain.ValueObjects.OCRResult(
+                text: "Mock OCR Text",
+                confidenceAvg: 95.0f,
+                confidenceMedian: 95.0f,
+                confidences: new List<float> { 95.0f },
+                languageUsed: config.Language
+            );
+            return Task.FromResult(IndQuestResults.Result<ExxerCube.Prisma.Domain.ValueObjects.OCRResult>.Success(mockResult));
+        }
+    }
+}

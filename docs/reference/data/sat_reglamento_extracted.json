@@ -1,0 +1,1098 @@
+{
+  "source_file": "SAT_Reglamento_Interior.pdf",
+  "entidades": [
+    {
+      "nombre": "Tribunal Federal de Justicia Fiscal y Administrativa que se dicten en los juicios contenciosos administrativos",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Tribunal Federal de Justicia Fiscal y Administrativa, contra resoluciones o actos de éstos o de las autoridades fiscales de las entidades federativas que deriven de la aplicación que dichas autoridades hagan de las leyes fiscales federales en cumplimiento de los convenios de coordinación fiscal, así como para ejercer las acciones, excepciones y defensas que correspondan a las autoridades señaladas en los juicios ante dicho Tribunal",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Tribunal Federal de Justicia Fiscal y Administrativa, respecto de los juicios que deriven de las atribuciones a que se refiere este artículo, así como representar a las mencionadas autoridades en los juicios de amparo que interpongan los particulare s en contra de las sentencias y resoluciones definitivas dictadas por el Tribunal Federal de Justicia Fiscal y Administrativa, respecto de los juicios de su competencia",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Tribunal Federal de Justicia Fiscal y Administrativa",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Tribunal Federal de Justicia Fiscal y Administrativa, contra resoluciones o actos de éstos o de las autoridad es fiscales de las entidades federativas por la aplicación que dichas autoridades hagan de las leyes REGLAMENTO INTERIOR DEL SERVICIO DE ADMINI STRACION TRIBUTARIA Publicado",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Tribunal Federal de Justicia Fiscal y Administrativa respecto de los juicios que deriven de las atr ibuciones a que se refiere este artículo, así como representar a las mismas autoridades en los juicios de amparo que promuevan los particulares en contra de las sentencias y resoluciones definitivas dictadas por el Tribunal Federal de Justicia Fiscal y Adm inistrativa, respecto de los juicios de su competencia",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Tribunal Federal de Justicia Fiscal y Administrativa, contra resoluciones o actos de éstos o de las autoridades fiscales de las entidades federativas que deriven de la aplicación de las leyes fiscales federales en cumplimiento de los convenios de coordinación fiscal, así como para ejercer las acciones, excepciones y defensas que correspond an a las autoridades señaladas en los juicios ante dicho Tribunal",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Tribunal Federal de Justicia Fiscal y Administrativa, respecto de los juicios de su com petencia, y el amparo adhesivo, así como comparecer y alegar en los juicios de amparo que interpongan los particulares en contra de las sentencias y resoluciones definitivas dictadas por el Tribunal Federal de Justicia Fiscal y Administrativa",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Tribunal Federal de Conciliación y Arbitra je y demás autoridades del trabajo, en las controversias y juicios laborales que se susciten con el personal que le preste sus servicios al citado órgano administrativo desconcentrado",
+      "tipo": "Tribunal",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, tiene a su cargo el ejercicio de las atribuciones y el despacho de los asuntos que le otorgan la Ley del Servicio de Administración Tributaria, otras leyes, reglamentos, decretos, acuerdos y demás disposiciones jurídicas aplicables, así como los asuntos que el Secretario de Hacienda y Crédito Público le encomiende ejecutar y coordinar en las materias a que se refiere el presente Reglamento",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público y de la Agencia Nacional de Aduanas de México",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público la información que requieran para la evaluación y diseño de la política fiscal y aduanera, y para elaborar los infor mes que la Secretaría esté obligada a presentar",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, y VIII",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, en la elaboración de los convenios y acuerdos de coordinación en materia fiscal federal con las autoridades fiscales de las entidades federativas y, en el ámbito de su co mpetencia, emitir los lineamientos que se deban aplicar con motivo de los convenios o acuerdos que se celebren, así como solicitar y entregar información relacionada con los mismos a las propias entidades federativas y evaluar los resultados de la aplicaci ón de dichos convenios y acuerdos",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público y proporcionar a la Unidad de Inteligencia Financiera de dicha dependencia, la información y documentación necesaria para el ejerc icio de sus atribuciones, incluido el acceso a las bases de datos que contengan la referida información",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público y del Servicio de Administración Tribut aria, en el diseño de los procesos de recaudación de ingresos federales por las instituciones de crédito, terceros u oficinas de recaudación autorizadas",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público la información de los ingresos recaudados, a través de las instituciones de crédito, terceros u ofi cinas de recaudación autorizadas",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público y del Servicio de Administración Tributaria, en la elaboración de los lineamientos para depurar y cancelar créditos fiscales",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, información relativa a los créditos fiscales firmes de los contribuyentes",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Públic o y con las demás unidades administrativas del Servicio de Administración Tributaria, a efecto de dar seguimiento a las funciones conferidas a las entidades federativas en materia de impuestos federales, conforme a los convenios de colaboración administrat iva en materia fiscal federal, así como para evaluar el grado de avance de los programas operativos e intercambiar, solicitar y entregar información a las entidades federativas, en las materias de su competencia",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, previa opinión de la Administración General de Planeación",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público y del Servicio de Administración Tributaria, en la vigilancia, promoción y aplicación de las medidas preventivas y correctivas derivadas de los convenios de colaboración administrati va en materia fiscal federal y sus anexos",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, en el estudio y elaboración de propuestas de políticas y programas relativos al desarrollo de la franja y región fronteriza del país, al fomento de las industrias de exportación y regíme nes aduaneros",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Públi co participen con otras autoridades competentes, así como emitir opinión sobre los precios estimados que fije dicha Secretaría, respecto de las mercancías de comercio exterior que sean objeto de subvaluación o sobrevaloración",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, las dependencias y entidades de la Administración Pública Federal y las autoridades de las entidades federativ as y municipios, de conformidad con las disposiciones jurídicas aplicables sobre la aplicación de las medidas de seguridad y control que deben realizarse en el territorio nacional en los que pueda ejercer sus atribuciones, así como establecer las acciones de coordinación con las dependencias y entidades de la Administración Pública Federal que lleven a cabo sus funciones en dichos lugares",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público y del Servicio de Administración Tributaria, en la vigilan cia, promoción y aplicación de las medidas preventivas y correctivas derivadas de los convenios de colaboración administrativa en materia fiscal federal y sus anexos",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Relaciones Exteriores, estados extranjeros y organismos internacionales, en materia de comercio exterior",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, en las negociaciones de convenios y tratados internacionales en materia de comercio exterior",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, de los asuntos de que tenga conocimiento con motivo del ejercicio de sus facultades de comprobación y supervisión, que estén o pudieran estar relacionados con los delitos a que se refiere el Código Penal Federal respecto de las atribuciones de dicha Unidad de Inteligencia Financiera",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, de los asuntos de que tenga conocimiento con motivo del ejercicio de sus facultades de comprobación y supervisión, que estén o pudieran estar relacio nados con los delitos a que se refiere el Código Penal Federal, respecto de las atribuciones de dicha Unidad de Inteligencia Financiera",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Relaciones Exteriores, estados extranjeros y organismos internacionales en materia fiscal",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público en la formulación de los anteproyectos de acuerdos interinstitucionales en el ámbito internacional con cláusula fiscal, acuerdos, convenios y tratados internacionales en materia fiscal o de intercambio de información fiscal u otros que contengan disposiciones sobre dichas materias, así como en las negociaciones respectivas y asistir a los servidores públicos del Servicio de Administración Tributaria en sus relaciones con los funcionarios o autoridades de otros países, respecto de dichos instrumentos",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público en los grupos de trabajo que se establezcan al amparo de los acuerdos interinstitucionales en el ámbito internacional con cláusula fiscal, acuerdos, convenios o tratados fiscales o de intercambio de información fiscal de los que México sea parte u otros que contengan disposiciones en materia fiscal, aduanera y de comercio exterior",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, la Comisión Nacional Bancaria y de Valores, la Comisión Nacional de Seguros y Fianzas, la Comisión Nacional del Sistema de Ahorro para el Retiro o cualquier otra autoridad compete nte para otorgar dichas autorizaciones conforme a las citadas disposiciones",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público en los grupos de trabajo que se establezcan al amparo de los acuerdos interins titucionales en el ámbito internacional con cláusula fiscal, acuerdos, convenios o tratados fiscales o de intercambio de información fiscal de los que México sea parte u otros que contengan disposiciones en materia fiscal, aduanera y de comercio exterior",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hac ienda y Crédito Público, las auditorías para verificar que las operaciones y registros contables derivadas de los contratos estén conforme a los propios contratos y a lo dispuesto en los lineamientos que al efecto emita dicha Secretaría, en términos de los artículos 37, apartado B, fracción VII y 63 de la Ley de Ingresos sobre Hidrocarburos",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Pú blico, de los asuntos que tenga conocimiento con motivo del ejercicio de sus facultades de comprobación y supervisión, que estén o pudieran estar relacionados con los delitos a que se refiere el Código Penal Federal, respecto de las atribuciones de dicha Unidad de Inteligencia Financiera",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público en la formulación de los anteproyectos de acuerdos interinstit ucionales en el ámbito internacional con cláusula fiscal, acuerdos, convenios y tratados internacionales en materia fiscal o de intercambio de información fiscal u otros que contengan disposiciones sobre dichas materias, así como en las negociaciones respe ctivas y asistir a los servidores públicos del Servicio de Administración Tributaria en sus relaciones con los funcionarios o autoridades de otros países, respecto de dichos instrumentos",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, en la formulación de los programas relativos a la aplicación de las disposiciones en materia de participación de los trabajadores en las utilidades de las empresas",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público y los medios de comunicació n nacionales e internacionales, coordinando todo tipo de actividades con ellos",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, las actividades de información, difusión y re laciones públicas del Servicio de Administración Tributaria",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, las estrategias y campañas de comunicación del Servicio de Administración Tributaria, así como ejecuta r los programas y acciones que deriven de ellas",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público en las referidas materias, así como solicitar a las unidades administrativas del Servicio de Administración Tributaria la información necesaria para los efectos de la presente fracción, emitir opinión respecto de las propuestas referidas y fungir como enlace del Servicio de Administración Tributaria ante dicha Secretaría en los asuntos a que se refiere esta fracci ón",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público o de los organismos fiscales autónomos",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Relaciones Exteriores, estados extranjeros y organismos internacionales en las materias a que se refiere este artículo",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público y de la Agencia Nacional de Aduanas de México, en las negociaciones de convenios en materia aduanera y de comercio exterior",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público y de la Agencia Nacional de Aduanas de México, en los grupos de trabajo que se establezcan al amparo de tratados, convenios o acuerdos internacionales, incluso en comités y reuniones de carácter interinstitucional en materia aduanera, de comercio exterior o de intercambio de información, u otros instrumentos jurídicos internacionales que contengan disposiciones sobre dichas materias",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público y, tratándose de hechos u omisiones que puedan constituir delitos en que el Servicio de Administración Tri butaria resulte afectado o aquéllos de que tenga conocimiento o interés, así como coadyuvar en los supuestos anteriores con el agente del Ministerio Público de la Federación competente y designar asesores jurídicos en el procedimiento penal",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público el resultado de las operaciones de recaudación de ingresos federales para su integración a la contabilidad, de conformidad con la Ley General de Contabilidad Gubernamental",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Relaciones Exteriores y dichos estados extranjeros y organismos internacionales",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, la información y los datos estadísticos necesarios para que el Ejecutivo Federal proporcione al Congreso de la Unión lo s informes mensuales y trimestrales sobre la evolución de la recaudación y el presupuesto anual de gastos fiscales a que se refiere la Ley del Servicio de Administración Tributaria",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público la información para la evaluación y diseño de la política fiscal y aduanera, así como para la elaboración de los informes que la propia Secretaría esté obligada a presentar",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público l os informes financieros correspondientes de este órgano administrativo desconcentrado",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, como del Servicio de Administración Tributaria que mediante acuerdo determine el Presidente de la Jun ta de Gobierno de este órgano administrativo desconcentrado, en los términos que se establezcan en dicho acuerdo, y LIII",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y C rédito Público, con grupos de contribuyentes de los diversos sectores, asociaciones, cámaras, colegios e institutos académicos y de investigación, a fin de conocer la percepción sobre los aspectos tributarios, y coadyuvar en la mejora de procesos, el comba te a la corrupción, el fomento de la transparencia y la legalidad, la difusión de los medios de recepción de quejas y denuncias con los que cuenta el Servicio de Administración Tributaria",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, los programas, actividades, lineamientos, directric es y procedimientos, así como coordinar las acciones que le correspondan al Servicio de Administración Tributaria para el cumplimiento de la Ley Federal para la Prevención e Identificación de Operaciones con Recursos de Procedencia Ilícita, su Reglamento y las demás disposiciones jurídicas aplicables, en relación con las atribuciones previstas en el presente artículo",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, en el diseño y formulación de las guías de apoyo para la presentación de los avisos de actividades vulnerables establecidas en el artículo 17 de la Ley Federal para la Prevención e Identificación de Operaciones con Recursos de Procedencia Ilícita, así como para la implementación de los medios electrónicos requer idos para dicha presentación",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público sobre los formatos oficiales para el alta de quienes realicen las actividades vulnerables establecidas en el artículo 17 de la Ley Federal para la Prevención e Identificación de Operaciones con Recursos de Procedencia Ilícita, así como participar, en coordinación con la Administración General de Comunicaciones y Tecnologías de la Información, en la determinación de los medios electrónicos pa ra el alta de quienes realicen las actividades vulnerables establecidas en el artículo 17 de la citada Ley",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, los programas, actividades, lineamientos, directrices y procedimientos, así como coordinar acciones que correspondan al Servicio de Administración Tributaria para el cumplimiento de la Ley Federal para la Prevención e Identificación de Operaciones con Recursos de Procedencia Ilícita, su Reglamento y las demás disposiciones jurídicas aplicables, en relación con las atribuciones previstas en este artículo",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, respect o del diseño, formulación y determinación de las mejores prácticas para la elaboración y el envío de los formatos oficiales para la presentación de los avisos de actividades vulnerables establecidas en el artículo 17 de la Ley Federal para la Prevención e Identificación de Operaciones con Recursos de Procedencia Ilícita",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público o con cualquier otra autoridad competente para el cumplimiento de la Ley Federal para la Prevención e Identificación de Operaciones con Recursos de Procedencia Ilícita",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, los resultados de las visitas de verificación, así como de los requerimientos de información y documentación a que se refiere este artículo",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, la información que en uso de sus atribuciones referidas en el presente artículo obtenga, para la presentación de denuncias o querellas ante el Ministerio Público de la Federación por los hechos que puedan constituir conductas delictivas",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, respecto del diseño, formulación y determinación de las mejores prácticas para la elaboración y el envío de los formatos oficiales para la presentaci ón de los avisos de actividades vulnerables establecidas en el artículo 17 de la Ley Federal para la Prevención e Identificación de Operaciones con Recursos de Procedencia Ilícita",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, los resultados de las visitas de verifi cación, así como de los requerimientos de información y documentación a que se refiere este artículo",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, la información que en uso de sus atribuciones refe ridas en el presente artículo obtenga, para la presentación de denuncias o querellas ante el Ministerio Público de la Federación por los hechos que puedan constituir conductas delictivas, y XIII",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, relacionados con la realización de acciones para el cumplimien to de la Ley Federal para la Prevención e Identificación de Operaciones con Recursos de Procedencia Ilícita y su Reglamento, respecto de las atribuciones que correspondan al Servicio de Administración Tributaria",
+      "tipo": "Secretaría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, en el estudio y elaboración de iniciativas de leyes o decretos",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, en la suscripción de los convenios con las entidades colegiadas",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público, en la determinación, implementación y vigilancia de medios electrónicos para el alta de las personas que reali cen actividades vulnerables establecidas en dicha Ley, y para la identificación de las entidades colegiadas, así como para la recepción de los avisos correspondientes en términos de la citada Ley y su Reglamento",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público publicado en el Diario Oficial de la Federación el 14 de julio de 2021",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de Hacienda y Crédito Público en el Presupuesto de Egresos de la Federación para el ejercicio fiscal correspondiente, por lo que no se autorizarán recursos adicionales y no se incrementará su presupuesto regularizable durante el ejercicio fiscal respectivo",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría de la Defensa Nacional y la Secretaría de Marina podrán constituir fideicomisos públicos sin estructura, que servirán como vehículos financieros para recibir y administrar los recursos que deriven de cualquier otro vehículo que reciba la contraprestación prevista en el artículo 16 de la Ley Aduanera, con objeto de que con cargo a los patrimonio de los fideicomisos que lleguen a constituirse, se realicen los pagos correspondientes a los servicios u obra pública contrat ados para los puntos de entrada y salida del país que coordinan, en cumplimiento estricto a lo previsto en el artículo 16 de la Ley Aduanera",
+      "tipo": "Secretaría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Dirección General de Evaluación de la Agencia Nacional, de conformidad con la legislación aplicable",
+      "tipo": "Dirección",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Comisión del Servicio Fiscal de Carrera a que se refiere la Ley del Servicio de Administración Tributaria, estará presidida por el Jefe del Servicio de Administración Tributaria y constituida por los demás servidores públicos que determine el Estatuto del Servicio Fiscal de Carrera, quienes ejercerán las facultades que dicho Estatuto les confiera",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "comisión de una probable conducta delictiva, deberá adoptar las medidas conducentes conforme a la Constitución Pol ítica de los Estados Unidos Mexicanos y las disposiciones aplicables en materia de detención, uso de la fuerza y, en particular, de protección a los derechos humanos que correspondan",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Comisión del Servicio Fiscal de Carrera a que se refiere la Ley del Servicio de Administración Tributaria",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Comisión del Servicio Fiscal de Carrera y demás disposiciones jurídicas aplicables",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Comisión Nacional Bancaria y de Valores, a la Comisión Nacional de Seguros y Fianzas o a la Comisión Nacional del Sistema de A horro para el Retiro, según proceda, o a la entidad financiera o sociedad cooperativa de ahorro y préstamo a la que corresponda la cuenta, la inmovilización y conservación de los depósitos bancarios, componentes de ahorro o inversión asociados a seguros de vida que no formen parte de la prima que haya de erogarse para el pago de dicho seguro, o cualquier otro depósito en moneda nacional o extranjera que se realicen en cualquier tipo de cuenta o contrato que tenga a su nombre el contribuyente en alguna de la s entidades financieras o sociedades cooperativas de ahorro y préstamo y ordenar levantar la inmovilización, de conformidad con el Código Fiscal de la Federación",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Comisión Nacional Bancaria y de Valores, de la Comisión Nacional del Sistema de Ahorro para el Retiro o de la Comisión Nacional de Seguros y Fianzas, según corresponda, la información de las cuentas, los REGLAMENTO INTERIOR DEL SERVICIO DE ADMINI STRACION TRIBUTARIA Publicado",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Comisión Nacional Bancaria y de Valores, a la Comisión Nacional de Seguros y Fianzas o a la Comisión Nacional del Sistema de Ahorro para el Retiro, según proceda, o bien a las entidades financieras y sociedades cooperativas de ahorro y préstamo, que ejecuten embargos o aseguramientos de los bienes a que se refiere el artículo 40 -A, fracción III, in ciso f",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "comisión de cualquier ilícito en cuanto al valor, origen, clasificación arancelaria de mercancías, evasión en el pago de contribuciones, cuotas compensatorias u otros aprovechamientos y derechos, incumplimiento de regulaciones y restricciones no arancelarias, incl usive normas oficiales mexicanas, e infracciones administrativas, así como investigar y dar seguimiento a las denuncias presentadas dentro del ámbito de su competencia",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "comisión de cualquier ilícito en cuanto al valor, origen, clasificación arancelaria de mercancías, evasión en el pago de contribuciones, cuotas compensatori as u otros aprovechamientos, derechos, incumplimiento de regulaciones y restricciones no arancelarias inclusive normas oficiales mexicanas, infracciones administrativas, así como investigar y dar seguimiento a las denuncias presentadas",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Comisión Nacional Bancaria y de Valores, a la Comisión Nacional de Seguros y Fianzas o a la Comisión Nacional del Sistema de Ahorro para el Retiro, según proceda, o bien a las entidades financieras y sociedades cooperativas de ahorro y préstamo, que ejecuten embargos o aseguramient os de los bienes a que se refiere el artículo 40 -A, fracción III, inciso f",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Comisión Nacional Bancaria y de Valores, a la Comisión Nacional de Seguros y Fianzas o a la Com isión Nacional del Sistema de Ahorro para el Retiro, según proceda, o bien a las entidades financieras y sociedades cooperativas de ahorro y préstamo, que ejecuten embargos o aseguramientos de los bienes a que se refiere el artículo 40 -A, fracción III, inc iso f",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Comisión Nacional Bancaria y de Valores, la Comisión Nacional de Seguros y Fianzas, la Comisión Nacional del Sistema de Ahorro para el Retiro o cualquier otra autoridad compete nte para otorgar dichas autorizaciones conforme a las citadas disposiciones",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Comisión Nacional Bancaria y de Valores, a la Comisión Nacional de Seguros y Fianzas o a la Comisión Nacional del Sistema de Ahorro para el Retiro, según proceda, o bien a las entidades financieras y sociedades cooperativas de ahorro y préstamo, que ejecuten embargos o aseguramientos de los bienes a que se refiere el artículo 40 -A, fracción III, inciso f",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "comisión de delitos fiscales previstos en el mismo, así como respecto de otros delitos establecidos en las demás disposiciones legales aplicables",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Comisión Mixta de Escalafón, así como mantener actu alizado el escalafón y difundirlo entre los trabajadores",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Comisión del Servicio Fiscal de Carrera a las sesiones que se requieran, en términos del Estatuto del Servicio Fiscal de Carrera, así como formular y someter a la aprobación de dicha Comisión las propuestas relativas al Servicio Fiscal de Carrera tomando las medidas para que se cumplan los acuerdos de la misma",
+      "tipo": "Comisión",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Procuraduría de la Defensa del Contribuyente sobre la interpretación de las disposiciones fiscales y en materia de comercio exterior, y XXI",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Procuraduría General de la República, o cualquier otra autoridad competente",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Procuraduría de la Defensa del Contribuyente",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Procuraduría Fiscal de la Federación o de la au toridad judicial en los procesos por delitos fiscales",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Procuraduría de la Defensa del Contribuyente, vinculados con quejas o reclamaciones en las que sea señalada como responsable algun a de las unidades administrativas adscritas a dicha Administración General",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Procuraduría Fiscal de la Federación o de la autorida d judicial en los procesos por delitos fiscales",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Procuraduría de la Defensa del Contribuyente, vinculados con quejas o reclamaciones en las que sea señalada como responsable alguna de las unidades administrativas adscritas a dicha Administración General y en las p ropuestas de modificación a las disposiciones o estrategias internas cuando la materia de las mismas resulte de su competencia, así como coadyuvar en la suscripción de acuerdos conclusivos que lleven a cabo la referida Administración General y sus unidades administrativas y participar en las reuniones en las que sea convocado el Servicio de Administración Tributaria derivadas de la atención de los asuntos que correspondan a la Administración General de Auditoría Fiscal Federal, y",
+      "tipo": "Procuraduría",
+      "jurisdiccion": "Federal",
+      "source": "regex"
+    },
+    {
+      "nombre": "Procuraduría Fiscal de la Federación o de la autoridad judicial en los procesos por delitos fiscales",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Procuraduría de la Defensa del Contribuyente, vinculados con quejas o reclamaciones en las que sea señalada como responsable alguna de las unidades administrativas adscritas a dicha Administración General y en las propuestas de modificación a las disposiciones o estrategias internas cuando la materia de las mismas resulte de su competencia, así como coadyuvar en la suscripción de acuerdos conclusivos que lleven a cab o la referida Administración General y sus unidades administrativas y participar en las reuniones en las que sea convocado el Servicio de Administración Tributaria derivadas de la atención de los asuntos que correspondan a la Administración General de Audi toría de Comercio Exterior, y",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Procuraduría de la Defensa del Contribuyente, vinculados con quejas o reclamaciones en las que sea señalada como responsable alguna de las unidades administrativas adscritas a dicha Administración General y en las propuestas de modificac ión a las disposiciones o estrategias internas cuando la materia de las mismas resulte de su competencia, así como coadyuvar en la suscripción de acuerdos conclusivos que lleven a cabo la referida Administración General y sus unidades administrativas y par ticipar en las reuniones en las que sea convocado el Servicio de Administración Tributaria derivadas de la atención de los asuntos que correspondan a la Administración General de Grandes Contribuyentes, y g",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Procuraduría de la Defen sa del Contribuyente, vinculados con quejas o reclamaciones en las que sea señalada como responsable alguna de las unidades administrativas adscritas a dicha Administración General y en las propuestas de modificación a las disposiciones o estrategias inter nas cuando la materia de las mismas resulte de su competencia, así como coadyuvar en la suscripción de acuerdos conclusivos que lleven a cabo la referida Administración General y sus unidades administrativas y participar en las reuniones en las que sea con vocado el Servicio de Administración Tributaria derivadas de la atención de los asuntos que correspondan a la Administración General de Hidrocarburos, y g",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Procuraduría de la Defensa del Contribuyente, vinculados con quejas o reclamaciones en las que sea señalada como responsable alguna de las unidades administrativas adscritas a dicha Admini stración General",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Procuraduría convoque al Servicio de Administración Tributaria",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Procuraduría de la Defensa del Contribuyente sobre la interpretación de las disposiciones fiscales y de comercio exterior",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Procuraduría de la Defensa del Contribuyente tramitadas por los contribuyentes presuntamente afectados por actos de las unidades administrativas del Servicio de Administración Tributaria",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Procuraduría General de la Repúbli ca y las procuradurías generales de justicia de las entidades federativas, en las investigaciones relacionadas con los vehículos asignados al Servicio de Administración Tributaria, para formular denuncias de hechos y querellas y, en su caso, otorgar el per dón en los términos de las disposiciones aplicables, cuando el daño causado haya sido reparado plenamente y a entera satisfacción, así como recibir el importe de los daños que se causen a los propios vehículos y retirarlos de los lugares en que se encuentr en depositados, en el ámbito de competencia a que se refiere este artículo",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Procuraduría General de la República, en la integración de las investigaciones y en el trámite de los procesos que afecten al Servicio de Administración Tr ibutaria o en los que tenga interés jurídico, respecto de los asuntos a que se refiere este artículo, así como solicitar la intervención del Procurador General de la República en todos aquellos asuntos contenciosos que le competan en términos del artículo 102 de la Constitución Política de los Estados Unidos Mexicanos",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Procuraduría Fiscal de la Federación, la Procuraduría General de la República, instancias de seguridad nacional, las demás unidades administrativas del Servicio de Administración Tributaria y el Órgano Interno de Control en dicho órgano administrativo desconcentrado, para dar seguimiento a lo s asuntos relacionados con la transparencia, la rendición de cuentas, prevención y combate de actos de corrupción",
+      "tipo": "Procuraduría",
+      "jurisdiccion": null,
+      "source": "regex"
+    },
+    {
+      "nombre": "Secretaría",
+      "tipo": "Secretaría",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Dirección",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Apoyo Júridico de Recaudación",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración General de Auditoría Fiscal Federal",
+      "tipo": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Operación de la Fiscalización Nacional",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Análisis Técnico Fiscal",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Planeación y Programación de Auditoría Fiscal Federal",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Verificación y Evaluación de Entidades Federativas en Materia de Coordinación Fiscal",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Fiscalización Estratégica",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Apoyo Jurídico de Auditoría Fiscal Federal",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Devoluciones y Compensaciones",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración General de Auditoría de Comercio Exterior",
+      "tipo": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Planeación y Programación de Comercio Exterior",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Apoyo Jurídico de Auditoría de Comercio Exterior",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Investigación y Análisis de Comercio Exterior",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Operaciones Especiales de Comercio Exterior",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Auditoría de Operaciones de Comercio Exterior",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Certificación y Asuntos Internacionales de Auditoría de Comercio Exterior",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Coordinación Estratégica de Auditoría de Comercio Exterior",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración General de Grandes Contribuyentes",
+      "tipo": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Planeación y Programación de Fiscalización a Grandes Contribuyentes",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Fiscalización al Sector Financiero",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Fiscalización a Grupos de Sociedades",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Fiscalización a Grandes Contribuyentes Diversos",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Fiscalización Internacional",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Fiscalización de Precios de Transferencia",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Apoyo Jurídico y Normatividad de Grandes Contribuyentes",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Apoyo Jurídico y Normatividad Internacional",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de lo Contencioso de Grandes Contribuyentes",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Coordinación Estratégica de Grandes Contribuyentes",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración General de Hidrocarburos",
+      "tipo": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Planeación y Programación de Hidrocarburos",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Verificación de Hidrocarburos",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Fiscalización de Hidrocarburos",
+      "tipo": "Fiscalía",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Apoyo Jurídico y Normatividad de Hidrocarburos",
+      "tipo": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de lo Contencioso de Hidrocarburos",
+      "tipo": "Tribunal",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Operación de Hidrocarburos",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración General de Servicios al Contribuyente",
+      "tipo": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Servicios Tributarios al Contribuyente",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Apoyo Jurídico de Servicios al Contribuyente",
+      "tipo": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Gestión de Servicios y Trámites con Medios Electrónicos",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Operación de Padrones",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Comunicación Institucional",
+      "tipo": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Programas Interinstitucionales de Servicios",
+      "tipo": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Coordinación Nacional de las Administraciones Desconcentradas de Servicios al Contribuyente",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración General Jurídica",
+      "tipo": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Normatividad en Impuestos Internos",
+      "tipo": "Secretaría",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Normatividad en Comercio Exterior",
+      "tipo": "Secretaría",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de lo Contencioso",
+      "tipo": "Tribunal",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Amparo e Instancias Judiciales",
+      "type": "Fiscalía",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Asuntos Penales y Especiales",
+      "type": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Operación de Jurídica",
+      "type": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Asuntos Jurídicos de Actividades Vulnerables",
+      "type": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración General de Planeación",
+      "type": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Planeación, Análisis e Información",
+      "type": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Proyectos y Vinculación Institucional",
+      "type": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Estudios Tributarios",
+      "type": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Modelos de Riesgo",
+      "type": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Modelos de Integración de Información",
+      "type": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración General de Recursos y Servicios",
+      "type": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Recursos Financieros",
+      "type": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central del Ciclo de Capital Humano",
+      "type": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Destino de Bienes",
+      "type": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Recursos Materiales",
+      "type": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Ración Central de Apoyo Jurídico de Recursos y Servicios",
+      "tipo": "Secretaría",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Planeación y Proyectos",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Operación de Recursos y Servicios",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Fideicomisos",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Control y Seguridad Institucional",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración General de Comunicaciones y Tecnologías de la Información",
+      "tipo": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Planeación y Programación Informática",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Operación y Servicios Tecnológicos",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Soluciones de Negocio",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Transformación Tecnológica",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Desarrollo y Mantenimiento de Aplicaciones",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Seguridad, Monitoreo y Control",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración General de Evaluación",
+      "tipo": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Coordinación Evaluatoria",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Análisis y Evaluación de Riesgos",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Evaluación de la Confiabilidad",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Evaluación de Comercio Exterior",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Evaluación de Impuestos Internos",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Evaluación de Seguimiento",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Procedimientos Especiales",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Administración Central de Evaluación de Procesos e Información",
+      "tipo": "Dirección",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Coordinación de Evaluación de Comunicaciones y Tecnologías de la Información",
+      "tipo": "Consejo",
+      "source": "llm:llama3:8b"
+    },
+    {
+      "nombre": "Coordinación de Procedimientos Penales",
+      "tipo": "Consejo",
+      "source": "llm:llama3:8b"
+    }
+  ],
+  "stats": {
+    "raw_count": 204,
+    "unique_count": 196
+  }
+}

@@ -1,0 +1,377 @@
+# Structured Logging Standards
+
+## Meta
+**Title**: Structured Logging Standards
+**Description**: Comprehensive structured logging standards using Serilog for observability and telemetry
+**Applies-to**: All C# code in ExxerAI project
+
+## Requirements
+
+<requirement priority="critical">
+**Description**: Use structured logging with Serilog for all logging operations
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Structured logging with Serilog
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository)
+    {
+        _logger = logger;
+        _repository = repository;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent with name: {AgentName}", name);
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("Agent creation cancelled for name: {AgentName}", name);
+            return ResultExtensions.Cancelled<Agent>();
+        }
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            _logger.LogError("Agent creation failed: name is empty");
+            return Result<Agent>.WithFailure("Agent name cannot be empty");
+        }
+
+        var agent = new Agent { Name = new AgentName(name), Capabilities = capabilities };
+
+        var result = await _repository.AddAsync(agent, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created successfully: {AgentId}, {AgentName}, {Capabilities}",
+                result.Value.Id, result.Value.Name, capabilities);
+        }
+        else
+        {
+            _logger.LogError("Failed to create agent: {AgentName}, Errors: {Errors}",
+                name, string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: String concatenation and poor logging
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository)
+    {
+        _logger = logger;
+        _repository = repository;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: " + name); // String concatenation
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("Cancelled"); // No context
+            return ResultExtensions.Cancelled<Agent>();
+        }
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            _logger.LogError("Name is empty"); // No structured data
+            return Result<Agent>.WithFailure("Agent name cannot be empty");
+        }
+
+        var agent = new Agent { Name = new AgentName(name), Capabilities = capabilities };
+        var result = await _repository.AddAsync(agent, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Success: " + result.Value.Id); // String concatenation
+        }
+        else
+        {
+            _logger.LogError("Failed"); // No error details
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Use appropriate log levels for different types of information
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Appropriate log levels
+public async Task<Result<Agent>> GetAgentAsync(Guid agentId, CancellationToken cancellationToken = default)
+{
+    _logger.LogDebug("Retrieving agent with ID: {AgentId}", agentId); // Debug for detailed flow
+
+    if (agentId == Guid.Empty)
+    {
+        _logger.LogWarning("Attempted to retrieve agent with empty ID"); // Warning for recoverable issues
+        return Result<Agent>.WithFailure("Agent ID cannot be empty");
+    }
+
+    var result = await _repository.GetByIdAsync(agentId, cancellationToken);
+
+    if (result.IsSuccess)
+    {
+        _logger.LogInformation("Agent retrieved successfully: {AgentId}, {AgentName}",
+            result.Value.Id, result.Value.Name); // Info for normal operations
+    }
+    else
+    {
+        _logger.LogError("Failed to retrieve agent: {AgentId}, Errors: {Errors}",
+            agentId, string.Join(", ", result.Errors)); // Error for failures
+    }
+
+    return result;
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Inappropriate log levels
+public async Task<Result<Agent>> GetAgentAsync(Guid agentId, CancellationToken cancellationToken = default)
+{
+    _logger.LogInformation("Retrieving agent with ID: {AgentId}", agentId); // Too verbose for normal flow
+
+    if (agentId == Guid.Empty)
+    {
+        _logger.LogError("Attempted to retrieve agent with empty ID"); // Should be warning
+        return Result<Agent>.WithFailure("Agent ID cannot be empty");
+    }
+
+    var result = await _repository.GetByIdAsync(agentId, cancellationToken);
+
+    if (result.IsSuccess)
+    {
+        _logger.LogDebug("Agent retrieved successfully: {AgentId}", result.Value.Id); // Should be info
+    }
+    else
+    {
+        _logger.LogWarning("Failed to retrieve agent: {AgentId}", agentId); // Should be error
+    }
+
+    return result;
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Include correlation IDs and context in all log entries
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Correlation IDs and context
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities,
+        string correlationId, CancellationToken cancellationToken = default)
+    {
+        using var scope = _logger.BeginScope(new Dictionary<string, object>
+        {
+            ["CorrelationId"] = correlationId,
+            ["Operation"] = "CreateAgent",
+            ["AgentName"] = name
+        });
+
+        _logger.LogInformation("Starting agent creation process");
+
+        var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent creation completed successfully");
+        }
+        else
+        {
+            _logger.LogError("Agent creation failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No correlation or context
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent"); // No context or correlation
+
+        var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Success"); // No context
+        }
+        else
+        {
+            _logger.LogError("Failed"); // No error details or context
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Log performance metrics and timing information
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Performance logging
+public async Task<Result<Agent>> GetAgentAsync(Guid agentId, CancellationToken cancellationToken = default)
+{
+    var stopwatch = Stopwatch.StartNew();
+
+    try
+    {
+        _logger.LogDebug("Starting agent retrieval: {AgentId}", agentId);
+
+        var result = await _repository.GetByIdAsync(agentId, cancellationToken);
+
+        stopwatch.Stop();
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent retrieved successfully in {ElapsedMs}ms: {AgentId}",
+                stopwatch.ElapsedMilliseconds, agentId);
+        }
+        else
+        {
+            _logger.LogError("Agent retrieval failed in {ElapsedMs}ms: {AgentId}, Errors: {Errors}",
+                stopwatch.ElapsedMilliseconds, agentId, string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+    catch (Exception ex)
+    {
+        stopwatch.Stop();
+        _logger.LogError(ex, "Agent retrieval threw exception in {ElapsedMs}ms: {AgentId}",
+            stopwatch.ElapsedMilliseconds, agentId);
+        throw;
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No performance logging
+public async Task<Result<Agent>> GetAgentAsync(Guid agentId, CancellationToken cancellationToken = default)
+{
+    var result = await _repository.GetByIdAsync(agentId, cancellationToken);
+
+    if (result.IsSuccess)
+    {
+        _logger.LogInformation("Agent retrieved: {AgentId}", agentId); // No timing info
+    }
+    else
+    {
+        _logger.LogError("Failed to retrieve agent: {AgentId}", agentId); // No timing info
+    }
+
+    return result;
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Use log enrichment for consistent metadata
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Log enrichment with metadata
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+    private readonly ICurrentUserService _currentUserService;
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        var metadata = new Dictionary<string, object>
+        {
+            ["UserId"] = _currentUserService.GetCurrentUserId(),
+            ["UserEmail"] = _currentUserService.GetCurrentUserEmail(),
+            ["Environment"] = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
+            ["Version"] = GetType().Assembly.GetName().Version?.ToString()
+        };
+
+        using var scope = _logger.BeginScope(metadata);
+
+        _logger.LogInformation("Creating agent: {AgentName}, {Capabilities}", name, capabilities);
+
+        var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created successfully: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Agent creation failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No log enrichment
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", name); // No user context or metadata
+
+        var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>

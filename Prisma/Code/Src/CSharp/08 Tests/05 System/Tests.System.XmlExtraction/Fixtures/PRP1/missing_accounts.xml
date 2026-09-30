@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Expediente xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_NumeroOficio>999/EEE/-0000000000/2025</Cnbv_NumeroOficio>
+  <Cnbv_NumeroExpediente>O/OO1-0000-000000-OOO</Cnbv_NumeroExpediente>
+  <Cnbv_SolicitudSiara>TEST/2025/000004</Cnbv_SolicitudSiara>
+  <Cnbv_Folio>0004</Cnbv_Folio>
+  <Cnbv_OficioYear>2025</Cnbv_OficioYear>
+  <Cnbv_AreaClave>4</Cnbv_AreaClave>
+  <Cnbv_AreaDescripcion>Operaciones Ilícitas</Cnbv_AreaDescripcion>
+  <Cnbv_FechaPublicacion>2025-06-14</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>2</Cnbv_DiasPlazo>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <ParteId>1</ParteId>
+    <Caracter>Investigado</Caracter>
+    <Persona>Fisica</Persona>
+    <Nombre>PERSONA SIN CUENTAS</Nombre>
+    <Rfc>CCC030303CCC</Rfc>
+  </SolicitudPartes>
+  <SolicitudEspecifica>
+    <SolicitudEspecificaId>1</SolicitudEspecificaId>
+    <InstruccionesCuentasPorConocer>Eliminar de LPB, sin detalle de cuentas.</InstruccionesCuentasPorConocer>
+  </SolicitudEspecifica>
+</Expediente>

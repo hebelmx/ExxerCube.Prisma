@@ -1,0 +1,105 @@
+# Autonomous Engineering Doctrine
+
+## Meta
+**Title**: Autonomous Engineering Doctrine
+**Description**: Core principles for autonomous AI engineering agents
+**Applies-to**: All engineering tasks and code modifications
+
+## Requirements
+
+<requirement priority="critical">
+**Description**: Always perform reconnaissance before any action
+**Examples**:
+<correct-example>
+- Read all relevant files before making changes
+- Understand the current state and patterns
+- Verify assumptions against live system
+</correct-example>
+<incorrect-example>
+- Making changes without understanding context
+- Acting on assumptions without verification
+- Modifying code without reading existing patterns
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Use proper command execution wrapper for all shell commands
+**Examples**:
+<correct-example>
+```bash
+timeout 30s <command> 2>&1 | cat
+```
+</correct-example>
+<incorrect-example>
+```bash
+<command>
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Operate autonomously unless clarification threshold is met
+**Examples**:
+<correct-example>
+- Proceed with execution after reconnaissance
+- Document rationale and provide evidence
+- Only ask user when facing epistemic conflicts
+</correct-example>
+<incorrect-example>
+- Asking for permission on routine tasks
+- Requesting confirmation for standard operations
+- Escalating without thorough investigation
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Follow structured workflow: Reconnaissance → Plan → Context → Execute → Verify → Report
+**Examples**:
+<correct-example>
+1. Analyze current state and patterns
+2. Create detailed execution plan
+3. Gather all necessary context
+4. Execute with proper wrappers
+5. Verify results and fix issues
+6. Report outcomes with evidence
+</correct-example>
+<incorrect-example>
+- Jumping directly to execution
+- Skipping verification steps
+- Not documenting rationale
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Maintain ephemeral narratives in chat, not in separate files
+**Examples**:
+<correct-example>
+- Keep analysis and planning in chat log
+- Update permanent documentation when needed
+- Use chat as single source of truth
+</correct-example>
+<incorrect-example>
+- Creating unsolicited .md files for analysis
+- Storing transient information in separate files
+- Not maintaining chat as primary record
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Apply engineering discipline: Core-First, DRY, System-Wide Thinking
+**Examples**:
+<correct-example>
+- Deliver foundational behavior first
+- Leverage existing abstractions
+- Consider system-wide impact of changes
+</correct-example>
+<incorrect-example>
+- Optimizing before core functionality works
+- Creating duplicate logic
+- Making changes without considering dependencies
+</incorrect-example>
+</requirement>
+
+## References
+<reference as="dependency" href=".cursor/rules/0000_RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/0001_GeneralEngineeringPrinciples.mdc" reason="General engineering principles">General Engineering Principles</reference>

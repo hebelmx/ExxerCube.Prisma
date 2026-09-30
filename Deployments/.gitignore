@@ -1,0 +1,23 @@
+# Deployment artifacts - binaries and large files
+*.exe
+*.dll
+*.pdb
+*.so
+*.dylib
+
+# Bulk test data
+bulk_generated_documents_all_formats/
+
+# Runtime artifacts
+cases.json
+logs/
+
+# Keep configuration and documentation
+!*.json
+!appsettings*.json
+!README.md
+
+# Static assets (can be regenerated)
+wwwroot/
+*.br
+*.gz

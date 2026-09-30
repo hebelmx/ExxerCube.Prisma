@@ -1,0 +1,844 @@
+@page "/export-management"
+@using ExxerCube.Prisma.Application.Services
+@using ExxerCube.Prisma.Domain.Entities
+@using MudBlazor
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.JSInterop
+@using System.IO
+@using System.Collections.Generic
+@using System.Linq
+@using System.Threading
+@using ExxerCube.Prisma.Domain.ValueObjects
+@attribute [Authorize]
+
+@inject ExportService ExportService
+@inject IUnifiedMetadataStore UnifiedMetadataStore
+@inject IDatosCargaOficioLayoutGenerator DatosCargaGenerator
+@inject FileMetadataQueryService FileMetadataQueryService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+@inject IJSRuntime JSRuntime
+@inject ILogger<ExportManagement> Logger
+
+<PageTitle>Export Management</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudPaper Class="pa-6" Elevation="3">
+        <h1 class="mud-typography mud-typography-h4 mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.FileDownload" Class="mr-2" />
+            Export Management
+        </h1>
+        
+        <MudText Typo="Typo.body2" Class="mb-4">
+            Generate SIRO-compliant XML and Excel exports from processed regulatory documents. Select cases, choose export format, and download generated files.
+        </MudText>
+
+        @if (isLoading)
+        {
+            <MudProgressLinear Indeterminate="true" Class="mb-4" />
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Loading available cases...</MudText>
+        }
+        else if (hasError)
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4">
+                @errorMessage
+                <MudButton Variant="Variant.Text" Color="Color.Error" Size="Size.Small" OnClick="LoadAvailableCasesAsync" Class="ml-2">
+                    Retry
+                </MudButton>
+            </MudAlert>
+        }
+        else
+        {
+            <!-- Export Initiation Form -->
+            <MudCard Class="mb-4">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Create New Export</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <!-- Case Selection -->
+                    <MudItem xs="12" Class="mb-4">
+                        <MudText Typo="Typo.subtitle1" Class="mb-2">Select Cases</MudText>
+                        <MudAutocomplete T="FileMetadata"
+                                       Value="@selectedCase"
+                                       ValueChanged="@((FileMetadata? value) => OnCaseSelected(value))"
+                                       SearchFunc="@SearchCases"
+                                       ToStringFunc="@(x => x != null ? $"{x.FileId} - {x.FileName}" : string.Empty)"
+                                       Label="Search and select cases"
+                                       Variant="Variant.Outlined">
+                            <ItemTemplate>
+                                <MudText>@context.FileId - @context.FileName</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@context.DownloadTimestamp.ToString("g")</MudText>
+                            </ItemTemplate>
+                        </MudAutocomplete>
+                        <MudChipSet T="string" Class="mt-2">
+                            @foreach (var caseItem in selectedCases)
+                            {
+                                <MudChip T="string" OnClose="@(() => RemoveSelectedCase(caseItem))">
+                                    @caseItem.FileId - @caseItem.FileName
+                                </MudChip>
+                            }
+                        </MudChipSet>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+                            @selectedCases.Count case(s) selected
+                        </MudText>
+                        <MudButton Size="Size.Small" 
+                                  Variant="Variant.Text"
+                                  OnClick="SelectAllCases"
+                                  Disabled="@(!availableCases.Any())"
+                                  Class="mr-2">
+                            Select All
+                        </MudButton>
+                        <MudButton Size="Size.Small" 
+                                  Variant="Variant.Text"
+                                  OnClick="ClearSelection"
+                                  Disabled="@(!selectedCases.Any())">
+                            Clear All
+                        </MudButton>
+                    </MudItem>
+
+                    <!-- Export Format Selection -->
+                    <MudItem xs="12" Class="mb-4">
+                        <MudText Typo="Typo.subtitle1" Class="mb-2">Export Format</MudText>
+                        <MudRadioGroup T="ExportFormat" @bind-SelectedValue="@exportFormat">
+                            <MudRadio T="ExportFormat" Value="@ExportFormat.SiroXml" Color="Color.Primary" HelperText="Regulatory-compliant XML format for SIRO submission">
+                                SIRO XML
+                            </MudRadio>
+                            <MudRadio T="ExportFormat" Value="@ExportFormat.ExcelFr18" Color="Color.Primary" HelperText="Layout SIRO de 24 columnas 'Datos Carga de Oficio'">
+                                Datos Carga de Oficio (Excel)
+                            </MudRadio>
+                            <MudRadio T="ExportFormat" Value="@ExportFormat.Pdf" Color="Color.Primary" HelperText="Cryptographically signed PDF with requirement summarization">
+                                Signed PDF
+                            </MudRadio>
+                            <MudRadio T="ExportFormat" Value="@ExportFormat.Both" Color="Color.Primary" HelperText="Generate both SIRO XML and the Datos Carga de Oficio layout">
+                                Both Formats (XML + Excel)
+                            </MudRadio>
+                        </MudRadioGroup>
+                    </MudItem>
+
+
+                    <!-- Actions -->
+                    <MudItem xs="12">
+                        <MudButton Variant="Variant.Filled" 
+                                  Color="Color.Primary"
+                                  StartIcon="@Icons.Material.Filled.FileDownload"
+                                  OnClick="InitiateExportAsync"
+                                  Disabled="@(isExporting || !selectedCases.Any())">
+                            @(isExporting ? "Generating Export..." : "Generate Export")
+                        </MudButton>
+                    </MudItem>
+                </MudCardContent>
+            </MudCard>
+
+            <!-- Export Queue Table -->
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Export Queue</MudText>
+                    <MudSpacer />
+                    <MudTextField @bind-Value="searchText" 
+                                 Placeholder="Search exports..." 
+                                 Adornment="Adornment.Start"
+                                 AdornmentIcon="@Icons.Material.Filled.Search"
+                                 Variant="Variant.Outlined"
+                                 
+                                 Immediate="true" />
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (!exportJobs.Any())
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="text-center pa-4">
+                            No exports yet. Create your first export above.
+                        </MudText>
+                    }
+                    else
+                    {
+                        <MudTable T="ExportJob" Items="@FilteredExports" 
+                                 Dense="true"
+                                 Hover="true" 
+                                 Striped="true">
+                            <HeaderContent>
+                                <MudTh>
+                                    <MudTableSortLabel T="ExportJob" SortBy="@(x => x.ExportId)">Export ID</MudTableSortLabel>
+                                </MudTh>
+                                <MudTh>Cases</MudTh>
+                                <MudTh>
+                                    <MudTableSortLabel T="ExportJob" SortBy="@(x => x.Formats.FirstOrDefault() ?? string.Empty)">Format</MudTableSortLabel>
+                                </MudTh>
+                                <MudTh>
+                                    <MudTableSortLabel T="ExportJob" SortBy="@(x => x.Status)">Status</MudTableSortLabel>
+                                </MudTh>
+                                <MudTh>Progress</MudTh>
+                                <MudTh>
+                                    <MudTableSortLabel T="ExportJob" SortBy="@(x => x.CreatedAt)">Created</MudTableSortLabel>
+                                </MudTh>
+                                <MudTh>Actions</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Export ID">
+                                    <MudText Typo="Typo.body2" Class="font-weight-medium">
+                                        @context.ExportId
+                                    </MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        @context.CorrelationId
+                                    </MudText>
+                                </MudTd>
+                                <MudTd DataLabel="Cases">
+                                    <MudText Typo="Typo.body2">@context.CasesCount case(s)</MudText>
+                                </MudTd>
+                                <MudTd DataLabel="Format">
+                                    <MudChipSet T="string">
+                                        @foreach (var format in context.Formats)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="@GetFormatColor(format)">
+                                                @format
+                                            </MudChip>
+                                        }
+                                    </MudChipSet>
+                                </MudTd>
+                                <MudTd DataLabel="Status">
+                                    <MudChip T="string" Size="Size.Small" 
+                                            Color="@GetStatusColor(context.Status)"
+                                            Icon="@GetStatusIcon(context.Status)">
+                                        @context.Status
+                                    </MudChip>
+                                    @if (context.Status == "Failed" && !string.IsNullOrEmpty(context.ErrorMessage))
+                                    {
+                                        <MudTooltip Text="@context.ErrorMessage">
+                                            <MudIcon Icon="@Icons.Material.Filled.Error" 
+                                                   Size="Size.Small" 
+                                                   Color="Color.Error" 
+                                                   Class="ml-1" />
+                                        </MudTooltip>
+                                    }
+                                </MudTd>
+                                <MudTd DataLabel="Progress">
+                                    @if (context.Status == "In Progress")
+                                    {
+                                        <MudProgressLinear Value="@context.Progress" 
+                                                          Color="Color.Info"
+                                                          Class="mt-2" />
+                                        <MudText Typo="Typo.caption">@context.Progress%</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">-</MudText>
+                                    }
+                                </MudTd>
+                                <MudTd DataLabel="Created">
+                                    <MudText Typo="Typo.body2">@context.CreatedAt.ToString("g")</MudText>
+                                    @if (context.CompletedAt.HasValue)
+                                    {
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                            Completed: @context.CompletedAt.Value.ToString("g")
+                                        </MudText>
+                                    }
+                                </MudTd>
+                                <MudTd DataLabel="Actions">
+                                    <MudTooltip Text="View Details">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Visibility" 
+                                                      Size="Size.Small"
+                                                      OnClick="@(() => ViewExportDetails(context))" />
+                                    </MudTooltip>
+                                    @if (context.Status == "Completed")
+                                    {
+                                        <MudTooltip Text="Download Export">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Download" 
+                                                          Size="Size.Small"
+                                                          OnClick="@(() => DownloadExportAsync(context))" />
+                                        </MudTooltip>
+                                    }
+                                    @if (context.Status == "Failed")
+                                    {
+                                        <MudTooltip Text="Retry Export">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Refresh" 
+                                                          Size="Size.Small"
+                                                          OnClick="@(() => RetryExportAsync(context))" />
+                                        </MudTooltip>
+                                    }
+                                    @if (context.Status == "Pending" || context.Status == "In Progress")
+                                    {
+                                        <MudTooltip Text="Cancel Export">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Cancel" 
+                                                          Size="Size.Small"
+                                                          Color="Color.Error"
+                                                          OnClick="@(() => CancelExportAsync(context))" />
+                                        </MudTooltip>
+                                    }
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    }
+                </MudCardContent>
+            </MudCard>
+        }
+    </MudPaper>
+</MudContainer>
+
+<!-- Export Details Dialog -->
+<MudDialog @bind-IsVisible="@showExportDetailsDialog" MaxWidth="MaxWidth.Large">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Export Details: @selectedExport?.ExportId</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (selectedExport != null)
+        {
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle1">Export Information</MudText>
+                    <MudDivider Class="my-2" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.body2">Export ID</MudText>
+                    <MudText Typo="Typo.body1" Class="font-weight-bold">@selectedExport.ExportId</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.body2">Correlation ID</MudText>
+                    <MudText Typo="Typo.body1">@selectedExport.CorrelationId</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.body2">Status</MudText>
+                    <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(selectedExport.Status)">
+                        @selectedExport.Status
+                    </MudChip>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.body2">Format</MudText>
+                    <MudChipSet T="string">
+                        @foreach (var format in selectedExport.Formats)
+                        {
+                            <MudChip T="string" Size="Size.Small">@format</MudChip>
+                        }
+                    </MudChipSet>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.body2">Created At</MudText>
+                    <MudText Typo="Typo.body1">@selectedExport.CreatedAt.ToString("g")</MudText>
+                </MudItem>
+                @if (selectedExport.CompletedAt.HasValue)
+                {
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.body2">Completed At</MudText>
+                        <MudText Typo="Typo.body1">@selectedExport.CompletedAt.Value.ToString("g")</MudText>
+                    </MudItem>
+                }
+                @if (!string.IsNullOrEmpty(selectedExport.ErrorMessage))
+                {
+                    <MudItem xs="12">
+                        <MudDivider Class="my-2" />
+                        <MudAlert Severity="Severity.Error">
+                            <MudText Typo="Typo.subtitle2">Error Message</MudText>
+                            <MudText Typo="Typo.body2">@selectedExport.ErrorMessage</MudText>
+                        </MudAlert>
+                    </MudItem>
+                }
+                
+                <!-- Generated Files -->
+                @if (selectedExport.GeneratedFiles.Any())
+                {
+                    <MudItem xs="12">
+                        <MudDivider Class="my-2" />
+                        <MudText Typo="Typo.subtitle1">Generated Files</MudText>
+                        <MudList T="String">
+                            @foreach (var file in selectedExport.GeneratedFiles)
+                            {
+                                <MudListItem T="String">
+                                    <MudIcon Icon="@GetFileIcon(file.Key)" Class="mr-2" />
+                                    <MudText Typo="Typo.body2">@file.Key</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="ml-2">
+                                        @FormatFileSize(file.Value.Length)
+                                    </MudText>
+                                    <MudSpacer />
+                                    <MudButton Size="Size.Small" 
+                                              Variant="Variant.Text"
+                                              StartIcon="@Icons.Material.Filled.Download"
+                                              OnClick="@(() => DownloadFileAsync(file.Key, file.Value))">
+                                        Download
+                                    </MudButton>
+                                </MudListItem>
+                            }
+                        </MudList>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => showExportDetailsDialog = false)">Close</MudButton>
+        @if (selectedExport?.Status == "Completed" && selectedExport.GeneratedFiles.Any())
+        {
+            <MudButton Variant="Variant.Filled" 
+                      Color="Color.Primary"
+                      StartIcon="@Icons.Material.Filled.Download"
+                      OnClick="@(() => DownloadExportAsync(selectedExport))">
+                Download All
+            </MudButton>
+        }
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private enum ExportFormat
+    {
+        SiroXml,
+        ExcelFr18,
+        Pdf,
+        Both
+    }
+
+    private class ExportJob
+    {
+        public string ExportId { get; set; } = string.Empty;
+        public string CorrelationId { get; set; } = string.Empty;
+        public List<string> CaseIds { get; set; } = new();
+        public int CasesCount => CaseIds.Count;
+        public List<string> Formats { get; set; } = new();
+        public string Status { get; set; } = "Pending";
+        public int Progress { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? CompletedAt { get; set; }
+        public string? ErrorMessage { get; set; }
+        public Dictionary<string, byte[]> GeneratedFiles { get; set; } = new();
+    }
+
+    private bool isLoading = true;
+    private bool hasError = false;
+    private string errorMessage = string.Empty;
+    private bool isExporting = false;
+    
+    private List<FileMetadata> availableCases = new();
+    private FileMetadata? selectedCase;
+    private HashSet<FileMetadata> selectedCases = new();
+    
+    private ExportFormat exportFormat = ExportFormat.SiroXml;
+    
+    private List<ExportJob> exportJobs = new();
+    private string searchText = string.Empty;
+    private bool showExportDetailsDialog = false;
+    private ExportJob? selectedExport;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAvailableCasesAsync();
+    }
+
+    private async Task LoadAvailableCasesAsync()
+    {
+        isLoading = true;
+        hasError = false;
+        StateHasChanged();
+
+        try
+        {
+            var result = await FileMetadataQueryService.GetFileMetadataAsync(cancellationToken: CancellationToken.None);
+            
+            if (result.IsFailure)
+            {
+                hasError = true;
+                errorMessage = $"Failed to load cases: {result.Error}";
+                Logger.LogError("Failed to load file metadata: {Error}", result.Error);
+            }
+            else if (result.IsCancelled())
+            {
+                hasError = true;
+                errorMessage = "Operation was cancelled";
+            }
+            else
+            {
+                availableCases = result.Value ?? new List<FileMetadata>();
+                Logger.LogInformation("Loaded {Count} available cases", availableCases.Count);
+            }
+        }
+        catch (Exception ex)
+        {
+            hasError = true;
+            errorMessage = $"Error loading cases: {ex.Message}";
+            Logger.LogError(ex, "Error loading available cases");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnCaseSelected(FileMetadata? selectedCase)
+    {
+        if (selectedCase != null && !selectedCases.Contains(selectedCase))
+        {
+            selectedCases.Add(selectedCase);
+            this.selectedCase = null; // Clear selection for next search
+            StateHasChanged();
+        }
+    }
+
+    private void RemoveSelectedCase(FileMetadata caseToRemove)
+    {
+        selectedCases.Remove(caseToRemove);
+        StateHasChanged();
+    }
+
+    private Task<IEnumerable<FileMetadata>> SearchCases(string value, CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested)
+            return Task.FromResult<IEnumerable<FileMetadata>>(Enumerable.Empty<FileMetadata>());
+
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult<IEnumerable<FileMetadata>>(availableCases);
+
+        var searchLower = value.ToLowerInvariant();
+        return Task.FromResult(availableCases.Where(c => 
+            c.FileId.ToLowerInvariant().Contains(searchLower) ||
+            c.FileName.ToLowerInvariant().Contains(searchLower)));
+    }
+
+    private void SelectAllCases()
+    {
+        selectedCases = new HashSet<FileMetadata>(availableCases);
+        StateHasChanged();
+    }
+
+    private void ClearSelection()
+    {
+        selectedCases.Clear();
+        selectedCase = null;
+        StateHasChanged();
+    }
+
+    private async Task InitiateExportAsync()
+    {
+        if (!selectedCases.Any())
+        {
+            Snackbar.Add("Please select at least one case", Severity.Warning);
+            return;
+        }
+
+        isExporting = true;
+        StateHasChanged();
+
+        var exportId = Guid.NewGuid().ToString();
+        var correlationId = Guid.NewGuid().ToString();
+        
+        var job = new ExportJob
+        {
+            ExportId = exportId,
+            CorrelationId = correlationId,
+            CaseIds = selectedCases.Select(c => c.FileId).ToList(),
+            Formats = GetFormatsList(),
+            Status = "In Progress",
+            Progress = 0,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        exportJobs.Insert(0, job);
+        StateHasChanged();
+
+        try
+        {
+            // Process each selected case
+            var totalCases = selectedCases.Count;
+            var processedCases = 0;
+
+            foreach (var fileMetadata in selectedCases)
+            {
+                // Hydrate the REAL consolidated metadata persisted by the pipeline (keyed by FileId).
+                // We never fabricate placeholder values — if the case has not been processed yet, fail
+                // this export with an actionable message instead of producing a wrong/empty layout (GH #14).
+                var metadataResult = await UnifiedMetadataStore.GetByFileIdAsync(
+                    fileMetadata.FileId, CancellationToken.None);
+
+                if (metadataResult.IsFailure || metadataResult.Value is null)
+                {
+                    job.Status = "Failed";
+                    job.ErrorMessage =
+                        $"No hay metadatos procesados para el caso {fileMetadata.FileId}. " +
+                        "Procese el caso en el pipeline (extracción + reconciliación) antes de exportar.";
+                    job.CompletedAt = DateTime.UtcNow;
+                    StateHasChanged();
+                    Snackbar.Add(job.ErrorMessage, Severity.Error);
+                    return;
+                }
+
+                var metadata = metadataResult.Value;
+
+                // Generate exports based on selected format
+                if (exportFormat == ExportFormat.SiroXml || exportFormat == ExportFormat.Both)
+                {
+                    job.Progress = (int)((processedCases / (double)totalCases) * (exportFormat == ExportFormat.Both ? 33 : 100));
+                    StateHasChanged();
+
+                    using var xmlStream = new MemoryStream();
+                    var xmlResult = await ExportService.ExportSiroXmlAsync(
+                        metadata,
+                        xmlStream,
+                        fileMetadata.FileId,
+                        correlationId,
+                        CancellationToken.None);
+
+                    if (xmlResult.IsSuccess)
+                    {
+                        job.GeneratedFiles[$"{fileMetadata.FileId}_siro.xml"] = xmlStream.ToArray();
+                    }
+                    else if (xmlResult.IsFailure)
+                    {
+                        job.Status = "Failed";
+                        job.ErrorMessage = $"SIRO XML export failed: {xmlResult.Error}";
+                        job.CompletedAt = DateTime.UtcNow;
+                        StateHasChanged();
+                        Snackbar.Add($"Export failed for {fileMetadata.FileId}: {xmlResult.Error}", Severity.Error);
+                        return;
+                    }
+                }
+
+                if (exportFormat == ExportFormat.ExcelFr18 || exportFormat == ExportFormat.Both)
+                {
+                    job.Progress = (int)((processedCases / (double)totalCases) * (exportFormat == ExportFormat.Both ? 66 : 100));
+                    StateHasChanged();
+
+                    using var excelStream = new MemoryStream();
+                    // Real 24-column "Datos Carga de Oficio" layout (GH #14) — NOT the legacy
+                    // ExcelLayoutGenerator. Driven by the hydrated UnifiedMetadataRecord.
+                    var excelResult = await DatosCargaGenerator.GenerateAsync(
+                        metadata,
+                        excelStream,
+                        CancellationToken.None);
+
+                    if (excelResult.IsSuccess)
+                    {
+                        job.GeneratedFiles[$"{fileMetadata.FileId}.datos-carga-oficio.xlsx"] = excelStream.ToArray();
+                    }
+                    else if (excelResult.IsFailure)
+                    {
+                        job.Status = "Failed";
+                        job.ErrorMessage = $"Excel export failed: {excelResult.Error}";
+                        job.CompletedAt = DateTime.UtcNow;
+                        StateHasChanged();
+                        Snackbar.Add($"Export failed for {fileMetadata.FileId}: {excelResult.Error}", Severity.Error);
+                        return;
+                    }
+                }
+
+                if (exportFormat == ExportFormat.Pdf)
+                {
+                    job.Progress = (int)((processedCases / (double)totalCases) * 100);
+                    StateHasChanged();
+
+                    // For PDF export, we need the original PDF content for summarization
+                    // In a real scenario, this would be retrieved from storage
+                    // For now, we'll pass null and let the service generate without summarization
+                    byte[]? pdfContent = null; // TODO: Retrieve original PDF content from storage
+
+                    using var pdfStream = new MemoryStream();
+                    var pdfResult = await ExportService.ExportSignedPdfWithSummarizationAsync(
+                        metadata,
+                        pdfContent,
+                        pdfStream,
+                        fileMetadata.FileId,
+                        correlationId,
+                        CancellationToken.None);
+
+                    if (pdfResult.IsSuccess)
+                    {
+                        job.GeneratedFiles[$"{fileMetadata.FileId}_signed.pdf"] = pdfStream.ToArray();
+                    }
+                    else if (pdfResult.IsFailure)
+                    {
+                        job.Status = "Failed";
+                        job.ErrorMessage = $"PDF export failed: {pdfResult.Error}";
+                        job.CompletedAt = DateTime.UtcNow;
+                        StateHasChanged();
+                        Snackbar.Add($"Export failed for {fileMetadata.FileId}: {pdfResult.Error}", Severity.Error);
+                        return;
+                    }
+                }
+
+                processedCases++;
+            }
+
+            job.Status = "Completed";
+            job.Progress = 100;
+            job.CompletedAt = DateTime.UtcNow;
+            Snackbar.Add($"Export completed successfully. {job.GeneratedFiles.Count} file(s) generated.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            job.Status = "Failed";
+            job.ErrorMessage = $"Export error: {ex.Message}";
+            job.CompletedAt = DateTime.UtcNow;
+            Logger.LogError(ex, "Error during export generation");
+            Snackbar.Add($"Export failed: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isExporting = false;
+            StateHasChanged();
+        }
+    }
+
+    private List<string> GetFormatsList()
+    {
+        return exportFormat switch
+        {
+            ExportFormat.SiroXml => new List<string> { "SIRO XML" },
+            ExportFormat.ExcelFr18 => new List<string> { "Datos Carga de Oficio" },
+            ExportFormat.Pdf => new List<string> { "Signed PDF" },
+            ExportFormat.Both => new List<string> { "SIRO XML", "Datos Carga de Oficio" },
+            _ => new List<string>()
+        };
+    }
+
+    private async Task DownloadExportAsync(ExportJob job)
+    {
+        if (!job.GeneratedFiles.Any())
+        {
+            Snackbar.Add("No files available for download", Severity.Warning);
+            return;
+        }
+
+        // If multiple files, show dialog to select which to download
+        // For now, download all files sequentially
+        foreach (var file in job.GeneratedFiles)
+        {
+            await DownloadFileAsync(file.Key, file.Value);
+            // Small delay between downloads to avoid browser blocking
+            await Task.Delay(500);
+        }
+        
+        Snackbar.Add($"Downloaded {job.GeneratedFiles.Count} file(s)", Severity.Success);
+    }
+
+    private async Task DownloadFileAsync(string fileName, byte[] content)
+    {
+        try
+        {
+            // Determine content type based on file extension
+            var contentType = fileName.ToLowerInvariant().EndsWith(".xml") 
+                ? "application/xml" 
+                : fileName.ToLowerInvariant().EndsWith(".xlsx") 
+                    ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    : fileName.ToLowerInvariant().EndsWith(".pdf")
+                        ? "application/pdf"
+                        : "application/octet-stream";
+
+            // Convert byte array to base64 for JavaScript download
+            var base64Content = Convert.ToBase64String(content);
+            var dataUri = $"data:{contentType};base64,{base64Content}";
+
+            // Use JavaScript interop to trigger download
+            await JSRuntime.InvokeVoidAsync("downloadFile", dataUri, fileName, contentType);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error downloading file {FileName}", fileName);
+            Snackbar.Add($"Error downloading file: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task RetryExportAsync(ExportJob job)
+    {
+        // Reset job and retry
+        job.Status = "Pending";
+        job.Progress = 0;
+        job.ErrorMessage = null;
+        job.CompletedAt = null;
+        job.GeneratedFiles.Clear();
+        
+        // Re-run export with same parameters
+        // For simplicity, we'll just mark as pending and user can re-initiate
+        Snackbar.Add("Please re-initiate the export with the same cases", Severity.Info);
+        StateHasChanged();
+    }
+
+    private List<ExportJob> FilteredExports
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                return exportJobs;
+
+            var searchLower = searchText.ToLowerInvariant();
+            return exportJobs.Where(j => 
+                j.ExportId.ToLowerInvariant().Contains(searchLower) ||
+                j.CorrelationId.ToLowerInvariant().Contains(searchLower) ||
+                j.CaseIds.Any(c => c.ToLowerInvariant().Contains(searchLower))).ToList();
+        }
+    }
+
+    private Color GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "Completed" => Color.Success,
+            "In Progress" => Color.Info,
+            "Pending" => Color.Warning,
+            "Failed" => Color.Error,
+            _ => Color.Default
+        };
+    }
+
+    private string GetStatusIcon(string status)
+    {
+        return status switch
+        {
+            "Completed" => Icons.Material.Filled.CheckCircle,
+            "In Progress" => Icons.Material.Filled.HourglassEmpty,
+            "Pending" => Icons.Material.Filled.Schedule,
+            "Failed" => Icons.Material.Filled.Error,
+            _ => Icons.Material.Filled.Help
+        };
+    }
+
+    private Color GetFormatColor(string format)
+    {
+        return format switch
+        {
+            "SIRO XML" => Color.Primary,
+            "Datos Carga de Oficio" => Color.Secondary,
+            "Signed PDF" => Color.Error,
+            "PDF" => Color.Error,
+            _ => Color.Default
+        };
+    }
+
+    private void ViewExportDetails(ExportJob export)
+    {
+        selectedExport = export;
+        showExportDetailsDialog = true;
+        StateHasChanged();
+    }
+
+    private async Task CancelExportAsync(ExportJob job)
+    {
+        // In a real implementation, this would call a service to cancel the export
+        job.Status = "Cancelled";
+        job.CompletedAt = DateTime.UtcNow;
+        job.ErrorMessage = "Export cancelled by user";
+        Snackbar.Add("Export cancelled", Severity.Info);
+        StateHasChanged();
+    }
+
+    private string GetFileIcon(string fileName)
+    {
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        return extension switch
+        {
+            ".xml" => Icons.Material.Filled.Code,
+            ".xlsx" => Icons.Material.Filled.TableChart,
+            ".pdf" => Icons.Material.Filled.PictureAsPdf,
+            _ => Icons.Material.Filled.InsertDriveFile
+        };
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len /= 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+}
+

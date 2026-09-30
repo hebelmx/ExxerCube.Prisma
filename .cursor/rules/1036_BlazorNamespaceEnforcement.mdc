@@ -1,0 +1,146 @@
+---
+globs: '**/*.razor'
+description: Enforces @namespace directive in Blazor components when code-behind files exist
+---
+
+# Blazor Namespace Enforcement
+
+## Meta
+
+**Title**: Blazor Namespace Enforcement
+**Description**: Enforces @namespace directive in Blazor components when code-behind files exist to prevent duplicate method/property generation
+**Created-at**: 2025-01-15T00:00:00Z
+**Last-updated-at**: 2025-01-15T00:00:00Z
+**Applies-to**: All Blazor component files (.razor) with corresponding code-behind files (.razor.cs)
+**File-matcher**: *.razor files
+
+## Requirements
+
+### <requirement priority="critical">
+**Description**: When a Blazor component has a code-behind file (.razor.cs), the .razor file MUST include a @namespace directive that exactly matches the namespace declared in the code-behind file
+**Examples**:
+<correct-example>
+```razor
+@page "/adaptive-extractor"
+@namespace ExxerCube.Prisma.Web.UI.Components.Pages
+@using ExxerCube.Prisma.Domain.Interfaces
+```
+</correct-example>
+<incorrect-example>
+```razor
+@page "/adaptive-extractor"
+@using ExxerCube.Prisma.Domain.Interfaces
+// Missing @namespace directive - will cause duplicate method/property generation
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: The @namespace directive MUST be placed immediately after @page directive(s) and before any @using directives
+**Examples**:
+<correct-example>
+```razor
+@page "/component"
+@namespace ExxerCube.Prisma.Web.UI.Components.Pages
+@using ExxerCube.Prisma.Domain.Interfaces
+```
+</correct-example>
+<incorrect-example>
+```razor
+@page "/component"
+@using ExxerCube.Prisma.Domain.Interfaces
+@namespace ExxerCube.Prisma.Web.UI.Components.Pages
+// @namespace should come before @using directives
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: When creating a new Blazor component with a code-behind file, always add the @namespace directive matching the code-behind namespace
+**Examples**:
+<correct-example>
+```razor
+@page "/new-component"
+@namespace ExxerCube.Prisma.Web.UI.Components.Pages
+```
+</correct-example>
+<incorrect-example>
+```razor
+@page "/new-component"
+// Missing @namespace - relying on folder structure inference
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: When reviewing or modifying Blazor components, verify that @namespace matches the code-behind namespace if a .razor.cs file exists
+**Examples**:
+<correct-example>
+```razor
+// Component.razor
+@page "/component"
+@namespace ExxerCube.Prisma.Web.UI.Components.Pages
+
+// Component.razor.cs
+namespace ExxerCube.Prisma.Web.UI.Components.Pages;
+public partial class Component : ComponentBase
+```
+</correct-example>
+<incorrect-example>
+```razor
+// Component.razor - missing @namespace
+@page "/component"
+
+// Component.razor.cs
+namespace ExxerCube.Prisma.Web.UI.Components.Pages;
+// Namespace mismatch will cause duplicate generation
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: If a Blazor component does NOT have a code-behind file, @namespace is optional and will be inferred from folder structure
+**Examples**:
+<correct-example>
+```razor
+@page "/simple-component"
+@using ExxerCube.Prisma.Domain.Interfaces
+// No code-behind, namespace inferred from folder structure
+```
+</correct-example>
+<incorrect-example>
+```razor
+@page "/simple-component"
+@namespace ExxerCube.Prisma.Web.UI.Components.Pages
+@using ExxerCube.Prisma.Domain.Interfaces
+// @namespace is optional when no code-behind exists, but not incorrect
+```
+</incorrect-example>
+</requirement>
+
+## Context
+
+When a Blazor component uses a code-behind file (`.razor.cs`), the Blazor transpiler generates a partial class from the `.razor` file. If the `.razor` file lacks an explicit `@namespace` directive, Blazor infers the namespace from the folder structure. This can cause a namespace mismatch with the code-behind file's explicit namespace declaration.
+
+**The Problem:**
+- Code-behind declares: `namespace ExxerCube.Prisma.Web.UI.Components.Pages;`
+- Razor file infers namespace from folder: might be different
+- Result: Two separate partial class definitions in different namespaces
+- Symptom: Duplicate methods and properties in generated code
+
+**The Solution:**
+Always explicitly declare `@namespace` in `.razor` files when a `.razor.cs` file exists, ensuring both partial class definitions are in the same namespace.
+
+## Detection Pattern
+
+When encountering build errors about duplicate methods/properties in Blazor components:
+1. Check if the component has a `.razor.cs` file
+2. Verify the `.razor` file has a `@namespace` directive
+3. Ensure the `@namespace` matches the namespace in `.razor.cs`
+4. If missing or mismatched, add/correct the `@namespace` directive
+
+## References
+
+<reference as="dependency" href=".cursor/rules/0000_RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/1001_CSharpCodingStandards.mdc" reason="Related C# coding standards">C# Coding Standards</reference>
+<reference as="context" href=".cursor/rules/1010_CSharpInstructions.mdc" reason="C# development guidelines">C# Instructions</reference>

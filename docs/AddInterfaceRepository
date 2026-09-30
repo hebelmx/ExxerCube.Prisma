@@ -1,0 +1,416 @@
+# Architectural Refactoring Plan: Domain Interfaces and Repository Pattern
+
+## Objective
+
+Remove architectural violation where Application layer directly depends on Infrastructure (EF Core). Introduce domain-agnostic repository interfaces and refactor FileMetadataQueryService to use them, returning `Result<T>` following Railway-Oriented Programming patterns.
+
+## Phase 1: Create Domain Interfaces
+
+### 1.1 Create IRepository<T, TId> Interface
+
+**Location**: `Prisma/Code/Src/CSharp/Domain/Interfaces/Contracts/IRepository.cs`
+
+**Actions**:
+
+    public interface IRepository<T, in TId>
+        where T : class
+    {
+        // 🔍 QUERIES
+        Task<T?> GetByIdAsync(TId id, CancellationToken cancellationToken = default);
+        
+        Task<IReadOnlyList<T>> FindAsync(
+            Expression<Func<T, bool>> predicate,
+            CancellationToken cancellationToken = default);
+        
+        Task<bool> ExistsAsync(
+            Expression<Func<T, bool>> predicate,
+            CancellationToken cancellationToken = default);
+        
+        Task<int> CountAsync(
+            Expression<Func<T, bool>>? predicate = null,
+            CancellationToken cancellationToken = default);
+        
+        Task<IReadOnlyList<T>> ListAsync(CancellationToken cancellationToken = default);
+        
+        Task<IReadOnlyList<T>> ListAsync(
+            Expression<Func<T, bool>> predicate,
+            CancellationToken cancellationToken = default);
+        
+        // 🧾 PROJECTIONS (for read-only DTOs, optional)
+        Task<IReadOnlyList<TResult>> SelectAsync<TResult>(
+            Expression<Func<T, bool>> predicate,
+            Expression<Func<T, TResult>> selector,
+            CancellationToken cancellationToken = default);
+        
+        // ✏️ COMMANDS
+        Task AddAsync(T entity, CancellationToken cancellationToken = default);
+        
+        Task AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
+        
+        void Update(T entity);
+        
+        void Remove(T entity);
+        
+        void RemoveRange(IEnumerable<T> entities);
+        
+        // 💾 UNIT OF WORK SUPPORT
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    }
+**Validation**:
+
+- No EF Core references
+- Uses `System.Linq.Expressions` for predicates
+- Generic constraints: `where T : class`
+
+### 1.2 Create ISpecification<T> Interface
+
+**Location**: `Prisma/Code/Src/CSharp/Domain/Interfaces/Contracts/ISpecification.cs`
+/// <summary>
+    /// Represents a query intent over T, purely via expression trees so that
+    /// EF Core or LINQ Providers can translate to SQL.
+    /// </summary>
+    public interface ISpecification<T>
+        where T : class
+    {
+        /// <summary> Filter criteria </summary>
+        Expression<Func<T, bool>>? Criteria { get; }
+        
+        /// <summary> Sorting: ORDER BY ASC </summary>
+        Expression<Func<T, object>>? OrderBy { get; }
+        
+        /// <summary> Sorting: ORDER BY DESC </summary>
+        Expression<Func<T, object>>? OrderByDescending { get; }
+        
+        /// <summary> Child navigation includes </summary>
+        IReadOnlyList<Expression<Func<T, object>>> Includes { get; }
+        
+        /// <summary> Skip N rows </summary>
+        int? Skip { get; }
+        
+        /// <summary> Take N rows </summary>
+        int? Take { get; }
+        
+        /// <summary> Whether paging should be applied </summary>
+        bool IsPagingEnabled => Skip.HasValue || Take.HasValue;
+    }
+**Actions**:
+
+- Create interface with provided signature
+- Ensure pure expression tree-based (no EF Core types)
+- Properties remain as provided (Criteria, OrderBy, Includes, Skip, Take)
+
+**Validation**:
+
+- No infrastructure dependencies
+- Expression trees only
+
+
+
+### 1.4 Create unit tests 
+
+Adapt the next code and insert on her namespace on Domain Test  
+using System;
+using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
+using IndQuestResults;
+using IndQuestResults.Operations;
+using NSubstitute;
+using Shouldly;
+using Xunit;
+using Xunit.Abstractions;
+using ExxerCube.Prisma.Domain.Contracts;
+using Microsoft.Extensions.Logging;
+
+namespace Tests.Application.Repositories
+{
+    public class OrderRepositoryTests
+    {
+        private readonly IRepository<Order, Guid> _repo;
+        private readonly ILogger<OrderRepositoryTests> _logger;
+        private readonly ITestOutputHelper _output;
+
+        public OrderRepositoryTests(ITestOutputHelper output)
+        {
+            _repo = Substitute.For<IRepository<Order, Guid>>();
+            _logger = Substitute.For<ILogger<OrderRepositoryTests>>();
+            _output = output;
+        }
+
+        [Fact]
+        public async Task GetById_Should_Return_Success_When_Order_Found()
+        {
+            // Arrange
+            var orderId = Guid.NewGuid();
+            var expected = new Order(orderId);
+            _repo.GetByIdAsync(orderId, Arg.Any<CancellationToken>())
+                 .Returns(Result<Order>.Success(expected));
+
+            // Act
+            var result = await _repo.GetByIdAsync(orderId);
+
+            // Assert
+            result.IsSuccess.ShouldBeTrue();
+            result.Value.ShouldBe(expected);
+            _logger.Received(0).LogError(Arg.Any<string>());
+        }
+
+        [Fact]
+        public async Task GetById_Should_Return_Failure_When_Not_Found()
+        {
+            // Arrange
+            var orderId = Guid.NewGuid();
+            _repo.GetByIdAsync(orderId, Arg.Any<CancellationToken>())
+                 .Returns(Result<Order>.WithFailure("Order not found"));
+
+            // Act
+            var result = await _repo.GetByIdAsync(orderId);
+
+            // Assert
+            result.IsFailure.ShouldBeTrue();
+            result.Errors.ShouldContain("Order not found");
+            _logger.Received(0).LogError(Arg.Any<string>());
+        }
+
+        [Fact]
+        public async Task FindAsync_Should_Filter_Correctly()
+        {
+            // Arrange
+            var spec = new TestSpec(o => o.Total > 100);
+            _repo.FindAsync(spec.Criteria!, Arg.Any<CancellationToken>())
+                 .Returns(Result<IReadOnlyList<Order>>.Success(new List<Order>()));
+
+            // Act
+            var result = await _repo.FindAsync(spec.Criteria!);
+
+            // Assert
+            result.IsSuccess.ShouldBeTrue();
+        }
+
+        private sealed class TestSpec : ISpecification<Order>
+        {
+            public TestSpec(Expression<Func<Order, bool>> criteria) => Criteria = criteria;
+            public Expression<Func<Order, bool>> Criteria { get; }
+            public Expression<Func<Order, object>>? OrderBy => null;
+            public Expression<Func<Order, object>>? OrderByDescending => null;
+            public IReadOnlyList<Expression<Func<Order, object>>> Includes => Array.Empty<Expression<Func<Order, object>>>();
+            public int? Skip => null;
+            public int? Take => null;
+            public bool IsPagingEnabled => false;
+        }
+    }
+}
+
+
+## Phase 2: Refactor FileMetadataQueryService
+
+### 2.1 Analyze Current Implementation
+
+**File**: `Prisma/Code/Src/CSharp/Application/Services/FileMetadataQueryService.cs`
+
+**Actions**:
+
+- Identify all EF Core dependencies (DbContext, DbSet, Include, etc.)
+- Map current queries to IRepository methods
+- Identify where ISpecification can replace query building
+- Document current method signatures and return types
+
+### 2.2 Refactor Service to Use Interfaces
+
+**Actions**:
+
+- Replace DbContext/DbSet with `IRepository<FileMetadata, TId>` injection
+- Replace query building with ISpecification where applicable
+- Convert all methods to return `Result<T>` or `Result<IReadOnlyList<T>>`
+- Wrap repository calls in Result pattern:
+  - Success: return `Result<T>.Success(value)`
+  - Failure: return `Result<T>.WithFailure(errorMessage)`
+- Handle exceptions using `ResultTryExtensions.TryAsync` pattern
+- Use async chaining: `.ThenAsync`, `.ThenMap`, `.ThenTap` from IndQuestResults
+
+**Pattern Example**:
+
+```csharp
+public async Task<Result<IReadOnlyList<FileMetadataDto>>> GetFilesAsync(
+    CancellationToken cancellationToken = default)
+{
+    return await ResultTryExtensions.TryAsync(
+        async () => await _repository.ListAsync(cancellationToken),
+        ex => $"Failed to retrieve files: {ex.Message}"
+    )
+    .ThenMap(files => files.Select(f => f.ToDto()).ToList());
+}
+```
+
+### 2.3 Update Constructor and Dependencies
+
+**Actions**:
+
+- Replace EF Core dependency with `IRepository<FileMetadata, TId>`
+- Add `ISpecification<FileMetadata>` builder if needed (or use repository methods directly)
+- Ensure proper null validation using `ResultExtensions.ValidateNotNull`
+
+## Phase 3: Create Infrastructure Implementation
+
+### 3.1 Create EF Core Repository Implementation
+
+**Location**: `Prisma/Code/Src/CSharp/Infrastructure/Repositories/EfCoreRepository.cs`
+
+**Actions**:
+
+- Implement `IRepository<T, TId>` using EF Core DbContext
+- Map all interface methods to EF Core operations
+- Wrap EF Core exceptions in Result failures
+- Implement ISpecification evaluation for EF Core
+- Use `ResultTryExtensions.TryAsync` for all async operations
+
+**Key Implementation Points**:
+
+- `GetByIdAsync`: `await _dbSet.FindAsync(id)` → wrap in Result
+- `FindAsync`: `_dbSet.Where(predicate)` → wrap in Result
+- `SaveChangesAsync`: `await _context.SaveChangesAsync()` → wrap in Result
+- Handle `DbUpdateException`, `DbUpdateConcurrencyException` appropriately
+
+### 3.2 Create Specification Evaluator
+
+**Location**: `Prisma/Code/Src/CSharp/Infrastructure/Repositories/SpecificationEvaluator.cs`
+
+**Actions**:
+
+- Create helper to convert `ISpecification<T>` to EF Core IQueryable
+- Apply Criteria, OrderBy, Includes, Skip, Take
+- Keep implementation details isolated in Infrastructure
+
+## Phase 4: Review and Validate Test Draft
+
+### 4.1 Review OrderRepositoryTests.cs Draft
+
+**File**: `OrderRepositoryTests.cs` (location to be discovered)
+
+**Validation Checklist**:
+
+- Tests use port interfaces (IRepository) for mocking, not concrete packages
+- Tests follow IITDD principles (pass for ANY valid implementation)
+- No fragile error message assertions
+- Uses Result pattern in assertions: `result.IsSuccess.ShouldBeTrue()`
+- Uses factory builders for complex object creation
+- Tests follow railway pattern in setup
+- No implementation-specific behavior assertions
+
+**Actions**:
+
+- Review test structure and identify violations
+- Document required changes
+- Ensure tests validate contracts, not implementation details
+
+### 4.2 Refactor FileMetadataQueryService Tests
+
+**File**: `FileMetadataQueryServiceTests.cs` (to be located or created)
+
+**Actions**:
+
+- Update tests to mock `IRepository<FileMetadata, TId>`
+- Update assertions to use Result pattern
+- Remove EF Core-specific test setup
+- Ensure tests validate interface contracts
+- Use NSubstitute for mocking (per project standards)
+- Use Shouldly for assertions (per project standards)
+
+## Phase 5: Dependency Injection Configuration
+
+### 5.1 Register Repository Implementation
+
+**Location**: DI configuration file (Startup.cs, Program.cs, or DI module)
+
+**Actions**:
+
+- Register `IRepository<T, TId>` → `EfCoreRepository<T, TId>` (scoped)
+- Ensure DbContext is registered
+- Verify lifetime management (scoped for DbContext)
+
+## Phase 6: Validation and Testing
+
+### 6.1 Run Tests
+
+**Actions**:
+
+- Execute OrderRepositoryTests to validate draft
+- Execute FileMetadataQueryServiceTests
+- Ensure all tests pass
+- Verify no EF Core references in Application layer
+
+### 6.2 Architecture Validation
+
+**Actions**:
+
+- Verify Application layer has no Infrastructure references
+- Confirm Domain interfaces have no infrastructure dependencies
+- Validate Result<T> usage follows IndQuestResults patterns
+- Check IITDD compliance in tests
+
+## Deliverables
+
+1. **Domain Interfaces**:
+
+   - `Domain/Interfaces/Contracts/IRepository.cs`
+   - `Domain/Interfaces/Contracts/ISpecification.cs`
+
+2. **Infrastructure Implementation**:
+
+   - `Infrastructure/Repositories/EfCoreRepository.cs`
+   - `Infrastructure/Repositories/SpecificationEvaluator.cs` (if needed)
+
+3. **Refactored Service**:
+
+   - `Application/Services/FileMetadataQueryService.cs` (updated)
+
+4. **Tests**:
+
+   - `OrderRepositoryTests.cs` (validated and updated)
+   - `FileMetadataQueryServiceTests.cs` (refactored)
+
+5. **DI Configuration**:
+
+   - Updated registration for repository pattern
+
+## Success Criteria
+
+- ✅ No EF Core references in Application layer
+- ✅ All methods return `Result<T>` following ROP patterns
+- ✅ Tests are IITDD compliant (pass for any valid implementation)
+- ✅ No fragile assertions in tests
+- ✅ Domain interfaces are pure (no infrastructure dependencies)
+- ✅ All existing tests pass
+- ✅ Code follows project coding standards (functional programming, clean architecture)
+
+## Future Considerations (Out of Scope)
+
+### Expression Tree Validation Analyzer
+
+**Note**: Future enhancement to detect non-translatable expressions at compile-time.
+
+**Potential Implementation**:
+
+- Roslyn analyzer to detect:
+  - Captured variables in expression trees that aren't constants
+  - Method calls that EF Core cannot translate to SQL
+  - Complex C# expressions that don't map to SQL operations
+  - String operations not supported by EF Core
+
+**Benefits**:
+
+- Catch translation issues at compile-time
+- Prevent runtime SQL translation failures
+- Guide developers toward translatable patterns
+
+**Not in Current Scope**: This is a future enhancement, not part of this refactoring.
+
+## Notes
+
+- During execution, we'll discover the exact structure and adapt accordingly
+- May need to create additional helper classes for Result pattern integration
+- Specification evaluator may be optional if repository methods handle predicates directly
+- Will follow IndQuestResults manual for Result<T> usage patterns
+- **CRITICAL**: All operations return `Task<Result>` - no void methods
+- **CRITICAL**: Expression trees must be EF Core SQL-translatable
+- **ITDD Pattern**: Tests mock interfaces, validate contracts, use Result pattern

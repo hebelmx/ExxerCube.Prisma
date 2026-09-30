@@ -1,0 +1,1096 @@
+{
+  "timestamp": "20251105_213537",
+  "mode": "dry-run",
+  "base_path": "F:\\Dynamic\\ExxerAi\\ExxerAI",
+  "vault_fixtures_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures",
+  "backup_directory": null,
+  "summary": {
+    "total_mappings": 72,
+    "successful": 72,
+    "failed": 0,
+    "components_updated": 6
+  },
+  "results": [
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedFullStackContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Cortex.Integration.Test\\Fixtures\\AutomatedFullStackContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Cortex.Integration.Tests.Fixtures",
+        "file_name": "AutomatedFullStackContainerFixture.cs",
+        "target_component": "Cortex"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\KnowledgeStoreContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Cortex.Integration.Test\\Fixtures\\KnowledgeStoreContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Cortex.Integration.Tests.Fixtures",
+        "file_name": "KnowledgeStoreContainerFixture.cs",
+        "target_component": "Cortex"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedQdrantContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Cortex.Integration.Test\\Fixtures\\AutomatedQdrantContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Cortex.Integration.Tests.Fixtures",
+        "file_name": "AutomatedQdrantContainerFixture.cs",
+        "target_component": "Cortex"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedNeo4jContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Cortex.Integration.Test\\Fixtures\\AutomatedNeo4jContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Cortex.Integration.Tests.Fixtures",
+        "file_name": "AutomatedNeo4jContainerFixture.cs",
+        "target_component": "Cortex"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedOllamaContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Cortex.Integration.Test\\Fixtures\\AutomatedOllamaContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Cortex.Integration.Tests.Fixtures",
+        "file_name": "AutomatedOllamaContainerFixture.cs",
+        "target_component": "Cortex"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\QdrantContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Cortex.Integration.Test\\Fixtures\\QdrantContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Cortex.Integration.Tests.Fixtures",
+        "file_name": "QdrantContainerFixture.cs",
+        "target_component": "Cortex"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\Neo4jContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Cortex.Integration.Test\\Fixtures\\Neo4jContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Cortex.Integration.Tests.Fixtures",
+        "file_name": "Neo4jContainerFixture.cs",
+        "target_component": "Cortex"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\OllamaContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Cortex.Integration.Test\\Fixtures\\OllamaContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Cortex.Integration.Tests.Fixtures",
+        "file_name": "OllamaContainerFixture.cs",
+        "target_component": "Cortex"
+      },
+      "backup_path": null,
+      "checksum_before": "5280e5ee797af130d8e34dd2e99f2a8702fd9782c33bda801d8ab1de6981ad0a",
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixtureEvents.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Cortex.Integration.Test\\Fixtures\\FixtureEvents.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Cortex.Integration.Tests.Fixtures",
+        "file_name": "FixtureEvents.cs",
+        "target_component": "Cortex"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixtureDocumentHashGenerator.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Cortex.Integration.Test\\Fixtures\\FixtureDocumentHashGenerator.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Cortex.Integration.Tests.Fixtures",
+        "file_name": "FixtureDocumentHashGenerator.cs",
+        "target_component": "Cortex"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixturePolymorphicDocumentProcessor.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Cortex.Integration.Test\\Fixtures\\FixturePolymorphicDocumentProcessor.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Cortex.Integration.Tests.Fixtures",
+        "file_name": "FixturePolymorphicDocumentProcessor.cs",
+        "target_component": "Cortex"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixtureGoogleDriveIngestionClient.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Cortex.Integration.Test\\Fixtures\\FixtureGoogleDriveIngestionClient.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Cortex.Integration.Tests.Fixtures",
+        "file_name": "FixtureGoogleDriveIngestionClient.cs",
+        "target_component": "Cortex"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedFullStackContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Nexus.Integration.Test\\Fixtures\\AutomatedFullStackContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Nexus.Integration.Tests.Fixtures",
+        "file_name": "AutomatedFullStackContainerFixture.cs",
+        "target_component": "Nexus"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\KnowledgeStoreContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Nexus.Integration.Test\\Fixtures\\KnowledgeStoreContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Nexus.Integration.Tests.Fixtures",
+        "file_name": "KnowledgeStoreContainerFixture.cs",
+        "target_component": "Nexus"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedQdrantContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Nexus.Integration.Test\\Fixtures\\AutomatedQdrantContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Nexus.Integration.Tests.Fixtures",
+        "file_name": "AutomatedQdrantContainerFixture.cs",
+        "target_component": "Nexus"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedNeo4jContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Nexus.Integration.Test\\Fixtures\\AutomatedNeo4jContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Nexus.Integration.Tests.Fixtures",
+        "file_name": "AutomatedNeo4jContainerFixture.cs",
+        "target_component": "Nexus"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedOllamaContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Nexus.Integration.Test\\Fixtures\\AutomatedOllamaContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Nexus.Integration.Tests.Fixtures",
+        "file_name": "AutomatedOllamaContainerFixture.cs",
+        "target_component": "Nexus"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\QdrantContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Nexus.Integration.Test\\Fixtures\\QdrantContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Nexus.Integration.Tests.Fixtures",
+        "file_name": "QdrantContainerFixture.cs",
+        "target_component": "Nexus"
+      },
+      "backup_path": null,
+      "checksum_before": "77512e4f5f619b367b40d58a5d3f094cbcccfa2f104a3ee60f41c7ac400e6fa7",
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\Neo4jContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Nexus.Integration.Test\\Fixtures\\Neo4jContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Nexus.Integration.Tests.Fixtures",
+        "file_name": "Neo4jContainerFixture.cs",
+        "target_component": "Nexus"
+      },
+      "backup_path": null,
+      "checksum_before": "f9d5ba45726804fc356fb16b6f82b010f2df66a8205502c9831333d2b62c952a",
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\OllamaContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Nexus.Integration.Test\\Fixtures\\OllamaContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Nexus.Integration.Tests.Fixtures",
+        "file_name": "OllamaContainerFixture.cs",
+        "target_component": "Nexus"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixtureEvents.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Nexus.Integration.Test\\Fixtures\\FixtureEvents.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Nexus.Integration.Tests.Fixtures",
+        "file_name": "FixtureEvents.cs",
+        "target_component": "Nexus"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixtureDocumentHashGenerator.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Nexus.Integration.Test\\Fixtures\\FixtureDocumentHashGenerator.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Nexus.Integration.Tests.Fixtures",
+        "file_name": "FixtureDocumentHashGenerator.cs",
+        "target_component": "Nexus"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixturePolymorphicDocumentProcessor.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Nexus.Integration.Test\\Fixtures\\FixturePolymorphicDocumentProcessor.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Nexus.Integration.Tests.Fixtures",
+        "file_name": "FixturePolymorphicDocumentProcessor.cs",
+        "target_component": "Nexus"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixtureGoogleDriveIngestionClient.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Nexus.Integration.Test\\Fixtures\\FixtureGoogleDriveIngestionClient.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Nexus.Integration.Tests.Fixtures",
+        "file_name": "FixtureGoogleDriveIngestionClient.cs",
+        "target_component": "Nexus"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedFullStackContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Signal.Integration.Test\\Fixtures\\AutomatedFullStackContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Signal.Integration.Tests.Fixtures",
+        "file_name": "AutomatedFullStackContainerFixture.cs",
+        "target_component": "Signal"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\KnowledgeStoreContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Signal.Integration.Test\\Fixtures\\KnowledgeStoreContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Signal.Integration.Tests.Fixtures",
+        "file_name": "KnowledgeStoreContainerFixture.cs",
+        "target_component": "Signal"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedQdrantContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Signal.Integration.Test\\Fixtures\\AutomatedQdrantContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Signal.Integration.Tests.Fixtures",
+        "file_name": "AutomatedQdrantContainerFixture.cs",
+        "target_component": "Signal"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedNeo4jContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Signal.Integration.Test\\Fixtures\\AutomatedNeo4jContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Signal.Integration.Tests.Fixtures",
+        "file_name": "AutomatedNeo4jContainerFixture.cs",
+        "target_component": "Signal"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedOllamaContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Signal.Integration.Test\\Fixtures\\AutomatedOllamaContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Signal.Integration.Tests.Fixtures",
+        "file_name": "AutomatedOllamaContainerFixture.cs",
+        "target_component": "Signal"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\QdrantContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Signal.Integration.Test\\Fixtures\\QdrantContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Signal.Integration.Tests.Fixtures",
+        "file_name": "QdrantContainerFixture.cs",
+        "target_component": "Signal"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\Neo4jContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Signal.Integration.Test\\Fixtures\\Neo4jContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Signal.Integration.Tests.Fixtures",
+        "file_name": "Neo4jContainerFixture.cs",
+        "target_component": "Signal"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\OllamaContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Signal.Integration.Test\\Fixtures\\OllamaContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Signal.Integration.Tests.Fixtures",
+        "file_name": "OllamaContainerFixture.cs",
+        "target_component": "Signal"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixtureEvents.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Signal.Integration.Test\\Fixtures\\FixtureEvents.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Signal.Integration.Tests.Fixtures",
+        "file_name": "FixtureEvents.cs",
+        "target_component": "Signal"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixtureDocumentHashGenerator.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Signal.Integration.Test\\Fixtures\\FixtureDocumentHashGenerator.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Signal.Integration.Tests.Fixtures",
+        "file_name": "FixtureDocumentHashGenerator.cs",
+        "target_component": "Signal"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixturePolymorphicDocumentProcessor.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Signal.Integration.Test\\Fixtures\\FixturePolymorphicDocumentProcessor.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Signal.Integration.Tests.Fixtures",
+        "file_name": "FixturePolymorphicDocumentProcessor.cs",
+        "target_component": "Signal"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixtureGoogleDriveIngestionClient.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Signal.Integration.Test\\Fixtures\\FixtureGoogleDriveIngestionClient.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Signal.Integration.Tests.Fixtures",
+        "file_name": "FixtureGoogleDriveIngestionClient.cs",
+        "target_component": "Signal"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedFullStackContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Sentinel.Integration.Test\\Fixtures\\AutomatedFullStackContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Sentinel.Integration.Tests.Fixtures",
+        "file_name": "AutomatedFullStackContainerFixture.cs",
+        "target_component": "Sentinel"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\KnowledgeStoreContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Sentinel.Integration.Test\\Fixtures\\KnowledgeStoreContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Sentinel.Integration.Tests.Fixtures",
+        "file_name": "KnowledgeStoreContainerFixture.cs",
+        "target_component": "Sentinel"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedQdrantContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Sentinel.Integration.Test\\Fixtures\\AutomatedQdrantContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Sentinel.Integration.Tests.Fixtures",
+        "file_name": "AutomatedQdrantContainerFixture.cs",
+        "target_component": "Sentinel"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedNeo4jContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Sentinel.Integration.Test\\Fixtures\\AutomatedNeo4jContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Sentinel.Integration.Tests.Fixtures",
+        "file_name": "AutomatedNeo4jContainerFixture.cs",
+        "target_component": "Sentinel"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedOllamaContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Sentinel.Integration.Test\\Fixtures\\AutomatedOllamaContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Sentinel.Integration.Tests.Fixtures",
+        "file_name": "AutomatedOllamaContainerFixture.cs",
+        "target_component": "Sentinel"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\QdrantContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Sentinel.Integration.Test\\Fixtures\\QdrantContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Sentinel.Integration.Tests.Fixtures",
+        "file_name": "QdrantContainerFixture.cs",
+        "target_component": "Sentinel"
+      },
+      "backup_path": null,
+      "checksum_before": "38af79db79f0defe7dd377fdaadd9ca458a8f1f0d934802b527860339dfab69d",
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\Neo4jContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Sentinel.Integration.Test\\Fixtures\\Neo4jContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Sentinel.Integration.Tests.Fixtures",
+        "file_name": "Neo4jContainerFixture.cs",
+        "target_component": "Sentinel"
+      },
+      "backup_path": null,
+      "checksum_before": "09e7b2740f2d8b5eb22e973ffd9b2d258d74d3934ed981d2c4cf493fe5b90305",
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\OllamaContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Sentinel.Integration.Test\\Fixtures\\OllamaContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Sentinel.Integration.Tests.Fixtures",
+        "file_name": "OllamaContainerFixture.cs",
+        "target_component": "Sentinel"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixtureEvents.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Sentinel.Integration.Test\\Fixtures\\FixtureEvents.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Sentinel.Integration.Tests.Fixtures",
+        "file_name": "FixtureEvents.cs",
+        "target_component": "Sentinel"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixtureDocumentHashGenerator.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Sentinel.Integration.Test\\Fixtures\\FixtureDocumentHashGenerator.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Sentinel.Integration.Tests.Fixtures",
+        "file_name": "FixtureDocumentHashGenerator.cs",
+        "target_component": "Sentinel"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixturePolymorphicDocumentProcessor.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Sentinel.Integration.Test\\Fixtures\\FixturePolymorphicDocumentProcessor.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Sentinel.Integration.Tests.Fixtures",
+        "file_name": "FixturePolymorphicDocumentProcessor.cs",
+        "target_component": "Sentinel"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixtureGoogleDriveIngestionClient.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Sentinel.Integration.Test\\Fixtures\\FixtureGoogleDriveIngestionClient.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Sentinel.Integration.Tests.Fixtures",
+        "file_name": "FixtureGoogleDriveIngestionClient.cs",
+        "target_component": "Sentinel"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedFullStackContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Gatekeeper.Integration.Test\\Fixtures\\AutomatedFullStackContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Gatekeeper.Integration.Tests.Fixtures",
+        "file_name": "AutomatedFullStackContainerFixture.cs",
+        "target_component": "Gatekeeper"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\KnowledgeStoreContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Gatekeeper.Integration.Test\\Fixtures\\KnowledgeStoreContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Gatekeeper.Integration.Tests.Fixtures",
+        "file_name": "KnowledgeStoreContainerFixture.cs",
+        "target_component": "Gatekeeper"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedQdrantContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Gatekeeper.Integration.Test\\Fixtures\\AutomatedQdrantContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Gatekeeper.Integration.Tests.Fixtures",
+        "file_name": "AutomatedQdrantContainerFixture.cs",
+        "target_component": "Gatekeeper"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedNeo4jContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Gatekeeper.Integration.Test\\Fixtures\\AutomatedNeo4jContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Gatekeeper.Integration.Tests.Fixtures",
+        "file_name": "AutomatedNeo4jContainerFixture.cs",
+        "target_component": "Gatekeeper"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedOllamaContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Gatekeeper.Integration.Test\\Fixtures\\AutomatedOllamaContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Gatekeeper.Integration.Tests.Fixtures",
+        "file_name": "AutomatedOllamaContainerFixture.cs",
+        "target_component": "Gatekeeper"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\QdrantContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Gatekeeper.Integration.Test\\Fixtures\\QdrantContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Gatekeeper.Integration.Tests.Fixtures",
+        "file_name": "QdrantContainerFixture.cs",
+        "target_component": "Gatekeeper"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\Neo4jContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Gatekeeper.Integration.Test\\Fixtures\\Neo4jContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Gatekeeper.Integration.Tests.Fixtures",
+        "file_name": "Neo4jContainerFixture.cs",
+        "target_component": "Gatekeeper"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\OllamaContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Gatekeeper.Integration.Test\\Fixtures\\OllamaContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Gatekeeper.Integration.Tests.Fixtures",
+        "file_name": "OllamaContainerFixture.cs",
+        "target_component": "Gatekeeper"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixtureEvents.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Gatekeeper.Integration.Test\\Fixtures\\FixtureEvents.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Gatekeeper.Integration.Tests.Fixtures",
+        "file_name": "FixtureEvents.cs",
+        "target_component": "Gatekeeper"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixtureDocumentHashGenerator.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Gatekeeper.Integration.Test\\Fixtures\\FixtureDocumentHashGenerator.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Gatekeeper.Integration.Tests.Fixtures",
+        "file_name": "FixtureDocumentHashGenerator.cs",
+        "target_component": "Gatekeeper"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixturePolymorphicDocumentProcessor.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Gatekeeper.Integration.Test\\Fixtures\\FixturePolymorphicDocumentProcessor.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Gatekeeper.Integration.Tests.Fixtures",
+        "file_name": "FixturePolymorphicDocumentProcessor.cs",
+        "target_component": "Gatekeeper"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixtureGoogleDriveIngestionClient.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Gatekeeper.Integration.Test\\Fixtures\\FixtureGoogleDriveIngestionClient.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Gatekeeper.Integration.Tests.Fixtures",
+        "file_name": "FixtureGoogleDriveIngestionClient.cs",
+        "target_component": "Gatekeeper"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedFullStackContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Conduit.Integration.Test\\Fixtures\\AutomatedFullStackContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Conduit.Integration.Tests.Fixtures",
+        "file_name": "AutomatedFullStackContainerFixture.cs",
+        "target_component": "Conduit"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\KnowledgeStoreContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Conduit.Integration.Test\\Fixtures\\KnowledgeStoreContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Conduit.Integration.Tests.Fixtures",
+        "file_name": "KnowledgeStoreContainerFixture.cs",
+        "target_component": "Conduit"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedQdrantContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Conduit.Integration.Test\\Fixtures\\AutomatedQdrantContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Conduit.Integration.Tests.Fixtures",
+        "file_name": "AutomatedQdrantContainerFixture.cs",
+        "target_component": "Conduit"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedNeo4jContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Conduit.Integration.Test\\Fixtures\\AutomatedNeo4jContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Conduit.Integration.Tests.Fixtures",
+        "file_name": "AutomatedNeo4jContainerFixture.cs",
+        "target_component": "Conduit"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\AutomatedOllamaContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Conduit.Integration.Test\\Fixtures\\AutomatedOllamaContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Conduit.Integration.Tests.Fixtures",
+        "file_name": "AutomatedOllamaContainerFixture.cs",
+        "target_component": "Conduit"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\QdrantContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Conduit.Integration.Test\\Fixtures\\QdrantContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Conduit.Integration.Tests.Fixtures",
+        "file_name": "QdrantContainerFixture.cs",
+        "target_component": "Conduit"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\Neo4jContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Conduit.Integration.Test\\Fixtures\\Neo4jContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Conduit.Integration.Tests.Fixtures",
+        "file_name": "Neo4jContainerFixture.cs",
+        "target_component": "Conduit"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\OllamaContainerFixture.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Conduit.Integration.Test\\Fixtures\\OllamaContainerFixture.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Conduit.Integration.Tests.Fixtures",
+        "file_name": "OllamaContainerFixture.cs",
+        "target_component": "Conduit"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixtureEvents.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Conduit.Integration.Test\\Fixtures\\FixtureEvents.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Conduit.Integration.Tests.Fixtures",
+        "file_name": "FixtureEvents.cs",
+        "target_component": "Conduit"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixtureDocumentHashGenerator.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Conduit.Integration.Test\\Fixtures\\FixtureDocumentHashGenerator.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Conduit.Integration.Tests.Fixtures",
+        "file_name": "FixtureDocumentHashGenerator.cs",
+        "target_component": "Conduit"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixturePolymorphicDocumentProcessor.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Conduit.Integration.Test\\Fixtures\\FixturePolymorphicDocumentProcessor.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Conduit.Integration.Tests.Fixtures",
+        "file_name": "FixturePolymorphicDocumentProcessor.cs",
+        "target_component": "Conduit"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    },
+    {
+      "success": true,
+      "fixture_mapping": {
+        "source_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Vault.Integration.Test\\Fixtures\\FixtureGoogleDriveIngestionClient.cs",
+        "target_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Conduit.Integration.Test\\Fixtures\\FixtureGoogleDriveIngestionClient.cs",
+        "source_namespace": "ExxerAI.Vault.Integration.Tests.Fixtures",
+        "target_namespace": "ExxerAI.Conduit.Integration.Tests.Fixtures",
+        "file_name": "FixtureGoogleDriveIngestionClient.cs",
+        "target_component": "Conduit"
+      },
+      "backup_path": null,
+      "checksum_before": null,
+      "checksum_after": null,
+      "error_message": null
+    }
+  ],
+  "errors": []
+}

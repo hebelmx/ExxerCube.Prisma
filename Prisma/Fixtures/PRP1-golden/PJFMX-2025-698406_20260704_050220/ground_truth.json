@@ -1,0 +1,50 @@
+{
+  "docId": "PJFMX-2025-698406_20260704_050220",
+  "seed": 1000,
+  "chaosLevel": "none",
+  "requirementType": "judicial",
+  "folioSiara": "PJFMX/2025/698406",
+  "numeroOficio": "PJFMX/2025/698406",
+  "numeroExpediente": "H/FI1-8555-830095-AAA",
+  "autoridadNombre": "Poder Judicial de la Federación",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Dolores Varela Haro",
+  "personaNombre": "Cristina Sevilla Tirado",
+  "personaRfc": "SETC900729ZYT",
+  "solicitudPartes": [
+    {
+      "nombre": "Cristina Sevilla Tirado",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$7,437,492.51",
+  "fechaDiligencia": "04/07/2026",
+  "juzgadoNombre": "Poder Judicial de la Federación",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

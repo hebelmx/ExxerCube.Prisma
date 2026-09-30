@@ -1,0 +1,50 @@
+{
+  "docId": "PJFMX-2025-738666_20260704_050218",
+  "seed": 1000,
+  "chaosLevel": "none",
+  "requirementType": "judicial",
+  "folioSiara": "PJFMX/2025/738666",
+  "numeroOficio": "PJFMX/2025/738666",
+  "numeroExpediente": "A/PL1-3625-399842-AAA",
+  "autoridadNombre": "Poder Judicial de la Federación",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Humberto Solano Ulibarri",
+  "personaNombre": "José Emilio Sáenz Fierro",
+  "personaRfc": "SÁFJ880529IY9",
+  "solicitudPartes": [
+    {
+      "nombre": "José Emilio Sáenz Fierro",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$110,274.01",
+  "fechaDiligencia": "04/07/2026",
+  "juzgadoNombre": "Poder Judicial de la Federación",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

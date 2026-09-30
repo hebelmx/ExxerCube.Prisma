@@ -1,0 +1,50 @@
+{
+  "docId": "AGAFF-2023-435378_20260719_152556",
+  "seed": 5001,
+  "chaosLevel": "none",
+  "requirementType": "informacion",
+  "folioSiara": "AGAFF/2023/435378",
+  "numeroOficio": "AGAFF/2023/435378",
+  "numeroExpediente": "B/FI1-3177-989872-FGR",
+  "autoridadNombre": "Servicio de Administración Tributaria",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Minerva Contreras Montoya",
+  "personaNombre": "Paola Aguilar Maldonado",
+  "personaRfc": "AGMP030917YDW",
+  "solicitudPartes": [
+    {
+      "nombre": "Paola Aguilar Maldonado",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$3,749,772.58",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Servicio de Administración Tributaria",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  }
+}

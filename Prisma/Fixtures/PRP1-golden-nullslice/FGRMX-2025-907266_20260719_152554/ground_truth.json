@@ -1,0 +1,50 @@
+{
+  "docId": "FGRMX-2025-907266_20260719_152554",
+  "seed": 5001,
+  "chaosLevel": "none",
+  "requirementType": "informacion",
+  "folioSiara": "FGRMX/2025/907266",
+  "numeroOficio": "FGRMX/2025/907266",
+  "numeroExpediente": "H/FI1-8850-773544-BBB",
+  "autoridadNombre": "Fiscalía General de la República",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Octavio Feliciano Lemus",
+  "personaNombre": "Karla Matías Zelaya",
+  "personaRfc": "MAZK02011027N",
+  "solicitudPartes": [
+    {
+      "nombre": "Karla Matías Zelaya",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$808,730.35",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Fiscalía General de la República",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "docId": "CONDUSEF-2023-386930_20260704_050230",
+  "seed": 2000,
+  "chaosLevel": "none",
+  "requirementType": "aseguramiento",
+  "folioSiara": "CONDUSEF/2023/386930",
+  "numeroOficio": "CONDUSEF/2023/386930",
+  "numeroExpediente": "H/JU1-2541-741274-BBB",
+  "autoridadNombre": "Comisión Nacional para la Protección y Defensa de los Usuarios de Servicios Financieros",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Antonia Jaime Jaimes",
+  "personaNombre": "José Carlos Ávalos Duarte",
+  "personaRfc": "ÁVDJ710918LAW",
+  "solicitudPartes": [
+    {
+      "nombre": "José Carlos Ávalos Duarte",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$8,205,969.61",
+  "fechaDiligencia": "04/07/2026",
+  "juzgadoNombre": "Comisión Nacional para la Protección y Defensa de los Usuarios de Servicios Financieros",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

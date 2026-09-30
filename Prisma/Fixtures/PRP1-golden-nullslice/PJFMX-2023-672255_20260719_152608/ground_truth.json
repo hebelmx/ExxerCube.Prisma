@@ -1,0 +1,50 @@
+{
+  "docId": "PJFMX-2023-672255_20260719_152608",
+  "seed": 5002,
+  "chaosLevel": "none",
+  "requirementType": "informacion",
+  "folioSiara": "PJFMX/2023/672255",
+  "numeroOficio": "PJFMX/2023/672255",
+  "numeroExpediente": "A/PL1—6642—101585—SAT",
+  "autoridadNombre": "Poder Judicial de la Federación",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Horacio Trujillo Lozada",
+  "personaNombre": "Jaime Cedillo Castañeda",
+  "personaRfc": "CECJ061106N6F",
+  "solicitudPartes": [
+    {
+      "nombre": "Jaime Cedillo Castañeda",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$1,008,153.30",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Poder Judicial de la Federación",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  }
+}

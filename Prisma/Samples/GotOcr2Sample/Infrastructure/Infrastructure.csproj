@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>GotOcr2Sample.Infrastructure</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Domain\Domain.csproj" />
+    <ProjectReference Include="..\PythonOcrLib\PythonOcrLib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CSnakes.Runtime" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+</Project>

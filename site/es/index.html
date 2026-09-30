@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ExxerCube Prisma — requerimientos SIARA, leídos y conciliados</title>
+  <meta name="description" content="Prisma descarga los requerimientos de autoridad de SIARA, lee el PDF, el DOCX y el XML de cada caso, los concilia campo por campo, calcula el plazo en días hábiles y prepara la respuesta. Código disponible, construido en .NET 10.">
+  <meta property="og:title" content="ExxerCube Prisma — requerimientos SIARA, leídos y conciliados">
+  <meta property="og:description" content="Procesamiento automatizado de requerimientos de autoridad CNBV/SIARA para entidades financieras mexicanas.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_MX">
+  <link rel="alternate" hreflang="en" href="https://hebelmx.github.io/ExxerCube.Prisma/">
+  <link rel="alternate" hreflang="es-MX" href="https://hebelmx.github.io/ExxerCube.Prisma/es/">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,400;0,500;0,600;0,800;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Ir al contenido</a>
+
+  <header class="top">
+    <div class="wrap top-row">
+      <a class="brand" href="./" aria-label="Inicio de ExxerCube Prisma">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M9 17.5l4.5 4.5L23 11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>ExxerCube Prisma</span>
+      </a>
+      <nav class="top-nav" aria-label="Página">
+        <a href="#como">Cómo funciona</a>
+        <a href="#conciliacion">Conciliación</a>
+        <a href="#seguridad">Seguridad</a>
+        <a href="#licencia">Licencia</a>
+        <a class="nav-repo" href="https://github.com/hebelmx/ExxerCube.Prisma">GitHub</a>
+        <a class="nav-lang" href="../" hreflang="en" lang="en">English</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <h1>Cada requerimiento de SIARA, leído, conciliado y respondido a tiempo.</h1>
+          <p class="lede">Las autoridades envían a las entidades financieras un flujo constante de oficios a través del portal SIARA de la CNBV: aseguramientos, desbloqueos, solicitudes de información. Cada uno vence en pocos días hábiles. Prisma descarga cada caso, lee el PDF, el DOCX y el XML, los compara entre sí y entrega a su equipo un registro verificado con el plazo ya calculado.</p>
+          <div class="actions">
+            <a class="btn btn-primary" href="#licencia">Solicitar un piloto</a>
+            <a class="btn btn-quiet" href="https://github.com/hebelmx/ExxerCube.Prisma">Ver el código</a>
+          </div>
+        </div>
+
+        <figure class="case" aria-label="Ejemplo: un oficio sintético y el registro que Prisma extrae de él">
+          <div class="paper" aria-hidden="true">
+            <div class="paper-head">
+              <span>Juzgado Cuarto de lo Mercantil, Primer Partido Judicial</span>
+              <span class="paper-folio">AGAFADAFSON2/2025/000085</span>
+            </div>
+            <p class="paper-line"><b>Oficio:</b> <mark>333/ccc/-666666666/2025</mark></p>
+            <p class="paper-line"><b>Expediente:</b> <mark>A/AS1-4444-5555555-HHHH</mark></p>
+            <p class="paper-body">…a fin de que por su conducto requiera la totalidad de las instituciones de crédito… deberán llevar a cabo la retención de dinero depositado… hasta por la cantidad de <mark>$76,813.31</mark> pesos… siempre y cuando se encuentre a nombre de <mark>MARCELO ZU CARNAL</mark> con RFC <mark>ZUCM444444555</mark>…</p>
+            <p class="paper-body faint">Se le concede a esa Entidad Financiera un plazo de <mark>TRES DÍAS HÁBILES</mark>…</p>
+          </div>
+
+          <div class="record">
+            <div class="record-head">
+              <span>Registro extraído</span>
+              <span class="sello" aria-label="Sello: conciliado en 3 de 3 fuentes">Conciliado<br>3 / 3 fuentes</span>
+            </div>
+            <dl>
+              <div><dt>Tipo</dt><dd>Aseguramiento</dd></div>
+              <div><dt>Autoridad</dt><dd>Juzgado mercantil (judicial)</dd></div>
+              <div><dt>Persona</dt><dd>Marcelo Zu Carnal, RFC ZUCM444444555</dd></div>
+              <div><dt>Monto</dt><dd>$76,813.31 MXN</dd></div>
+              <div><dt>Recibido</dt><dd>Miércoles 4 de junio de 2025</dd></div>
+              <div class="due"><dt>Vence</dt><dd>Lunes 9 de junio de 2025, en 3 días hábiles</dd></div>
+            </dl>
+          </div>
+          <figcaption>Ejemplo sintético. Todos los nombres, RFC y montos de este repositorio son ficticios.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="band" id="problema">
+      <div class="wrap">
+        <h2>El trabajo detrás de un solo oficio</h2>
+        <p>Un requerimiento llega hasta en tres archivos que deberían decir lo mismo y muchas veces no coinciden. Alguien tiene que abrir cada uno, capturar de nuevo el número de oficio, las personas y los montos, decidir qué tipo de orden es, contar el plazo en días hábiles sin olvidar fines de semana ni días inhábiles, buscar en los sistemas de la institución y preparar la respuesta en el formato del regulador. Con cientos de requerimientos al mes, un dígito mal capturado o un plazo vencido se convierte en una observación regulatoria.</p>
+      </div>
+    </section>
+
+    <section class="section" id="como">
+      <div class="wrap">
+        <h2>Cómo procesa Prisma un caso</h2>
+        <p class="section-intro">Cada paso se ejecuta por separado y deja registro de lo que hizo, así quien revisa siempre sabe de dónde salió cada dato.</p>
+        <ol class="steps">
+          <li>
+            <h3>Descargar</h3>
+            <p>Un descargador que corre como proceso propio recoge los casos nuevos de SIARA y solo transmite una referencia a los archivos guardados. Nunca conserva sus credenciales del portal.</p>
+          </li>
+          <li>
+            <h3>Leer</h3>
+            <p>El texto de los PDF digitales se toma directamente; las páginas escaneadas pasan por análisis de calidad de imagen, filtros de limpieza y OCR con Tesseract. El DOCX y el XML se leen de forma nativa.</p>
+          </li>
+          <li>
+            <h3>Conciliar</h3>
+            <p>Las tres fuentes se comparan campo por campo. Si coinciden, la confianza sube; si no, el campo se marca con ambos valores en lugar de elegir uno en silencio.</p>
+          </li>
+          <li>
+            <h3>Clasificar</h3>
+            <p>Se identifica el tipo de requerimiento (aseguramiento, desbloqueo, información, transferencia, lista de personas bloqueadas) y se calcula el vencimiento en días hábiles de México.</p>
+          </li>
+          <li>
+            <h3>Revisar</h3>
+            <p>Los casos con alta confianza avanzan; los dudosos llegan a una bandeja de revisión que muestra el documento original junto a cada campo extraído, con bitácora de cada decisión.</p>
+          </li>
+          <li>
+            <h3>Responder</h3>
+            <p>La respuesta se exporta en XML SIRO, Excel y PDF, lista para el proceso de atención de su institución.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section alt" id="conciliacion">
+      <div class="wrap recon-grid">
+        <div>
+          <h2>Tres fuentes, una respuesta que puede defender</h2>
+          <p>El OCR es bueno, pero no perfecto. Un "5" escaneado que se lee como "S" es justo el tipo de error que se le escapa a un revisor cansado. Como Prisma también lee el XML y el DOCX, detecta que el escaneo no coincide, conserva el valor que confirman las otras dos fuentes y le avisa que lo hizo.</p>
+          <p>Cuando las fuentes no se pueden conciliar, el sistema no adivina: el caso pasa a una persona con los valores en conflicto lado a lado.</p>
+        </div>
+        <div class="recon" role="table" aria-label="Ejemplo: conciliación del número de expediente en tres fuentes">
+          <div class="recon-row recon-head" role="row">
+            <span role="columnheader">Fuente</span><span role="columnheader">Expediente</span><span role="columnheader">Resultado</span>
+          </div>
+          <div class="recon-row" role="row">
+            <span role="cell">XML</span><span role="cell" class="val">A/AS1-4444-5555555-HHHH</span><span role="cell" class="ok">Coincide</span>
+          </div>
+          <div class="recon-row" role="row">
+            <span role="cell">DOCX</span><span role="cell" class="val">A/AS1-4444-5555555-HHHH</span><span role="cell" class="ok">Coincide</span>
+          </div>
+          <div class="recon-row" role="row">
+            <span role="cell">PDF (OCR)</span><span role="cell" class="val">A/AS1-4444-5555<em>S</em>55-HHHH</span><span role="cell" class="warn">Mal leído</span>
+          </div>
+          <div class="recon-row recon-out" role="row">
+            <span role="cell">Registro</span><span role="cell" class="val">A/AS1-4444-5555555-HHHH</span><span role="cell">2 de 3, marcado</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="seguridad">
+      <div class="wrap">
+        <h2>Hecho para un entorno regulado</h2>
+        <div class="trust-grid">
+          <div>
+            <h3>Tres procesos, tres niveles de privilegio</h3>
+            <p>La descarga, la lectura y la decisión corren como procesos separados, cada uno con su propia identidad y nivel de autorización. Cada entrega lleva un token firmado para ese documento, y un proceso que recibe trabajo fuera de su autorización lo rechaza.</p>
+          </div>
+          <div>
+            <h3>Sin credenciales del portal almacenadas</h3>
+            <p>Usted decide cómo se inicia sesión en SIARA: una persona entra, una persona entrega una sesión activa, o las credenciales se obtienen de su almacén de secretos al momento del inicio de sesión. En ningún caso Prisma las guarda.</p>
+          </div>
+          <div>
+            <h3>Una bitácora que puede mostrar en una supervisión</h3>
+            <p>Cada extracción, corrección y aprobación queda registrada con quién, cuándo y desde qué fuente, en un libro de solo inserción protegido desde la base de datos.</p>
+          </div>
+          <div>
+            <h3>Corre donde viven sus datos</h3>
+            <p>Se instala en su propia infraestructura, en Windows o Linux, con imágenes Docker para cada servicio. El OCR corre localmente; ningún documento sale de su red.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="ingenieria">
+      <div class="wrap eng-grid">
+        <div>
+          <h2>Para el equipo técnico que lo evalúa</h2>
+          <p>Prisma es una solución en .NET 10 con arquitectura hexagonal: la lógica de dominio y de aplicación no sabe qué motor de OCR, base de datos o portal está usando. Los errores viajan como valores (<code>Result&lt;T&gt;</code>) y no como excepciones, y todo proceso asíncrono respeta la cancelación.</p>
+          <p>La propia arquitectura está bajo prueba: la dirección de dependencias, la ubicación de interfaces y las capas se validan con pruebas automatizadas, junto con pruebas de contrato, pruebas contra mutaciones y una prueba de extremo a extremo que ejecuta los tres procesos contra un simulador de SIARA.</p>
+          <p><a href="https://github.com/hebelmx/ExxerCube.Prisma">Revise el repositorio</a> o empiece con la <a href="https://github.com/hebelmx/ExxerCube.Prisma/blob/main/QUICKSTART.md">guía rápida</a> (en inglés).</p>
+        </div>
+        <dl class="facts">
+          <div><dt>4,700+</dt><dd>pruebas automatizadas en 50 proyectos de prueba</dd></div>
+          <div><dt>31</dt><dd>proyectos de producción, cada uno con una sola responsabilidad</dd></div>
+          <div><dt>3</dt><dd>fuentes documentales conciliadas por caso</dd></div>
+          <div><dt>26</dt><dd>registros de decisiones de arquitectura, escritos durante la construcción</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="section" id="estado">
+      <div class="wrap">
+        <h2>En qué punto está</h2>
+        <p>El flujo completo (descarga, lectura, conciliación, clasificación, revisión y exportación) funciona de principio a fin contra el simulador de SIARA incluido. Lo que falta antes de una puesta en producción es operativo: configurar el despliegue para su entorno, conectar su almacén de secretos y validar contra el portal real una vez que su área de cumplimiento lo autorice. Preferimos decirlo claramente desde el inicio.</p>
+      </div>
+    </section>
+
+    <section class="section cta" id="licencia">
+      <div class="wrap cta-grid">
+        <div>
+          <h2>Evalúelo libremente. Licéncielo para producción.</h2>
+          <p>El código está disponible para leerlo, ejecutarlo y evaluarlo bajo la licencia PolyForm Noncommercial. Usar Prisma para procesar requerimientos reales de una entidad financiera requiere una licencia comercial, que puede incluir acompañamiento en la implementación, integración con sus sistemas y el módulo complementario de verificación de estados de cuenta.</p>
+        </div>
+        <div class="cta-actions">
+          <a class="btn btn-primary" href="https://github.com/hebelmx/ExxerCube.Prisma/issues/new?title=Solicitud%20de%20piloto&amp;body=Tipo%20de%20entidad%3A%0AVolumen%20mensual%20de%20requerimientos%20SIARA%3A%0AContacto%3A">Solicitar un piloto</a>
+          <a class="btn btn-quiet" href="https://github.com/hebelmx/ExxerCube.Prisma/blob/main/COMMERCIAL-LICENSE.md">Consultar los términos de licencia</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot-grid">
+      <p>ExxerCube Prisma es desarrollado por ExxerCube / IndFusion. Copyright © 2025–2026 Abel Briones.</p>
+      <p>Todos los documentos, nombres e identificadores mostrados aquí y en el repositorio son sintéticos. El simulador de SIARA usado para pruebas no está afiliado a la CNBV ni al Gobierno de México.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<Project>
+	<PropertyGroup>
+
+		<!-- Target framework centrally manged do not add another on projects -->
+
+		<TargetFramework>net10.0</TargetFramework>
+
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+		<!-- Linux: re-enable the full RID fallback graph so distribution-specific native
+		     packages (Emgu.CV.runtime.ubuntu-26.04-x64) are resolved/restored. .NET 8+ omits
+		     distro-specific RID assets by default (NETSDK1206); this opts back in. No-op on Windows. -->
+		<UseRidGraph Condition="'$(OS)' == 'Unix'">true</UseRidGraph>
+
+		<!-- Enable parallel builds for faster compilation -->
+		<BuildInParallel>true</BuildInParallel>
+		<ContinueOnError>false</ContinueOnError>
+		<!--
+		  NU1902: OpenTelemetry.Api vulnerability (transitive dependency, documented in SECURITY_SUPPRESSIONS.md)
+		  - Package: OpenTelemetry.Api 1.10.0 (transitive dependency via OpenTelemetry.Instrumentation.Process)
+		  - Vulnerability: GHSA-8785-wc3w-h8q6 (moderate severity)
+		  - Reason: This is a transitive dependency from OpenTelemetry packages that we don't directly control.
+		            The OpenTelemetry team is aware and will address in future versions.
+		  - Reference: https://github.com/advisories/GHSA-8785-wc3w-h8q6
+		-->
+		<NoWarn>$(NoWarn);NU1902</NoWarn>
+		<WarningsNotAsErrors>$(WarningsNotAsErrors);NU1902</WarningsNotAsErrors>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+		<!-- Allow central PackageVersion pins to override vulnerable/outdated transitive deps (e.g. System.Security.Cryptography.Xml) -->
+		<CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+
+		<!-- Build artifacts outside repository (keeps repo clean).
+		     Overridable via the ArtifactsBaseDir env var / -p:. Defaults to a BuildArtifacts/Prisma/
+		     folder next to the repository root (cross-platform). -->
+		<ArtifactsBaseDir Condition="'$(ArtifactsBaseDir)' == ''">$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', '..', '..', '..', 'BuildArtifacts', 'Prisma'))/</ArtifactsBaseDir>
+		<BaseOutputPath>$(ArtifactsBaseDir)bin\$(MSBuildProjectName)\</BaseOutputPath>
+		<OutputPath>$(BaseOutputPath)$(Configuration)\</OutputPath>
+		<!-- Mutation-testing (Stryker.NET) accommodation. Stryker reconstructs the test-binary path as
+		     bin\<project>\<tfm>, dropping the <Configuration> segment this repo inserts, so runs fail with
+		     "test project binaries could not be found". When the StrykerCompat env var is set (MSBuild
+		     surfaces env vars as properties), flatten OutputPath to match. OFF by default — normal builds
+		     keep the bin\<project>\<config>\<tfm> layout. See docs/qa/test-plans/mutation-testing.md. -->
+		<OutputPath Condition="'$(StrykerCompat)' == 'true'">$(BaseOutputPath)</OutputPath>
+		<BaseIntermediateOutputPath>$(ArtifactsBaseDir)obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+		<IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
+		<!-- Stryker accommodation (see OutputPath note above): also flatten the obj/ path so reference
+		     assemblies resolve at obj\<project>\<tfm>\ref\ instead of obj\<project>\<config>\<tfm>\ref\. -->
+		<IntermediateOutputPath Condition="'$(StrykerCompat)' == 'true'">$(BaseIntermediateOutputPath)</IntermediateOutputPath>
+
+		<!-- MinVer (O7): git-tag-driven SemVer for every project in the solution. Tags in this
+		     repo use a "v" prefix (e.g. v1.4.0-rc.1), so MinVerTagPrefix must match or MinVer
+		     falls back to the 0.0.0-alpha default. MinVer computes AssemblyInformationalVersion
+		     (full SemVer + build metadata) while deliberately keeping AssemblyVersion at
+		     MAJOR.0.0.0 — see the EngineVersion resolution in Veriqan.Orchestration for why the
+		     informational version, not AssemblyVersion, is the provenance source of truth.
+		     MinVerVersionOverride (set by the production Dockerfiles / CI) bypasses git entirely
+		     when set, so this wiring is inert (but harmless) in git-less container builds. -->
+		<MinVerTagPrefix>v</MinVerTagPrefix>
+
+		<!-- The .NET SDK independently appends the full git commit SHA to
+		     AssemblyInformationalVersion (via SourceRevisionId) whenever the project sits in a
+		     git repo, regardless of MinVer. Without disabling this, the informational version
+		     would carry BOTH MinVer's short-SHA build metadata AND the SDK's full-SHA suffix
+		     (e.g. "1.4.0-rc.1.547+4a933ce8.4a933ce877877e3cd895ae5fb68b998440eebaf2"). MinVer is
+		     the single source of truth for version + build metadata here, so suppress the SDK's
+		     redundant addition. -->
+		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- PrivateAssets="all": MinVer is a build-time-only version generator; it must never
+		     flow as a transitive dependency to downstream package consumers. -->
+		<PackageReference Include="MinVer" PrivateAssets="all" />
+	</ItemGroup>
+
+	<!-- Build metadata = short git SHA (e.g. 1.4.0-rc.1.42+a1b2c3d). Runs before MinVer computes
+	     the version so MinVerBuildMetadata is populated in time. Tolerates git being absent or
+	     the tree not being a repo (e.g. some container/CI contexts): a failed/empty Exec just
+	     leaves MinVerBuildMetadata unset, which MinVer treats as "no metadata" — never fails the
+	     build. Docker/CI builds normally bypass this entirely via MinVerVersionOverride.
+	     O7 FIX 4: ConsoleToMSBuild captures stderr as well as stdout and joins multi-line output
+	     with ";", and MinVer accepts arbitrary text as build metadata without validating it — so a
+	     git warning/error written to either stream could silently become part of the version
+	     string. The regex below only accepts a clean 7-40 char hex string (a real short/full SHA),
+	     rejecting anything else exactly like the exit-code and non-empty checks already do. -->
+	<Target Name="SetMinVerBuildMetadataFromGit" BeforeTargets="MinVer">
+		<Exec Command="git rev-parse --short HEAD"
+		      ConsoleToMSBuild="true"
+		      IgnoreExitCode="true"
+		      StandardOutputImportance="low"
+		      StandardErrorImportance="low"
+		      Condition="'$(MinVerVersionOverride)' == ''">
+			<Output TaskParameter="ConsoleOutput" PropertyName="_GitShortSha" />
+			<Output TaskParameter="ExitCode" PropertyName="_GitShortShaExitCode" />
+		</Exec>
+		<PropertyGroup Condition="'$(_GitShortShaExitCode)' == '0' AND '$(_GitShortSha)' != '' AND $([System.Text.RegularExpressions.Regex]::IsMatch('$(_GitShortSha)', '^[0-9a-fA-F]{7,40}$'))">
+			<MinVerBuildMetadata>$(_GitShortSha)</MinVerBuildMetadata>
+		</PropertyGroup>
+	</Target>
+</Project>

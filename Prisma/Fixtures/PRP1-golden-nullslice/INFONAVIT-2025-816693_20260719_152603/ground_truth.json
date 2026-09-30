@@ -1,0 +1,50 @@
+{
+  "docId": "INFONAVIT-2025-816693_20260719_152603",
+  "seed": 5002,
+  "chaosLevel": "none",
+  "requirementType": "informacion",
+  "folioSiara": "INFONAVIT/2025/816693",
+  "numeroOficio": "INFONAVIT/2025/816693",
+  "numeroExpediente": "H/PL1—3531—699486—UIF",
+  "autoridadNombre": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "María Luisa Núñez Botello",
+  "personaNombre": "Ruby Rivero Hernández",
+  "personaRfc": "RIHR8210031S5",
+  "solicitudPartes": [
+    {
+      "nombre": "Ruby Rivero Hernández",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$6,622,995.87",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  }
+}

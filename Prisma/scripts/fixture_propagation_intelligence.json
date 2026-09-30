@@ -1,0 +1,503 @@
+{
+  "report_metadata": {
+    "generated_at": "2025-11-05T00:00:00Z",
+    "base_path": "F:\\Dynamic\\ExxerAi\\ExxerAI",
+    "master_source": "code/src/tests/05IntegrationTests/ExxerAI.Vault.Integration.Test/Fixtures/",
+    "analysis_scope": "Container fixtures for integration testing across ExxerAI test projects"
+  },
+
+  "master_fixtures": {
+    "basic_fixtures": [
+      {
+        "name": "QdrantContainerFixture.cs",
+        "class": "QdrantContainerFixture",
+        "purpose": "Qdrant vector database container - manual persistent connection mode",
+        "implements": "IAsyncLifetime",
+        "container_type": "QdrantContainer (Testcontainers.NET)",
+        "key_dependencies": ["Qdrant.Client", "Testcontainers.Qdrant", "Meziantou.Extensions.Logging.Xunit.v3"]
+      },
+      {
+        "name": "Neo4jContainerFixture.cs",
+        "class": "Neo4jContainerFixture",
+        "purpose": "Neo4j graph database container - manual persistent connection mode",
+        "implements": "IAsyncLifetime",
+        "container_type": "Neo4jContainer (Testcontainers.NET)",
+        "key_dependencies": ["Neo4j.Driver", "Neo4jClient", "Testcontainers.Neo4j"]
+      },
+      {
+        "name": "OllamaContainerFixture.cs",
+        "class": "OllamaContainerFixture",
+        "purpose": "Ollama LLM service container - manual persistent connection mode",
+        "implements": "IAsyncLifetime",
+        "container_type": "IContainer (Testcontainers.NET generic)",
+        "key_dependencies": ["DotNet.Testcontainers.Containers", "HttpClient", "System.Text.Json"]
+      }
+    ],
+
+    "automated_fixtures": [
+      {
+        "name": "AutomatedQdrantContainerFixture.cs",
+        "class": "AutomatedQdrantContainerFixture",
+        "purpose": "Automated Qdrant container with auto-start/stop lifecycle",
+        "implements": "IAsyncLifetime",
+        "container_type": "QdrantContainer (Testcontainers.NET)",
+        "key_features": ["Auto cleanup", "Health checks", "Docker skip handling", "Collection management"]
+      },
+      {
+        "name": "AutomatedNeo4jContainerFixture.cs",
+        "class": "AutomatedNeo4jContainerFixture",
+        "purpose": "Automated Neo4j container with auto-start/stop lifecycle",
+        "implements": "IAsyncLifetime",
+        "container_type": "Neo4jContainer (Testcontainers.NET)",
+        "key_features": ["Auto cleanup", "APOC plugins", "Cypher queries", "Node/relationship helpers"]
+      },
+      {
+        "name": "AutomatedOllamaContainerFixture.cs",
+        "class": "AutomatedOllamaContainerFixture",
+        "purpose": "Automated Ollama LLM container with model management",
+        "implements": "IAsyncLifetime",
+        "container_type": "IContainer (Testcontainers.NET generic)",
+        "key_features": ["Model pulling", "Background model prep", "Embedding generation", "Chat completion"]
+      }
+    ],
+
+    "composite_fixtures": [
+      {
+        "name": "KnowledgeStoreContainerFixture.cs",
+        "class": "KnowledgeStoreContainerFixture",
+        "purpose": "Combined fixture for Qdrant + Neo4j (persistent mode)",
+        "implements": "IAsyncLifetime",
+        "contains": ["QdrantContainerFixture", "Neo4jContainerFixture"],
+        "features": ["Parallel initialization", "Service provider", "Configuration builder", "Docker diagnostics"]
+      },
+      {
+        "name": "AutomatedKnowledgeStoreContainerFixture.cs",
+        "class": "AutomatedKnowledgeStoreContainerFixture",
+        "purpose": "Automated combined fixture for Qdrant + Neo4j",
+        "implements": "IAsyncLifetime",
+        "contains": ["AutomatedQdrantContainerFixture", "AutomatedNeo4jContainerFixture"],
+        "features": ["Automated start/stop", "Test scenario setup", "Clean environment prep"]
+      },
+      {
+        "name": "AutomatedFullStackContainerFixture.cs",
+        "class": "AutomatedFullStackContainerFixture",
+        "purpose": "Full stack automated fixture: Qdrant + Neo4j + Ollama",
+        "implements": "IAsyncLifetime",
+        "contains": ["AutomatedQdrantContainerFixture", "AutomatedNeo4jContainerFixture", "AutomatedOllamaContainerFixture"],
+        "features": ["Complete AI stack", "LLM + knowledge store", "Health monitoring", "Requirement helpers"]
+      }
+    ],
+
+    "collection_definitions": [
+      {
+        "name": "IntegrationTestCollection.cs",
+        "class": "IntegrationTestCollection",
+        "attribute": "[CollectionDefinition(\"Vault Integration\")]",
+        "fixtures_used": ["QdrantContainerFixture", "Neo4jContainerFixture"],
+        "purpose": "XUnit v3 collection definition for sharing fixtures across test classes"
+      }
+    ],
+
+    "helper_fixtures": [
+      {
+        "name": "DockerEnvironmentProbe.cs",
+        "class": "DockerEnvironmentProbe",
+        "purpose": "Lightweight Docker availability checker - provides diagnostic skip reasons",
+        "type": "static class"
+      },
+      {
+        "name": "SkipException.cs",
+        "class": "SkipException",
+        "purpose": "Custom exception for gracefully skipping tests when containers unavailable",
+        "type": "class : Exception"
+      },
+      {
+        "name": "OllamaConnectionConfig.cs",
+        "class": "OllamaConnectionConfig",
+        "purpose": "Connection configuration data class for Ollama service",
+        "type": "record/class"
+      }
+    ],
+
+    "domain_specific_fixtures": [
+      {
+        "name": "FixtureGoogleDriveIngestionClient.cs",
+        "purpose": "Vault-specific Google Drive ingestion test helper"
+      },
+      {
+        "name": "FixturePolymorphicDocumentProcessor.cs",
+        "purpose": "Vault-specific document processing test helper"
+      },
+      {
+        "name": "FixtureDocumentHashGenerator.cs",
+        "purpose": "Vault-specific document hash generation helper"
+      },
+      {
+        "name": "FixtureEvents.cs",
+        "purpose": "Vault-specific event handling test helper"
+      }
+    ]
+  },
+
+  "package_dependencies": {
+    "testcontainers": [
+      {
+        "name": "Testcontainers",
+        "purpose": "Core Testcontainers.NET library",
+        "version_note": "Managed by Directory.Build.props centrally"
+      },
+      {
+        "name": "Testcontainers.Qdrant",
+        "purpose": "Qdrant-specific builder and wait strategies"
+      },
+      {
+        "name": "Testcontainers.Neo4j",
+        "purpose": "Neo4j-specific builder and wait strategies"
+      },
+      {
+        "name": "Testcontainers.XunitV3",
+        "purpose": "XUnit v3 integration for Testcontainers"
+      }
+    ],
+
+    "database_clients": [
+      {
+        "name": "Qdrant.Client",
+        "purpose": "Qdrant vector database gRPC client"
+      },
+      {
+        "name": "Neo4j.Driver",
+        "purpose": "Neo4j Bolt protocol driver"
+      },
+      {
+        "name": "Neo4jClient",
+        "purpose": "Neo4j .NET client with Cypher LINQ"
+      }
+    ],
+
+    "logging_testing": [
+      {
+        "name": "Meziantou.Extensions.Logging.Xunit.v3",
+        "purpose": "XUnit v3 test output logger integration",
+        "note": "Provides XUnitLogger helper used throughout fixtures"
+      },
+      {
+        "name": "Microsoft.Extensions.Logging",
+        "purpose": "Core .NET logging abstractions"
+      }
+    ],
+
+    "testing_framework": [
+      {
+        "name": "xunit.v3",
+        "purpose": "XUnit v3 test framework"
+      },
+      {
+        "name": "NSubstitute",
+        "purpose": "Mocking framework"
+      },
+      {
+        "name": "Shouldly",
+        "purpose": "Assertion library"
+      },
+      {
+        "name": "Microsoft.NET.Test.Sdk",
+        "purpose": "Test SDK for .NET"
+      }
+    ]
+  },
+
+  "helper_classes": [
+    {
+      "name": "DockerSkipConditions",
+      "file": "Configuration/DockerSkipConditions.cs",
+      "purpose": "Global flag for Docker availability - controls test skipping",
+      "type": "static class",
+      "key_property": "ShouldSkipDockerTests"
+    },
+    {
+      "name": "ContainerConfiguration",
+      "file": "Configuration/ContainerConfiguration.cs",
+      "purpose": "Centralized configuration constants for all containers",
+      "type": "static class",
+      "nested_classes": ["Qdrant", "Neo4j", "Ollama", "Orchestration", "TestData", "EnvironmentVariables", "Helpers"],
+      "key_constants": {
+        "Qdrant": {
+          "ImageName": "qdrant/qdrant:v1.7.4",
+          "HttpPort": 6333,
+          "GrpcPort": 6334,
+          "DefaultEmbeddingDimension": 1536
+        },
+        "Neo4j": {
+          "ImageName": "neo4j:5-community",
+          "BoltPort": 7687,
+          "HttpPort": 7474,
+          "DefaultUsername": "neo4j",
+          "DefaultPassword": "test123456"
+        },
+        "Ollama": {
+          "ImageName": "ollama/ollama:latest",
+          "HttpPort": 11434,
+          "DefaultEmbeddingModel": "nomic-embed-text",
+          "DefaultLLMModel": "llama3.2:3b",
+          "DefaultEmbeddingDimensions": 768
+        }
+      }
+    },
+    {
+      "name": "ContainerHealthDiagnostics",
+      "file": "Support/ContainerHealthDiagnostics.cs",
+      "purpose": "Health check diagnostics for Docker and containers",
+      "type": "static class",
+      "methods": ["DiagnoseContainerHealthAsync", "GenerateSkipReason"]
+    },
+    {
+      "name": "XUnitLogger",
+      "source": "Meziantou.Extensions.Logging.Xunit.v3 package",
+      "purpose": "Test output logger integration for XUnit v3",
+      "usage": "XUnitLogger.CreateLogger<T>()",
+      "note": "NOT a custom class - provided by Meziantou package"
+    }
+  ],
+
+  "container_builder_types": [
+    {
+      "name": "QdrantBuilder",
+      "package": "Testcontainers.Qdrant",
+      "methods": ["WithImage", "WithPortBinding", "WithWaitStrategy", "WithAutoRemove", "WithCleanUp"]
+    },
+    {
+      "name": "Neo4jBuilder",
+      "package": "Testcontainers.Neo4j",
+      "methods": ["WithImage", "WithPortBinding", "WithEnvironment", "WithWaitStrategy", "WithAutoRemove", "WithCleanUp"]
+    },
+    {
+      "name": "ContainerBuilder",
+      "package": "DotNet.Testcontainers.Builders",
+      "methods": ["WithImage", "WithPortBinding", "WithEnvironment", "WithBindMount", "WithWaitStrategy", "WithStartupCallback"]
+    }
+  ],
+
+  "usage_patterns": {
+    "collection_fixture_pattern": {
+      "description": "XUnit v3 ICollectionFixture pattern for sharing containers across test classes",
+      "example_file": "IntegrationTestCollection.cs",
+      "attributes": ["[CollectionDefinition(\"Collection Name\")]"],
+      "interfaces": ["ICollectionFixture<FixtureType>"]
+    },
+
+    "test_class_pattern": {
+      "description": "Test classes use [Collection] attribute to get fixtures injected",
+      "attributes": ["[Collection(\"Vault Integration\")]"],
+      "constructor_injection": "Fixtures injected via constructor parameters"
+    },
+
+    "async_lifetime_pattern": {
+      "description": "All fixtures implement IAsyncLifetime for proper async init/dispose",
+      "methods": ["InitializeAsync()", "DisposeAsync()"]
+    },
+
+    "graceful_skip_pattern": {
+      "description": "Fixtures handle Docker unavailability gracefully, setting IsAvailable=false",
+      "catch_patterns": ["ex.Message.Contains(\"Docker\", StringComparison.OrdinalIgnoreCase)"],
+      "skip_helper": "throw new SkipException(...) when container not available"
+    }
+  },
+
+  "target_projects": {
+    "layer_05_integration": [
+      {
+        "name": "ExxerAI.Signal.Integration.Test",
+        "path": "code/src/tests/05IntegrationTests/ExxerAI.Signal.Integration.Test",
+        "existing_fixtures": ["PostgreSqlContainerFixture.cs", "RedisContainerFixture.cs", "IntegrationTestCollection.cs"],
+        "needed_fixtures": [],
+        "notes": "Uses different containers (PostgreSQL, Redis) - no Qdrant/Neo4j needed"
+      },
+      {
+        "name": "ExxerAI.Datastream.Integration.Test",
+        "path": "code/src/tests/05IntegrationTests/ExxerAI.Datastream.Integration.Test",
+        "existing_fixtures": ["PostgreSqlContainerFixture.cs", "RedisContainerFixture.cs", "IntegrationTestCollection.cs"],
+        "needed_fixtures": [],
+        "notes": "Uses different containers (PostgreSQL, Redis) - no Qdrant/Neo4j needed"
+      },
+      {
+        "name": "ExxerAI.Nexus.Integration.Test",
+        "path": "code/src/tests/05IntegrationTests/ExxerAI.Nexus.Integration.Test",
+        "existing_fixtures": ["QdrantContainerFixture.cs", "Neo4jContainerFixture.cs", "IntegrationTestCollection.cs"],
+        "needed_fixtures": ["AutomatedQdrantContainerFixture", "AutomatedNeo4jContainerFixture", "Composite fixtures"],
+        "needs_update": true,
+        "notes": "Has basic fixtures but missing automated variants and composites"
+      },
+      {
+        "name": "ExxerAI.Sentinel.Integration.Test",
+        "path": "code/src/tests/05IntegrationTests/ExxerAI.Sentinel.Integration.Test",
+        "existing_fixtures": ["PostgreSqlContainerFixture.cs", "QdrantContainerFixture.cs", "Neo4jContainerFixture.cs", "IntegrationTestCollection.cs"],
+        "needed_fixtures": ["AutomatedQdrantContainerFixture", "AutomatedNeo4jContainerFixture"],
+        "needs_update": true,
+        "notes": "Has basic fixtures but missing automated variants"
+      },
+      {
+        "name": "ExxerAI.Cortex.Integration.Test",
+        "path": "code/src/tests/05IntegrationTests/ExxerAI.Cortex.Integration.Test",
+        "existing_fixtures": ["OllamaContainerFixture.cs", "OllamaConnectionConfig.cs", "OllamaModel.cs", "OllamaModelsResponse.cs", "OllamaEmbeddingResponse.cs", "OllamaChatResponse.cs", "OllamaStats.cs"],
+        "needed_fixtures": ["AutomatedOllamaContainerFixture", "Full stack fixtures"],
+        "needs_update": true,
+        "notes": "Has Ollama basic fixture but missing automated variant and config classes"
+      },
+      {
+        "name": "ExxerAI.Unknown.Integration.Test",
+        "path": "code/src/tests/05IntegrationTests/ExxerAI.Unknown.Integration.Test",
+        "existing_fixtures": [],
+        "needed_fixtures": ["Full assessment needed"],
+        "notes": "Not yet audited - needs full review"
+      },
+      {
+        "name": "ExxerAI.Conduit.Integration.Test",
+        "path": "code/src/tests/05IntegrationTests/ExxerAI.Conduit.Integration.Test",
+        "existing_fixtures": [],
+        "needed_fixtures": ["Assessment needed"],
+        "notes": "May need messaging-specific containers"
+      },
+      {
+        "name": "ExxerAI.Gatekeeper.Integration.Test",
+        "path": "code/src/tests/05IntegrationTests/ExxerAI.Gatekeeper.Integration.Test",
+        "existing_fixtures": [],
+        "needed_fixtures": ["Assessment needed"],
+        "notes": "External API integration - may not need containers"
+      },
+      {
+        "name": "ExxerAI.Components.Integration.Test",
+        "path": "code/src/tests/05IntegrationTests/ExxerAI.Components.Integration.Test",
+        "existing_fixtures": ["GoogleDriveCredentialsFixture.cs", "GoogleDriveTestFixture.cs"],
+        "needed_fixtures": ["Assessment needed"],
+        "notes": "End-to-end integration - scope to be determined"
+      }
+    ],
+
+    "layer_06_system": [
+      {
+        "name": "ExxerAI.Performance.System.Test",
+        "path": "code/src/tests/06SystemTests/ExxerAI.Performance.System.Test",
+        "existing_fixtures": [],
+        "needed_fixtures": ["Full stack with performance monitoring"],
+        "notes": "Performance testing - may need all containers"
+      },
+      {
+        "name": "ExxerAI.EnhancedRag.System.Test",
+        "path": "code/src/tests/06SystemTests/ExxerAI.EnhancedRag.System.Test",
+        "existing_fixtures": [],
+        "needed_fixtures": ["AutomatedFullStackContainerFixture"],
+        "notes": "RAG system testing - needs full AI stack"
+      }
+    ],
+
+    "layer_07_e2e": [
+      {
+        "name": "ExxerAI.E2E.Test",
+        "path": "code/src/tests/07E2ETests/ExxerAI.E2E.Test",
+        "existing_fixtures": [],
+        "needed_fixtures": ["AutomatedFullStackContainerFixture"],
+        "notes": "End-to-end testing - needs complete infrastructure"
+      }
+    ]
+  },
+
+  "propagation_recommendations": {
+    "priority_1_critical": [
+      {
+        "target": "ExxerAI.Nexus.Integration.Test",
+        "action": "Update existing fixtures to Vault patterns",
+        "files_to_add": [
+          "AutomatedQdrantContainerFixture.cs",
+          "AutomatedNeo4jContainerFixture.cs",
+          "AutomatedKnowledgeStoreContainerFixture.cs",
+          "DockerEnvironmentProbe.cs",
+          "SkipException.cs",
+          "Configuration/ContainerConfiguration.cs",
+          "Configuration/DockerSkipConditions.cs",
+          "Support/ContainerHealthDiagnostics.cs"
+        ]
+      },
+      {
+        "target": "ExxerAI.Cortex.Integration.Test",
+        "action": "Add automated Ollama fixture",
+        "files_to_add": [
+          "AutomatedOllamaContainerFixture.cs",
+          "OllamaConnectionConfig.cs",
+          "Configuration/ContainerConfiguration.cs (Ollama section)",
+          "DockerEnvironmentProbe.cs",
+          "SkipException.cs"
+        ]
+      }
+    ],
+
+    "priority_2_important": [
+      {
+        "target": "ExxerAI.Sentinel.Integration.Test",
+        "action": "Add automated variants of existing fixtures",
+        "files_to_add": [
+          "AutomatedQdrantContainerFixture.cs",
+          "AutomatedNeo4jContainerFixture.cs",
+          "Configuration/ContainerConfiguration.cs",
+          "DockerEnvironmentProbe.cs"
+        ]
+      },
+      {
+        "target": "ExxerAI.EnhancedRag.System.Test",
+        "action": "Add full stack infrastructure",
+        "files_to_add": [
+          "AutomatedFullStackContainerFixture.cs",
+          "All automated fixtures",
+          "All configuration and support files"
+        ]
+      }
+    ],
+
+    "priority_3_enhancement": [
+      {
+        "target": "ExxerAI.E2E.Test",
+        "action": "Add comprehensive E2E fixture stack",
+        "files_to_add": ["Complete Vault fixture set"]
+      }
+    ]
+  },
+
+  "migration_notes": {
+    "key_patterns": [
+      "All fixtures use IAsyncLifetime for proper async lifecycle",
+      "XUnit v3 collection fixtures shared via [CollectionDefinition] and ICollectionFixture<T>",
+      "Graceful Docker unavailability handling with IsAvailable property",
+      "Centralized configuration via ContainerConfiguration static class",
+      "Meziantou.Extensions.Logging.Xunit.v3 for test output logging",
+      "SkipException for graceful test skipping when containers unavailable",
+      "Parallel container initialization in composite fixtures",
+      "Health diagnostics with ContainerHealthDiagnostics",
+      "Automated vs Basic distinction: Automated fixtures auto-start/stop, Basic fixtures connect to persistent containers"
+    ],
+
+    "package_requirements": [
+      "Must have: Testcontainers, Testcontainers.Qdrant, Testcontainers.Neo4j",
+      "Must have: Qdrant.Client, Neo4j.Driver, Neo4jClient",
+      "Must have: Meziantou.Extensions.Logging.Xunit.v3",
+      "Optional: DotNet.Testcontainers.Containers (for custom containers like Ollama)"
+    ],
+
+    "namespaces_to_propagate": [
+      "ExxerAI.Vault.Integration.Tests.Fixtures",
+      "ExxerAI.Vault.Integration.Tests.Configuration",
+      "ExxerAI.Vault.Integration.Tests.Support",
+      "ExxerAI.Vault.Integration.Tests.Extensions"
+    ],
+
+    "global_usings_needed": [
+      "global using DotNet.Testcontainers.Builders;",
+      "global using DotNet.Testcontainers.Containers;",
+      "global using Testcontainers.Qdrant;",
+      "global using Testcontainers.Neo4j;",
+      "global using Qdrant.Client;",
+      "global using Neo4j.Driver;",
+      "global using Neo4jClient;",
+      "global using Meziantou.Extensions.Logging.Xunit.v3;"
+    ]
+  }
+}

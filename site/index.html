@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ExxerCube Prisma — SIARA requests, read and reconciled</title>
+  <meta name="description" content="Prisma downloads CNBV SIARA requests, reads the PDF, DOCX and XML of every case, reconciles them field by field, tracks the business-day deadline and prepares the response. Source-available, built in .NET 10.">
+  <meta property="og:title" content="ExxerCube Prisma — SIARA requests, read and reconciled">
+  <meta property="og:description" content="Automated processing of CNBV/SIARA regulatory requests for Mexican financial institutions.">
+  <meta property="og:type" content="website">
+  <link rel="alternate" hreflang="en" href="https://hebelmx.github.io/ExxerCube.Prisma/">
+  <link rel="alternate" hreflang="es-MX" href="https://hebelmx.github.io/ExxerCube.Prisma/es/">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,400;0,500;0,600;0,800;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="top">
+    <div class="wrap top-row">
+      <a class="brand" href="./" aria-label="ExxerCube Prisma home">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M9 17.5l4.5 4.5L23 11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>ExxerCube Prisma</span>
+      </a>
+      <nav class="top-nav" aria-label="Page">
+        <a href="#how">How it works</a>
+        <a href="#reconcile">Reconciliation</a>
+        <a href="#trust">Security</a>
+        <a href="#license">Licensing</a>
+        <a class="nav-repo" href="https://github.com/hebelmx/ExxerCube.Prisma">GitHub</a>
+        <a class="nav-lang" href="es/" hreflang="es-MX" lang="es-MX">Español</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Hero: an oficio on the right, what Prisma extracts from it on the left of the record -->
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <h1>Every SIARA request, read, reconciled and answered on time.</h1>
+          <p class="lede">Authorities send Mexican financial institutions a steady stream of <i>oficios</i> through the CNBV's SIARA portal — freezes, unfreezes, information requests — each due in a few business days. Prisma downloads each case, reads the PDF, DOCX and XML, checks them against each other, and hands your team a verified record with the deadline already counted.</p>
+          <div class="actions">
+            <a class="btn btn-primary" href="#license">Request a pilot</a>
+            <a class="btn btn-quiet" href="https://github.com/hebelmx/ExxerCube.Prisma">Read the source</a>
+          </div>
+        </div>
+
+        <figure class="case" aria-label="Example: a synthetic oficio and the record Prisma extracts from it">
+          <div class="paper" aria-hidden="true">
+            <div class="paper-head">
+              <span>Juzgado Cuarto de lo Mercantil, Primer Partido Judicial</span>
+              <span class="paper-folio">AGAFADAFSON2/2025/000085</span>
+            </div>
+            <p class="paper-line"><b>Oficio:</b> <mark>333/ccc/-666666666/2025</mark></p>
+            <p class="paper-line"><b>Expediente:</b> <mark>A/AS1-4444-5555555-HHHH</mark></p>
+            <p class="paper-body">…a fin de que por su conducto requiera la totalidad de las instituciones de crédito… deberán llevar a cabo la retención de dinero depositado… hasta por la cantidad de <mark>$76,813.31</mark> pesos… siempre y cuando se encuentre a nombre de <mark>MARCELO ZU CARNAL</mark> con RFC <mark>ZUCM444444555</mark>…</p>
+            <p class="paper-body faint">Se le concede a esa Entidad Financiera un plazo de <mark>TRES DÍAS HÁBILES</mark>…</p>
+          </div>
+
+          <div class="record">
+            <div class="record-head">
+              <span>Extracted record</span>
+              <span class="sello" aria-label="Stamp: reconciled across 3 of 3 sources">Conciliado<br>3 / 3 fuentes</span>
+            </div>
+            <dl>
+              <div><dt>Type</dt><dd>Aseguramiento (freeze)</dd></div>
+              <div><dt>Authority</dt><dd>Mercantile court (judicial)</dd></div>
+              <div><dt>Subject</dt><dd>Marcelo Zu Carnal, RFC ZUCM444444555</dd></div>
+              <div><dt>Amount</dt><dd>$76,813.31 MXN</dd></div>
+              <div><dt>Received</dt><dd>Wed 4 Jun 2025</dd></div>
+              <div class="due"><dt>Due</dt><dd>Mon 9 Jun 2025, in 3 business days</dd></div>
+            </dl>
+          </div>
+          <figcaption>Synthetic example. Every name, RFC and amount in this repository is fictitious.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="band" id="problem">
+      <div class="wrap">
+        <h2>The work behind one oficio</h2>
+        <p>A single request arrives as up to three files that are supposed to say the same thing and often don't. Someone has to open each one, retype the case number, the people and the amounts, decide what kind of order it is, count the deadline in business days — skipping weekends and holidays — search the institution's systems, and prepare a response in the regulator's format. Multiply that by hundreds of requests a month, and a single mistyped digit or missed deadline becomes a regulatory finding.</p>
+      </div>
+    </section>
+
+    <section class="section" id="how">
+      <div class="wrap">
+        <h2>How Prisma handles a case</h2>
+        <p class="section-intro">Each step runs on its own and records what it did, so a reviewer can always see where a value came from.</p>
+        <ol class="steps">
+          <li>
+            <h3>Download</h3>
+            <p>A downloader running as its own process collects new cases from SIARA and passes on only a reference to the stored files. It never keeps your portal credentials.</p>
+          </li>
+          <li>
+            <h3>Read</h3>
+            <p>Native text is taken straight from digital PDFs; scanned pages go through image-quality analysis, cleanup filters and Tesseract OCR. DOCX and XML are parsed directly.</p>
+          </li>
+          <li>
+            <h3>Reconcile</h3>
+            <p>The three sources are compared field by field. Agreement raises confidence; disagreement is flagged with both values instead of being silently resolved.</p>
+          </li>
+          <li>
+            <h3>Classify</h3>
+            <p>The request is typed — freeze, unfreeze, information, transfer, blocked-persons list — and the deadline is computed in Mexican business days.</p>
+          </li>
+          <li>
+            <h3>Review</h3>
+            <p>Confident cases move on; doubtful ones land in a review queue that shows the original document next to every extracted field, with an audit trail of each decision.</p>
+          </li>
+          <li>
+            <h3>Answer</h3>
+            <p>The response is exported as SIRO XML, Excel and PDF, ready for your institution's filing process.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section alt" id="reconcile">
+      <div class="wrap recon-grid">
+        <div>
+          <h2>Three sources, one answer you can defend</h2>
+          <p>OCR is good, not perfect. A scanned "5" read as "S" is exactly the kind of error that slips past a tired reviewer. Because Prisma reads the XML and DOCX as well, it can see that the scan disagrees, keep the value the other two sources confirm, and tell you it did so.</p>
+          <p>When the sources can't be reconciled, the case is not guessed — it goes to a person, with the conflicting values side by side.</p>
+        </div>
+        <div class="recon" role="table" aria-label="Example: reconciling the case number across three sources">
+          <div class="recon-row recon-head" role="row">
+            <span role="columnheader">Source</span><span role="columnheader">Expediente</span><span role="columnheader">Result</span>
+          </div>
+          <div class="recon-row" role="row">
+            <span role="cell">XML</span><span role="cell" class="val">A/AS1-4444-5555555-HHHH</span><span role="cell" class="ok">Agrees</span>
+          </div>
+          <div class="recon-row" role="row">
+            <span role="cell">DOCX</span><span role="cell" class="val">A/AS1-4444-5555555-HHHH</span><span role="cell" class="ok">Agrees</span>
+          </div>
+          <div class="recon-row" role="row">
+            <span role="cell">PDF (OCR)</span><span role="cell" class="val">A/AS1-4444-5555<em>S</em>55-HHHH</span><span role="cell" class="warn">Misread</span>
+          </div>
+          <div class="recon-row recon-out" role="row">
+            <span role="cell">Record</span><span role="cell" class="val">A/AS1-4444-5555555-HHHH</span><span role="cell">2 of 3, flagged</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="trust">
+      <div class="wrap">
+        <h2>Built for a regulated environment</h2>
+        <div class="trust-grid">
+          <div>
+            <h3>Three processes, three privileges</h3>
+            <p>Downloading, reading and deciding run as separate processes, each with its own identity and clearance. Every handoff carries a signed token bound to that one document, and a process that receives work outside its clearance rejects it.</p>
+          </div>
+          <div>
+            <h3>No stored portal credentials</h3>
+            <p>You choose how SIARA sign-in happens: a person signs in, a person hands over a live session, or credentials are fetched from your secret store at login time. In every mode, Prisma never saves them.</p>
+          </div>
+          <div>
+            <h3>An audit trail you can show an examiner</h3>
+            <p>Every extraction, correction and approval is recorded with who, when and from which source, in an append-only ledger protected at the database level.</p>
+          </div>
+          <div>
+            <h3>Runs where your data lives</h3>
+            <p>Self-hosted on your infrastructure, on Windows or Linux, with Docker images for each service. OCR runs locally; no document leaves your network.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="engineering">
+      <div class="wrap eng-grid">
+        <div>
+          <h2>For the engineers evaluating it</h2>
+          <p>Prisma is a .NET 10 solution in a hexagonal architecture: domain and application logic have no idea which OCR engine, database or portal they are talking to. Errors travel as values (<code>Result&lt;T&gt;</code>), not exceptions, and every async path honors cancellation.</p>
+          <p>The architecture itself is under test — dependency direction, interface placement and layering are enforced by an automated suite — alongside contract tests, mutation-killing tests and a full-pipeline end-to-end test that runs the three processes against a SIARA simulator.</p>
+          <p><a href="https://github.com/hebelmx/ExxerCube.Prisma">Browse the repository</a> or start with the <a href="https://github.com/hebelmx/ExxerCube.Prisma/blob/main/QUICKSTART.md">quick start</a>.</p>
+        </div>
+        <dl class="facts">
+          <div><dt>4,700+</dt><dd>automated tests across 50 test projects</dd></div>
+          <div><dt>31</dt><dd>production projects, each with a single responsibility</dd></div>
+          <div><dt>3</dt><dd>document sources reconciled per case</dd></div>
+          <div><dt>26</dt><dd>architecture decision records, written as the system was built</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="section" id="status">
+      <div class="wrap">
+        <h2>Where it stands</h2>
+        <p>The full pipeline — download, read, reconcile, classify, review, export — runs end to end against the included SIARA simulator. What remains before a production rollout is operational: configuring the deployment for your environment, wiring your secret store, and validating against the live portal once your compliance team signs off. We'd rather tell you that plainly than find it out together in week three.</p>
+      </div>
+    </section>
+
+    <section class="section cta" id="license">
+      <div class="wrap cta-grid">
+        <div>
+          <h2>Evaluate it freely. License it for production.</h2>
+          <p>The source is open to read, run and evaluate under the PolyForm Noncommercial license. Using Prisma to process real requests for a financial institution requires a commercial license, which can include implementation support, integration with your systems and the statement-verification companion module.</p>
+        </div>
+        <div class="cta-actions">
+          <a class="btn btn-primary" href="https://github.com/hebelmx/ExxerCube.Prisma/issues/new?title=Pilot%20request&amp;body=Institution%20type%3A%0AMonthly%20SIARA%20volume%3A%0AContact%3A">Request a pilot</a>
+          <a class="btn btn-quiet" href="https://github.com/hebelmx/ExxerCube.Prisma/blob/main/COMMERCIAL-LICENSE.md">Read the licensing terms</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot-grid">
+      <p>ExxerCube Prisma is built by ExxerCube / IndFusion. Copyright © 2025–2026 Abel Briones.</p>
+      <p>All documents, names and identifiers shown here and in the repository are synthetic. The SIARA simulator used for testing is not affiliated with the CNBV or the Government of Mexico.</p>
+    </div>
+  </footer>
+</body>
+</html>

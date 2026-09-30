@@ -1,0 +1,50 @@
+{
+  "docId": "PJFMX-2023-234626_20260704_050224",
+  "seed": 1000,
+  "chaosLevel": "none",
+  "requirementType": "judicial",
+  "folioSiara": "PJFMX/2023/234626",
+  "numeroOficio": "PJFMX/2023/234626",
+  "numeroExpediente": "B/IN1-6602-894350-BBB",
+  "autoridadNombre": "Poder Judicial de la Federación",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Estefanía Becerra Paz",
+  "personaNombre": "Adán Lugo Arteaga",
+  "personaRfc": "LUAA9407027J2",
+  "solicitudPartes": [
+    {
+      "nombre": "Adán Lugo Arteaga",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$9,976,691.72",
+  "fechaDiligencia": "04/07/2026",
+  "juzgadoNombre": "Poder Judicial de la Federación",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

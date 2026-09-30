@@ -1,0 +1,443 @@
+# Application Unit Testing Standards
+
+## Meta
+
+**Title**: Application Unit Testing Standards
+**Description**: Establishes comprehensive unit testing standards for application layer development using xUnit v3
+**Created-at**: 2025-01-05T23:00:00Z
+**Last-updated-at**: 2025-01-05T23:00:00Z
+**Applies-to**: Application layer testing, unit test development, test-driven development
+**File-matcher**: *.cs, *.csproj files in application projects
+
+## Requirements
+
+### <requirement priority="critical">
+**Description**: Use xUnit v3 exclusively for all unit tests with Shouldly for assertions
+**Examples**:
+<correct-example>
+```csharp
+[Fact]
+public void Should_ReturnSuccess_When_ValidOrderProvided()
+{
+    // Arrange
+    var validator = Substitute.For<IOrderValidator>();
+    validator.Validate(Arg.Any<Order>()).Returns(Result.Success());
+
+    // Act
+    var result = validator.Validate(new Order());
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue();
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Test]
+public void TestOrderValidation()
+{
+    // Arrange
+    var mockValidator = new Mock<IOrderValidator>();
+    mockValidator.Setup(x => x.Validate(It.IsAny<Order>()))
+                .Returns(Result.Success());
+
+    // Act
+    var result = mockValidator.Object.Validate(new Order());
+
+    // Assert
+    Assert.True(result.IsSuccess);
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Use descriptive test names following Should_Action_When_Condition pattern
+**Examples**:
+<correct-example>
+```csharp
+[Fact]
+public void Should_ReturnFailure_When_OrderIsNull()
+[Fact]
+public void Should_ValidateCustomer_When_ValidCustomerProvided()
+[Fact]
+public void Should_ProcessPayment_When_SufficientFundsAvailable()
+[Theory]
+[InlineData("John Doe", true)]
+[InlineData("", false)]
+public void Should_ValidateCustomerName_When_VariousNamesProvided(string name, bool expected)
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public void Test1()
+[Fact]
+public void ValidateOrder()
+[Fact]
+public void ProcessOrderTest()
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Follow AAA pattern (Arrange, Act, Assert) with clear separation
+**Examples**:
+<correct-example>
+```csharp
+[Fact]
+public void Should_ReturnSuccess_When_ValidOrderProvided()
+{
+    // Arrange
+    var order = new Order { CustomerName = "John Doe", TotalAmount = 100.00m };
+    var validator = Substitute.For<IOrderValidator>();
+    validator.Validate(Arg.Any<Order>()).Returns(Result.Success());
+
+    // Act
+    var result = validator.Validate(order);
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue();
+    result.Value.ShouldBe(order);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public void Should_ReturnSuccess_When_ValidOrderProvided()
+{
+    var order = new Order { CustomerName = "John Doe", TotalAmount = 100.00m };
+    var validator = Substitute.For<IOrderValidator>();
+    validator.Validate(Arg.Any<Order>()).Returns(Result.Success());
+    var result = validator.Validate(order);
+    result.IsSuccess.ShouldBeTrue();
+    result.Value.ShouldBe(order);
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: Never mock logging - use Meziantou.Extensions.Logging.Xunit.v3 for real logging
+**Examples**:
+<correct-example>
+```csharp
+[Fact]
+public void Should_LogInformation_When_OrderProcessed()
+{
+    // Arrange
+    var logger = new TestLogger<OrderProcessor>();
+    var processor = new OrderProcessor(logger);
+
+    // Act
+    var result = processor.ProcessOrder(new Order());
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue();
+    logger.GetLogs().ShouldContain(log => log.LogLevel == LogLevel.Information);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public void Should_LogInformation_When_OrderProcessed()
+{
+    // Arrange
+    var logger = Substitute.For<ILogger<OrderProcessor>>();
+    var processor = new OrderProcessor(logger);
+
+    // Act
+    var result = processor.ProcessOrder(new Order());
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue();
+    logger.Received().Log(Arg.Any<LogLevel>(), Arg.Any<string>());
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Use DateTimeMachine for mocking dates and times
+**Examples**:
+<correct-example>
+```csharp
+[Fact]
+public void Should_UseCurrentDateTime_When_ProcessingOrder()
+{
+    // Arrange
+    var fakeDateTime = new FakeDateTimeProvider(new DateTime(2025, 1, 5, 12, 0, 0));
+    var processor = new OrderProcessor(fakeDateTime);
+
+    // Act
+    var result = processor.ProcessOrder(new Order());
+
+    // Assert
+    result.Value.CreatedAt.ShouldBe(fakeDateTime.Now);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public void Should_UseCurrentDateTime_When_ProcessingOrder()
+{
+    // Arrange
+    var processor = new OrderProcessor();
+
+    // Act
+    var result = processor.ProcessOrder(new Order());
+
+    // Assert
+    result.Value.CreatedAt.ShouldBe(DateTime.Now); // Flaky test!
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Use Theory tests with InlineData for parameterized testing
+**Examples**:
+<correct-example>
+```csharp
+[Theory]
+[InlineData("John Doe", 100.00m, true)]
+[InlineData("", 100.00m, false)]
+[InlineData("John Doe", -50.00m, false)]
+[InlineData("", -50.00m, false)]
+public void Should_ValidateOrder_When_VariousInputsProvided(string customerName, decimal amount, bool expected)
+{
+    // Arrange
+    var order = new Order { CustomerName = customerName, TotalAmount = amount };
+    var validator = new OrderValidator();
+
+    // Act
+    var result = validator.Validate(order);
+
+    // Assert
+    result.IsSuccess.ShouldBe(expected);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public void Should_ValidateOrder_When_ValidInputProvided()
+{
+    // Arrange
+    var order = new Order { CustomerName = "John Doe", TotalAmount = 100.00m };
+    var validator = new OrderValidator();
+
+    // Act
+    var result = validator.Validate(order);
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue();
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Avoid mocking EF Core - use InMemory database for integration tests
+**Examples**:
+<correct-example>
+```csharp
+[Fact]
+public async Task Should_SaveOrder_When_ValidOrderProvided()
+{
+    // Arrange
+    var options = new DbContextOptionsBuilder<OrderDbContext>()
+        .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+        .Options;
+
+    using var context = new OrderDbContext(options);
+    var repository = new OrderRepository(context);
+    var order = new Order { CustomerName = "John Doe", TotalAmount = 100.00m };
+
+    // Act
+    var result = await repository.SaveAsync(order);
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue();
+    context.Orders.ShouldContain(o => o.CustomerName == "John Doe");
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public async Task Should_SaveOrder_When_ValidOrderProvided()
+{
+    // Arrange
+    var mockContext = Substitute.For<IOrderDbContext>();
+    var mockDbSet = Substitute.For<DbSet<Order>>();
+    mockContext.Orders.Returns(mockDbSet);
+
+    var repository = new OrderRepository(mockContext);
+    var order = new Order { CustomerName = "John Doe", TotalAmount = 100.00m };
+
+    // Act
+    var result = await repository.SaveAsync(order);
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue();
+    mockDbSet.Received().Add(Arg.Any<Order>());
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Create test fixtures for complex test data to avoid code duplication
+**Examples**:
+<correct-example>
+```csharp
+public class OrderTestData
+{
+    public static IEnumerable<object[]> ValidOrders => new[]
+    {
+        new object[] { new Order { CustomerName = "John Doe", TotalAmount = 100.00m } },
+        new object[] { new Order { CustomerName = "Jane Smith", TotalAmount = 250.00m } },
+        new object[] { new Order { CustomerName = "Bob Johnson", TotalAmount = 75.50m } }
+    };
+
+    public static IEnumerable<object[]> InvalidOrders => new[]
+    {
+        new object[] { new Order { CustomerName = "", TotalAmount = 100.00m }, "Customer name is required" },
+        new object[] { new Order { CustomerName = "John Doe", TotalAmount = -50.00m }, "Amount must be positive" },
+        new object[] { new Order { CustomerName = "", TotalAmount = -50.00m }, "Customer name is required" }
+    };
+}
+
+[Theory]
+[MemberData(nameof(OrderTestData.ValidOrders))]
+public void Should_ValidateOrder_When_ValidOrderProvided(Order order)
+{
+    // Arrange
+    var validator = new OrderValidator();
+
+    // Act
+    var result = validator.Validate(order);
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue();
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public void Should_ValidateOrder_When_ValidOrderProvided()
+{
+    // Arrange
+    var order = new Order { CustomerName = "John Doe", TotalAmount = 100.00m };
+    var validator = new OrderValidator();
+
+    // Act
+    var result = validator.Validate(order);
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue();
+}
+
+[Fact]
+public void Should_ValidateOrder_When_AnotherValidOrderProvided()
+{
+    // Arrange
+    var order = new Order { CustomerName = "Jane Smith", TotalAmount = 250.00m };
+    var validator = new OrderValidator();
+
+    // Act
+    var result = validator.Validate(order);
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue();
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: Never modify production code during test refactoring
+**Examples**:
+<correct-example>
+```csharp
+// Test only - no production code changes
+[Fact]
+public void Should_ReturnFailure_When_OrderIsNull()
+{
+    // Arrange
+    var validator = new OrderValidator();
+
+    // Act
+    var result = validator.Validate(null);
+
+    // Assert
+    result.IsFailure.ShouldBeTrue();
+    result.Error.ShouldContain("Order cannot be null");
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// Modifying production code to make test pass
+public class OrderValidator
+{
+    public Result Validate(Order order)
+    {
+        if (order == null)
+            return Result.WithFailure("Order cannot be null"); // Added for test
+
+        // Original logic
+        return Result.Success();
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+## Testing Strategy
+
+### Test Categories
+- **Unit Tests**: Test individual components in isolation
+- **Integration Tests**: Test component interactions with real dependencies
+- **Behavioral Tests**: Focus on behavior, not implementation details
+- **Property-Based Tests**: Test invariants and properties
+
+### Test Organization
+- **Group by Entity**: Organize tests by the entity being tested
+- **Group by Behavior**: Organize tests by the behavior being tested
+- **Use Test Fixtures**: Share common test data and setup
+- **Follow Naming Convention**: Should_Action_When_Condition
+
+### Test Data Management
+- **Use Seed Data**: Sample from existing data files for realistic test data
+- **Create Test Fixtures**: Avoid duplicating test data setup
+- **Use Builders**: Create test data builders for complex objects
+- **Mock External Dependencies**: Use NSubstitute for external services
+
+## Context
+
+This rule establishes comprehensive unit testing standards for application layer development. It emphasizes:
+
+1. **Test Quality**: Clear, maintainable, and expressive tests
+2. **Proper Tools**: xUnit v3, Shouldly, NSubstitute, real logging
+3. **Test Organization**: Clear structure and naming conventions
+4. **Test Data**: Realistic data without external dependencies
+5. **Integration**: Proper handling of EF Core and external services
+
+The rule prioritizes pragmatic testing that provides confidence in code behavior while maintaining test maintainability and readability.
+
+## References
+
+<reference as="dependency" href=".cursor/rules/0000RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/EntityFrameworkCore.Testing.mdc" reason="EF Core testing patterns">EF Core Testing Standards</reference>
+<reference as="context" href=".cursor/rules/CodeEnhancer.mdc" reason="C# coding standards">C# Enhancement Standards</reference>
+## Test Execution
+1. Run tests using .NET CLI commands:
+   ```bash
+   dotnet test
+   dotnet test --filter FullyQualifiedName~AggregationTest

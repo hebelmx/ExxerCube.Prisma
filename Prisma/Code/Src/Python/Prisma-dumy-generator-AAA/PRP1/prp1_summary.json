@@ -1,0 +1,266 @@
+{
+  "requirement_profiles": [
+    {
+      "id": "222AAA-44444444442025",
+      "authority": "SUBDELEGACION 8 SAN ANGEL",
+      "requirement_type": "ASEGURAMIENTO",
+      "subtype": null,
+      "mandatory_fields": [
+        "plazoDias",
+        "aseguramiento"
+      ],
+      "sla_days": [
+        7,
+        7
+      ],
+      "aseguramiento": true,
+      "hints": [
+        "“Para efectos de la inmunización ordenada en el presente oficio se solicita instruye a las instituciones de crédito y entidades financieras para que los depósitos se encuentran sean identificados inmovilizados retenidos y conservados a disp"
+      ],
+      "error_bias": [
+        "omisión",
+        "abreviac",
+        "acentuación apresurada"
+      ],
+      "fields": [
+        "AutoridadNombre",
+        "Caracter",
+        "Cnbv_AreaClave",
+        "Cnbv_AreaDescripcion",
+        "Cnbv_DiasPlazo",
+        "Cnbv_FechaPublicacion",
+        "Cnbv_Folio",
+        "Cnbv_NumeroExpediente",
+        "Cnbv_NumeroOficio",
+        "Cnbv_OficioYear",
+        "Cnbv_SolicitudSiara",
+        "Complementarios",
+        "Domicilio",
+        "Expediente",
+        "InstruccionesCuentasPorConocer",
+        "Materno",
+        "Nombre",
+        "NombreSolicitante",
+        "ParteId",
+        "Paterno",
+        "Persona",
+        "PersonaId",
+        "PersonasSolicitud",
+        "Referencia",
+        "Referencia1",
+        "Referencia2",
+        "Relacion",
+        "Rfc",
+        "SolicitudEspecifica",
+        "SolicitudEspecificaId",
+        "SolicitudPartes",
+        "TieneAseguramiento"
+      ]
+    },
+    {
+      "id": "333BBB-44444444442025",
+      "authority": "ADMINISTRACION DESCONCENTRADA DE AUDITORIA FISCAL DE SONORA \"2\"",
+      "requirement_type": "HACENDARIO",
+      "subtype": null,
+      "mandatory_fields": [
+        "plazoDias"
+      ],
+      "sla_days": [
+        10,
+        10
+      ],
+      "aseguramiento": false,
+      "hints": [
+        "Sector: Casas de Bolsa\n1.\tCopia Certificada de los estados de cuenta \n2.\tCopia certificada de contratos de intermediación bursátil en su caso las modificaciones\n3.\tDocumentos de identificación que presentó el titular al abrir los contratos\n"
+      ],
+      "error_bias": [
+        "omisión",
+        "abreviac",
+        "acentuación apresurada"
+      ],
+      "fields": [
+        "AutoridadNombre",
+        "Caracter",
+        "Cnbv_AreaClave",
+        "Cnbv_AreaDescripcion",
+        "Cnbv_DiasPlazo",
+        "Cnbv_FechaPublicacion",
+        "Cnbv_Folio",
+        "Cnbv_NumeroExpediente",
+        "Cnbv_NumeroOficio",
+        "Cnbv_OficioYear",
+        "Cnbv_SolicitudSiara",
+        "Complementarios",
+        "Domicilio",
+        "Expediente",
+        "InstruccionesCuentasPorConocer",
+        "Materno",
+        "Nombre",
+        "NombreSolicitante",
+        "ParteId",
+        "Paterno",
+        "Persona",
+        "PersonaId",
+        "PersonasSolicitud",
+        "Referencia",
+        "Referencia1",
+        "Referencia2",
+        "Relacion",
+        "Rfc",
+        "SolicitudEspecifica",
+        "SolicitudEspecificaId",
+        "SolicitudPartes",
+        "TieneAseguramiento"
+      ]
+    },
+    {
+      "id": "333ccc-6666666662025",
+      "authority": "JUZGADO CUARTO DE LO MERCANTIL DE PRIMERA INSTANCIA EN MATERIA MERCANTIL EN EL PRIMER PARTIDO JUDICIAL, ZONA METROPOLITANA DE GUAD.\n",
+      "requirement_type": "JUDICIAL",
+      "subtype": null,
+      "mandatory_fields": [
+        "plazoDias",
+        "aseguramiento"
+      ],
+      "sla_days": [
+        3,
+        3
+      ],
+      "aseguramiento": true,
+      "hints": [
+        "Suena girar atento oficio por las conductas electrónicos respectivos a través del sistema de atención a requerimientos de información de autoridades (SIARA), el cual se encuentra en la página de internet oficial visible en él link Siara.cnB"
+      ],
+      "error_bias": [
+        "omisión",
+        "abreviac",
+        "acentuación apresurada"
+      ],
+      "fields": [
+        "AutoridadNombre",
+        "Caracter",
+        "Cnbv_AreaClave",
+        "Cnbv_AreaDescripcion",
+        "Cnbv_DiasPlazo",
+        "Cnbv_FechaPublicacion",
+        "Cnbv_Folio",
+        "Cnbv_NumeroExpediente",
+        "Cnbv_NumeroOficio",
+        "Cnbv_OficioYear",
+        "Cnbv_SolicitudSiara",
+        "Complementarios",
+        "Domicilio",
+        "Expediente",
+        "InstruccionesCuentasPorConocer",
+        "Materno",
+        "Nombre",
+        "NombreSolicitante",
+        "ParteId",
+        "Paterno",
+        "Persona",
+        "PersonaId",
+        "PersonasSolicitud",
+        "Referencia",
+        "Referencia1",
+        "Referencia2",
+        "Relacion",
+        "Rfc",
+        "SolicitudEspecifica",
+        "SolicitudEspecificaId",
+        "SolicitudPartes",
+        "TieneAseguramiento"
+      ]
+    },
+    {
+      "id": "555CCC-66666662025",
+      "authority": "UNIDAD DE INTELIGENCIA FINANCIERA",
+      "requirement_type": "Operaciones Ilícitas",
+      "subtype": null,
+      "mandatory_fields": [
+        "plazoDias"
+      ],
+      "sla_days": [
+        1,
+        1
+      ],
+      "aseguramiento": false,
+      "hints": [
+        "En cumplimiento al \"ACUERDO 11/2025 DEL TITULAR DE LA UNIDAD DE INTELIGENCIA FINANCIERA POR EL QUE SE ELIMINA A HUGO PACO LUIS MCDONALD DE LA LISTA DE PERSONAS BLOQUEADAS DE LA SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO, EN CUMPLIMIENTO AL A"
+      ],
+      "error_bias": [
+        "omisión",
+        "abreviac",
+        "acentuación apresurada"
+      ],
+      "fields": [
+        "AutoridadEspecificaNombre",
+        "AutoridadNombre",
+        "Caracter",
+        "Cnbv_AreaClave",
+        "Cnbv_AreaDescripcion",
+        "Cnbv_DiasPlazo",
+        "Cnbv_FechaPublicacion",
+        "Cnbv_Folio",
+        "Cnbv_NumeroExpediente",
+        "Cnbv_NumeroOficio",
+        "Cnbv_OficioYear",
+        "Cnbv_SolicitudSiara",
+        "Complementarios",
+        "Domicilio",
+        "Expediente",
+        "InstruccionesCuentasPorConocer",
+        "Materno",
+        "Nombre",
+        "NombreSolicitante",
+        "ParteId",
+        "Paterno",
+        "Persona",
+        "PersonaId",
+        "PersonasSolicitud",
+        "Referencia",
+        "Referencia1",
+        "Referencia2",
+        "Relacion",
+        "Rfc",
+        "SolicitudEspecifica",
+        "SolicitudEspecificaId",
+        "SolicitudPartes",
+        "TieneAseguramiento"
+      ]
+    }
+  ],
+  "metadata_fields": {
+    "AutoridadNombre": 4,
+    "Caracter": 4,
+    "Cnbv_AreaClave": 4,
+    "Cnbv_AreaDescripcion": 4,
+    "Cnbv_DiasPlazo": 4,
+    "Cnbv_FechaPublicacion": 4,
+    "Cnbv_Folio": 4,
+    "Cnbv_NumeroExpediente": 4,
+    "Cnbv_NumeroOficio": 4,
+    "Cnbv_OficioYear": 4,
+    "Cnbv_SolicitudSiara": 4,
+    "Complementarios": 4,
+    "Domicilio": 4,
+    "Expediente": 4,
+    "InstruccionesCuentasPorConocer": 4,
+    "Materno": 4,
+    "Nombre": 4,
+    "NombreSolicitante": 4,
+    "ParteId": 4,
+    "Paterno": 4,
+    "Persona": 4,
+    "PersonaId": 4,
+    "PersonasSolicitud": 4,
+    "Referencia": 4,
+    "Referencia1": 4,
+    "Referencia2": 4,
+    "Relacion": 4,
+    "Rfc": 4,
+    "SolicitudEspecifica": 4,
+    "SolicitudEspecificaId": 4,
+    "SolicitudPartes": 4,
+    "TieneAseguramiento": 4,
+    "AutoridadEspecificaNombre": 1
+  }
+}

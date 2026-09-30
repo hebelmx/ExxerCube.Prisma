@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>PJFMX/2025/738666</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>PJFMX/2025/738666</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Juzgado Primero de Distrito en Materia Penal</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>PJFMX/2025/738666</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>A/PL1-3625-399842-AAA</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>10</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>Humberto Solano Ulibarri</NombreSolicitante>
+  <Referencia>REF-2961</Referencia>
+  <Referencia1>REF1-5813</Referencia1>
+  <Referencia2>REF2-7161</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>José Emilio Sáenz Fierro</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Proporcionar información de todas las cuentas bancarias
+- Especificar fechas de apertura y cierre de cuentas
+- Detallar operaciones superiores a $100,000.00 MN
+- Indicar titulares y co-titulares de las cuentas
+- Incluir números de cuenta, saldos y movimientos</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>José Emilio Sáenz Fierro</Nombre>
+    <Rfc>SÁFJ880529IY9</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Circuito Cruz No. 3635, Col. San Esteban de la Montaña, Municipio San Alejandro los altos, Morelos, C.P. 97981</Domicilio>
+    <Complementarios>Tel: 372.072.7630, Email: igamez@example.org</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

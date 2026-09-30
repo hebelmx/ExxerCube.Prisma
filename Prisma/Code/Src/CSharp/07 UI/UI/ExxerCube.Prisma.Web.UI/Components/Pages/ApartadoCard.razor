@@ -1,0 +1,51 @@
+@* Reusable card for one of the 5 "Atención a Autoridades" apartados.
+   Shows a Sí/No status header with confidence, then the sub-answers (ChildContent). *@
+@using MudBlazor
+
+<MudCard Outlined="true" Class="@($"h-100 {(Required ? "border-success" : string.Empty)}")">
+    <MudCardHeader>
+        <CardHeaderAvatar>
+            <MudIcon Icon="@Icon" Color="@(Required ? Color.Success : Color.Default)" Size="Size.Large" />
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@Title</MudText>
+            <div class="d-flex align-center mt-1">
+                <MudChip T="string"
+                         Size="Size.Small"
+                         Color="@(Required ? Color.Success : Color.Default)"
+                         Variant="@(Required ? Variant.Filled : Variant.Outlined)">
+                    @(Required ? "Sí" : "No")
+                </MudChip>
+                @if (Required && Confidence is > 0)
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="ml-2">
+                        Confianza: @($"{Confidence.Value * 100:F0}%")
+                    </MudText>
+                }
+            </div>
+        </CardHeaderContent>
+    </MudCardHeader>
+    @if (Required && ChildContent is not null)
+    {
+        <MudCardContent Class="pt-0">
+            @ChildContent
+        </MudCardContent>
+    }
+</MudCard>
+
+@code {
+    /// <summary>Apartado title (e.g. "1. Requiere Bloqueo").</summary>
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+
+    /// <summary>Material icon for the apartado.</summary>
+    [Parameter, EditorRequired] public string Icon { get; set; } = Icons.Material.Filled.Gavel;
+
+    /// <summary>Whether the requirement was detected in the oficio.</summary>
+    [Parameter] public bool Required { get; set; }
+
+    /// <summary>Classifier confidence (0.0–1.0), shown only when the requirement is present.</summary>
+    [Parameter] public double? Confidence { get; set; }
+
+    /// <summary>Sub-answers rendered inside the card when the requirement is present.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

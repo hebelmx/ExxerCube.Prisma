@@ -1,0 +1,27 @@
+{
+  "stryker-config": {
+    "project": "ExxerCube.Prisma.Infrastructure.Export.csproj",
+    "test-projects": [
+      "ExxerCube.Prisma.Tests.Infrastructure.Export.csproj"
+    ],
+    "test-runner": "mtp",
+    "mutate": [
+      "**/SiroXmlExporter.cs",
+      "**/ExcelLayoutGenerator.cs",
+      "**/CriterionMapperService.cs",
+      "**/CompositeResponseExporter.cs"
+    ],
+    "coverage-analysis": "perTest",
+    "reporters": [
+      "html",
+      "progress",
+      "cleartext"
+    ],
+    "thresholds": {
+      "high": 80,
+      "low": 60,
+      "break": 0
+    },
+    "concurrency": 4
+  }
+}

@@ -1,0 +1,407 @@
+
+# General Engineering Principles
+
+## Meta
+
+**Title**: General Engineering Principles
+**Description**: Establishes comprehensive domain-driven design and testing standards for enterprise .NET development
+**Created-at**: 2025-01-05T22:55:00Z
+**Last-updated-at**: 2025-01-05T22:55:00Z
+**Applies-to**: All .NET development, architecture design, testing, project structure
+**File-matcher**: *.cs, *.csproj, *.sln, *.props files
+
+## Requirements
+
+### <requirement priority="critical">
+**Description**: Use proper naming conventions - camelCase for internal values, avoid _camelCase for private fields
+**Examples**:
+<correct-example>
+```csharp
+public class OrderProcessor
+{
+    private readonly IOrderValidator validator;
+    private readonly ILogger<OrderProcessor> logger;
+
+    public OrderProcessor(IOrderValidator validator, ILogger<OrderProcessor> logger)
+    {
+        this.validator = validator;
+        this.logger = logger;
+    }
+
+    public async Task<Result<Order>> ProcessOrderAsync(OrderRequest request)
+    {
+        // Implementation
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public class OrderProcessor
+{
+    private readonly IOrderValidator _validator;
+    private readonly ILogger<OrderProcessor> _logger;
+
+    public OrderProcessor(IOrderValidator validator, ILogger<OrderProcessor> logger)
+    {
+        _validator = validator;
+        _logger = logger;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: Never throw exceptions - always return Result<T> for error handling
+**Examples**:
+<correct-example>
+```csharp
+public Result<Order> CreateOrder(OrderRequest request)
+{
+    if (request == null)
+        return Result<Order>.WithFailure("Request cannot be null");
+
+    if (string.IsNullOrEmpty(request.CustomerName))
+        return Result<Order>.WithFailure("Customer name is required");
+
+    // Processing logic
+    return Result<Order>.Success(order);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public Order CreateOrder(OrderRequest request)
+{
+    if (request == null)
+        throw new ArgumentNullException(nameof(request));
+
+    if (string.IsNullOrEmpty(request.CustomerName))
+        throw new ArgumentException("Customer name is required");
+
+    // Processing logic
+    return order;
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Use async/await patterns consistently - avoid .Result and .Wait()
+**Examples**:
+<correct-example>
+```csharp
+public async Task<Result<Order>> ProcessOrderAsync(OrderRequest request, CancellationToken cancellationToken = default)
+{
+    try
+    {
+        var validationResult = await ValidateOrderAsync(request, cancellationToken);
+        if (validationResult.IsFailure)
+            return Result<Order>.WithFailure(validationResult.Error!);
+
+        var order = await CreateOrderAsync(request, cancellationToken);
+        return Result<Order>.Success(order);
+    }
+    catch (OperationCanceledException)
+    {
+        return Result<Order>.WithFailure("Operation was cancelled");
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public Order ProcessOrder(OrderRequest request)
+{
+    var validationResult = ValidateOrderAsync(request).Result; // Blocking!
+    if (validationResult.IsFailure)
+        throw new Exception(validationResult.Error);
+
+    var order = CreateOrderAsync(request).Result; // Blocking!
+    return order;
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Use immutable data structures by default - prefer readonly, init, and record types
+**Examples**:
+<correct-example>
+```csharp
+public record OrderRequest(
+    string CustomerName,
+    IReadOnlyList<OrderItem> Items,
+    decimal TotalAmount
+);
+
+public class OrderValidator
+{
+    private readonly IReadOnlyList<IValidationRule> validationRules;
+
+    public OrderValidator(IEnumerable<IValidationRule> rules)
+    {
+        validationRules = rules.ToList().AsReadOnly();
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public class OrderRequest
+{
+    public string CustomerName { get; set; }
+    public List<OrderItem> Items { get; set; }
+    public decimal TotalAmount { get; set; }
+}
+
+public class OrderValidator
+{
+    private readonly List<IValidationRule> validationRules;
+
+    public OrderValidator(IEnumerable<IValidationRule> rules)
+    {
+        validationRules = rules.ToList(); // Mutable!
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Implement proper resource management with using statements
+**Examples**:
+<correct-example>
+```csharp
+public async Task<Result<string>> ReadFileAsync(string path, CancellationToken cancellationToken = default)
+{
+    try
+    {
+        using var fileStream = File.OpenRead(path);
+        using var reader = new StreamReader(fileStream);
+        var content = await reader.ReadToEndAsync(cancellationToken);
+        return Result<string>.Success(content);
+    }
+    catch (FileNotFoundException)
+    {
+        return Result<string>.WithFailure("File not found");
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public async Task<string> ReadFileAsync(string path)
+{
+    var fileStream = File.OpenRead(path);
+    var reader = new StreamReader(fileStream);
+    var content = await reader.ReadToEndAsync();
+    // Resources not disposed!
+    return content;
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Use structured logging for all external and domain calls
+**Examples**:
+<correct-example>
+```csharp
+public async Task<Result<Order>> ProcessOrderAsync(OrderRequest request, CancellationToken cancellationToken = default)
+{
+    logger.LogInformation("Processing order for customer {CustomerName}", request.CustomerName);
+
+    var validationResult = await ValidateOrderAsync(request, cancellationToken);
+    if (validationResult.IsFailure)
+    {
+        logger.LogWarning("Order validation failed for customer {CustomerName}: {Error}",
+            request.CustomerName, validationResult.Error);
+        return Result<Order>.WithFailure(validationResult.Error!);
+    }
+
+    logger.LogInformation("Order processed successfully for customer {CustomerName}", request.CustomerName);
+    return Result<Order>.Success(order);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public async Task<Result<Order>> ProcessOrderAsync(OrderRequest request, CancellationToken cancellationToken = default)
+{
+    Console.WriteLine("Processing order..."); // Unstructured logging
+
+    var validationResult = await ValidateOrderAsync(request, cancellationToken);
+    if (validationResult.IsFailure)
+    {
+        Console.WriteLine($"Validation failed: {validationResult.Error}"); // Unstructured
+        return Result<Order>.WithFailure(validationResult.Error!);
+    }
+
+    Console.WriteLine("Order processed successfully"); // Unstructured
+    return Result<Order>.Success(order);
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Organize code by domain, not by technical type
+**Examples**:
+<correct-example>
+```
+src/
+├── OrderModule/
+│   ├── Domain/
+│   │   ├── Entities/
+│   │   ├── ValueObjects/
+│   │   └── Services/
+│   ├── Application/
+│   │   ├── Commands/
+│   │   ├── Queries/
+│   │   └── Handlers/
+│   └── Infrastructure/
+│       ├── Repositories/
+│       └── ExternalServices/
+```
+</correct-example>
+<incorrect-example>
+```
+src/
+├── Models/
+├── Services/
+├── Controllers/
+├── Repositories/
+└── Utilities/
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: Avoid magic strings and magic numbers - use named constants
+**Examples**:
+<correct-example>
+```csharp
+public static class OrderConstants
+{
+    public const int MaxOrderItems = 100;
+    public const decimal MinimumOrderAmount = 10.00m;
+    public const string DefaultCurrency = "USD";
+    public const string PendingStatus = "Pending";
+    public const string CompletedStatus = "Completed";
+}
+
+public class OrderValidator
+{
+    public Result ValidateOrder(Order order)
+    {
+        if (order.Items.Count > OrderConstants.MaxOrderItems)
+            return Result.WithFailure($"Order cannot exceed {OrderConstants.MaxOrderItems} items");
+
+        if (order.TotalAmount < OrderConstants.MinimumOrderAmount)
+            return Result.WithFailure($"Order amount must be at least {OrderConstants.MinimumOrderAmount:C}");
+
+        return Result.Success();
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public class OrderValidator
+{
+    public Result ValidateOrder(Order order)
+    {
+        if (order.Items.Count > 100) // Magic number
+            return Result.WithFailure("Order cannot exceed 100 items");
+
+        if (order.TotalAmount < 10.00m) // Magic number
+            return Result.WithFailure("Order amount must be at least $10.00");
+
+        return Result.Success();
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Use dependency injection with primary constructors for all dependencies
+**Examples**:
+<correct-example>
+```csharp
+public class OrderProcessor(
+    IOrderValidator validator,
+    IOrderRepository repository,
+    ILogger<OrderProcessor> logger)
+{
+    public async Task<Result<Order>> ProcessOrderAsync(OrderRequest request, CancellationToken cancellationToken = default)
+    {
+        // Implementation using injected dependencies
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public class OrderProcessor
+{
+    private readonly IOrderValidator validator;
+    private readonly IOrderRepository repository;
+    private readonly ILogger<OrderProcessor> logger;
+
+    public OrderProcessor(IOrderValidator validator, IOrderRepository repository, ILogger<OrderProcessor> logger)
+    {
+        this.validator = validator;
+        this.repository = repository;
+        this.logger = logger;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+## Architecture Principles
+
+### SOLID Principles
+- **Single Responsibility**: Each class has one reason to change
+- **Open/Closed**: Open for extension, closed for modification
+- **Liskov Substitution**: Subtypes are substitutable for base types
+- **Interface Segregation**: Clients depend only on interfaces they use
+- **Dependency Inversion**: Depend on abstractions, not concretions
+
+### Domain-Driven Design
+- **Bounded Contexts**: Clear boundaries between different parts of the system
+- **Aggregates**: Consistency boundaries for domain objects
+- **Value Objects**: Immutable objects representing concepts
+- **Domain Services**: Business logic that doesn't belong to entities
+
+### Testing Strategy
+- **Unit Tests**: Test individual components in isolation
+- **Integration Tests**: Test component interactions
+- **Behavioral Tests**: Focus on behavior, not implementation
+- **Test-Driven Development**: Write tests before implementation
+
+## Context
+
+This rule establishes comprehensive engineering principles for enterprise .NET development. It emphasizes:
+
+1. **Code Quality**: Proper naming, immutability, resource management
+2. **Error Handling**: Result<T> pattern over exceptions
+3. **Async Patterns**: Proper async/await usage with cancellation
+4. **Architecture**: Domain-driven design and SOLID principles
+5. **Observability**: Structured logging and monitoring
+6. **Maintainability**: Clear structure and documentation
+
+The rule prioritizes industrial-grade development practices that scale to enterprise applications while maintaining code quality and developer productivity.
+
+## References
+
+<reference as="dependency" href=".cursor/rules/0000RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/CodeEnhancer.mdc" reason="C# coding standards">C# Enhancement Standards</reference>
+
+
+30. **Toolchain Enforcement**
+   - Use Roslyn analyzers, EditorConfig, and build rules to enforce these standards.
+   - Automate validation to reduce manual policing.

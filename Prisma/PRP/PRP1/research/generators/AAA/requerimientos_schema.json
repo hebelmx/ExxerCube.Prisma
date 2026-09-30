@@ -1,0 +1,88 @@
+
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Requerimiento Legal",
+  "description": "Esquema para documentos de requerimientos legales en español",
+  "type": "object",
+  "required": ["fecha", "autoridadEmisora", "expediente", "tipoRequerimiento"],
+  "properties": {
+    "fecha": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del requerimiento en formato YYYY-MM-DD"
+    },
+    "autoridadEmisora": {
+      "type": "string",
+      "description": "Autoridad judicial o administrativa que emite el requerimiento"
+    },
+    "expediente": {
+      "type": "string",
+      "description": "Número de expediente o caso"
+    },
+    "tipoRequerimiento": {
+      "type": "string",
+      "enum": [
+        "Embargo Precautorio",
+        "Embargo Ejecutivo",
+        "Aseguramiento de Cuentas",
+        "Congelamiento de Activos",
+        "Inmovilización de Valores",
+        "Retención de Fondos",
+        "Bloqueo de Cuentas",
+        "Suspensión de Operaciones",
+        "Información Financiera",
+        "Estados de Cuenta",
+        "Movimientos Bancarios",
+        "Transferencias Internacionales",
+        "Depósitos en Garantía",
+        "Liberación de Fondos",
+        "Levantamiento de Embargo"
+      ],
+      "description": "Tipo principal de requerimiento"
+    },
+    "subtipoRequerimiento": {
+      "type": "string",
+      "description": "Subtipo o categoría específica del requerimiento"
+    },
+    "fundamentoLegal": {
+      "type": "string",
+      "description": "Artículos y leyes que fundamentan el requerimiento"
+    },
+    "motivacion": {
+      "type": "string",
+      "description": "Tipo de procedimiento o juicio que motiva el requerimiento"
+    },
+    "partes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Nombres de las partes involucradas en el requerimiento"
+    },
+    "detalle": {
+      "type": "object",
+      "properties": {
+        "descripcion": {
+          "type": "string",
+          "description": "Descripción detallada del requerimiento"
+        },
+        "monto": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Monto involucrado en el requerimiento"
+        },
+        "moneda": {
+          "type": "string",
+          "enum": ["MXN", "USD", "EUR", "GBP", "CAD", "JPY", "CHF", "AUD", "CNY", "BRL"],
+          "default": "MXN",
+          "description": "Moneda del monto"
+        },
+        "activoVirtual": {
+          "type": "string",
+          "description": "Tipo de criptomoneda o activo virtual si aplica"
+        }
+      },
+      "description": "Detalles específicos del requerimiento"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "stryker-config": {
+    "project": "ExxerCube.Prisma.Infrastructure.Extraction.Ocr.csproj",
+    "test-projects": [
+      "ExxerCube.Prisma.Tests.Infrastructure.Extraction.csproj"
+    ],
+    "test-runner": "mtp",
+    "mutate": [
+      "**/Teseract/XmlFieldExtractor.cs",
+      "**/TextSanitizer.cs",
+      "**/OcrSanitizationService.cs",
+      "**/Teseract/FileTypeIdentifierService.cs",
+      "**/Matching/MexicanNameFuzzyMatcher.cs",
+      "**/Teseract/XmlExpedienteParser.cs",
+      "**/Teseract/XmlMetadataExtractor.cs",
+      "**/DocumentComparisonService.cs",
+      "**/AdditionalFieldsReconciler.cs",
+      "**/Teseract/DocxMetadataExtractor.cs",
+      "**/Teseract/DocxFieldExtractor.cs",
+      "**/Analysis/DocxStructureAnalyzer.cs",
+      "**/Teseract/PdfMetadataExtractor.cs",
+      "**/Teseract/CompositeMetadataExtractor.cs"
+    ],
+    "additional-timeout": 30000,
+    "coverage-analysis": "perTest",
+    "reporters": [
+      "html",
+      "progress",
+      "cleartext"
+    ],
+    "thresholds": {
+      "high": 80,
+      "low": 60,
+      "break": 0
+    },
+    "concurrency": 4
+  }
+}

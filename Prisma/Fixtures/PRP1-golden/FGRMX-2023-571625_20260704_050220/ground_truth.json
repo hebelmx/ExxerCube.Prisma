@@ -1,0 +1,50 @@
+{
+  "docId": "FGRMX-2023-571625_20260704_050220",
+  "seed": 1000,
+  "chaosLevel": "none",
+  "requirementType": "judicial",
+  "folioSiara": "FGRMX/2023/571625",
+  "numeroOficio": "FGRMX/2023/571625",
+  "numeroExpediente": "B/FI1-3465-780088-FGR",
+  "autoridadNombre": "Fiscalía General de la República",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Zeferino Ramón Limón",
+  "personaNombre": "Jorge Luis Toro Solorzano",
+  "personaRfc": "TOSJ9906199V6",
+  "solicitudPartes": [
+    {
+      "nombre": "Jorge Luis Toro Solorzano",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$1,611,525.36",
+  "fechaDiligencia": "04/07/2026",
+  "juzgadoNombre": "Fiscalía General de la República",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

@@ -1,0 +1,611 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ExxerCube.Prisma.Domain</name>
+    </assembly>
+    <members>
+        <member name="T:ExxerCube.Prisma.Domain.Common.Result`1">
+            <summary>
+            Represents a result that can be either a success or failure.
+            Implements Railway Oriented Programming pattern for error handling.
+            </summary>
+            <typeparam name="T">The type of the success value.</typeparam>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Common.Result`1.IsSuccess">
+            <summary>
+            Gets a value indicating whether the result is successful.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Common.Result`1.Value">
+            <summary>
+            Gets the success value if the result is successful.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Common.Result`1.Error">
+            <summary>
+            Gets the error message if the result is a failure.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Common.Result`1.#ctor(`0,System.Boolean,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Domain.Common.Result`1"/> class.
+            </summary>
+            <param name="value">The success value.</param>
+            <param name="isSuccess">Whether the result is successful.</param>
+            <param name="error">The error message.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Common.Result`1.Success(`0)">
+            <summary>
+            Creates a successful result.
+            </summary>
+            <param name="value">The success value.</param>
+            <returns>A successful result.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Common.Result`1.Failure(System.String)">
+            <summary>
+            Creates a failure result.
+            </summary>
+            <param name="error">The error message.</param>
+            <returns>A failure result.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Common.Result`1.op_Implicit(`0)~ExxerCube.Prisma.Domain.Common.Result{`0}">
+            <summary>
+            Implicitly converts a value to a successful result.
+            </summary>
+            <param name="value">The value to convert.</param>
+        </member>
+        <member name="T:ExxerCube.Prisma.Domain.Common.ResultExtensions">
+            <summary>
+            Extension methods for Result&lt;T&gt; to enable fluent Railway Oriented Programming operations.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Common.ResultExtensions.Bind``2(ExxerCube.Prisma.Domain.Common.Result{``0},System.Func{``0,System.Threading.Tasks.Task{ExxerCube.Prisma.Domain.Common.Result{``1}}})">
+            <summary>
+            Binds a function to a result, continuing the railway if successful.
+            </summary>
+            <typeparam name="T">The input type.</typeparam>
+            <typeparam name="TResult">The output type.</typeparam>
+            <param name="result">The input result.</param>
+            <param name="func">The function to bind.</param>
+            <returns>A new result.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Common.ResultExtensions.Bind``2(ExxerCube.Prisma.Domain.Common.Result{``0},System.Func{``0,ExxerCube.Prisma.Domain.Common.Result{``1}})">
+            <summary>
+            Binds a synchronous function to a result, continuing the railway if successful.
+            </summary>
+            <typeparam name="T">The input type.</typeparam>
+            <typeparam name="TResult">The output type.</typeparam>
+            <param name="result">The input result.</param>
+            <param name="func">The function to bind.</param>
+            <returns>A new result.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Common.ResultExtensions.Map``2(ExxerCube.Prisma.Domain.Common.Result{``0},System.Func{``0,``1})">
+            <summary>
+            Maps a function over a successful result.
+            </summary>
+            <typeparam name="T">The input type.</typeparam>
+            <typeparam name="TResult">The output type.</typeparam>
+            <param name="result">The input result.</param>
+            <param name="func">The function to map.</param>
+            <returns>A new result.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Common.ResultExtensions.MapAsync``2(ExxerCube.Prisma.Domain.Common.Result{``0},System.Func{``0,System.Threading.Tasks.Task{``1}})">
+            <summary>
+            Maps an async function over a successful result.
+            </summary>
+            <typeparam name="T">The input type.</typeparam>
+            <typeparam name="TResult">The output type.</typeparam>
+            <param name="result">The input result.</param>
+            <param name="func">The async function to map.</param>
+            <returns>A new result.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Common.ResultExtensions.Tap``1(ExxerCube.Prisma.Domain.Common.Result{``0},System.Action{``0})">
+            <summary>
+            Executes an action on a successful result, returning the same result.
+            </summary>
+            <typeparam name="T">The result type.</typeparam>
+            <param name="result">The input result.</param>
+            <param name="action">The action to execute.</param>
+            <returns>The same result.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Common.ResultExtensions.TapAsync``1(ExxerCube.Prisma.Domain.Common.Result{``0},System.Func{``0,System.Threading.Tasks.Task})">
+            <summary>
+            Executes an async action on a successful result, returning the same result.
+            </summary>
+            <typeparam name="T">The result type.</typeparam>
+            <param name="result">The input result.</param>
+            <param name="action">The async action to execute.</param>
+            <returns>The same result.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Domain.Entities.AmountData">
+            <summary>
+            Represents a monetary amount with currency.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.AmountData.Currency">
+            <summary>
+            Gets or sets the currency code (e.g., "MXN", "USD").
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.AmountData.Value">
+            <summary>
+            Gets or sets the monetary value.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.AmountData.OriginalText">
+            <summary>
+            Gets or sets the original text from which the amount was extracted.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Entities.AmountData.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Domain.Entities.AmountData"/> class.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Entities.AmountData.#ctor(System.String,System.Decimal,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Domain.Entities.AmountData"/> class with specified values.
+            </summary>
+            <param name="currency">The currency code.</param>
+            <param name="value">The monetary value.</param>
+            <param name="originalText">The original text.</param>
+        </member>
+        <member name="T:ExxerCube.Prisma.Domain.Entities.ExtractedFields">
+            <summary>
+            Represents structured data extracted from OCR text.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ExtractedFields.Expediente">
+            <summary>
+            Gets or sets the expediente (file number) extracted from the document.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ExtractedFields.Causa">
+            <summary>
+            Gets or sets the causa (cause) extracted from the document.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ExtractedFields.AccionSolicitada">
+            <summary>
+            Gets or sets the accion solicitada (requested action) extracted from the document.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ExtractedFields.Fechas">
+            <summary>
+            Gets or sets the list of dates extracted from the document.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ExtractedFields.Montos">
+            <summary>
+            Gets or sets the list of monetary amounts extracted from the document.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Entities.ExtractedFields.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Domain.Entities.ExtractedFields"/> class.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Entities.ExtractedFields.#ctor(System.String,System.String,System.String,System.Collections.Generic.List{System.String},System.Collections.Generic.List{ExxerCube.Prisma.Domain.Entities.AmountData})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Domain.Entities.ExtractedFields"/> class with specified values.
+            </summary>
+            <param name="expediente">The expediente value.</param>
+            <param name="causa">The causa value.</param>
+            <param name="accionSolicitada">The accion solicitada value.</param>
+            <param name="fechas">The list of dates.</param>
+            <param name="montos">The list of monetary amounts.</param>
+        </member>
+        <member name="T:ExxerCube.Prisma.Domain.Entities.ImageData">
+            <summary>
+            Represents a document image with metadata for OCR processing.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ImageData.Data">
+            <summary>
+            Gets or sets the raw image data as a byte array.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ImageData.SourcePath">
+            <summary>
+            Gets or sets the source file path of the image.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ImageData.PageNumber">
+            <summary>
+            Gets or sets the page number of the image.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ImageData.TotalPages">
+            <summary>
+            Gets or sets the total number of pages in the document.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Entities.ImageData.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Domain.Entities.ImageData"/> class.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Entities.ImageData.#ctor(System.Byte[],System.String,System.Int32,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Domain.Entities.ImageData"/> class with specified values.
+            </summary>
+            <param name="data">The raw image data.</param>
+            <param name="sourcePath">The source file path.</param>
+            <param name="pageNumber">The page number.</param>
+            <param name="totalPages">The total number of pages.</param>
+        </member>
+        <member name="T:ExxerCube.Prisma.Domain.Entities.OCRConfig">
+            <summary>
+            Represents configuration for OCR execution.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.OCRConfig.Language">
+            <summary>
+            Gets or sets the primary language for OCR processing (e.g., "spa", "eng").
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.OCRConfig.OEM">
+            <summary>
+            Gets or sets the OCR Engine Mode (0-3).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.OCRConfig.PSM">
+            <summary>
+            Gets or sets the Page Segmentation Mode (0-13).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.OCRConfig.FallbackLanguage">
+            <summary>
+            Gets or sets the fallback language for OCR processing.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Entities.OCRConfig.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Domain.Entities.OCRConfig"/> class.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Entities.OCRConfig.#ctor(System.String,System.Int32,System.Int32,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Domain.Entities.OCRConfig"/> class with specified values.
+            </summary>
+            <param name="language">The primary language.</param>
+            <param name="oem">The OCR Engine Mode.</param>
+            <param name="psm">The Page Segmentation Mode.</param>
+            <param name="fallbackLanguage">The fallback language.</param>
+        </member>
+        <member name="T:ExxerCube.Prisma.Domain.Entities.OCRResult">
+            <summary>
+            Represents the result from OCR execution with confidence metrics.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.OCRResult.Text">
+            <summary>
+            Gets or sets the extracted text from the OCR process.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.OCRResult.ConfidenceAvg">
+            <summary>
+            Gets or sets the average confidence score (0.0 to 100.0).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.OCRResult.ConfidenceMedian">
+            <summary>
+            Gets or sets the median confidence score (0.0 to 100.0).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.OCRResult.Confidences">
+            <summary>
+            Gets or sets the list of confidence scores for individual words.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.OCRResult.LanguageUsed">
+            <summary>
+            Gets or sets the language used for OCR processing.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Entities.OCRResult.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Domain.Entities.OCRResult"/> class.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Entities.OCRResult.#ctor(System.String,System.Single,System.Single,System.Collections.Generic.List{System.Single},System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Domain.Entities.OCRResult"/> class with specified values.
+            </summary>
+            <param name="text">The extracted text.</param>
+            <param name="confidenceAvg">The average confidence score.</param>
+            <param name="confidenceMedian">The median confidence score.</param>
+            <param name="confidences">The list of confidence scores.</param>
+            <param name="languageUsed">The language used for OCR.</param>
+        </member>
+        <member name="T:ExxerCube.Prisma.Domain.Entities.ProcessingConfig">
+            <summary>
+            Represents configuration for the entire processing pipeline.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ProcessingConfig.RemoveWatermark">
+            <summary>
+            Gets or sets a value indicating whether to remove watermarks from images.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ProcessingConfig.Deskew">
+            <summary>
+            Gets or sets a value indicating whether to deskew images.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ProcessingConfig.Binarize">
+            <summary>
+            Gets or sets a value indicating whether to binarize images.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ProcessingConfig.OCRConfig">
+            <summary>
+            Gets or sets the OCR configuration.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ProcessingConfig.ExtractSections">
+            <summary>
+            Gets or sets a value indicating whether to extract sections from the document.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ProcessingConfig.NormalizeText">
+            <summary>
+            Gets or sets a value indicating whether to normalize text.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Entities.ProcessingConfig.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Domain.Entities.ProcessingConfig"/> class.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Entities.ProcessingConfig.#ctor(System.Boolean,System.Boolean,System.Boolean,ExxerCube.Prisma.Domain.Entities.OCRConfig,System.Boolean,System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Domain.Entities.ProcessingConfig"/> class with specified values.
+            </summary>
+            <param name="removeWatermark">Whether to remove watermarks.</param>
+            <param name="deskew">Whether to deskew images.</param>
+            <param name="binarize">Whether to binarize images.</param>
+            <param name="ocrConfig">The OCR configuration.</param>
+            <param name="extractSections">Whether to extract sections.</param>
+            <param name="normalizeText">Whether to normalize text.</param>
+        </member>
+        <member name="T:ExxerCube.Prisma.Domain.Entities.ProcessingResult">
+            <summary>
+            Represents the final result of processing a single image.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ProcessingResult.SourcePath">
+            <summary>
+            Gets or sets the source path of the processed image.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ProcessingResult.PageNumber">
+            <summary>
+            Gets or sets the page number of the processed image.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ProcessingResult.OCRResult">
+            <summary>
+            Gets or sets the OCR result from processing.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ProcessingResult.ExtractedFields">
+            <summary>
+            Gets or sets the extracted fields from the document.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ProcessingResult.OutputPath">
+            <summary>
+            Gets or sets the output path where results were saved.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Domain.Entities.ProcessingResult.ProcessingErrors">
+            <summary>
+            Gets or sets the list of processing errors that occurred.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Entities.ProcessingResult.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Domain.Entities.ProcessingResult"/> class.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Entities.ProcessingResult.#ctor(System.String,System.Int32,ExxerCube.Prisma.Domain.Entities.OCRResult,ExxerCube.Prisma.Domain.Entities.ExtractedFields,System.String,System.Collections.Generic.List{System.String})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Domain.Entities.ProcessingResult"/> class with specified values.
+            </summary>
+            <param name="sourcePath">The source path.</param>
+            <param name="pageNumber">The page number.</param>
+            <param name="ocrResult">The OCR result.</param>
+            <param name="extractedFields">The extracted fields.</param>
+            <param name="outputPath">The output path.</param>
+            <param name="processingErrors">The processing errors.</param>
+        </member>
+        <member name="T:ExxerCube.Prisma.Domain.Interfaces.IFieldExtractor">
+            <summary>
+            Defines the field extractor service for extracting structured data from OCR text.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IFieldExtractor.ExtractFieldsAsync(System.String,System.Single)">
+            <summary>
+            Extracts structured fields from OCR text.
+            </summary>
+            <param name="text">The OCR text to process.</param>
+            <param name="confidence">The OCR confidence score.</param>
+            <returns>A result containing the extracted fields or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IFieldExtractor.ExtractExpedienteAsync(System.String)">
+            <summary>
+            Extracts expediente (file number) from text.
+            </summary>
+            <param name="text">The text to process.</param>
+            <returns>A result containing the extracted expediente or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IFieldExtractor.ExtractCausaAsync(System.String)">
+            <summary>
+            Extracts causa (cause) from text.
+            </summary>
+            <param name="text">The text to process.</param>
+            <returns>A result containing the extracted causa or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IFieldExtractor.ExtractAccionSolicitadaAsync(System.String)">
+            <summary>
+            Extracts accion solicitada (requested action) from text.
+            </summary>
+            <param name="text">The text to process.</param>
+            <returns>A result containing the extracted accion solicitada or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IFieldExtractor.ExtractDatesAsync(System.String)">
+            <summary>
+            Extracts dates from text.
+            </summary>
+            <param name="text">The text to process.</param>
+            <returns>A result containing the extracted dates or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IFieldExtractor.ExtractAmountsAsync(System.String)">
+            <summary>
+            Extracts monetary amounts from text.
+            </summary>
+            <param name="text">The text to process.</param>
+            <returns>A result containing the extracted amounts or an error.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Domain.Interfaces.IFileLoader">
+            <summary>
+            Defines the file loader service for loading images from the file system.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IFileLoader.LoadImageAsync(System.String)">
+            <summary>
+            Loads an image from a file path.
+            </summary>
+            <param name="filePath">The path to the image file.</param>
+            <returns>A result containing the loaded image data or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IFileLoader.LoadImagesFromDirectoryAsync(System.String,System.String[])">
+            <summary>
+            Loads multiple images from a directory.
+            </summary>
+            <param name="directoryPath">The path to the directory containing images.</param>
+            <param name="supportedExtensions">The supported file extensions.</param>
+            <returns>A result containing the list of loaded image data or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IFileLoader.GetSupportedExtensions">
+            <summary>
+            Gets the list of supported file extensions.
+            </summary>
+            <returns>An array of supported file extensions.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IFileLoader.ValidateFilePathAsync(System.String)">
+            <summary>
+            Validates if a file path is valid and accessible.
+            </summary>
+            <param name="filePath">The file path to validate.</param>
+            <returns>A result indicating validation success or failure.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Domain.Interfaces.IImagePreprocessor">
+            <summary>
+            Defines the image preprocessing service for preparing images for OCR.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IImagePreprocessor.PreprocessAsync(ExxerCube.Prisma.Domain.Entities.ImageData,ExxerCube.Prisma.Domain.Entities.ProcessingConfig)">
+            <summary>
+            Preprocesses an image for OCR processing.
+            </summary>
+            <param name="imageData">The image data to preprocess.</param>
+            <param name="config">The processing configuration.</param>
+            <returns>A result containing the preprocessed image or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IImagePreprocessor.RemoveWatermarkAsync(ExxerCube.Prisma.Domain.Entities.ImageData)">
+            <summary>
+            Removes watermarks from an image.
+            </summary>
+            <param name="imageData">The image data to process.</param>
+            <returns>A result containing the processed image or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IImagePreprocessor.DeskewAsync(ExxerCube.Prisma.Domain.Entities.ImageData)">
+            <summary>
+            Deskews (straightens) an image.
+            </summary>
+            <param name="imageData">The image data to process.</param>
+            <returns>A result containing the processed image or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IImagePreprocessor.BinarizeAsync(ExxerCube.Prisma.Domain.Entities.ImageData)">
+            <summary>
+            Binarizes an image (converts to black and white).
+            </summary>
+            <param name="imageData">The image data to process.</param>
+            <returns>A result containing the processed image or an error.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Domain.Interfaces.IOcrExecutor">
+            <summary>
+            Defines the OCR executor service for performing OCR on images.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IOcrExecutor.ExecuteOcrAsync(ExxerCube.Prisma.Domain.Entities.ImageData,ExxerCube.Prisma.Domain.Entities.OCRConfig)">
+            <summary>
+            Executes OCR on an image and returns the extracted text with confidence scores.
+            </summary>
+            <param name="imageData">The image data to process.</param>
+            <param name="config">The OCR configuration.</param>
+            <returns>A result containing the OCR result or an error.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Domain.Interfaces.IOcrProcessingService">
+            <summary>
+            Defines the main OCR processing service that orchestrates the entire pipeline.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IOcrProcessingService.ProcessDocumentAsync(ExxerCube.Prisma.Domain.Entities.ImageData,ExxerCube.Prisma.Domain.Entities.ProcessingConfig)">
+            <summary>
+            Processes a document image and extracts structured data.
+            </summary>
+            <param name="imageData">The image data to process.</param>
+            <param name="config">The processing configuration.</param>
+            <returns>A result containing the processing result or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IOcrProcessingService.ProcessDocumentsAsync(System.Collections.Generic.IEnumerable{ExxerCube.Prisma.Domain.Entities.ImageData},ExxerCube.Prisma.Domain.Entities.ProcessingConfig,System.Int32)">
+            <summary>
+            Processes multiple documents concurrently.
+            </summary>
+            <param name="imageDataList">The list of image data to process.</param>
+            <param name="config">The processing configuration.</param>
+            <param name="maxConcurrency">Maximum number of concurrent operations.</param>
+            <returns>A result containing the list of processing results or an error.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Domain.Interfaces.IOutputWriter">
+            <summary>
+            Defines the output writer service for saving processing results.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IOutputWriter.WriteResultAsync(ExxerCube.Prisma.Domain.Entities.ProcessingResult,System.String)">
+            <summary>
+            Writes a processing result to the specified output path.
+            </summary>
+            <param name="result">The processing result to write.</param>
+            <param name="outputPath">The output file path.</param>
+            <returns>A result indicating success or failure.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IOutputWriter.WriteResultsAsync(System.Collections.Generic.IEnumerable{ExxerCube.Prisma.Domain.Entities.ProcessingResult},System.String)">
+            <summary>
+            Writes multiple processing results to a directory.
+            </summary>
+            <param name="results">The list of processing results to write.</param>
+            <param name="outputDirectory">The output directory path.</param>
+            <returns>A result indicating success or failure.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IOutputWriter.WriteJsonAsync(ExxerCube.Prisma.Domain.Entities.ProcessingResult,System.String)">
+            <summary>
+            Writes results in JSON format.
+            </summary>
+            <param name="result">The processing result to write.</param>
+            <param name="outputPath">The output file path.</param>
+            <returns>A result indicating success or failure.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Domain.Interfaces.IOutputWriter.WriteTextAsync(ExxerCube.Prisma.Domain.Entities.ProcessingResult,System.String)">
+            <summary>
+            Writes results in text format.
+            </summary>
+            <param name="result">The processing result to write.</param>
+            <param name="outputPath">The output file path.</param>
+            <returns>A result indicating success or failure.</returns>
+        </member>
+    </members>
+</doc>

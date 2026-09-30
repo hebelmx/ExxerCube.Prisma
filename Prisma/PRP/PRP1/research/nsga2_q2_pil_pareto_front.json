@@ -1,0 +1,282 @@
+[
+  {
+    "id": 0,
+    "genome": {
+      "contrast_factor": 1.1573620712395511,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 274,
+      "Q2_333BBB": 371,
+      "Q2_333ccc": 320,
+      "Q2_555CCC": 161
+    },
+    "total_edits_Q2": 1126
+  },
+  {
+    "id": 1,
+    "genome": {
+      "contrast_factor": 2.0746389469496416,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 285,
+      "Q2_333BBB": 438,
+      "Q2_333ccc": 377,
+      "Q2_555CCC": 145
+    },
+    "total_edits_Q2": 1245
+  },
+  {
+    "id": 2,
+    "genome": {
+      "contrast_factor": 1.811837534202327,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 308,
+      "Q2_333BBB": 450,
+      "Q2_333ccc": 309,
+      "Q2_555CCC": 150
+    },
+    "total_edits_Q2": 1217
+  },
+  {
+    "id": 3,
+    "genome": {
+      "contrast_factor": 1.6541036616626295,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 315,
+      "Q2_333BBB": 412,
+      "Q2_333ccc": 319,
+      "Q2_555CCC": 147
+    },
+    "total_edits_Q2": 1193
+  },
+  {
+    "id": 4,
+    "genome": {
+      "contrast_factor": 1.9308880246367262,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 291,
+      "Q2_333BBB": 433,
+      "Q2_333ccc": 319,
+      "Q2_555CCC": 212
+    },
+    "total_edits_Q2": 1255
+  },
+  {
+    "id": 5,
+    "genome": {
+      "contrast_factor": 1.8182486389969368,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 288,
+      "Q2_333BBB": 398,
+      "Q2_333ccc": 378,
+      "Q2_555CCC": 146
+    },
+    "total_edits_Q2": 1210
+  },
+  {
+    "id": 6,
+    "genome": {
+      "contrast_factor": 1.5165719371019049,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 268,
+      "Q2_333BBB": 438,
+      "Q2_333ccc": 336,
+      "Q2_555CCC": 159
+    },
+    "total_edits_Q2": 1201
+  },
+  {
+    "id": 7,
+    "genome": {
+      "contrast_factor": 1.8120565373984678,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 308,
+      "Q2_333BBB": 450,
+      "Q2_333ccc": 309,
+      "Q2_555CCC": 150
+    },
+    "total_edits_Q2": 1217
+  },
+  {
+    "id": 8,
+    "genome": {
+      "contrast_factor": 1.1571055295061656,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 272,
+      "Q2_333BBB": 373,
+      "Q2_333ccc": 321,
+      "Q2_555CCC": 167
+    },
+    "total_edits_Q2": 1133
+  },
+  {
+    "id": 9,
+    "genome": {
+      "contrast_factor": 2.0791003001376884,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 283,
+      "Q2_333BBB": 430,
+      "Q2_333ccc": 372,
+      "Q2_555CCC": 148
+    },
+    "total_edits_Q2": 1233
+  },
+  {
+    "id": 10,
+    "genome": {
+      "contrast_factor": 1.9311070278328673,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 291,
+      "Q2_333BBB": 437,
+      "Q2_333ccc": 311,
+      "Q2_555CCC": 209
+    },
+    "total_edits_Q2": 1248
+  },
+  {
+    "id": 11,
+    "genome": {
+      "contrast_factor": 1.5165719371019049,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 268,
+      "Q2_333BBB": 438,
+      "Q2_333ccc": 336,
+      "Q2_555CCC": 159
+    },
+    "total_edits_Q2": 1201
+  },
+  {
+    "id": 12,
+    "genome": {
+      "contrast_factor": 1.7124299396070946,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 303,
+      "Q2_333BBB": 407,
+      "Q2_333ccc": 317,
+      "Q2_555CCC": 153
+    },
+    "total_edits_Q2": 1180
+  },
+  {
+    "id": 13,
+    "genome": {
+      "contrast_factor": 1.8781980056194842,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 294,
+      "Q2_333BBB": 389,
+      "Q2_333ccc": 325,
+      "Q2_555CCC": 150
+    },
+    "total_edits_Q2": 1158
+  },
+  {
+    "id": 14,
+    "genome": {
+      "contrast_factor": 1.5142539357914684,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 269,
+      "Q2_333BBB": 440,
+      "Q2_333ccc": 330,
+      "Q2_555CCC": 159
+    },
+    "total_edits_Q2": 1198
+  },
+  {
+    "id": 15,
+    "genome": {
+      "contrast_factor": 1.8112592468268411,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 311,
+      "Q2_333BBB": 447,
+      "Q2_333ccc": 310,
+      "Q2_555CCC": 156
+    },
+    "total_edits_Q2": 1224
+  },
+  {
+    "id": 16,
+    "genome": {
+      "contrast_factor": 1.1127202321947811,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 275,
+      "Q2_333BBB": 427,
+      "Q2_333ccc": 326,
+      "Q2_555CCC": 154
+    },
+    "total_edits_Q2": 1182
+  },
+  {
+    "id": 17,
+    "genome": {
+      "contrast_factor": 1.5254252852225765,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 308,
+      "Q2_333BBB": 387,
+      "Q2_333ccc": 316,
+      "Q2_555CCC": 164
+    },
+    "total_edits_Q2": 1175
+  },
+  {
+    "id": 18,
+    "genome": {
+      "contrast_factor": 1.660624691629111,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 310,
+      "Q2_333BBB": 415,
+      "Q2_333ccc": 313,
+      "Q2_555CCC": 150
+    },
+    "total_edits_Q2": 1188
+  },
+  {
+    "id": 19,
+    "genome": {
+      "contrast_factor": 1.0401935523863086,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q2_222AAA": 278,
+      "Q2_333BBB": 403,
+      "Q2_333ccc": 320,
+      "Q2_555CCC": 150
+    },
+    "total_edits_Q2": 1151
+  }
+]

@@ -1,0 +1,391 @@
+# Rule: File Organization Guidelines - Single Class Per File
+
+## Why File Organization Matters
+
+### 1. Code Maintainability
+- **Easier to locate** specific classes and functionality
+- **Simplified version control** with focused changes
+- **Better code reviews** with smaller, focused files
+- **Reduced merge conflicts** when multiple developers work on different classes
+
+### 2. Development Productivity
+- **Faster file navigation** in IDEs
+- **Clearer mental models** of code structure
+- **Easier refactoring** with isolated classes
+- **Better IntelliSense** and code completion
+
+### 3. Team Collaboration
+- **Reduced file conflicts** when multiple developers work simultaneously
+- **Clearer ownership** of specific functionality
+- **Easier onboarding** with well-organized files
+- **Better code organization** for team standards
+
+## Core Principle: Single Class Per File
+
+### 1. One Public Class Per File
+Each file should contain exactly one public class:
+
+```csharp
+// ✅ Good: Single class per file
+// OrderProcessor.cs
+public class OrderProcessor
+{
+    public async Task<Result<Order>> ProcessOrderAsync(Order order)
+    {
+        // Implementation
+    }
+}
+
+// ❌ Bad: Multiple classes in one file
+// OrderProcessor.cs
+public class OrderProcessor
+{
+    public async Task<Result<Order>> ProcessOrderAsync(Order order)
+    {
+        // Implementation
+    }
+}
+
+public class OrderValidator
+{
+    public bool ValidateOrder(Order order)
+    {
+        // Implementation
+    }
+}
+
+public class OrderRepository
+{
+    public async Task<Order?> GetByIdAsync(int id)
+    {
+        // Implementation
+    }
+}
+```
+
+### 2. File Naming Convention
+- **File name matches class name** exactly
+- **Use PascalCase** for file names
+- **Include file extension** (.cs)
+- **Be descriptive** and specific
+
+```plaintext
+✅ Good File Names:
+- OrderProcessor.cs
+- UserAuthenticationService.cs
+- ProductInventoryRepository.cs
+- CreateOrderCommandHandler.cs
+
+❌ Bad File Names:
+- OrderStuff.cs
+- Utils.cs
+- Helpers.cs
+- Everything.cs
+```
+
+## Interface and Class Separation
+
+### 1. Separate Interface and Implementation
+Interfaces and their implementations should be in separate files:
+
+```csharp
+// ✅ Good: Separate files
+// IOrderRepository.cs
+public interface IOrderRepository
+{
+    Task<Order?> GetByIdAsync(int id);
+    Task<Result<Order>> SaveAsync(Order order);
+    Task<Result> DeleteAsync(int id);
+}
+
+// OrderRepository.cs
+public class OrderRepository : IOrderRepository
+{
+    private readonly DbContext _context;
+
+    public OrderRepository(DbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<Order?> GetByIdAsync(int id)
+    {
+        return await _context.Orders.FindAsync(id);
+    }
+
+    public async Task<Result<Order>> SaveAsync(Order order)
+    {
+        // Implementation
+    }
+
+    public async Task<Result> DeleteAsync(int id)
+    {
+        // Implementation
+    }
+}
+
+// ❌ Bad: Interface and implementation in same file
+// OrderRepository.cs
+public interface IOrderRepository
+{
+    Task<Order?> GetByIdAsync(int id);
+    Task<Result<Order>> SaveAsync(Order order);
+    Task<Result> DeleteAsync(int id);
+}
+
+public class OrderRepository : IOrderRepository
+{
+    // Implementation
+}
+```
+
+### 2. Interface Naming Convention
+- **Prefix with 'I'** for interfaces
+- **Use descriptive names** that indicate purpose
+- **Follow same naming** as implementation class
+
+```csharp
+✅ Good Interface Names:
+- IOrderRepository
+- IUserAuthenticationService
+- IProductInventoryManager
+- ICreateOrderCommandHandler
+
+❌ Bad Interface Names:
+- OrderRepositoryInterface
+- IOrder
+- IRepo
+- IHandler
+```
+
+## Exception: Generic and Non-Generic Pairs
+
+### 1. Allowed Exception Rule
+The **only exception** to the single class per file rule is when you have:
+- **Generic and non-generic versions** of the same class
+- **Closely related** functionality
+- **Same purpose** with different type parameters
+
+### 2. Generic Pair Examples
+
+```csharp
+// ✅ Good: Generic and non-generic in same file
+// Repository.cs
+public interface IRepository<T> where T : class, IEntity
+{
+    Task<T?> GetByIdAsync(int id);
+    Task<Result<T>> SaveAsync(T entity);
+    Task<Result> DeleteAsync(int id);
+}
+
+public interface IRepository
+{
+    Task<object?> GetByIdAsync(int id);
+    Task<Result<object>> SaveAsync(object entity);
+    Task<Result> DeleteAsync(int id);
+}
+
+public class Repository<T> : IRepository<T> where T : class, IEntity
+{
+    private readonly DbContext _context;
+
+    public Repository(DbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<T?> GetByIdAsync(int id)
+    {
+        return await _context.Set<T>().FindAsync(id);
+    }
+
+    public async Task<Result<T>> SaveAsync(T entity)
+    {
+        // Implementation
+    }
+
+    public async Task<Result> DeleteAsync(int id)
+    {
+        // Implementation
+    }
+}
+
+public class Repository : IRepository
+{
+    private readonly DbContext _context;
+
+    public Repository(DbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<object?> GetByIdAsync(int id)
+    {
+        // Non-generic implementation
+    }
+
+    public async Task<Result<object>> SaveAsync(object entity)
+    {
+        // Non-generic implementation
+    }
+
+    public async Task<Result> DeleteAsync(int id)
+    {
+        // Non-generic implementation
+    }
+}
+```
+
+### 3. When NOT to Use This Exception
+- **Different purposes** or responsibilities
+- **Unrelated classes** that happen to be generic
+- **Large implementations** that would make the file unwieldy
+- **Different interfaces** or base classes
+
+```csharp
+// ❌ Bad: Unrelated generic classes in same file
+// GenericClasses.cs
+public class Result<T>
+{
+    public bool IsSuccess { get; }
+    public T? Value { get; }
+    public string[] Errors { get; }
+}
+
+public class Repository<T> where T : class
+{
+    // Repository implementation
+}
+
+public class Validator<T> where T : class
+{
+    // Validator implementation
+}
+```
+
+## File Organization Guidelines
+
+### 1. File Size Guidelines
+- **Target**: 50-200 lines per file
+- **Maximum**: 300 lines (consider refactoring)
+- **Minimum**: 10 lines (consider if class is needed)
+
+### 2. File Location
+- **Place files in appropriate folders** based on responsibility
+- **Follow project structure** conventions
+- **Group related files** in same folder
+- **Use namespaces** to organize logically
+
+### 3. Namespace Organization
+```csharp
+// ✅ Good: Logical namespace structure
+namespace ExxerAI.Application.Commands.UserManagement
+{
+    public class CreateUserCommand
+    {
+        // Implementation
+    }
+}
+
+namespace ExxerAI.Application.Handlers.UserManagement
+{
+    public class CreateUserCommandHandler
+    {
+        // Implementation
+    }
+}
+
+// ❌ Bad: Flat namespace structure
+namespace ExxerAI.Application
+{
+    public class CreateUserCommand
+    {
+        // Implementation
+    }
+
+    public class CreateUserCommandHandler
+    {
+        // Implementation
+    }
+}
+```
+
+## Migration Strategy
+
+### 1. Identify Violations
+- **Scan for files** with multiple public classes
+- **Find interfaces** and implementations in same file
+- **Identify large files** (>300 lines)
+- **Document current structure** and violations
+
+### 2. Plan Extraction
+- **Group related classes** by functionality
+- **Identify logical file names** for extracted classes
+- **Plan namespace changes** if needed
+- **Consider dependencies** and references
+
+### 3. Execute Gradually
+- **Start with simplest** extractions
+- **Move one class** at a time
+- **Update using statements** and references
+- **Run tests** after each extraction
+
+### 4. Update References
+- **Update using statements** in dependent files
+- **Fix namespace references** in tests
+- **Update dependency injection** registrations
+- **Verify build** and test results
+
+## Best Practices
+
+### 1. Consistency
+- **Follow established patterns** within the project
+- **Use consistent naming** across all files
+- **Maintain similar structure** for similar types
+- **Apply same principles** across different projects
+
+### 2. Clarity
+- **Make file names descriptive** and specific
+- **Use clear class names** that indicate purpose
+- **Group related functionality** logically
+- **Avoid cryptic abbreviations**
+
+### 3. Maintainability
+- **Keep files focused** on single responsibility
+- **Avoid mixing concerns** in single files
+- **Use appropriate abstractions** and interfaces
+- **Document complex relationships** between files
+
+## Tools and Automation
+
+### 1. Static Analysis
+- Configure analyzers to flag multiple classes per file
+- Set up warnings for large files (>300 lines)
+- Use tools to detect interface/implementation violations
+
+### 2. IDE Support
+- Use IDE refactoring tools for class extraction
+- Leverage file templates for consistent structure
+- Configure code style rules for file organization
+
+### 3. Documentation
+- Maintain file organization guidelines
+- Create examples of good file structure
+- Document exceptions and their reasoning
+
+## Conclusion
+
+Proper file organization improves:
+- **Code maintainability** through focused files
+- **Developer productivity** with easier navigation
+- **Team collaboration** with clear structure
+- **Project scalability** as codebase grows
+
+Follow these guidelines to create clean, navigable, and maintainable code files that support team productivity and code quality.
+
+## Enforcement
+
+- **Code Review**: Check file organization in PRs
+- **Static Analysis**: Configure tools to flag violations
+- **Documentation**: Maintain file organization guidelines
+- **Regular Audits**: Quarterly reviews of file structure

@@ -1,0 +1,5 @@
+<Project>
+  <ItemGroup>
+    <PackageVersion Include="Contoso.Logging.Analyzers" Version="0.9.0" />
+  </ItemGroup>
+</Project>

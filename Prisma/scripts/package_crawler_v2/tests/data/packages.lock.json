@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    ".NETCoreApp,Version=v8.0": {
+      "Contoso.Logging": {
+        "type": "Direct",
+        "resolved": "1.2.3"
+      }
+    }
+  }
+}

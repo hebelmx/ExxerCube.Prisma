@@ -1,0 +1,109 @@
+---
+description: Validating Null Parameters in Functional .NET: Constructor vs. Method Pattern
+globs:
+alwaysApply: false
+---
+# Validating Null Parameters in Functional .NET: Constructor vs. Method Pattern
+
+## Context
+
+This rule applies to applications using:
+- **Functional patterns**
+- **Hexagonal architecture**
+- **`Result<T>` for all flows**
+- **Dependency Injection with builders**
+
+## Problem
+
+- Constructors **can't return `Result<T>`**, hence cannot validate functionally.
+- Throwing `ArgumentNullException` breaks functional purity.
+- Validating post-construction makes runtime behavior more predictable and testable.
+
+## Solution
+
+### Constructor Pattern
+
+- Constructors must accept nulls silently.
+- **No exceptions** inside constructors.
+- Delegate validation to external `Builder<Class>.Build(...)` method.
+
+### Method Pattern
+
+- **Always return `Result<T>`**
+- Validate nulls **at method entry**
+- Use descriptive errors with offending parameter names
+
+### Example: Factory Validation
+
+```csharp
+public static class AgentBuilder
+{
+    public static Result<Agent> Build(string? name, AgentCapabilities? capabilities)
+    {
+        var nullParams = new List<string>();
+        if (name == null) nullParams.Add(nameof(name));
+        if (capabilities == null) nullParams.Add(nameof(capabilities));
+
+        if (nullParams.Any())
+            return Result<Agent>.WithFailure($"Null arguments: {string.Join(", ", nullParams)}");
+
+        return Result<Agent>.Success(new Agent(name, capabilities));
+    }
+}
+```
+
+### Consumer Usage Example
+
+```csharp
+var result = AgentBuilder.Build(agentName, agentCapabilities);
+if (result.IsFailure)
+{
+    // Log or return error to caller
+    return result;
+}
+var agent = result.Value;
+```
+
+### Recommended Builder Pattern Signature
+
+- Generic: `Builder<MyClass>.Build(...)`
+- Or specific: `MyClassBuilder.Build(...)`
+
+Avoid injecting `MyClass`, inject and use builder only:
+
+```csharp
+services.AddScoped<MyService>();
+services.AddScoped<AgentBuilder>();
+```
+
+```csharp
+public class MyService
+{
+    private readonly AgentBuilder _agentBuilder;
+
+    public MyService(AgentBuilder agentBuilder)
+    {
+        _agentBuilder = agentBuilder;
+    }
+
+    public async Task<Result> CreateAgentAsync(string name, AgentCapabilities caps)
+    {
+        var result = AgentBuilder.Build(name, caps);
+        if (result.IsFailure)
+            return result.ToResult(); // adapt to non-generic result if needed
+
+        var agent = result.Value;
+        // proceed...
+        return Result.Success();
+    }
+}
+```
+
+## Summary Table
+
+| Aspect        | Recommendation                                     |
+|---------------|----------------------------------------------------|
+| Constructor   | Accept nulls; no validation inside constructor     |
+| Method        | Validate upfront using `Result<T>`                 |
+| Errors        | Return descriptive failure with offending parameter names |
+| DI            | Inject builders, not pre-constructed instances     |

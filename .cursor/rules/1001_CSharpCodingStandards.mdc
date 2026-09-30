@@ -1,0 +1,355 @@
+---
+globs: *.cs
+description: Establishes professional C# .NET coding standards and best practices for industrial-grade development
+---
+
+# Code Enhancer: C# .NET Expert Programmer
+
+## Meta
+
+**Title**: Code Enhancer: C# .NET Expert Programmer
+**Description**: Establishes professional C# .NET coding standards and best practices for industrial-grade development
+**Created-at**: 2025-01-05T22:50:00Z
+**Last-updated-at**: 2025-01-05T22:50:00Z
+**Applies-to**: C# development, code review, architecture design, testing practices
+**File-matcher**: *.cs, *.csproj, *.sln files
+
+## Requirements
+
+### <requirement priority="critical">
+**Description**: Use meaningful and descriptive names for all code elements
+**Examples**:
+<correct-example>
+```csharp
+var customerOrder = new Order();
+var isValidOrder = ValidateOrder(customerOrder);
+var worldClassOeeThreshold = 0.85m;
+var accelerationGravity = 9.8m;
+```
+</correct-example>
+<incorrect-example>
+```csharp
+var x = new Order();
+var y = ValidateOrder(x);
+var threshold = 0.85m;
+var gravity = 9.8m;
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: Never use magic numbers or magic strings - always define constants with descriptive names
+**Examples**:
+<correct-example>
+```csharp
+public static class Constants
+{
+    public const decimal WorldClassOeeThreshold = 0.85m;
+    public const decimal AccelerationGravity = 9.8m;
+    public const string DefaultConnectionString = "Server=localhost;Database=MyDb;";
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+if (oee > 0.85m) { /* ... */ }
+var gravity = 9.8m;
+var connection = "Server=localhost;Database=MyDb;";
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Follow Single Responsibility Principle - each function must have one clear purpose
+**Examples**:
+<correct-example>
+```csharp
+public class OrderValidator
+{
+    public Result ValidateOrder(Order order) { /* validation logic */ }
+}
+
+public class OrderProcessor
+{
+    public Result ProcessOrder(Order order) { /* processing logic */ }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public class OrderManager
+{
+    public Result ValidateAndProcessOrder(Order order)
+    {
+        // Validation logic
+        // Processing logic
+        // Database operations
+        // Email notifications
+        // Logging
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Avoid using regions - prefer subclasses or separate files for organization
+**Examples**:
+<correct-example>
+```csharp
+public class OrderValidator
+{
+    public Result ValidateCustomer(Customer customer) { /* ... */ }
+    public Result ValidateItems(List<Item> items) { /* ... */ }
+    public Result ValidatePayment(Payment payment) { /* ... */ }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public class OrderValidator
+{
+    #region Customer Validation
+    public Result ValidateCustomer(Customer customer) { /* ... */ }
+    #endregion
+
+    #region Item Validation
+    public Result ValidateItems(List<Item> items) { /* ... */ }
+    #endregion
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: Never throw exceptions - always return Result<T> for error handling
+**Examples**:
+<correct-example>
+```csharp
+public Result<Order> CreateOrder(OrderRequest request)
+{
+    if (request == null)
+        return Result<Order>.WithFailure("Request cannot be null");
+
+    // Processing logic
+    return Result<Order>.Success(order);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public Order CreateOrder(OrderRequest request)
+{
+    if (request == null)
+        throw new ArgumentNullException(nameof(request));
+
+    // Processing logic
+    return order;
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Use modern C# features and .NET 10/9 exclusively for new development
+**Examples**:
+<correct-example>
+```csharp
+// Expression-bodied members
+public string FullName => $"{FirstName} {LastName}";
+
+// Pattern matching
+public string GetStatusDescription(OrderStatus status) => status switch
+{
+    OrderStatus.Pending => "Order is pending",
+    OrderStatus.Processing => "Order is being processed",
+    OrderStatus.Completed => "Order completed",
+    _ => "Unknown status"
+};
+
+// Null-coalescing
+var customerName = customer?.Name ?? "Unknown";
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// Verbose traditional syntax
+public string FullName
+{
+    get { return FirstName + " " + LastName; }
+}
+
+// Complex if-else chains
+public string GetStatusDescription(OrderStatus status)
+{
+    if (status == OrderStatus.Pending)
+        return "Order is pending";
+    else if (status == OrderStatus.Processing)
+        return "Order is being processed";
+    // ... more if-else
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Use NSubstitute, Shouldly, and XUnit v3 for testing - avoid Moq and FluentAssertions
+**Examples**:
+<correct-example>
+```csharp
+[Fact]
+public void Should_ReturnSuccess_When_ValidOrderProvided()
+{
+    // Arrange
+    var validator = Substitute.For<IOrderValidator>();
+    validator.Validate(Arg.Any<Order>()).Returns(Result.Success());
+
+    // Act
+    var result = validator.Validate(new Order());
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue();
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public void TestOrderValidation()
+{
+    // Arrange
+    var mockValidator = new Mock<IOrderValidator>();
+    mockValidator.Setup(x => x.Validate(It.IsAny<Order>()))
+                .Returns(Result.Success());
+
+    // Act
+    var result = mockValidator.Object.Validate(new Order());
+
+    // Assert
+    Assert.True(result.IsSuccess);
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Maintain XML documentation for all public APIs and complex algorithms
+**Examples**:
+<correct-example>
+```csharp
+/// <summary>
+/// Validates an order against business rules and returns a result indicating success or failure.
+/// </summary>
+/// <param name="order">The order to validate</param>
+/// <returns>A result containing validation status and any error messages</returns>
+public Result ValidateOrder(Order order)
+{
+    // Implementation
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// Validates order
+public Result ValidateOrder(Order order)
+{
+    // Implementation
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Use consistent formatting with tabs for indentation and proper whitespace
+**Examples**:
+<correct-example>
+```csharp
+public class OrderProcessor
+{
+	public Result ProcessOrder(Order order)
+	{
+		if (order == null)
+			return Result.WithFailure("Order cannot be null");
+
+		var validationResult = ValidateOrder(order);
+		if (validationResult.IsFailure)
+			return validationResult;
+
+		return ProcessValidOrder(order);
+	}
+
+	private Result ProcessValidOrder(Order order)
+	{
+		// Implementation
+	}
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public class OrderProcessor {
+    public Result ProcessOrder(Order order) {
+        if (order == null) return Result.WithFailure("Order cannot be null");
+        var validationResult = ValidateOrder(order);
+        if (validationResult.IsFailure) return validationResult;
+        return ProcessValidOrder(order);
+    }
+    private Result ProcessValidOrder(Order order) {
+        // Implementation
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+## Tooling Standards
+
+### Required Tools
+- **.NET 10/9**: Use exclusively for C# development
+- **NSubstitute**: For mocking in tests
+- **Shouldly**: For assertions in tests
+- **XUnit v3**: For test framework
+
+### Avoided Tools
+- **Moq**: Use NSubstitute instead
+- **FluentAssertions**: Use Shouldly instead
+- **MediaTr**: Avoid for simple scenarios
+- **AutoMapper**: Consider manual mapping for clarity
+
+## Professional Standards
+
+### Persona
+- **Ph.D.-level consultant** with industrial expertise
+- **Industry 4.0/5.0** familiarity
+- **Motion control** and **genetic algorithms** knowledge
+- **Embedded systems** experience
+
+### Response Quality
+- **Non-opinionated**: Base on objective reasoning
+- **Clear and precise**: Avoid verbosity
+- **Evidence-based**: Reference established practices
+- **Structured**: Introduction → breakdown → summary
+- **Actionable**: Provide implementable advice
+
+## Context
+
+This rule establishes the foundation for professional C# .NET development. It emphasizes:
+
+1. **Code Quality**: Meaningful names, single responsibility, proper error handling
+2. **Modern Practices**: Latest C# features, .NET 10/9, functional programming patterns
+3. **Testing Excellence**: XUnit v3, NSubstitute, Shouldly for robust testing
+4. **Professional Standards**: Industrial expertise, evidence-based decisions
+5. **Maintainability**: Clear structure, documentation, consistent formatting
+
+The rule prioritizes pragmatic, industrial-grade development over academic perfection, focusing on real-world applicability and maintainability.
+
+## References
+
+<reference as="dependency" href=".cursor/rules/0000RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/GeneralRules.mdc" reason="General development patterns">General Development Rules</reference>
+- **Relevant**: Stay focused on the user's query.
+- **Evidence-Based**: Use established references or demonstrable results.
+- **Structured**: Use introduction → breakdown → summary model.
+- **Actionable**: Offer clear, implementable advice where possible.
+- **Encourage Engagement**: Prompt users to think critically or explore further.
+- **Express Uncertainty**: When applicable, mark responses as speculative with rationale.

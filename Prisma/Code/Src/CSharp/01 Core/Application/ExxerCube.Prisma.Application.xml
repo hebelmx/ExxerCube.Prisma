@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ExxerCube.Prisma.Application</name>
+    </assembly>
+    <members>
+        <member name="T:ExxerCube.Prisma.Application.Services.OcrProcessingService">
+            <summary>
+            Main OCR processing service that orchestrates the entire pipeline.
+            Implements Railway Oriented Programming for error handling.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Application.Services.OcrProcessingService.#ctor(ExxerCube.Prisma.Domain.Interfaces.IImagePreprocessor,ExxerCube.Prisma.Domain.Interfaces.IOcrExecutor,ExxerCube.Prisma.Domain.Interfaces.IFieldExtractor,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Application.Services.OcrProcessingService})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Application.Services.OcrProcessingService"/> class.
+            </summary>
+            <param name="imagePreprocessor">The image preprocessor service.</param>
+            <param name="ocrExecutor">The OCR executor service.</param>
+            <param name="fieldExtractor">The field extractor service.</param>
+            <param name="logger">The logger.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Application.Services.OcrProcessingService.ProcessDocumentAsync(ExxerCube.Prisma.Domain.Entities.ImageData,ExxerCube.Prisma.Domain.Entities.ProcessingConfig)">
+            <summary>
+            Processes a document image and extracts structured data using Railway Oriented Programming.
+            </summary>
+            <param name="imageData">The image data to process.</param>
+            <param name="config">The processing configuration.</param>
+            <returns>A result containing the processing result or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Application.Services.OcrProcessingService.ProcessDocumentsAsync(System.Collections.Generic.IEnumerable{ExxerCube.Prisma.Domain.Entities.ImageData},ExxerCube.Prisma.Domain.Entities.ProcessingConfig,System.Int32)">
+            <summary>
+            Processes multiple documents concurrently with proper error handling.
+            </summary>
+            <param name="imageDataList">The list of image data to process.</param>
+            <param name="config">The processing configuration.</param>
+            <param name="maxConcurrency">Maximum number of concurrent operations.</param>
+            <returns>A result containing the list of processing results or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Application.Services.OcrProcessingService.ValidateImageData(ExxerCube.Prisma.Domain.Entities.ImageData)">
+            <summary>
+            Validates the image data for processing.
+            </summary>
+            <param name="imageData">The image data to validate.</param>
+            <returns>A result indicating validation success or failure.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Application.Services.OcrProcessingService.CreateProcessingResult(ExxerCube.Prisma.Domain.Entities.ImageData,ExxerCube.Prisma.Domain.Entities.OCRResult,ExxerCube.Prisma.Domain.Entities.ExtractedFields)">
+            <summary>
+            Creates a processing result from the extracted data.
+            </summary>
+            <param name="imageData">The original image data.</param>
+            <param name="ocrResult">The OCR result.</param>
+            <param name="extractedFields">The extracted fields.</param>
+            <returns>A processing result.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Application.Services.OcrProcessingService.LogProcessingResult(ExxerCube.Prisma.Domain.Entities.ProcessingResult)">
+            <summary>
+            Logs the processing result.
+            </summary>
+            <param name="result">The processing result to log.</param>
+        </member>
+    </members>
+</doc>

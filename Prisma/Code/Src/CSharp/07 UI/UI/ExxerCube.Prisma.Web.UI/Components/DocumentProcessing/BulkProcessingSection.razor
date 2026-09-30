@@ -1,0 +1,441 @@
+@using ExxerCube.Prisma.Web.UI.Models
+@using ExxerCube.Prisma.Domain.Models
+@using ExxerCube.Prisma.Domain.Enum
+@using ExxerCube.Prisma.Testing.Infrastructure
+@using System.Text.Json
+@inject IBulkProcessingService BulkProcessingService
+@inject ILogger<BulkProcessingSection> Logger
+@inject ISnackbar Snackbar
+
+<MudCard Class="mb-4">
+    <MudCardHeader>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.BatchPrediction" Class="mr-2" />
+            Batch Processing (Max 4 Documents)
+        </MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudAlert Severity="Severity.Info" Class="mb-3" Icon="@Icons.Material.Filled.Info">
+            <strong>Stakeholder Demo Mode:</strong> Process up to 4 random documents with XML + OCR + Comparison. Uses Tesseract only (~5-10s per document).
+        </MudAlert>
+
+        <MudStack Row="true" Spacing="2" Class="mb-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       OnClick="LoadRandomSample" Disabled="@IsProcessing">
+                <MudIcon Icon="@Icons.Material.Filled.Shuffle" Class="mr-2" />
+                Load Random Sample (4 docs)
+            </MudButton>
+
+            @if (State.Documents.Any())
+            {
+                <MudButton Variant="Variant.Filled" Color="Color.Success"
+                           OnClick="ProcessBatch" Disabled="@(IsProcessing || IsBatchProcessing)">
+                    <MudIcon Icon="@Icons.Material.Filled.PlayArrow" Class="mr-2" />
+                    Process Batch (@State.Documents.Count docs)
+                </MudButton>
+            }
+        </MudStack>
+
+        @if (State.Documents.Any())
+        {
+            <MudTable Items="@State.Documents" Dense="true" Hover="true" Striped="true" Elevation="0">
+                <HeaderContent>
+                    <MudTh>Document ID</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh>OCR Confidence</MudTh>
+                    <MudTh>Match Rate</MudTh>
+                    <MudTh>Time</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Document">
+                        <code style="font-size: 0.85em;">@context.Id</code>
+                    </MudTd>
+                    <MudTd DataLabel="Status">
+                        @if (context.Status == BulkProcessingStatus.Pending)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Default">Pending</MudChip>
+                        }
+                        else if (context.Status == BulkProcessingStatus.ProcessingXml)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Info" Icon="@Icons.Material.Filled.Autorenew">Processing XML...</MudChip>
+                        }
+                        else if (context.Status == BulkProcessingStatus.ProcessingOcr)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Warning" Icon="@Icons.Material.Filled.Autorenew">Processing OCR...</MudChip>
+                        }
+                        else if (context.Status == BulkProcessingStatus.Comparing)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Icon="@Icons.Material.Filled.Autorenew">Comparing...</MudChip>
+                        }
+                        else if (context.Status == BulkProcessingStatus.Complete)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.CheckCircle">Complete</MudChip>
+                        }
+                        else if (context.Status == BulkProcessingStatus.Error)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Error">Error</MudChip>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Confidence">
+                        @if (context.Result?.OcrConfidence != null)
+                        {
+                            <MudText>@($"{context.Result.OcrConfidence:F1}%")</MudText>
+                        }
+                        else
+                        {
+                            <MudText>-</MudText>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Match">
+                        @if (context.Result?.Comparison != null)
+                        {
+                            <MudText Color="@(context.Result.Comparison.MatchPercentage >= 80 ? Color.Success : Color.Warning)">
+                                @($"{context.Result.Comparison.MatchPercentage:F0}%")
+                            </MudText>
+                        }
+                        else
+                        {
+                            <MudText>-</MudText>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Time">
+                        @if (context.Result != null)
+                        {
+                            <MudText Typo="Typo.caption">@($"{context.Result.ProcessingTimeMs}ms")</MudText>
+                        }
+                        else
+                        {
+                            <MudText>-</MudText>
+                        }
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+
+            @if (State.Summary != null)
+            {
+                <MudDivider Class="my-4" />
+                <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true">
+                    <MudTabPanel Text="Summary" Icon="@Icons.Material.Filled.Dashboard">
+                        <MudGrid Class="mt-3">
+                            <MudItem xs="12" sm="6" md="3">
+                                <MudPaper Class="pa-3" Elevation="2">
+                                    <MudText Typo="Typo.h4" Align="Align.Center">@State.Summary.SuccessCount / @State.Summary.TotalCount</MudText>
+                                    <MudText Typo="Typo.body2" Align="Align.Center">Successful</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12" sm="6" md="3">
+                                <MudPaper Class="pa-3" Elevation="2">
+                                    <MudText Typo="Typo.h4" Align="Align.Center">@($"{State.Summary.AvgOcrConfidence:F1}%")</MudText>
+                                    <MudText Typo="Typo.body2" Align="Align.Center">Avg OCR Confidence</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12" sm="6" md="3">
+                                <MudPaper Class="pa-3" Elevation="2">
+                                    <MudText Typo="Typo.h4" Align="Align.Center">@($"{State.Summary.AvgMatchRate:F0}%")</MudText>
+                                    <MudText Typo="Typo.body2" Align="Align.Center">Avg Match Rate</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12" sm="6" md="3">
+                                <MudPaper Class="pa-3" Elevation="2">
+                                    <MudText Typo="Typo.h4" Align="Align.Center">@($"{State.Summary.TotalTimeMs / 1000.0:F1}s")</MudText>
+                                    <MudText Typo="Typo.body2" Align="Align.Center">Total Time</MudText>
+                                </MudPaper>
+                            </MudItem>
+                        </MudGrid>
+                    </MudTabPanel>
+
+                    <MudTabPanel Text="Detailed Report" Icon="@Icons.Material.Filled.Description">
+                        <MudPaper Class="pa-3 mt-3" Elevation="0">
+                            @foreach (var doc in State.Documents.Where(d => d.Result != null))
+                            {
+                                <MudPaper Class="pa-3 mb-3" Elevation="1">
+                                    <MudText Typo="Typo.h6" Color="Color.Primary">@doc.Id</MudText>
+                                    <MudDivider Class="my-2" />
+                                    <MudGrid>
+                                        <MudItem xs="12" sm="6">
+                                            <MudText Typo="Typo.body2"><strong>Status:</strong>
+                                                @if (doc.Status == BulkProcessingStatus.Complete)
+                                                {
+                                                    <MudChip T="string" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.CheckCircle">Completed</MudChip>
+                                                }
+                                                else if (doc.Status == BulkProcessingStatus.Error)
+                                                {
+                                                    <MudChip T="string" Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Error">Error</MudChip>
+                                                }
+                                            </MudText>
+                                        </MudItem>
+                                        <MudItem xs="12" sm="6">
+                                            <MudText Typo="Typo.body2"><strong>OCR Confidence:</strong> @($"{doc.Result!.OcrConfidence:F1}%")</MudText>
+                                        </MudItem>
+                                        <MudItem xs="12" sm="6">
+                                            <MudText Typo="Typo.body2"><strong>Match Rate:</strong>
+                                                <MudText Inline Color="@(doc.Result!.Comparison?.MatchPercentage >= 80 ? Color.Success : Color.Warning)">
+                                                    @($"{doc.Result!.Comparison?.MatchPercentage:F0}%")
+                                                </MudText>
+                                            </MudText>
+                                        </MudItem>
+                                        <MudItem xs="12" sm="6">
+                                            <MudText Typo="Typo.body2"><strong>Processing Time:</strong> @($"{doc.Result!.ProcessingTimeMs}ms")</MudText>
+                                        </MudItem>
+                                        @if (doc.Result!.Comparison != null)
+                                        {
+                                            <MudItem xs="12">
+                                                <MudText Typo="Typo.body2"><strong>Matched Fields:</strong> @doc.Result.Comparison.MatchCount / @doc.Result.Comparison.TotalFields</MudText>
+                                            </MudItem>
+                                        }
+
+                                        @* Sanitization Results *@
+                                        @if (doc.Result!.AccountSanitization != null || doc.Result.SwiftSanitization != null)
+                                        {
+                                            <MudItem xs="12">
+                                                <MudDivider Class="my-2" />
+                                                <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="mb-2">
+                                                    <MudIcon Icon="@Icons.Material.Filled.CleaningServices" Size="Size.Small" Class="mr-1" />
+                                                    OCR Sanitization Results
+                                                </MudText>
+                                            </MudItem>
+
+                                            @if (doc.Result.AccountSanitization != null)
+                                            {
+                                                <MudItem xs="12" sm="6">
+                                                    <MudPaper Class="pa-2" Elevation="0" Style="background-color: rgba(103, 58, 183, 0.05); border-left: 3px solid #673ab7;">
+                                                        <MudText Typo="Typo.caption" Color="Color.Secondary"><strong>Account Number:</strong></MudText>
+                                                        <MudText Typo="Typo.body2" Class="mt-1">@doc.Result.AccountSanitization.Cleaned</MudText>
+                                                        @if (doc.Result.AccountSanitization.Warnings.Any())
+                                                        {
+                                                            <MudChip T="string" Size="Size.Small" Color="Color.Warning" Class="mt-1">
+                                                                @string.Join(", ", doc.Result.AccountSanitization.Warnings)
+                                                            </MudChip>
+                                                        }
+                                                    </MudPaper>
+                                                </MudItem>
+                                            }
+
+                                            @if (doc.Result.SwiftSanitization != null)
+                                            {
+                                                <MudItem xs="12" sm="6">
+                                                    <MudPaper Class="pa-2" Elevation="0" Style="background-color: rgba(233, 30, 99, 0.05); border-left: 3px solid #e91e63;">
+                                                        <MudText Typo="Typo.caption" Color="Color.Secondary"><strong>SWIFT/BIC:</strong></MudText>
+                                                        <MudText Typo="Typo.body2" Class="mt-1">@doc.Result.SwiftSanitization.Cleaned</MudText>
+                                                        @if (doc.Result.SwiftSanitization.Warnings.Any())
+                                                        {
+                                                            <MudChip T="string" Size="Size.Small" Color="Color.Warning" Class="mt-1">
+                                                                @string.Join(", ", doc.Result.SwiftSanitization.Warnings)
+                                                            </MudChip>
+                                                        }
+                                                    </MudPaper>
+                                                </MudItem>
+                                            }
+                                        }
+
+                                        @if (!string.IsNullOrEmpty(doc.ErrorMessage))
+                                        {
+                                            <MudItem xs="12">
+                                                <MudAlert Severity="Severity.Error" Dense="true">@doc.ErrorMessage</MudAlert>
+                                            </MudItem>
+                                        }
+                                    </MudGrid>
+                                </MudPaper>
+                            }
+                        </MudPaper>
+                    </MudTabPanel>
+
+                    <MudTabPanel Text="Raw Data" Icon="@Icons.Material.Filled.DataObject">
+                        <MudPaper Class="pa-3 mt-3" Elevation="0">
+                            <pre style="overflow-x: auto; white-space: pre-wrap;">@JsonSerializer.Serialize(new
+                            {
+                                Summary = State.Summary,
+                                Documents = State.Documents.Select(d => new {
+                                    d.Id,
+                                    Status = d.Status.ToString(),
+                                    d.ErrorMessage,
+                                    Result = d.Result != null ? new {
+                                        d.Result.OcrConfidence,
+                                        d.Result.ProcessingTimeMs,
+                                        Comparison = d.Result.Comparison != null ? new {
+                                            d.Result.Comparison.MatchPercentage,
+                                            d.Result.Comparison.TotalFields,
+                                            d.Result.Comparison.MatchCount
+                                        } : null
+                                    } : null
+                                })
+                            }, new JsonSerializerOptions { WriteIndented = true })</pre>
+                        </MudPaper>
+                    </MudTabPanel>
+                </MudTabs>
+            }
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    /// <summary>
+    /// Bulk processing state containing documents and summary.
+    /// </summary>
+    [Parameter]
+    public BulkProcessingState State { get; set; } = default!;
+
+    /// <summary>
+    /// Callback invoked when random sample is loaded.
+    /// </summary>
+    [Parameter]
+    public EventCallback<List<BulkDocument>> OnSampleLoaded { get; set; }
+
+    /// <summary>
+    /// Callback invoked when batch processing completes.
+    /// </summary>
+    [Parameter]
+    public EventCallback<BatchSummary> OnBatchCompleted { get; set; }
+
+    /// <summary>
+    /// Indicates if any processing is in progress.
+    /// </summary>
+    [Parameter]
+    public bool IsProcessing { get; set; }
+
+    /// <summary>
+    /// Indicates if batch processing is in progress.
+    /// </summary>
+    private bool IsBatchProcessing { get; set; }
+
+    /// <summary>
+    /// Loads a random sample of 4 documents from bulk fixtures.
+    /// </summary>
+    private async Task LoadRandomSample()
+    {
+        try
+        {
+            State.Documents.Clear();
+            State.Summary = null;
+            StateHasChanged();
+
+            string bulkPath;
+            try
+            {
+                bulkPath = FixtureFinder.FindBulkDocumentsPath();
+                Logger.LogInformation("Found bulk documents path: {BulkPath}", bulkPath);
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+                Snackbar.Add($"Failed to locate bulk documents directory: {ex.Message}", Severity.Error);
+                Logger.LogError(ex, "Failed to locate bulk documents directory");
+                return;
+            }
+
+            Logger.LogInformation("Loading random sample from: {BulkPath}", bulkPath);
+
+            var result = await BulkProcessingService.GetRandomSampleAsync(4, bulkPath);
+
+            if (result.IsSuccess && result.Value != null)
+            {
+                await OnSampleLoaded.InvokeAsync(result.Value);
+                Snackbar.Add($"Loaded {result.Value.Count} documents", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add($"Failed to load sample: {result.Error}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading sample: {ex.Message}", Severity.Error);
+            Logger.LogError(ex, "Error loading random sample");
+        }
+    }
+
+    /// <summary>
+    /// Processes all loaded documents in the batch.
+    /// </summary>
+    private async Task ProcessBatch()
+    {
+        if (State.Documents.Count == 0)
+        {
+            Snackbar.Add("No documents to process. Load a sample first.", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            IsBatchProcessing = true;
+            State.Summary = null;
+            StateHasChanged();
+
+            Logger.LogInformation("Starting batch processing of {Count} documents", State.Documents.Count);
+
+            var totalStopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var successCount = 0;
+            var totalOcrConfidence = 0f;
+            var totalMatchRate = 0f;
+            var processedCount = 0;
+
+            // Process each document sequentially
+            foreach (var document in State.Documents)
+            {
+                try
+                {
+                    Logger.LogInformation("Processing document: {DocumentId}", document.Id);
+
+                    var result = await BulkProcessingService.ProcessDocumentAsync(document);
+
+                    if (result.IsSuccess && result.Value != null)
+                    {
+                        document.Result = result.Value;
+                        document.Status = BulkProcessingStatus.Complete;
+
+                        successCount++;
+                        if (result.Value.OcrConfidence.HasValue)
+                            totalOcrConfidence += result.Value.OcrConfidence.Value;
+                        if (result.Value.Comparison != null)
+                            totalMatchRate += result.Value.Comparison.MatchPercentage;
+                        processedCount++;
+                    }
+                    else
+                    {
+                        document.Status = BulkProcessingStatus.Error;
+                        document.ErrorMessage = result.Error ?? "Processing failed";
+                    }
+
+                    StateHasChanged(); // Update UI after each document
+                }
+                catch (Exception ex)
+                {
+                    document.Status = BulkProcessingStatus.Error;
+                    document.ErrorMessage = ex.Message;
+                    Logger.LogError(ex, "Error processing document {DocumentId}", document.Id);
+                }
+            }
+
+            totalStopwatch.Stop();
+
+            // Create batch summary
+            var summary = new BatchSummary
+            {
+                TotalCount = State.Documents.Count,
+                SuccessCount = successCount,
+                AvgOcrConfidence = processedCount > 0 ? totalOcrConfidence / processedCount : 0,
+                AvgMatchRate = processedCount > 0 ? totalMatchRate / processedCount : 0,
+                TotalTimeMs = totalStopwatch.ElapsedMilliseconds
+            };
+
+            await OnBatchCompleted.InvokeAsync(summary);
+
+            Snackbar.Add(
+                $"Batch complete! {successCount}/{State.Documents.Count} successful in {totalStopwatch.ElapsedMilliseconds / 1000.0:F1}s",
+                Severity.Success,
+                config => { config.VisibleStateDuration = 5000; });
+
+            Logger.LogInformation("Batch processing complete: {SuccessCount}/{TotalCount} in {Time}ms",
+                successCount, State.Documents.Count, totalStopwatch.ElapsedMilliseconds);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Batch processing failed: {ex.Message}", Severity.Error);
+            Logger.LogError(ex, "Batch processing failed");
+        }
+        finally
+        {
+            IsBatchProcessing = false;
+            StateHasChanged();
+        }
+    }
+}

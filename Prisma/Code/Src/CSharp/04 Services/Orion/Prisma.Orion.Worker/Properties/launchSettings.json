@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Prisma.Orion.Worker": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:53081;http://localhost:53082"
+    }
+  }
+}

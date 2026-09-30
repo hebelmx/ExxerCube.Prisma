@@ -1,0 +1,113 @@
+@page "/not-found"
+
+@using ExxerCube.Prisma.Web.UI.Components.Shared.Navigation
+@attribute [HideFromNavigation]
+@using System.Linq
+@inject NavigationManager Navigation
+
+<PageTitle>We couldn't find that page</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudPaper Class="pa-6 text-center" Elevation="3">
+        <MudIcon Icon="@Icons.Material.Filled.TravelExplore" Color="Color.Primary" Size="Size.Large" Class="mb-3" />
+        <h1 class="mud-typography mud-typography-h4 mb-2">
+            Let's get you back on track
+        </h1>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            The address
+            <MudText Inline="true" Color="Color.Primary">
+                /@relativePath
+            </MudText>
+            did not match any published route. Use search or jump to a destination below.
+        </MudText>
+
+        <MudTextField @bind-Value="SearchTerm"
+                      @bind-Value:event="oninput"
+                      Placeholder="Search pages (e.g., audit, manual review)"
+                      Variant="Variant.Outlined"
+                      Class="w-100"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      Immediate="true"
+                      Margin="Margin.Dense" />
+
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Class="mt-4"
+                   OnClick="@(() => Navigation.NavigateTo("/"))">
+            <MudIcon Icon="@Icons.Material.Filled.Home" Class="mr-1" /> Go home
+        </MudButton>
+    </MudPaper>
+
+    <MudGrid Class="mt-6" GutterSize="GutterSize.Small">
+        @foreach (var suggestion in suggestions)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Class="pa-4 h-100 d-flex flex-column justify-space-between" Elevation="2">
+                    <div>
+                        <MudText Typo="Typo.subtitle1" Class="mb-1 d-flex align-center">
+                            <MudIcon Icon="@suggestion.Icon" Class="mr-1" />
+                            @suggestion.Title
+                        </MudText>
+                        <MudText Typo="Typo.body2" Class="mb-3">@suggestion.Description</MudText>
+                    </div>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@(() => NavigateToSuggestion(suggestion))">
+                        Open @suggestion.Title
+                    </MudButton>
+                </MudPaper>
+            </MudItem>
+        }
+    </MudGrid>
+
+    <MudPaper Class="pa-4 mt-6" Elevation="1">
+        <MudText Typo="Typo.subtitle2" Class="mb-2">
+            Popular destinations
+        </MudText>
+        <MudChipSet T="string" Class="d-flex flex-wrap gap-2">
+            @foreach (var link in NavigationRegistry.PopularLinks)
+            {
+                <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" OnClick="@(() => NavigateToSuggestion(link))">
+                    @link.Title
+                </MudChip>
+            }
+        </MudChipSet>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private string searchTerm = string.Empty;
+    private string relativePath = "/";
+    private IReadOnlyList<NavigationLink> suggestions = Array.Empty<NavigationLink>();
+
+    protected override void OnInitialized()
+    {
+        relativePath = Navigation.ToBaseRelativePath(Navigation.Uri);
+        suggestions = NavigationRegistry.GetSuggestions(null, 6).ToList();
+    }
+
+    private string SearchTerm
+    {
+        get => searchTerm;
+        set
+        {
+            if (searchTerm == value)
+            {
+                return;
+            }
+
+            searchTerm = value;
+            UpdateSuggestions();
+        }
+    }
+
+    private void UpdateSuggestions()
+    {
+        suggestions = NavigationRegistry.GetSuggestions(searchTerm, 6).ToList();
+        StateHasChanged();
+    }
+
+    private void NavigateToSuggestion(NavigationLink link)
+    {
+        Navigation.NavigateTo(link.Href);
+    }
+}

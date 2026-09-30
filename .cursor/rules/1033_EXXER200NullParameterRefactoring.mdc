@@ -1,0 +1,555 @@
+# Rule: EXXER200 Null Parameter Validation Refactoring
+
+## Objective
+
+Establish a systematic process for refactoring classes marked with `// EXXER200: Validate null parameters at method entry` comments to use the standardized `Result<T>` pattern with existing infrastructure (`MultipleNullArgumentsError`, `NullArgumentValidation`, and `ResultExtensions`).
+
+## Core Principles
+
+### 1. Systematic Approach
+- **Use Serena MCP Server**: Leverage `mcp_serena_*` tools for all file operations
+- **Use RefactorMCP Server**: Utilize `mcp_refactorMcp_*` tools for automated refactoring
+- **Use Sequential Thinking**: Apply `mcp_sequential-thinking_sequentialthinking` for complex scenarios
+- **Preserve Behavior**: Maintain existing error messages and logging
+
+### 2. Existing Infrastructure Usage
+- **MultipleNullArgumentsError**: For handling multiple null parameters
+- **NullArgumentValidation**: Static factory methods for Result creation
+- **ResultExtensions**: Extension methods like `ValidateNotNull`, `FailForNullArguments`
+- **Result<T> Pattern**: Consistent error handling approach
+
+## Discovery Phase
+
+### 1. Search for EXXER200 Instances
+
+#### Use Serena MCP to Find All EXXER200 Comments
+```bash
+# Step 1: Activate the project
+mcp_serena_activate_project("ExxerAI")
+
+# Step 2: Search for EXXER200 pattern
+mcp_serena_search_for_pattern(
+    substring_pattern="// EXXER200: Validate null parameters at method entry",
+    relative_path=".",
+    restrict_search_to_code_files=true
+)
+
+# Step 3: Search for shortened EXXER200 pattern
+mcp_serena_search_for_pattern(
+    substring_pattern="// EXXER200",
+    relative_path=".",
+    restrict_search_to_code_files=true
+)
+```
+
+#### Catalog and Classify Each Instance
+```bash
+# For each file found, read and analyze the methods
+mcp_serena_read_file(relative_path="path/to/file.cs")
+
+# Get symbols overview to understand method structure
+mcp_serena_get_symbols_overview(relative_path="path/to/file.cs")
+```
+
+### 2. Classification Criteria
+
+Group EXXER200 instances by:
+- **Return Type**: `ValidationDocumentResult`, `Result<T>`, `Result`, primitives, `void`
+- **Parameter Count**: Single vs multiple null checks
+- **Method Visibility**: Public vs private methods
+- **Error Handling**: Logging vs simple returns
+
+## Refactoring Templates
+
+### 1. ValidationDocumentResult Methods
+
+#### Before (Current Pattern)
+```csharp
+public ValidationDocumentResult Validate(ParsedStatement statement, ArtifactSet templates)
+{
+    // EXXER200: Validate null parameters at method entry
+    if (statement == null)
+    {
+        _logger.LogWarning(ImageConstants.LogNullStatementWarning);
+        return ValidationDocumentResult.WithErrors([ImageConstants.NullStatementError]);
+    }
+    if (templates == null)
+    {
+        _logger.LogWarning(ImageConstants.LogNullTemplatesWarning);
+        return ValidationDocumentResult.WithErrors([ImageConstants.NullTemplatesError]);
+    }
+    // ... rest of method
+}
+```
+
+#### After (Using Result<T> Pattern)
+```csharp
+public ValidationDocumentResult Validate(ParsedStatement statement, ArtifactSet templates)
+{
+    // EXXER200: Validate null parameters at method entry using Result<T> pattern
+    var validation = ResultExtensions.ValidateNotNull(
+        (statement, nameof(statement)),
+        (templates, nameof(templates))
+    );
+    if (validation.IsFailure)
+    {
+        _logger.LogWarning("Null parameter validation failed: {Errors}", string.Join(", ", validation.Errors));
+        return ValidationDocumentResult.WithErrors(validation.Errors);
+    }
+    // ... rest of method
+}
+```
+
+#### RefactorMCP Command for ValidationDocumentResult
+```bash
+mcp_refactorMcp_replace_regex(
+    solutionPath="path/to/solution.sln",
+    filePath="path/to/file.cs",
+    regex="// EXXER200: Validate null parameters at method entry\\s*\\n(\\s*if \\([^)]+\\s*==\\s*null\\)\\s*\\{[^}]+\\}\\s*\\n?)+",
+    repl="// EXXER200: Validate null parameters at method entry using Result<T> pattern\\nvar validation = ResultExtensions.ValidateNotNull(\\n    (statement, nameof(statement)),\\n    (templates, nameof(templates))\\n);\\nif (validation.IsFailure)\\n{\\n    _logger.LogWarning(\"Null parameter validation failed: {Errors}\", string.Join(\", \", validation.Errors));\\n    return ValidationDocumentResult.WithErrors(validation.Errors);\\n}"
+)
+```
+
+### 2. Result<T> Methods
+
+#### Before (Current Pattern)
+```csharp
+public Result<ProcessedData> ProcessData(InputData data, Configuration config)
+{
+    // EXXER200: Validate null parameters at method entry
+    if (data == null)
+        return Result<ProcessedData>.WithFailure("Data parameter cannot be null");
+    if (config == null)
+        return Result<ProcessedData>.WithFailure("Config parameter cannot be null");
+    // ... rest of method
+}
+```
+
+#### After (Using NullArgumentValidation)
+```csharp
+public Result<ProcessedData> ProcessData(InputData data, Configuration config)
+{
+    // EXXER200: Validate null parameters at method entry using Result<T> pattern
+    var validation = ResultExtensions.ValidateNotNull(
+        (data, nameof(data)),
+        (config, nameof(config))
+    );
+    if (validation.IsFailure)
+    {
+        return Result<ProcessedData>.WithFailure(validation.Errors);
+    }
+    // ... rest of method
+}
+```
+
+#### Alternative Using NullArgumentValidation Factory
+```csharp
+public Result<ProcessedData> ProcessData(InputData data, Configuration config)
+{
+    // EXXER200: Validate null parameters at method entry using Result<T> pattern
+    if (data == null || config == null)
+    {
+        var nullParams = new List<string>();
+        if (data == null) nullParams.Add(nameof(data));
+        if (config == null) nullParams.Add(nameof(config));
+        return NullArgumentValidation.Failure<ProcessedData>(nullParams.ToArray());
+    }
+    // ... rest of method
+}
+```
+
+### 3. Non-Generic Result Methods
+
+#### Before (Current Pattern)
+```csharp
+public Result UpdateConfiguration(Configuration config)
+{
+    // EXXER200: Validate null parameters at method entry
+    if (config == null)
+        return Result.WithFailure("Configuration cannot be null");
+    // ... rest of method
+}
+```
+
+#### After (Using NullArgumentValidation)
+```csharp
+public Result UpdateConfiguration(Configuration config)
+{
+    // EXXER200: Validate null parameters at method entry using Result pattern
+    if (config == null)
+        return NullArgumentValidation.Failure(nameof(config));
+    // ... rest of method
+}
+```
+
+### 4. Private Methods with Early Returns
+
+#### Before (Current Pattern)
+```csharp
+private void ValidatePromotionImage(PromotionImage promotionImage, List<PromotionTemplate> templates, List<string> errors, List<string> warnings)
+{
+    // EXXER200: Validate null parameters at method entry
+    if (promotionImage == null)
+        return;
+    if (templates == null)
+        return;
+    if (errors == null)
+        return;
+    if (warnings == null)
+        return;
+    // ... rest of method
+}
+```
+
+#### After (Consistent Pattern)
+```csharp
+private void ValidatePromotionImage(PromotionImage promotionImage, List<PromotionTemplate> templates, List<string> errors, List<string> warnings)
+{
+    // EXXER200: Validate null parameters at method entry - early returns for private helper method
+    var validation = ResultExtensions.ValidateNotNull(
+        (promotionImage, nameof(promotionImage)),
+        (templates, nameof(templates)),
+        (errors, nameof(errors)),
+        (warnings, nameof(warnings))
+    );
+    if (validation.IsFailure)
+        return; // Early return for private helper method
+    // ... rest of method
+}
+```
+
+### 5. Methods Returning Primitives
+
+#### Before (Current Pattern)
+```csharp
+public bool ValidateImageQuality(PromotionImage promotionImage)
+{
+    // EXXER200: Validate null parameters at method entry
+    if (promotionImage == null)
+        return false;
+    // ... rest of method
+}
+```
+
+#### Option 1: Keep Primitive Return (Simple)
+```csharp
+public bool ValidateImageQuality(PromotionImage promotionImage)
+{
+    // EXXER200: Validate null parameters at method entry - primitive return
+    if (promotionImage == null)
+        return false; // Consistent with existing behavior
+    // ... rest of method
+}
+```
+
+#### Option 2: Change to Result<T> (Recommended)
+```csharp
+public Result<bool> ValidateImageQuality(PromotionImage promotionImage)
+{
+    // EXXER200: Validate null parameters at method entry using Result<T> pattern
+    if (promotionImage == null)
+        return NullArgumentValidation.Failure<bool>(nameof(promotionImage));
+    // ... rest of method implementation
+    return Result<bool>.Success(qualityCheckResult);
+}
+```
+
+## RefactorMCP Implementation Guide
+
+### 1. Systematic Refactoring Process
+
+#### Step 1: Load Solution and Find Symbols
+```bash
+# Load the solution
+mcp_refactorMcp_load_solution(solutionPath="/absolute/path/to/solution.sln")
+
+# Find all methods with EXXER200 comments
+mcp_serena_find_symbol(
+    name_path="EXXER200",
+    relative_path=".",
+    substring_matching=true
+)
+```
+
+#### Step 2: Group by Refactoring Pattern
+Use Sequential Thinking to plan refactoring:
+```bash
+mcp_sequential-thinking_sequentialthinking(
+    thought="Analyze the EXXER200 instances found and group them by return type and complexity",
+    thoughtNumber=1,
+    totalThoughts=5,
+    nextThoughtNeeded=true
+)
+```
+
+#### Step 3: Apply Refactoring Templates
+For each group, apply appropriate RefactorMCP commands:
+
+##### ValidationDocumentResult Methods
+```bash
+mcp_refactorMcp_replace_regex(
+    solutionPath="/path/to/solution.sln",
+    filePath="relative/path/to/file.cs",
+    regex="// EXXER200: Validate null parameters at method entry\\s*\\n(\\s*if \\([^)]+\\s*==\\s*null\\)\\s*\\{[^}]+return ValidationDocumentResult\\.WithErrors\\([^}]+\\}\\s*\\n?)+",
+    repl="// EXXER200: Validate null parameters at method entry using Result<T> pattern\\nvar validation = ResultExtensions.ValidateNotNull(PARAMETERS_HERE);\\nif (validation.IsFailure)\\n{\\n    _logger.LogWarning(\"Null parameter validation failed: {Errors}\", string.Join(\", \", validation.Errors));\\n    return ValidationDocumentResult.WithErrors(validation.Errors);\\n}"
+)
+```
+
+##### Result<T> Methods
+```bash
+mcp_refactorMcp_replace_regex(
+    solutionPath="/path/to/solution.sln",
+    filePath="relative/path/to/file.cs",
+    regex="// EXXER200: Validate null parameters at method entry\\s*\\n(\\s*if \\([^)]+\\s*==\\s*null\\)\\s*\\n?\\s*return Result<[^>]+>\\.WithFailure\\([^;]+;\\s*\\n?)+",
+    repl="// EXXER200: Validate null parameters at method entry using Result<T> pattern\\nvar validation = ResultExtensions.ValidateNotNull(PARAMETERS_HERE);\\nif (validation.IsFailure)\\n{\\n    return Result<T>.WithFailure(validation.Errors);\\n}"
+)
+```
+
+### 2. Manual Parameter Replacement
+
+For each refactored method, manually replace `PARAMETERS_HERE` with:
+```csharp
+(parameter1, nameof(parameter1)),
+(parameter2, nameof(parameter2)),
+// ... for each parameter that was null-checked
+```
+
+### 3. Method Signature Changes (When Needed)
+
+For methods that should return `Result<T>` instead of primitives:
+```bash
+# Change method signature
+mcp_refactorMcp_rename_symbol(
+    solutionPath="/path/to/solution.sln",
+    filePath="relative/path/to/file.cs",
+    oldName="public bool MethodName",
+    newName="public Result<bool> MethodName"
+)
+
+# Update method body to return Result<T>
+mcp_refactorMcp_replace_regex(
+    solutionPath="/path/to/solution.sln",
+    filePath="relative/path/to/file.cs",
+    regex="return (true|false);",
+    repl="return Result<bool>.Success($1);"
+)
+```
+
+## Quality Assurance Checklist
+
+### 1. Validation After Refactoring
+
+#### Verify All EXXER200 Comments Are Addressed
+```bash
+# Search for any remaining unrefactored EXXER200 comments
+mcp_serena_search_for_pattern(
+    substring_pattern="// EXXER200:",
+    relative_path=".",
+    restrict_search_to_code_files=true
+)
+```
+
+#### Check for Compilation Errors
+```bash
+# Build the solution to check for errors
+mcp_serena_execute_shell_command(
+    command="dotnet build",
+    cwd="path/to/solution/directory"
+)
+```
+
+### 2. Behavioral Validation
+
+#### Ensure Error Messages Are Preserved
+- **Before**: Custom error messages in individual null checks
+- **After**: Error messages from `MultipleNullArgumentsError.ToString()`
+- **Action**: Verify that the new error messages provide equivalent information
+
+#### Verify Logging Is Maintained
+- **ValidationDocumentResult methods**: Should include logging of validation failures
+- **Other methods**: Logging behavior should be preserved or improved
+
+#### Check Return Type Consistency
+- **ValidationDocumentResult**: Should use `ValidationDocumentResult.WithErrors(validation.Errors)`
+- **Result<T>**: Should use `Result<T>.WithFailure(validation.Errors)`
+- **Result**: Should use `Result.WithFailure(validation.Errors)`
+
+### 3. Integration Testing
+
+#### Test Null Parameter Scenarios
+```csharp
+[Test]
+public void Method_Should_ReturnFailure_When_ParameterIsNull()
+{
+    // Arrange
+    var service = new ServiceUnderTest();
+
+    // Act
+    var result = service.MethodWithNullValidation(null);
+
+    // Assert
+    result.IsFailure.ShouldBeTrue();
+    result.Errors.ShouldContain(error => error.Contains("parameter"));
+}
+```
+
+## Advanced Scenarios
+
+### 1. Complex Methods with Mixed Validation
+
+For methods that have both null validation and business logic validation:
+
+#### Before
+```csharp
+public Result<ProcessedData> ComplexMethod(InputData data, Configuration config)
+{
+    // EXXER200: Validate null parameters at method entry
+    if (data == null)
+        return Result<ProcessedData>.WithFailure("Data cannot be null");
+    if (config == null)
+        return Result<ProcessedData>.WithFailure("Config cannot be null");
+
+    // Business validation
+    if (!data.IsValid)
+        return Result<ProcessedData>.WithFailure("Invalid data format");
+
+    // ... processing logic
+}
+```
+
+#### After
+```csharp
+public Result<ProcessedData> ComplexMethod(InputData data, Configuration config)
+{
+    // EXXER200: Validate null parameters at method entry using Result<T> pattern
+    var nullValidation = ResultExtensions.ValidateNotNull(
+        (data, nameof(data)),
+        (config, nameof(config))
+    );
+    if (nullValidation.IsFailure)
+        return Result<ProcessedData>.WithFailure(nullValidation.Errors);
+
+    // Business validation
+    if (!data.IsValid)
+        return Result<ProcessedData>.WithFailure("Invalid data format");
+
+    // ... processing logic
+}
+```
+
+### 2. Async Methods
+
+For async methods, the pattern remains the same:
+```csharp
+public async Task<Result<ProcessedData>> ProcessDataAsync(InputData data, CancellationToken cancellationToken = default)
+{
+    // EXXER200: Validate null parameters at method entry using Result<T> pattern
+    var validation = ResultExtensions.ValidateNotNull(
+        (data, nameof(data))
+    );
+    if (validation.IsFailure)
+        return Result<ProcessedData>.WithFailure(validation.Errors);
+
+    // ... async processing logic
+}
+```
+
+### 3. Methods with Custom Error Messages
+
+When preserving specific error messages:
+```csharp
+public Result<ProcessedData> ProcessData(InputData data, Configuration config)
+{
+    // EXXER200: Validate null parameters at method entry using Result<T> pattern
+    if (data == null)
+        return Result<ProcessedData>.WithFailure("InputData is required for processing");
+    if (config == null)
+        return Result<ProcessedData>.WithFailure("Configuration must be provided");
+
+    // ... rest of method
+}
+```
+
+## Sequential Thinking Integration
+
+### For Complex Refactoring Decisions
+
+Use Sequential Thinking when encountering complex scenarios:
+
+```bash
+mcp_sequential-thinking_sequentialthinking(
+    thought="I found a method with EXXER200 that returns a complex custom type and has intricate error handling. Should I change it to Result<T> or keep the existing pattern?",
+    thoughtNumber=1,
+    totalThoughts=3,
+    nextThoughtNeeded=true
+)
+```
+
+### Questions to Consider in Sequential Thinking
+
+1. **Return Type Impact**: Will changing the return type break existing callers?
+2. **Error Message Preservation**: Are the current error messages more specific than what `MultipleNullArgumentsError` provides?
+3. **Logging Requirements**: Does the method need to maintain specific logging behavior?
+4. **Performance Considerations**: Is this a high-frequency method where the validation overhead matters?
+5. **API Consistency**: Should this method match the pattern of similar methods in the same class?
+
+## Enforcement and Maintenance
+
+### 1. Code Review Checklist
+
+- [ ] All EXXER200 comments have been addressed
+- [ ] Appropriate `Result<T>` pattern is used for the return type
+- [ ] `MultipleNullArgumentsError` and related infrastructure is used
+- [ ] Error messages provide adequate information
+- [ ] Logging behavior is preserved where appropriate
+- [ ] No compilation errors introduced
+- [ ] Unit tests pass and cover null validation scenarios
+
+### 2. Static Analysis Rules
+
+Consider adding analyzer rules to detect:
+- Remaining EXXER200 comments
+- Manual null checks that could use the standardized pattern
+- Methods that should return `Result<T>` but don't
+
+### 3. Documentation Updates
+
+Update method documentation to reflect:
+- New return types (if changed)
+- Error conditions using `Result<T>` pattern
+- Parameter validation behavior
+
+## Future Improvements
+
+### 1. Automated Code Generation
+
+Consider creating code generators for:
+- Automatic null validation injection
+- `Result<T>` wrapper generation
+- Test case generation for null scenarios
+
+### 2. Analyzer Development
+
+Develop custom analyzers to:
+- Detect EXXER200 patterns automatically
+- Suggest refactoring to `Result<T>` pattern
+- Validate proper usage of null validation infrastructure
+
+### 3. Refactoring Tool Enhancement
+
+Enhance RefactorMCP with:
+- EXXER200-specific refactoring commands
+- Automated parameter extraction for validation calls
+- Return type conversion assistance
+
+## Conclusion
+
+This rule provides a comprehensive framework for systematically refactoring EXXER200 null parameter validation patterns using the existing `Result<T>` infrastructure. By following this approach, teams can:
+
+- **Maintain Consistency**: All null validation follows the same pattern
+- **Leverage Infrastructure**: Use existing `MultipleNullArgumentsError` and `NullArgumentValidation`
+- **Preserve Behavior**: Keep existing error handling and logging
+- **Enable Automation**: Use RefactorMCP for systematic refactoring
+- **Ensure Quality**: Follow validation and testing guidelines
+
+The systematic approach ensures that all EXXER200 instances are properly addressed while maintaining code quality and consistency across the codebase.

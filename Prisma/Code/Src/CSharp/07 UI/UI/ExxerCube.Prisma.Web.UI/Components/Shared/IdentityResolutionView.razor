@@ -1,0 +1,160 @@
+@using ExxerCube.Prisma.Domain.Entities
+@using MudBlazor
+@using System.Linq
+
+<MudCard Class="mb-4">
+    <MudCardHeader>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-2" />
+            Resolved Person Identities
+        </MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        @if (ResolvedPersons == null || !ResolvedPersons.Any())
+        {
+            <MudAlert Severity="Severity.Info">No person identities resolved yet.</MudAlert>
+        }
+        else
+        {
+            @foreach (var person in ResolvedPersons)
+            {
+                <MudExpansionPanels Class="mb-3">
+                    <MudExpansionPanel Text="@GetFullName(person)">
+                        <MudGrid>
+                            <!-- Person Details -->
+                            <MudItem xs="12" sm="6" md="4">
+                                <MudText Typo="Typo.subtitle2">RFC</MudText>
+                                <MudText Typo="Typo.body1" Class="font-weight-bold">@(person.Rfc ?? "N/A")</MudText>
+                                @if (person.RfcVariants != null && person.RfcVariants.Any())
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        @person.RfcVariants.Count variant(s) detected
+                                    </MudText>
+                                }
+                            </MudItem>
+                            <MudItem xs="12" sm="6" md="4">
+                                <MudText Typo="Typo.subtitle2">Type</MudText>
+                                <MudChip T="string" Size="Size.Small" Color="@GetPersonTypeColor(person.PersonaTipo)">
+                                    @person.PersonaTipo
+                                </MudChip>
+                            </MudItem>
+                            <MudItem xs="12" sm="6" md="4">
+                                <MudText Typo="Typo.subtitle2">Role</MudText>
+                                <MudChip T="string" Size="Size.Small" Color="Color.Info">
+                                    @(person.Caracter ?? "N/A")
+                                </MudChip>
+                            </MudItem>
+                            
+                            <!-- RFC Variants -->
+                            @if (person.RfcVariants != null && person.RfcVariants.Any())
+                            {
+                                <MudItem xs="12">
+                                    <MudDivider Class="my-2" />
+                                    <MudText Typo="Typo.subtitle2" Class="mb-2">RFC Variants Detected</MudText>
+                                    <MudChipSet T="string">
+                                        @foreach (var variant in person.RfcVariants)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" 
+                                                    Color="@(variant == person.Rfc ? Color.Success : Color.Info)"
+                                                    Icon="@(variant == person.Rfc ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Info)">
+                                                @variant
+                                            </MudChip>
+                                        }
+                                    </MudChipSet>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+                                        Matched with @GetMatchingConfidence(person)% confidence
+                                    </MudText>
+                                </MudItem>
+                            }
+                            
+                            <!-- Additional Person Information -->
+                            @if (!string.IsNullOrEmpty(person.Domicilio))
+                            {
+                                <MudItem xs="12">
+                                    <MudText Typo="Typo.subtitle2">Address</MudText>
+                                    <MudText Typo="Typo.body2">@person.Domicilio</MudText>
+                                </MudItem>
+                            }
+                            
+                            @if (!string.IsNullOrEmpty(person.Relacion))
+                            {
+                                <MudItem xs="12" sm="6">
+                                    <MudText Typo="Typo.subtitle2">Relationship</MudText>
+                                    <MudText Typo="Typo.body2">@person.Relacion</MudText>
+                                </MudItem>
+                            }
+                            
+                            @if (!string.IsNullOrEmpty(person.Complementarios))
+                            {
+                                <MudItem xs="12" sm="6">
+                                    <MudText Typo="Typo.subtitle2">Additional Information</MudText>
+                                    <MudText Typo="Typo.body2">@person.Complementarios</MudText>
+                                </MudItem>
+                            }
+                            
+                            <!-- Related Cases (if available) -->
+                            @if (RelatedCases != null && RelatedCases.TryGetValue(person.ParteId, out var relatedCases) && relatedCases.Any())
+                            {
+                                <MudItem xs="12">
+                                    <MudDivider Class="my-2" />
+                                    <MudText Typo="Typo.subtitle2" Class="mb-2">Related Cases</MudText>
+                                    <MudList T="string" Dense="true">
+                                        @foreach (var relatedCase in relatedCases)
+                                        {
+                                            <MudListItem T="string">
+                                                <MudLink Href="@($"/manual-review/{relatedCase.CaseId}")" 
+                                                       Color="Color.Primary">
+                                                    @relatedCase.CaseId - @relatedCase.FileName
+                                                </MudLink>
+                                            </MudListItem>
+                                        }
+                                    </MudList>
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    </MudExpansionPanel>
+                </MudExpansionPanels>
+            }
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter] public List<Persona>? ResolvedPersons { get; set; }
+    [Parameter] public Dictionary<int, List<RelatedCaseInfo>>? RelatedCases { get; set; }
+    
+    private string GetFullName(Persona person)
+    {
+        var parts = new List<string>();
+        if (!string.IsNullOrEmpty(person.Paterno)) parts.Add(person.Paterno);
+        if (!string.IsNullOrEmpty(person.Materno)) parts.Add(person.Materno);
+        if (!string.IsNullOrEmpty(person.Nombre)) parts.Add(person.Nombre);
+        
+        return parts.Any() ? string.Join(" ", parts) : "Unknown Person";
+    }
+    
+    private Color GetPersonTypeColor(string personaTipo) => personaTipo switch
+    {
+        "Fisica" => Color.Primary,
+        "Moral" => Color.Secondary,
+        _ => Color.Default
+    };
+    
+    private int GetMatchingConfidence(Persona person)
+    {
+        // Calculate matching confidence based on RFC variants
+        // If RFC variants exist and match, assume high confidence
+        if (person.RfcVariants != null && person.RfcVariants.Any() && !string.IsNullOrEmpty(person.Rfc))
+        {
+            return person.RfcVariants.Contains(person.Rfc) ? 95 : 85;
+        }
+        return 90; // Default confidence
+    }
+    
+    public class RelatedCaseInfo
+    {
+        public string CaseId { get; set; } = string.Empty;
+        public string FileName { get; set; } = string.Empty;
+    }
+}
+

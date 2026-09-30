@@ -1,0 +1,263 @@
+# ConfigureAwait Usage Standards
+
+## Meta
+
+**Title**: ConfigureAwait Usage Standards
+**Description**: Establishes domain-driven rules for proper use of ConfigureAwait in asynchronous C# code
+**Created-at**: 2025-01-05T23:10:00Z
+**Last-updated-at**: 2025-01-05T23:10:00Z
+**Applies-to**: Async programming, library development, UI development, performance optimization
+**File-matcher**: *.cs files with async methods
+
+## Requirements
+
+### <requirement priority="critical">
+**Description**: Use ConfigureAwait(false) in library code performing asynchronous operations
+**Examples**:
+<correct-example>
+```csharp
+public async Task<string> GetDataAsync()
+{
+    using var connection = new SqlConnection("connectionString");
+    await connection.OpenAsync().ConfigureAwait(false);
+
+    using var command = new SqlCommand("SELECT * FROM MyTable", connection);
+    var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+
+    return "Data";
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public async Task<string> GetDataAsync()
+{
+    using var connection = new SqlConnection("connectionString");
+    await connection.OpenAsync(); // Missing ConfigureAwait(false)
+
+    using var command = new SqlCommand("SELECT * FROM MyTable", connection);
+    var reader = await command.ExecuteReaderAsync(); // Missing ConfigureAwait(false)
+
+    return "Data";
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: Never use ConfigureAwait(false) in UI applications where post-await code interacts with UI elements
+**Examples**:
+<correct-example>
+```csharp
+public async Task UpdateUIAsync()
+{
+    var data = await GetDataAsync(); // GetDataAsync uses ConfigureAwait(false)
+    myTextBox.Text = data; // Requires original UI context
+    myProgressBar.Value = 100; // Requires original UI context
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public async Task UpdateUIAsync()
+{
+    var data = await GetDataAsync().ConfigureAwait(false); // Wrong! Breaks UI context
+    myTextBox.Text = data; // Will fail - wrong context
+    myProgressBar.Value = 100; // Will fail - wrong context
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Use ConfigureAwait(false) when continuation does not require access to the original synchronization context
+**Examples**:
+<correct-example>
+```csharp
+public async Task<Result<Order>> ProcessOrderAsync(OrderRequest request)
+{
+    // No UI dependencies, safe to use ConfigureAwait(false)
+    var validationResult = await ValidateOrderAsync(request).ConfigureAwait(false);
+    if (validationResult.IsFailure)
+        return Result<Order>.WithFailure(validationResult.Error!);
+
+    var order = await CreateOrderAsync(request).ConfigureAwait(false);
+    return Result<Order>.Success(order);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public async Task<Result<Order>> ProcessOrderAsync(OrderRequest request)
+{
+    // Missing ConfigureAwait(false) in library code
+    var validationResult = await ValidateOrderAsync(request);
+    if (validationResult.IsFailure)
+        return Result<Order>.WithFailure(validationResult.Error!);
+
+    var order = await CreateOrderAsync(request);
+    return Result<Order>.Success(order);
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Use ConfigureAwait(false) to prevent deadlocks in ASP.NET or library scenarios
+**Examples**:
+<correct-example>
+```csharp
+public async Task<string> GetUserDataAsync(int userId)
+{
+    // Prevents deadlocks in ASP.NET scenarios
+    using var context = new ApplicationDbContext();
+    var user = await context.Users
+        .FirstOrDefaultAsync(u => u.Id == userId)
+        .ConfigureAwait(false);
+
+    return user?.Name ?? "Unknown";
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public async Task<string> GetUserDataAsync(int userId)
+{
+    // Can cause deadlocks in ASP.NET scenarios
+    using var context = new ApplicationDbContext();
+    var user = await context.Users
+        .FirstOrDefaultAsync(u => u.Id == userId); // Missing ConfigureAwait(false)
+
+    return user?.Name ?? "Unknown";
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Avoid ConfigureAwait(false) when continuation code depends on the original context
+**Examples**:
+<correct-example>
+```csharp
+public async Task LoadUserProfileAsync()
+{
+    // UI context needed for continuation
+    var userData = await GetUserDataAsync(userId);
+
+    // These require the original UI context
+    userNameLabel.Text = userData.Name;
+    userEmailLabel.Text = userData.Email;
+    userAvatar.Image = userData.Avatar;
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public async Task LoadUserProfileAsync()
+{
+    // Wrong! Breaks UI context
+    var userData = await GetUserDataAsync(userId).ConfigureAwait(false);
+
+    // These will fail - wrong context
+    userNameLabel.Text = userData.Name;
+    userEmailLabel.Text = userData.Email;
+    userAvatar.Image = userData.Avatar;
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Use ConfigureAwait(false) to improve performance by avoiding unnecessary context switching
+**Examples**:
+<correct-example>
+```csharp
+public async Task<Order> CreateOrderAsync(OrderRequest request)
+{
+    // Performance optimization in library code
+    var customer = await GetCustomerAsync(request.CustomerId).ConfigureAwait(false);
+    var items = await GetOrderItemsAsync(request.ItemIds).ConfigureAwait(false);
+    var total = await CalculateTotalAsync(items).ConfigureAwait(false);
+
+    return new Order(customer, items, total);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public async Task<Order> CreateOrderAsync(OrderRequest request)
+{
+    // Unnecessary context switching
+    var customer = await GetCustomerAsync(request.CustomerId);
+    var items = await GetOrderItemsAsync(request.ItemIds);
+    var total = await CalculateTotalAsync(items);
+
+    return new Order(customer, items, total);
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: When unsure about context dependencies, avoid ConfigureAwait(false) to be safe
+**Examples**:
+<correct-example>
+```csharp
+public async Task<Result> ProcessDataAsync()
+{
+    // When unsure, don't use ConfigureAwait(false)
+    var data = await GetDataAsync();
+    var result = await ProcessDataAsync(data);
+
+    // Safe approach - preserves original context
+    return result;
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public async Task<Result> ProcessDataAsync()
+{
+    // Risky - might break context dependencies
+    var data = await GetDataAsync().ConfigureAwait(false);
+    var result = await ProcessDataAsync(data).ConfigureAwait(false);
+
+    // Could cause issues if context is needed
+    return result;
+}
+```
+</incorrect-example>
+</requirement>
+
+## Design Considerations
+
+### Library vs. Application Code
+- **Library Code**: Prefer `ConfigureAwait(false)` to avoid forcing context capture
+- **Application Code (UI)**: Avoid `ConfigureAwait(false)` to preserve UI thread access
+
+### Default Behavior
+- Without `ConfigureAwait`, continuations run on the captured context (e.g., UI thread)
+- With `ConfigureAwait(false)`, continuations run on any available thread
+
+### Performance Implications
+- **Context Switching**: `ConfigureAwait(false)` reduces unnecessary context switches
+- **Deadlock Prevention**: Prevents deadlocks in ASP.NET and library scenarios
+- **UI Responsiveness**: Preserves UI thread access when needed
+
+## Context
+
+This rule establishes domain-driven standards for ConfigureAwait usage in asynchronous C# code. It emphasizes:
+
+1. **Library Development**: Use ConfigureAwait(false) for performance and deadlock prevention
+2. **UI Development**: Avoid ConfigureAwait(false) to preserve UI context
+3. **Performance**: Optimize context switching in library code
+4. **Safety**: When in doubt, preserve the original context
+5. **Deadlock Prevention**: Critical for ASP.NET and library scenarios
+
+The rule prioritizes both performance optimization and correctness, ensuring that async code behaves predictably across different execution contexts.
+
+## References
+
+<reference as="dependency" href=".cursor/rules/0000RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/1001CSharpCodingStandards.mdc" reason="C# coding standards">C# Enhancement Standards</reference>
+<reference as="context" href=".cursor/rules/0001GeneralEngineeringPrinciples.mdc" reason="General engineering principles">General Engineering Principles</reference>

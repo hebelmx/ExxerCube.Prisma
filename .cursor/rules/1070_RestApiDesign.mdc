@@ -1,0 +1,937 @@
+# REST API Design Standards
+
+## Meta
+**Title**: REST API Design Standards
+**Description**: Comprehensive REST API design standards for RESTful patterns, HTTP status codes, and versioning
+**Applies-to**: All API controllers and endpoints in ExxerAI project
+
+## Requirements
+
+<requirement priority="critical">
+**Description**: Use proper HTTP status codes and RESTful patterns
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Proper HTTP status codes and RESTful patterns
+[ApiController]
+[Route("api/v1/agents")]
+public class AgentsController : ControllerBase
+{
+    private readonly IAgentService _agentService;
+    private readonly ILogger<AgentsController> _logger;
+
+    public AgentsController(IAgentService agentService, ILogger<AgentsController> logger)
+    {
+        _agentService = agentService;
+        _logger = logger;
+    }
+
+    [HttpPost]
+    [ProducesResponseType(typeof(AgentDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CreateAgent([FromBody] CreateAgentRequest request, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", request.Name);
+
+        var result = await _agentService.CreateAgentAsync(request.Name, request.Capabilities, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            var agentDto = new AgentDto
+            {
+                Id = result.Value.Id,
+                Name = result.Value.Name.Value,
+                Capabilities = result.Value.Capabilities,
+                Status = result.Value.Status,
+                CreatedAt = result.Value.CreatedAt
+            };
+
+            _logger.LogInformation("Agent created successfully: {AgentId}", result.Value.Id);
+            return CreatedAtAction(nameof(GetAgent), new { id = result.Value.Id }, agentDto);
+        }
+
+        _logger.LogError("Agent creation failed: {AgentName}, Errors: {Errors}",
+            request.Name, string.Join(", ", result.Errors));
+
+        if (result.Errors.Any(e => e.Contains("validation")))
+        {
+            return BadRequest(new ValidationProblemDetails
+            {
+                Errors = new Dictionary<string, string[]> { ["name"] = result.Errors.ToArray() }
+            });
+        }
+
+        return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+        {
+            Title = "Agent creation failed",
+            Detail = string.Join(", ", result.Errors)
+        });
+    }
+
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(AgentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetAgent(Guid id, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Retrieving agent: {AgentId}", id);
+
+        var result = await _agentService.GetAgentAsync(id, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            var agentDto = new AgentDto
+            {
+                Id = result.Value.Id,
+                Name = result.Value.Name.Value,
+                Capabilities = result.Value.Capabilities,
+                Status = result.Value.Status,
+                CreatedAt = result.Value.CreatedAt
+            };
+
+            return Ok(agentDto);
+        }
+
+        if (result.Errors.Any(e => e.Contains("not found")))
+        {
+            return NotFound(new ProblemDetails
+            {
+                Title = "Agent not found",
+                Detail = $"Agent with ID {id} was not found"
+            });
+        }
+
+        _logger.LogError("Failed to retrieve agent: {AgentId}, Errors: {Errors}",
+            id, string.Join(", ", result.Errors));
+
+        return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+        {
+            Title = "Failed to retrieve agent",
+            Detail = string.Join(", ", result.Errors)
+        });
+    }
+
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(AgentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateAgent(Guid id, [FromBody] UpdateAgentRequest request, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Updating agent: {AgentId}", id);
+
+        var result = await _agentService.UpdateAgentAsync(id, request.Name, request.Capabilities, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            var agentDto = new AgentDto
+            {
+                Id = result.Value.Id,
+                Name = result.Value.Name.Value,
+                Capabilities = result.Value.Capabilities,
+                Status = result.Value.Status,
+                CreatedAt = result.Value.CreatedAt
+            };
+
+            return Ok(agentDto);
+        }
+
+        if (result.Errors.Any(e => e.Contains("not found")))
+        {
+            return NotFound(new ProblemDetails
+            {
+                Title = "Agent not found",
+                Detail = $"Agent with ID {id} was not found"
+            });
+        }
+
+        if (result.Errors.Any(e => e.Contains("validation")))
+        {
+            return BadRequest(new ValidationProblemDetails
+            {
+                Errors = new Dictionary<string, string[]> { ["name"] = result.Errors.ToArray() }
+            });
+        }
+
+        _logger.LogError("Failed to update agent: {AgentId}, Errors: {Errors}",
+            id, string.Join(", ", result.Errors));
+
+        return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+        {
+            Title = "Failed to update agent",
+            Detail = string.Join(", ", result.Errors)
+        });
+    }
+
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DeleteAgent(Guid id, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Deleting agent: {AgentId}", id);
+
+        var result = await _agentService.DeleteAgentAsync(id, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            return NoContent();
+        }
+
+        if (result.Errors.Any(e => e.Contains("not found")))
+        {
+            return NotFound(new ProblemDetails
+            {
+                Title = "Agent not found",
+                Detail = $"Agent with ID {id} was not found"
+            });
+        }
+
+        _logger.LogError("Failed to delete agent: {AgentId}, Errors: {Errors}",
+            id, string.Join(", ", result.Errors));
+
+        return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+        {
+            Title = "Failed to delete agent",
+            Detail = string.Join(", ", result.Errors)
+        });
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Improper HTTP status codes and non-RESTful patterns
+[ApiController]
+[Route("api/agents")]
+public class AgentsController : ControllerBase
+{
+    private readonly IAgentService _agentService;
+    private readonly ILogger<AgentsController> _logger;
+
+    public AgentsController(IAgentService agentService, ILogger<AgentsController> logger)
+    {
+        _agentService = agentService;
+        _logger = logger;
+    }
+
+    [HttpPost("create")]
+    public async Task<IActionResult> CreateAgent([FromBody] CreateAgentRequest request, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", request.Name);
+
+        var result = await _agentService.CreateAgentAsync(request.Name, request.Capabilities, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value); // Wrong status code for creation
+        }
+
+        return BadRequest(result.Errors); // Generic error response
+    }
+
+    [HttpGet("get/{id}")]
+    public async Task<IActionResult> GetAgent(Guid id, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Retrieving agent: {AgentId}", id);
+
+        var result = await _agentService.GetAgentAsync(id, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value);
+        }
+
+        return NotFound(); // No error details
+    }
+
+    [HttpPost("update/{id}")]
+    public async Task<IActionResult> UpdateAgent(Guid id, [FromBody] UpdateAgentRequest request, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Updating agent: {AgentId}", id);
+
+        var result = await _agentService.UpdateAgentAsync(id, request.Name, request.Capabilities, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value);
+        }
+
+        return BadRequest(result.Errors); // Generic error response
+    }
+
+    [HttpPost("delete/{id}")]
+    public async Task<IActionResult> DeleteAgent(Guid id, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Deleting agent: {AgentId}", id);
+
+        var result = await _agentService.DeleteAgentAsync(id, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            return Ok("Deleted"); // Wrong status code for deletion
+        }
+
+        return NotFound(); // No error details
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Use proper API versioning strategies
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Proper API versioning strategies
+[ApiController]
+[ApiVersion("1.0")]
+[ApiVersion("2.0")]
+[Route("api/v{version:apiVersion}/agents")]
+public class AgentsController : ControllerBase
+{
+    private readonly IAgentService _agentService;
+    private readonly ILogger<AgentsController> _logger;
+
+    public AgentsController(IAgentService agentService, ILogger<AgentsController> logger)
+    {
+        _agentService = agentService;
+        _logger = logger;
+    }
+
+    [HttpGet]
+    [MapToApiVersion("1.0")]
+    [ProducesResponseType(typeof(IEnumerable<AgentDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAgentsV1([FromQuery] string? name, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Retrieving agents (v1): {NameFilter}", name);
+
+        var result = await _agentService.GetAgentsAsync(name, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            var agentDtos = result.Value.Select(agent => new AgentDto
+            {
+                Id = agent.Id,
+                Name = agent.Name.Value,
+                Capabilities = agent.Capabilities,
+                Status = agent.Status,
+                CreatedAt = agent.CreatedAt
+            });
+
+            return Ok(agentDtos);
+        }
+
+        return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+        {
+            Title = "Failed to retrieve agents",
+            Detail = string.Join(", ", result.Errors)
+        });
+    }
+
+    [HttpGet]
+    [MapToApiVersion("2.0")]
+    [ProducesResponseType(typeof(PaginatedResponse<AgentDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAgentsV2(
+        [FromQuery] string? name,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Retrieving agents (v2): {NameFilter}, Page: {Page}, PageSize: {PageSize}",
+            name, page, pageSize);
+
+        var result = await _agentService.GetAgentsPaginatedAsync(name, page, pageSize, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            var agentDtos = result.Value.Items.Select(agent => new AgentDto
+            {
+                Id = agent.Id,
+                Name = agent.Name.Value,
+                Capabilities = agent.Capabilities,
+                Status = agent.Status,
+                CreatedAt = agent.CreatedAt
+            });
+
+            var response = new PaginatedResponse<AgentDto>
+            {
+                Items = agentDtos,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = result.Value.TotalCount,
+                TotalPages = result.Value.TotalPages
+            };
+
+            return Ok(response);
+        }
+
+        return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+        {
+            Title = "Failed to retrieve agents",
+            Detail = string.Join(", ", result.Errors)
+        });
+    }
+
+    [HttpPost]
+    [MapToApiVersion("1.0")]
+    [ProducesResponseType(typeof(AgentDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> CreateAgentV1([FromBody] CreateAgentRequestV1 request, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent (v1): {AgentName}", request.Name);
+
+        var result = await _agentService.CreateAgentAsync(request.Name, request.Capabilities, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            var agentDto = new AgentDto
+            {
+                Id = result.Value.Id,
+                Name = result.Value.Name.Value,
+                Capabilities = result.Value.Capabilities,
+                Status = result.Value.Status,
+                CreatedAt = result.Value.CreatedAt
+            };
+
+            return CreatedAtAction(nameof(GetAgent), new { id = result.Value.Id }, agentDto);
+        }
+
+        return BadRequest(new ValidationProblemDetails
+        {
+            Errors = new Dictionary<string, string[]> { ["name"] = result.Errors.ToArray() }
+        });
+    }
+
+    [HttpPost]
+    [MapToApiVersion("2.0")]
+    [ProducesResponseType(typeof(AgentDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> CreateAgentV2([FromBody] CreateAgentRequestV2 request, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent (v2): {AgentName}", request.Name);
+
+        var result = await _agentService.CreateAgentWithConfigurationAsync(request.Name, request.Configuration, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            var agentDto = new AgentDto
+            {
+                Id = result.Value.Id,
+                Name = result.Value.Name.Value,
+                Capabilities = result.Value.Capabilities,
+                Status = result.Value.Status,
+                CreatedAt = result.Value.CreatedAt
+            };
+
+            return CreatedAtAction(nameof(GetAgent), new { id = result.Value.Id }, agentDto);
+        }
+
+        return BadRequest(new ValidationProblemDetails
+        {
+            Errors = new Dictionary<string, string[]> { ["name"] = result.Errors.ToArray() }
+        });
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No API versioning
+[ApiController]
+[Route("api/agents")]
+public class AgentsController : ControllerBase
+{
+    private readonly IAgentService _agentService;
+    private readonly ILogger<AgentsController> _logger;
+
+    public AgentsController(IAgentService agentService, ILogger<AgentsController> logger)
+    {
+        _agentService = agentService;
+        _logger = logger;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAgents([FromQuery] string? name, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Retrieving agents: {NameFilter}", name);
+
+        var result = await _agentService.GetAgentsAsync(name, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value);
+        }
+
+        return BadRequest(result.Errors);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateAgent([FromBody] CreateAgentRequest request, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", request.Name);
+
+        var result = await _agentService.CreateAgentAsync(request.Name, request.Capabilities, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value);
+        }
+
+        return BadRequest(result.Errors);
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use proper request/response DTOs and validation
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Proper request/response DTOs and validation
+public class CreateAgentRequestV1
+{
+    [Required]
+    [StringLength(100, MinimumLength = 1)]
+    [RegularExpression(@"^[a-zA-Z0-9\s\-_]+$", ErrorMessage = "Name can only contain letters, numbers, spaces, hyphens, and underscores")]
+    public string Name { get; set; } = string.Empty;
+
+    [Required]
+    [EnumDataType(typeof(AgentCapabilities))]
+    public AgentCapabilities Capabilities { get; set; }
+}
+
+public class CreateAgentRequestV2
+{
+    [Required]
+    [StringLength(100, MinimumLength = 1)]
+    [RegularExpression(@"^[a-zA-Z0-9\s\-_]+$", ErrorMessage = "Name can only contain letters, numbers, spaces, hyphens, and underscores")]
+    public string Name { get; set; } = string.Empty;
+
+    [Required]
+    public AgentConfiguration Configuration { get; set; } = new();
+}
+
+public class UpdateAgentRequest
+{
+    [StringLength(100, MinimumLength = 1)]
+    [RegularExpression(@"^[a-zA-Z0-9\s\-_]+$", ErrorMessage = "Name can only contain letters, numbers, spaces, hyphens, and underscores")]
+    public string? Name { get; set; }
+
+    [EnumDataType(typeof(AgentCapabilities))]
+    public AgentCapabilities? Capabilities { get; set; }
+}
+
+public class AgentDto
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public AgentCapabilities Capabilities { get; set; }
+    public AgentStatus Status { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+}
+
+public class PaginatedResponse<T>
+{
+    public IEnumerable<T> Items { get; set; } = Enumerable.Empty<T>();
+    public int Page { get; set; }
+    public int PageSize { get; set; }
+    public int TotalCount { get; set; }
+    public int TotalPages { get; set; }
+}
+
+[ApiController]
+[Route("api/v{version:apiVersion}/agents")]
+public class AgentsController : ControllerBase
+{
+    private readonly IAgentService _agentService;
+    private readonly ILogger<AgentsController> _logger;
+
+    public AgentsController(IAgentService agentService, ILogger<AgentsController> logger)
+    {
+        _agentService = agentService;
+        _logger = logger;
+    }
+
+    [HttpPost]
+    [ProducesResponseType(typeof(AgentDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CreateAgent([FromBody] CreateAgentRequestV1 request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Agent creation validation failed: {Errors}",
+                    string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
+                return BadRequest(new ValidationProblemDetails(ModelState));
+            }
+
+            _logger.LogInformation("Creating agent: {AgentName}, {Capabilities}", request.Name, request.Capabilities);
+
+            var result = await _agentService.CreateAgentAsync(request.Name, request.Capabilities, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                var agentDto = new AgentDto
+                {
+                    Id = result.Value.Id,
+                    Name = result.Value.Name.Value,
+                    Capabilities = result.Value.Capabilities,
+                    Status = result.Value.Status,
+                    CreatedAt = result.Value.CreatedAt
+                };
+
+                _logger.LogInformation("Agent created successfully: {AgentId}", result.Value.Id);
+                return CreatedAtAction(nameof(GetAgent), new { id = result.Value.Id }, agentDto);
+            }
+
+            _logger.LogError("Agent creation failed: {AgentName}, Errors: {Errors}",
+                request.Name, string.Join(", ", result.Errors));
+
+            if (result.Errors.Any(e => e.Contains("validation")))
+            {
+                return BadRequest(new ValidationProblemDetails
+                {
+                    Errors = new Dictionary<string, string[]> { ["name"] = result.Errors.ToArray() }
+                });
+            }
+
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Agent creation failed",
+                Detail = string.Join(", ", result.Errors),
+                Instance = HttpContext.Request.Path
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during agent creation: {AgentName}", request.Name);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Internal server error",
+                Detail = "An unexpected error occurred while creating the agent",
+                Instance = HttpContext.Request.Path
+            });
+        }
+    }
+
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(AgentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAgent(Guid id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Retrieving agent: {AgentId}", id);
+
+            var result = await _agentService.GetAgentAsync(id, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                var agentDto = new AgentDto
+                {
+                    Id = result.Value.Id,
+                    Name = result.Value.Name.Value,
+                    Capabilities = result.Value.Capabilities,
+                    Status = result.Value.Status,
+                    CreatedAt = result.Value.CreatedAt,
+                    UpdatedAt = result.Value.UpdatedAt
+                };
+
+                _logger.LogInformation("Agent retrieved successfully: {AgentId}", id);
+                return Ok(agentDto);
+            }
+
+            if (result.Errors.Any(e => e.Contains("not found")))
+            {
+                _logger.LogWarning("Agent not found: {AgentId}", id);
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Agent not found",
+                    Detail = $"Agent with ID {id} was not found",
+                    Instance = HttpContext.Request.Path
+                });
+            }
+
+            _logger.LogError("Failed to retrieve agent: {AgentId}, Errors: {Errors}",
+                id, string.Join(", ", result.Errors));
+
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Failed to retrieve agent",
+                Detail = string.Join(", ", result.Errors),
+                Instance = HttpContext.Request.Path
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during agent retrieval: {AgentId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Internal server error",
+                Detail = "An unexpected error occurred while retrieving the agent",
+                Instance = HttpContext.Request.Path
+            });
+        }
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No proper DTOs or validation
+public class CreateAgentRequest
+{
+    public string Name { get; set; } = string.Empty; // No validation attributes
+    public AgentCapabilities Capabilities { get; set; } // No validation
+}
+
+[ApiController]
+[Route("api/agents")]
+public class AgentsController : ControllerBase
+{
+    private readonly IAgentService _agentService;
+    private readonly ILogger<AgentsController> _logger;
+
+    public AgentsController(IAgentService agentService, ILogger<AgentsController> logger)
+    {
+        _agentService = agentService;
+        _logger = logger;
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateAgent([FromBody] CreateAgentRequest request, CancellationToken cancellationToken = default)
+    {
+        // No ModelState validation
+        _logger.LogInformation("Creating agent: {AgentName}", request.Name);
+
+        var result = await _agentService.CreateAgentAsync(request.Name, request.Capabilities, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value); // Returning domain object directly
+        }
+
+        return BadRequest(result.Errors);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetAgent(Guid id, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Retrieving agent: {AgentId}", id);
+
+        var result = await _agentService.GetAgentAsync(id, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value); // Returning domain object directly
+        }
+
+        return NotFound();
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Implement proper error handling and logging
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Proper error handling and logging
+[ApiController]
+[Route("api/v{version:apiVersion}/agents")]
+public class AgentsController : ControllerBase
+{
+    private readonly IAgentService _agentService;
+    private readonly ILogger<AgentsController> _logger;
+
+    public AgentsController(IAgentService agentService, ILogger<AgentsController> logger)
+    {
+        _agentService = agentService;
+        _logger = logger;
+    }
+
+    [HttpPost]
+    [ProducesResponseType(typeof(AgentDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CreateAgent([FromBody] CreateAgentRequestV1 request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Agent creation validation failed: {Errors}",
+                    string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
+                return BadRequest(new ValidationProblemDetails(ModelState));
+            }
+
+            _logger.LogInformation("Creating agent: {AgentName}, {Capabilities}", request.Name, request.Capabilities);
+
+            var result = await _agentService.CreateAgentAsync(request.Name, request.Capabilities, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                var agentDto = new AgentDto
+                {
+                    Id = result.Value.Id,
+                    Name = result.Value.Name.Value,
+                    Capabilities = result.Value.Capabilities,
+                    Status = result.Value.Status,
+                    CreatedAt = result.Value.CreatedAt
+                };
+
+                _logger.LogInformation("Agent created successfully: {AgentId}", result.Value.Id);
+                return CreatedAtAction(nameof(GetAgent), new { id = result.Value.Id }, agentDto);
+            }
+
+            _logger.LogError("Agent creation failed: {AgentName}, Errors: {Errors}",
+                request.Name, string.Join(", ", result.Errors));
+
+            if (result.Errors.Any(e => e.Contains("validation")))
+            {
+                return BadRequest(new ValidationProblemDetails
+                {
+                    Errors = new Dictionary<string, string[]> { ["name"] = result.Errors.ToArray() }
+                });
+            }
+
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Agent creation failed",
+                Detail = string.Join(", ", result.Errors),
+                Instance = HttpContext.Request.Path
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during agent creation: {AgentName}", request.Name);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Internal server error",
+                Detail = "An unexpected error occurred while creating the agent",
+                Instance = HttpContext.Request.Path
+            });
+        }
+    }
+
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(AgentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAgent(Guid id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Retrieving agent: {AgentId}", id);
+
+            var result = await _agentService.GetAgentAsync(id, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                var agentDto = new AgentDto
+                {
+                    Id = result.Value.Id,
+                    Name = result.Value.Name.Value,
+                    Capabilities = result.Value.Capabilities,
+                    Status = result.Value.Status,
+                    CreatedAt = result.Value.CreatedAt,
+                    UpdatedAt = result.Value.UpdatedAt
+                };
+
+                _logger.LogInformation("Agent retrieved successfully: {AgentId}", id);
+                return Ok(agentDto);
+            }
+
+            if (result.Errors.Any(e => e.Contains("not found")))
+            {
+                _logger.LogWarning("Agent not found: {AgentId}", id);
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Agent not found",
+                    Detail = $"Agent with ID {id} was not found",
+                    Instance = HttpContext.Request.Path
+                });
+            }
+
+            _logger.LogError("Failed to retrieve agent: {AgentId}, Errors: {Errors}",
+                id, string.Join(", ", result.Errors));
+
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Failed to retrieve agent",
+                Detail = string.Join(", ", result.Errors),
+                Instance = HttpContext.Request.Path
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during agent retrieval: {AgentId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Internal server error",
+                Detail = "An unexpected error occurred while retrieving the agent",
+                Instance = HttpContext.Request.Path
+            });
+        }
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Poor error handling and logging
+[ApiController]
+[Route("api/agents")]
+public class AgentsController : ControllerBase
+{
+    private readonly IAgentService _agentService;
+    private readonly ILogger<AgentsController> _logger;
+
+    public AgentsController(IAgentService agentService, ILogger<AgentsController> logger)
+    {
+        _agentService = agentService;
+        _logger = logger;
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateAgent([FromBody] CreateAgentRequest request, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", request.Name);
+
+        var result = await _agentService.CreateAgentAsync(request.Name, request.Capabilities, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value);
+        }
+
+        return BadRequest(result.Errors); // Generic error response
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetAgent(Guid id, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Retrieving agent: {AgentId}", id);
+
+        var result = await _agentService.GetAgentAsync(id, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value);
+        }
+
+        return NotFound(); // No error details
+    }
+}
+```
+</incorrect-example>
+</requirement>

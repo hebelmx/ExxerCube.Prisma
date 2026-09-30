@@ -1,0 +1,50 @@
+{
+  "docId": "IMSS-2025-491825_20260719_152550",
+  "seed": 5001,
+  "chaosLevel": "none",
+  "requirementType": "aseguramiento",
+  "folioSiara": "IMSS/2025/491825",
+  "numeroOficio": "IMSS/2025/491825",
+  "numeroExpediente": "A/FI1-7028-991413-AAA",
+  "autoridadNombre": "Instituto Mexicano del Seguro Social",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Juan Montemayor Montero",
+  "personaNombre": "Evelio Olivo Ortega",
+  "personaRfc": "OLOE970820N3O",
+  "solicitudPartes": [
+    {
+      "nombre": "Evelio Olivo Ortega",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$6,557,809.04",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Instituto Mexicano del Seguro Social",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

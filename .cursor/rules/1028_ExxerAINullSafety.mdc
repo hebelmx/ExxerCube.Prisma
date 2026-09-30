@@ -1,0 +1,223 @@
+---
+globs: *.cs
+description: Comprehensive null safety patterns and null-aware programming
+---
+
+# ExxerAI Null Safety Patterns
+
+## Meta
+**Title**: ExxerAI Null Safety Patterns
+**Description**: Comprehensive null safety patterns and null-aware programming
+**Applies-to**: All C# code in ExxerAI project
+
+## Requirements
+
+<requirement priority="critical">
+**Description**: Always perform early null checks in all methods
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Early null validation
+public async Task<Result<Agent>> CreateAgentAsync(string name, AgentConfiguration config, CancellationToken cancellationToken = default)
+{
+    if (cancellationToken.IsCancellationRequested)
+        return ResultExtensions.Cancelled<Agent>();
+
+    if (string.IsNullOrWhiteSpace(name))
+        return Result<Agent>.WithFailure("Agent name cannot be empty");
+
+    if (config == null)
+        return Result<Agent>.WithFailure("Agent configuration cannot be null");
+
+    var agent = new Agent { Name = name, Configuration = config };
+    return await _repository.AddAsync(agent, cancellationToken);
+}
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Missing null checks
+public async Task<Result<Agent>> CreateAgentAsync(string name, AgentConfiguration config, CancellationToken cancellationToken = default)
+{
+    var agent = new Agent { Name = name, Configuration = config };
+    return await _repository.AddAsync(agent, cancellationToken);
+}
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Use null-aware operators (?.) and null-coalescing (??) appropriately
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Null-aware operators
+var agentName = agent?.Name ?? "Unknown";
+var taskCount = agent?.Tasks?.Count ?? 0;
+var capabilities = agent?.Capabilities?.SupportedTaskTypes?.FirstOrDefault() ?? "default";
+
+// Safe navigation with null checks
+if (agent?.Configuration?.Settings != null)
+{
+    ProcessSettings(agent.Configuration.Settings);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Unsafe null access
+var agentName = agent.Name; // May throw NullReferenceException
+var taskCount = agent.Tasks.Count; // May throw if Tasks is null
+var capabilities = agent.Capabilities.SupportedTaskTypes.FirstOrDefault(); // Multiple null risks
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use Kotlin-style null safety properties for Result<T>
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Kotlin-style null safety
+var result = await GetAgentAsync(agentId);
+
+// Check if operation succeeded (regardless of null value)
+if (result.IsSuccessMayBeNull)
+{
+    // Safe to check value, but might be null
+    if (result.IsSuccessNotNull)
+    {
+        var agent = result.Value; // Guaranteed non-null
+        ProcessAgent(agent);
+    }
+    else
+    {
+        // Handle successful operation that returned null
+        LogWarning("Agent not found, but operation succeeded");
+    }
+}
+else
+{
+    // Handle operation failure
+    LogErrors(result.Errors);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Unsafe Result<T> access
+var result = await GetAgentAsync(agentId);
+var agent = result.Value; // May be null even if IsSuccess is true
+ProcessAgent(agent); // Potential NullReferenceException
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Validate constructor parameters with null checks
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Constructor null validation
+public AgentService(IAgentRepository agentRepository, ITaskRepository taskRepository)
+{
+    _agentRepository = agentRepository ?? throw new ArgumentNullException(nameof(agentRepository));
+    _taskRepository = taskRepository ?? throw new ArgumentNullException(nameof(taskRepository));
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Missing constructor validation
+public AgentService(IAgentRepository agentRepository, ITaskRepository taskRepository)
+{
+    _agentRepository = agentRepository;
+    _taskRepository = taskRepository;
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Use null-safe LINQ operations
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Null-safe LINQ
+var activeAgents = agents?
+    .Where(a => a != null && a.Status == AgentStatus.Active)
+    .Select(a => a.Name)
+    .Where(name => !string.IsNullOrEmpty(name))
+    .ToList() ?? new List<string>();
+
+// Safe aggregation
+var totalTasks = agents?
+    .Where(a => a?.Tasks != null)
+    .Sum(a => a.Tasks.Count) ?? 0;
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Unsafe LINQ
+var activeAgents = agents
+    .Where(a => a.Status == AgentStatus.Active)
+    .Select(a => a.Name)
+    .ToList(); // May throw if agents is null or contains null elements
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Use null-safe string operations
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Null-safe string operations
+var displayName = agent?.Name?.Trim() ?? "Unknown Agent";
+var description = agent?.Description?.Length > 0 ? agent.Description : "No description";
+
+// Safe string formatting
+var message = $"Agent: {agent?.Name ?? "Unknown"} (Status: {agent?.Status ?? AgentStatus.Unknown})";
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Unsafe string operations
+var displayName = agent.Name.Trim(); // May throw if agent or Name is null
+var description = agent.Description; // May be null
+var message = $"Agent: {agent.Name}"; // May throw if agent is null
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Use null-safe collection operations
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Null-safe collection operations
+var taskList = agent?.Tasks?.ToList() ?? new List<Task>();
+var hasActiveTasks = agent?.Tasks?.Any(t => t?.Status == TaskStatus.Active) ?? false;
+
+// Safe collection access
+if (agent?.Capabilities?.SupportedTaskTypes?.Any() == true)
+{
+    var firstTaskType = agent.Capabilities.SupportedTaskTypes.First();
+    ProcessTaskType(firstTaskType);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Unsafe collection operations
+var taskList = agent.Tasks.ToList(); // May throw if agent or Tasks is null
+var hasActiveTasks = agent.Tasks.Any(t => t.Status == TaskStatus.Active); // Multiple null risks
+```
+</incorrect-example>
+</requirement>
+
+## References
+<reference as="dependency" href=".cursor/rules/0000_RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/2001_ExxerAIResultPattern.mdc" reason="Related Result<T> pattern">Result<T> Pattern</reference>
+description:
+globs:
+alwaysApply: false
+---

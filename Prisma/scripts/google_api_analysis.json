@@ -1,0 +1,302 @@
+{
+  "analysis_date": "2025-09-27T22:32:44.191665",
+  "summary": {
+    "total_files": 3,
+    "credential_files": 33,
+    "categories": {
+      "Migrate to M2M": 1,
+      "Deprecate - Test Only": 2
+    }
+  },
+  "usages": [
+    {
+      "file_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infraestructure\\ExxerAI.Infrastructure\\External\\GoogleDriveService.cs",
+      "class_name": "GoogleDriveService",
+      "api_type": "Google.Apis.Drive.v3",
+      "usage_pattern": "OAuth,DirectAPI",
+      "is_deprecated": true,
+      "requires_m2m": true,
+      "complexity_score": 5,
+      "dependencies": [
+        "Google.Apis.Drive.v3",
+        "Google.Apis.Auth.OAuth2"
+      ],
+      "recommended_action": "Migrate to M2M"
+    },
+    {
+      "file_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infraestructure\\ExxerAi.MCPServer\\Application\\Services\\GoogleDriveService.cs",
+      "class_name": "GoogleDriveService",
+      "api_type": "Google.Apis.Drive.v3",
+      "usage_pattern": "OAuth,DirectAPI,MCP,Testing",
+      "is_deprecated": true,
+      "requires_m2m": true,
+      "complexity_score": 5,
+      "dependencies": [
+        "Google.Apis.Drive.v3.Data",
+        "Google.Apis.Drive.v3",
+        "Google.Apis.Auth.OAuth2",
+        "Google.Apis.Services"
+      ],
+      "recommended_action": "Deprecate - Test Only"
+    },
+    {
+      "file_path": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infraestructure\\ExxerAi.MCPServer\\Application\\Services\\ModernGoogleDriveCredentialResolver.cs",
+      "class_name": "ModernGoogleDriveCredentialResolver",
+      "api_type": "Google.Apis.Drive.v3",
+      "usage_pattern": "OAuth,ServiceAccount,ADC,DirectAPI,MCP,Testing",
+      "is_deprecated": true,
+      "requires_m2m": true,
+      "complexity_score": 5,
+      "dependencies": [
+        "Google.Apis.Drive.v3",
+        "Google.Apis.Auth.OAuth2"
+      ],
+      "recommended_action": "Deprecate - Test Only"
+    }
+  ],
+  "credentials": [
+    {
+      "credential_type": "OAuth",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\google-credentials.json",
+      "is_modern": false,
+      "security_level": "Low",
+      "deprecation_risk": "High"
+    },
+    {
+      "credential_type": "OAuth",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\google-credentialsV2.json",
+      "is_modern": false,
+      "security_level": "Low",
+      "deprecation_risk": "High"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\SampleCode\\local-ai-packaged\\flowise\\create_google_doc-CustomTool.json",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\SampleCode\\local-ai-packaged\\n8n-tool-workflows\\Create_Google_Doc.json",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "OAuth",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\SampleCode\\SideProjects\\ExxerProAIExplorer\\src\\App\\google.json",
+      "is_modern": false,
+      "security_level": "Low",
+      "deprecation_risk": "High"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\.venv\\Lib\\site-packages\\googleapiclient\\discovery_cache\\documents\\iamcredentials.v1.json",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\.venv\\Lib\\site-packages\\googleapiclient\\discovery_cache\\documents\\oauth2.v2.json",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Core\\ExxerAI.Application\\Interfaces\\IGoogleDriveIngestionClient.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Core\\ExxerAI.Application\\Interfaces\\IMCPGoogleDriveService.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Core\\ExxerAI.Application\\Services\\GoogleDriveEngine.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infraestructure\\ExxerAI.Infrastructure\\External\\GoogleDriveService.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infraestructure\\ExxerAI.Infrastructure\\Services\\Neo4jCredentialService.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infraestructure\\ExxerAI.Infrastructure\\Services\\QdrantCredentialService.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infraestructure\\ExxerAi.MCPServer\\Application\\Interfaces\\IGoogleDriveCredentialResolver.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infraestructure\\ExxerAi.MCPServer\\Application\\Interfaces\\IGoogleDriveService.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infraestructure\\ExxerAi.MCPServer\\Application\\Interfaces\\IGoogleDriveTools.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "OAuth",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infraestructure\\ExxerAi.MCPServer\\Application\\Services\\GoogleDriveCredentialResolver.cs",
+      "is_modern": false,
+      "security_level": "Low",
+      "deprecation_risk": "High"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infraestructure\\ExxerAi.MCPServer\\Application\\Services\\GoogleDriveFileMetadata.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infraestructure\\ExxerAi.MCPServer\\Application\\Services\\GoogleDriveService.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infraestructure\\ExxerAi.MCPServer\\Application\\Services\\ModernGoogleDriveCredentialResolver.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infraestructure\\ExxerAi.MCPServer\\Application\\Tools\\GoogleDriveTools.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "OAuth",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\ExxerAI.IntegrationTests\\google-credentials.json",
+      "is_modern": false,
+      "security_level": "Low",
+      "deprecation_risk": "High"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\ExxerAI.IntegrationTests\\Core\\Authentication\\BasicCredentialTests.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\ExxerAI.IntegrationTests\\Core\\Authentication\\CredentialVerificationTest.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\ExxerAI.IntegrationTests\\Core\\Authentication\\DebugCredentialResolver.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\ExxerAI.IntegrationTests\\Core\\Authentication\\ModernCredentialTest.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\ExxerAI.IntegrationTests\\Core\\Authentication\\TestApiKeyCredentials.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\ExxerAI.IntegrationTests\\Core\\Authentication\\TestCredentialQuick.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\ExxerAI.IntegrationTests\\Core\\Authentication\\TestModernCredentials.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\ExxerAI.IntegrationTests\\Core\\Authentication\\VerifyCredentials.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\ExxerAI.IntegrationTests\\Services\\Neo4jCredentialServiceTests.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\ExxerAI.IntegrationTests\\Services\\QdrantCredentialServiceTests.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    },
+    {
+      "credential_type": "Unknown",
+      "file_location": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\ExxerAI.IntegrationTests\\Support\\FixtureGoogleDriveIngestionClient.cs",
+      "is_modern": false,
+      "security_level": "Unknown",
+      "deprecation_risk": "Unknown"
+    }
+  ],
+  "migration_plan": [
+    "[!] CRITICAL: 3 files using obsolete OAuth flows",
+    "   - Priority: HIGH - Replace with Service Account or ADC",
+    "   - These will fail with 'Error 400: invalid_request' OAuth flow issues",
+    "   - Migrate to Google.Apis.Auth v1.71.0+ with M2M authentication",
+    "[*] TESTING: 2 test-related Google API files",
+    "   - Priority: LOW - These can be deprecated after migration",
+    "   - Consider mocking Google APIs in tests instead",
+    "[+] MCP: 2 Model Context Protocol implementations",
+    "   - Priority: KEEP - These are modern M2M implementations",
+    "   - Ensure they use latest OAuth protocols"
+  ]
+}

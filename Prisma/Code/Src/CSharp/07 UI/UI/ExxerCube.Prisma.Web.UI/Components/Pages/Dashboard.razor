@@ -1,0 +1,350 @@
+@page "/dashboard"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@using ExxerCube.Prisma.Web.UI.Models
+@using ExxerCube.Prisma.Application.Services
+@using ExxerCube.Prisma.Domain.Events
+@using ExxerCube.Prisma.Domain.Models
+@using ExxerCube.Prisma.Domain.Interfaces
+@implements IDisposable
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IProcessingMetricsService MetricsService
+@inject HealthCheckService HealthCheckService
+@inject IEventPublisher EventPublisher
+
+<PageTitle>OCR Processing Dashboard</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudPaper Class="pa-4" Elevation="3">
+        <h1 class="mud-typography mud-typography-h4 mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.Analytics" Class="mr-2" />
+            OCR Processing Dashboard
+        </h1>
+        
+        <MudText Typo="Typo.body1" Class="mb-6">
+            Real-time analytics and performance metrics for the OCR processing pipeline.
+        </MudText>
+
+        <!-- Key Metrics Cards -->
+        <MudGrid Class="mb-6">
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudStack>
+                        <MudText Typo="Typo.h6" Color="Color.Primary">
+                            <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" />
+                            Total Documents
+                        </MudText>
+                        <MudText Typo="Typo.h4" Class="total-docs">@metrics.TotalDocumentsProcessed</MudText>
+                        <MudText Typo="Typo.caption">Processed documents</MudText>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+            
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudStack>
+                        <MudText Typo="Typo.h6" Color="Color.Success">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Class="mr-2" />
+                            Success Rate
+                        </MudText>
+                        <MudText Typo="Typo.h4">@metrics.SuccessRate.ToString("F1")%</MudText>
+                        <MudText Typo="Typo.caption">Successful processing</MudText>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+            
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudStack>
+                        <MudText Typo="Typo.h6" Color="Color.Info">
+                            <MudIcon Icon="@Icons.Material.Filled.Timer" Class="mr-2" />
+                            Avg Processing Time
+                        </MudText>
+                        <MudText Typo="Typo.h4">@metrics.AverageProcessingTime.ToString("F1")s</MudText>
+                        <MudText Typo="Typo.caption">Seconds per document</MudText>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+            
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudStack>
+                        <MudText Typo="Typo.h6" Color="Color.Warning">
+                            <MudIcon Icon="@Icons.Material.Filled.Psychology" Class="mr-2" />
+                            Avg Confidence
+                        </MudText>
+                        <MudText Typo="Typo.h4">@metrics.AverageConfidence.ToString("F1")%</MudText>
+                        <MudText Typo="Typo.caption">OCR confidence score</MudText>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Processing Queue Status -->
+        <MudCard Class="mb-4">
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">
+                    <MudIcon Icon="@Icons.Material.Filled.Queue" Class="mr-2" />
+                    Processing Queue
+                </MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.body1">
+                            <strong>Documents in Queue:</strong> @metrics.DocumentsInQueue
+                        </MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudChip T="string" Color="@GetQueueStatusColor()" Size="Size.Large">
+                            @GetQueueStatusText()
+                        </MudChip>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+        </MudCard>
+
+        <!-- Performance Charts -->
+        <MudGrid Class="mb-4">
+            <MudItem xs="12" md="6">
+                <MudCard>
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h6">
+                            <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Class="mr-2" />
+                            Processing Time Trend
+                        </MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudChart ChartType="ChartType.Line" ChartSeries="@processingTimeSeries" XAxisLabels="@timeLabels" Width="100%" Height="300px">
+                        </MudChart>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            
+            <MudItem xs="12" md="6">
+                <MudCard>
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h6">
+                            <MudIcon Icon="@Icons.Material.Filled.PieChart" Class="mr-2" />
+                            Success vs Error Rate
+                        </MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudChart ChartType="ChartType.Pie" ChartSeries="@successErrorSeries" Width="100%" Height="300px">
+                        </MudChart>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Recent Errors -->
+        @if (metrics.RecentErrors.Any())
+        {
+            <MudCard Class="mb-4">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6" Color="Color.Error">
+                        <MudIcon Icon="@Icons.Material.Filled.Error" Class="mr-2" />
+                        Recent Errors
+                    </MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudList T="string">
+                        @foreach (var error in metrics.RecentErrors.Take(5))
+                        {
+                            <MudListItem T="string">
+                                <MudText Typo="Typo.body2" Color="Color.Error">
+                                    @error
+                                </MudText>
+                            </MudListItem>
+                        }
+                    </MudList>
+                </MudCardContent>
+            </MudCard>
+        }
+
+        <!-- System Health -->
+        <MudCard>
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">
+                    <MudIcon Icon="@Icons.Material.Filled.HealthAndSafety" Class="mr-2" />
+                    System Health
+                </MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudChip T="string" Color="Color.Success" Size="Size.Large">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Class="mr-2" />
+                            OCR Service: Online
+                        </MudChip>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudChip T="string" Color="Color.Success" Size="Size.Large">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Class="mr-2" />
+                            Python Modules: Active
+                        </MudChip>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudChip T="string" Color="Color.Success" Size="Size.Large">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Class="mr-2" />
+                            Database: Connected
+                        </MudChip>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudChip T="string" Color="Color.Success" Size="Size.Large">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Class="mr-2" />
+                            SignalR: Connected
+                        </MudChip>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+        </MudCard>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private DashboardMetrics metrics = new();
+    private IDisposable? _eventSubscription;
+    private List<ChartSeries> processingTimeSeries = new();
+    private string[] timeLabels = new string[0];
+    private List<ChartSeries> successErrorSeries = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        SubscribeToDomainEvents();
+        await LoadRealData();
+    }
+
+    private void SubscribeToDomainEvents()
+    {
+        // PRISMA-E5-S2 fix: the component runs server-side, so building a loopback SignalR
+        // connection is a needless round-trip through an authorized hub with no cookie
+        // attached (401, caught, silently dropped). Subscribe directly to
+        // the in-process IEventPublisher Rx stream instead — on any domain event, re-pull
+        // the current metrics from the service, mirroring the old "ReceiveMessage" handler.
+        _eventSubscription = EventPublisher.GetAllEventsStream()
+            .Subscribe(_ => InvokeAsync(async () =>
+            {
+                await LoadRealData();
+                StateHasChanged(); // LoadRealData only sets fields; the subscription must request its own render.
+            }));
+    }
+
+    private async Task LoadRealData()
+    {
+        try
+        {
+            // Get metrics directly from service (proper production architecture)
+            var statistics = await MetricsService.GetCurrentStatisticsAsync();
+            var recentEvents = MetricsService.GetRecentEvents(10);
+            
+            metrics = new DashboardMetrics
+            {
+                TotalDocumentsProcessed = statistics.TotalDocumentsProcessed,
+                SuccessRate = statistics.SuccessRate * 100, // Convert to percentage
+                AverageProcessingTime = statistics.AverageProcessingTime,
+                AverageConfidence = statistics.AverageConfidence * 100, // Convert to percentage
+                DocumentsInQueue = MetricsService.ActiveProcessingCount,
+                RecentErrors = recentEvents
+                    .Where(e => !e.IsSuccess && !string.IsNullOrEmpty(e.ErrorMessage))
+                    .Select(e => e.ErrorMessage!)
+                    .Take(5)
+                    .ToList()
+            };
+
+            // Update chart data with real trends
+            UpdateChartDataWithRealTrends(recentEvents);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading dashboard data: {ex.Message}", Severity.Error);
+            LoadFallbackData();
+        }
+    }
+
+    private void LoadFallbackData()
+    {
+        // Fallback data if service fails
+        metrics = new DashboardMetrics
+        {
+            TotalDocumentsProcessed = 0,
+            SuccessRate = 0,
+            AverageProcessingTime = 0,
+            AverageConfidence = 0,
+            DocumentsInQueue = 0,
+            RecentErrors = new List<string>()
+        };
+
+        timeLabels = new string[] { "No Data" };
+        processingTimeSeries = new List<ChartSeries>
+        {
+            new ChartSeries { Name = "Processing Time (s)", Data = new double[] { 0 } }
+        };
+
+        successErrorSeries = new List<ChartSeries>
+        {
+            new ChartSeries { Name = "Success", Data = new double[] { 0 } },
+            new ChartSeries { Name = "Errors", Data = new double[] { 0 } }
+        };
+    }
+
+    private void UpdateChartDataWithRealTrends(List<ProcessingEvent> recentEvents)
+    {
+        if (!recentEvents.Any())
+        {
+            LoadFallbackData();
+            return;
+        }
+
+        // Group events by hour for time series
+        var hourlyData = recentEvents
+            .GroupBy(e => e.Timestamp.ToString("HH:00"))
+            .OrderBy(g => g.Key)
+            .ToList();
+
+        timeLabels = hourlyData.Select(g => g.Key).ToArray();
+        var processingTimes = hourlyData.Select(g => g.Average(e => e.ProcessingTimeSeconds)).ToArray();
+
+        processingTimeSeries = new List<ChartSeries>
+        {
+            new ChartSeries { Name = "Processing Time (s)", Data = processingTimes }
+        };
+
+        // Calculate success vs error rates
+        var totalEvents = recentEvents.Count;
+        var successfulEvents = recentEvents.Count(e => e.IsSuccess);
+        var errorEvents = totalEvents - successfulEvents;
+
+        successErrorSeries = new List<ChartSeries>
+        {
+            new ChartSeries { Name = "Success", Data = new double[] { successfulEvents } },
+            new ChartSeries { Name = "Errors", Data = new double[] { errorEvents } }
+        };
+    }
+
+    private Color GetQueueStatusColor()
+    {
+        return metrics.DocumentsInQueue switch
+        {
+            0 => Color.Success,
+            <= 5 => Color.Warning,
+            _ => Color.Error
+        };
+    }
+
+    private string GetQueueStatusText()
+    {
+        return metrics.DocumentsInQueue switch
+        {
+            0 => "Queue Empty",
+            <= 5 => "Low Load",
+            _ => "High Load"
+        };
+    }
+
+    public void Dispose()
+    {
+        _eventSubscription?.Dispose();
+    }
+}

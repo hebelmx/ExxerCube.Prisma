@@ -1,0 +1,21 @@
+<Router AppAssembly="typeof(Program).Assembly">
+    <Found Context="routeData">
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Components.Layout.MainLayout)">
+            <NotAuthorized>
+                <NavigateToLogin />
+            </NotAuthorized>
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Not found</PageTitle>
+        <LayoutView Layout="typeof(Components.Layout.MainLayout)">
+            <p role="alert">Sorry, there's nothing at this address.</p>
+        </LayoutView>
+    </NotFound>
+</Router>
+
+@code {
+    // Cookie-authenticated routing: pages marked [Authorize] redirect anonymous users to /login via
+    // NavigateToLogin; the login page is anonymous. Auth state comes from the SIARA session cookie.
+}

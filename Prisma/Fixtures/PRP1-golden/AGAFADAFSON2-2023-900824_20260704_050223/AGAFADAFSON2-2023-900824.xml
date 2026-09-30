@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>AGAFADAFSON2/2023/900824</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>AGAFADAFSON2/2023/900824</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Administración Desconcentrada de Auditoría Fiscal de Jalisco</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>AGAFADAFSON2/2023/900824</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>B/FI1-5684-679243-BBB</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>3</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>Elsa Guerrero Garay</NombreSolicitante>
+  <Referencia>REF-7957</Referencia>
+  <Referencia1>REF1-3394</Referencia1>
+  <Referencia2>REF2-5312</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Ignacio Carrillo Alemán</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Detallar operaciones superiores a $100,000.00 MN
+- Incluir números de cuenta, saldos y movimientos
+- Proporcionar información de todas las cuentas bancarias
+- Indicar titulares y co-titulares de las cuentas
+- Especificar fechas de apertura y cierre de cuentas</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Ignacio Carrillo Alemán</Nombre>
+    <Rfc>CAAI760212FKQ</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Corredor Norte Mateo No. 7234, Col. Vieja República Unida de Tanzanía, Municipio San Delia de la Montaña, Yucatán, C.P. 97426</Domicilio>
+    <Complementarios>Tel: 371.180.5149x7293, Email: varelaaldo@example.org</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

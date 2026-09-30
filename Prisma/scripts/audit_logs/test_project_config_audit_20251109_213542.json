@@ -1,0 +1,44 @@
+[
+  {
+    "path": "code/src/tests/08UITests/ExxerAI.UI.Tests/ExxerAI.UI.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.core reference",
+        "line": 81
+      },
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 81
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 81
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 83
+      }
+    ]
+  },
+  {
+    "path": "code/src/tests/08UITests/ExxerAI.UI.Web.Tests/ExxerAI.UI.Web.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.core reference",
+        "line": 81
+      },
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 81
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 81
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 83
+      }
+    ]
+  }
+]

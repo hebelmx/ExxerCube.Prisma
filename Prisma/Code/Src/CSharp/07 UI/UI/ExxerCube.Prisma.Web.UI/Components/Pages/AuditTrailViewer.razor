@@ -1,0 +1,692 @@
+
+@page "/audit-trail"
+@using ExxerCube.Prisma.Application.Services
+@using ExxerCube.Prisma.Domain.Entities
+@using ExxerCube.Prisma.Domain.Enum
+@using ExxerCube.Prisma.Domain.Interfaces
+@using MudBlazor
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+@inject IAuditLogger AuditLogger
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject ILogger<AuditTrailViewer> Logger
+@using ExxerCube.Prisma.Web.UI.Components.Shared
+
+<PageTitle>Audit Trail Viewer</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudPaper Class="pa-6" Elevation="3">
+        <h1 class="mud-typography mud-typography-h4 mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.History" Class="mr-2" />
+            Audit Trail Viewer
+        </h1>
+
+        <!-- Statistics Cards -->
+        <MudGrid Class="mb-4">
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h4" Color="Color.Info">@totalRecords</MudText>
+                        <MudText Typo="Typo.body2">Total Records</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @filteredRecordsCount filtered
+                        </MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h4" Color="Color.Success">@successRate.ToString("F1")%</MudText>
+                        <MudText Typo="Typo.body2">Success Rate</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @successCount successful
+                        </MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h4" Color="Color.Error">@failureCount</MudText>
+                        <MudText Typo="Typo.body2">Failed Actions</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @(failureRate.ToString("F1"))% failure rate
+                        </MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h4" Color="Color.Primary">@uniqueCorrelationIds</MudText>
+                        <MudText Typo="Typo.body2">Unique Correlations</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Tracked workflows
+                        </MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Filters Panel -->
+        <MudCard Class="mb-4">
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">Filters</MudText>
+                <MudSpacer />
+                <MudButton Size="Size.Small" 
+                          Variant="Variant.Text"
+                          OnClick="ClearFilters">
+                    Clear All
+                </MudButton>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudTextField T="string" Label="File ID" 
+                                     Value="@filterFileId"
+                                     ValueChanged="@OnFilterFileIdChanged"
+                                     Variant="Variant.Outlined"
+                                     Dense="true"
+                                     Immediate="true" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudTextField T="string" Label="Correlation ID" 
+                                     Value="@filterCorrelationId"
+                                     ValueChanged="@OnFilterCorrelationIdChanged"
+                                     Variant="Variant.Outlined"
+                                     Dense="true"
+                                     Immediate="true" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudDatePicker T="DateTime?" Label="From Date" 
+                                     Date="@filterFromDate"
+                                     DateChanged="@OnFilterFromDateChanged"
+                                     Variant="Variant.Outlined"
+                                     Dense="true" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudDatePicker T="DateTime?" Label="To Date" 
+                                     Date="@filterToDate"
+                                     DateChanged="@OnFilterToDateChanged"
+                                     Variant="Variant.Outlined"
+                                     Dense="true" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudSelect T="AuditActionType" Label="Action Type" 
+                                 Value="@selectedActionType"
+                                 ValueChanged="@OnSelectedActionTypeChanged"
+                                 Variant="Variant.Outlined"
+                                 Dense="true">
+                            <MudSelectItem Value="@AuditActionType.Unknown">All Actions</MudSelectItem>
+                            @foreach (var actionType in EnumModel.GetAll<AuditActionType>())
+                            {
+                                <MudSelectItem Value="@actionType">@actionType</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudSelect T="ProcessingStage" Label="Stage" 
+                                 Value="@selectedStage"
+                                 ValueChanged="@OnSelectedStageChanged"
+                                 Variant="Variant.Outlined"
+                                 Dense="true">
+                            <MudSelectItem Value="@ProcessingStage.Unknown">All Stages</MudSelectItem>
+                            @foreach (var stage in EnumModel.GetAll<ProcessingStage>())
+                            {
+                                <MudSelectItem Value="@stage">@stage</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudTextField T="string" Label="User ID" 
+                                     Value="@filterUserId"
+                                     ValueChanged="@OnFilterUserIdChanged"
+                                     Variant="Variant.Outlined"
+                                     Dense="true"
+                                     Immediate="true" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudSelect T="bool?" Label="Success Status" 
+                                 Value="@filterSuccessStatus"
+                                 ValueChanged="@OnFilterSuccessStatusChanged"
+                                 Variant="Variant.Outlined"
+                                 Dense="true">
+                            <MudSelectItem Value="@((bool?)null)">All</MudSelectItem>
+                            <MudSelectItem Value="@true">Success Only</MudSelectItem>
+                            <MudSelectItem Value="@false">Failed Only</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+        </MudCard>
+
+        <!-- Audit Trail Table -->
+        <MudCard>
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">Audit Records</MudText>
+                <MudSpacer />
+                <MudButton Size="Size.Small" 
+                          Variant="Variant.Outlined"
+                          StartIcon="@Icons.Material.Filled.FileDownload"
+                          OnClick="ExportAuditLog">
+                    Export Filtered Results
+                </MudButton>
+                <MudButton Size="Size.Small" 
+                          Variant="Variant.Outlined"
+                          StartIcon="@Icons.Material.Filled.Assessment"
+                          OnClick="GenerateClassificationReport"
+                          Class="ml-2">
+                    Generate Classification Report
+                </MudButton>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (isLoading)
+                {
+                    <MudProgressLinear Indeterminate="true" Class="mb-4" />
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Loading audit records...</MudText>
+                }
+                else if (!filteredAuditRecords.Any())
+                {
+                    <MudAlert Severity="Severity.Info">
+                        No audit records found matching the current filters.
+                    </MudAlert>
+                }
+                else
+                {
+                    <MudTable T="AuditRecord" Items="@FilteredAuditRecords" 
+                             Dense="true" 
+                             Hover="true" 
+                             Striped="true"
+                             SortMode="SortMode.Multiple">
+                        <HeaderContent>
+                            <MudTh>
+                                <MudTableSortLabel T="AuditRecord" SortBy="@(x => x.Timestamp)">Timestamp</MudTableSortLabel>
+                            </MudTh>
+                            <MudTh>
+                                <MudTableSortLabel T="AuditRecord" SortBy="@(x => x.CorrelationId)">Correlation ID</MudTableSortLabel>
+                            </MudTh>
+                            <MudTh>File ID</MudTh>
+                            <MudTh>
+                                <MudTableSortLabel T="AuditRecord" SortBy="@(x => x.ActionType)">Action Type</MudTableSortLabel>
+                            </MudTh>
+                            <MudTh>
+                                <MudTableSortLabel T="AuditRecord" SortBy="@(x => x.Stage)">Stage</MudTableSortLabel>
+                            </MudTh>
+                            <MudTh>User</MudTh>
+                            <MudTh>Status</MudTh>
+                            <MudTh>Details</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Timestamp">
+                                <MudText Typo="Typo.body2">@context.Timestamp.ToString("g")</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @GetRelativeTime(context.Timestamp)
+                                </MudText>
+                            </MudTd>
+                            <MudTd DataLabel="Correlation ID">
+                                <MudButton Size="Size.Small" 
+                                          Variant="Variant.Text"
+                                          OnClick="@(() => ViewCorrelationTimeline(context.CorrelationId))">
+                                    @TruncateString(context.CorrelationId, 12)
+                                </MudButton>
+                            </MudTd>
+                            <MudTd DataLabel="File ID">
+                                @if (!string.IsNullOrEmpty(context.FileId))
+                                {
+                                    <MudLink Href="@($"/file-details/{context.FileId}")" 
+                                           Color="Color.Primary">
+                                        @TruncateString(context.FileId, 12)
+                                    </MudLink>
+                                }
+                                else
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">-</MudText>
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="Action Type">
+                                <MudChip T="string" Size="Size.Small" 
+                                        Color="@GetActionTypeColor(context.ActionType)">
+                                    @context.ActionType
+                                </MudChip>
+                            </MudTd>
+                            <MudTd DataLabel="Stage">
+                                <MudChip T="string" Size="Size.Small" Color="Color.Info">
+                                    @context.Stage
+                                </MudChip>
+                            </MudTd>
+                            <MudTd DataLabel="User">
+                                @if (!string.IsNullOrEmpty(context.UserId))
+                                {
+                                    <MudText Typo="Typo.body2">@context.UserId</MudText>
+                                }
+                                else
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">System</MudText>
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="Status">
+                                @if (context.Success)
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" 
+                                           Color="Color.Success" 
+                                           Size="Size.Small" />
+                                }
+                                else
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.Error" 
+                                           Color="Color.Error" 
+                                           Size="Size.Small" />
+                                    @if (!string.IsNullOrEmpty(context.ErrorMessage))
+                                    {
+                                        <MudTooltip Text="@context.ErrorMessage">
+                                            <MudText Typo="Typo.caption" Color="Color.Error">Error</MudText>
+                                        </MudTooltip>
+                                    }
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="Details">
+                                <MudIconButton Icon="@Icons.Material.Filled.Info" 
+                                              Size="Size.Small"
+                                              OnClick="@(() => ShowActionDetails(context))" />
+                            </MudTd>
+                        </RowTemplate>
+                        <PagerContent>
+                            <MudDataGridPager T="AuditRecord" />
+                        </PagerContent>
+                    </MudTable>
+                }
+            </MudCardContent>
+        </MudCard>
+    </MudPaper>
+</MudContainer>
+
+<!-- Action Details Dialog -->
+<MudDialog @bind-IsVisible="@showActionDetailsDialog" MaxWidth="MaxWidth.Medium">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Action Details: @(selectedRecord?.ActionType ?? AuditActionType.Unknown)</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (selectedRecord != null)
+        {
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle1">Action Information</MudText>
+                    <MudDivider Class="my-2" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.body2">Timestamp</MudText>
+                    <MudText Typo="Typo.body1">@selectedRecord.Timestamp.ToString("g")</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.body2">Correlation ID</MudText>
+                    <MudText Typo="Typo.body1">@selectedRecord.CorrelationId</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.body2">Action Type</MudText>
+                    <MudChip T="string" Size="Size.Small" Color="@GetActionTypeColor(selectedRecord.ActionType)">
+                        @selectedRecord.ActionType
+                    </MudChip>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.body2">Stage</MudText>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Info">
+                        @selectedRecord.Stage
+                    </MudChip>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudDivider Class="my-2" />
+                    <MudText Typo="Typo.subtitle1">Action Details (JSON)</MudText>
+                    <MudPaper Class="pa-4" Elevation="1">
+                        <MudText Typo="Typo.body2" Class="font-family-monospace">
+                            @FormatJson(selectedRecord.ActionDetails ?? "{}")
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+                @if (!selectedRecord.Success && !string.IsNullOrEmpty(selectedRecord.ErrorMessage))
+                {
+                    <MudItem xs="12">
+                        <MudDivider Class="my-2" />
+                        <MudAlert Severity="Severity.Error">
+                            <MudText Typo="Typo.subtitle2">Error Message</MudText>
+                            <MudText Typo="Typo.body2">@selectedRecord.ErrorMessage</MudText>
+                        </MudAlert>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => showActionDetailsDialog = false)">Close</MudButton>
+        <MudButton Variant="Variant.Text" 
+                  Color="Color.Primary"
+                  OnClick="@(() => ViewCorrelationTimeline(selectedRecord?.CorrelationId ?? string.Empty))">
+            View Correlation Timeline
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+<!-- Correlation Timeline Dialog -->
+<MudDialog @bind-IsVisible="@showCorrelationTimelineDialog" MaxWidth="MaxWidth.Large">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Correlation Timeline: @selectedCorrelationId</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (correlationRecords.Any())
+        {
+            <MudTimeline Align="Align.Start">
+                @foreach (var record in correlationRecords.OrderBy(r => r.Timestamp))
+                {
+                    <MudTimelineItem Size="Size.Small"
+                                    Color="@(record.Success ? Color.Success : Color.Error)"
+                                    Icon="@(record.Success ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Error)">
+                        <MudText Typo="Typo.body1" Class="font-weight-bold">
+                            @record.ActionType
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            @record.Stage - @record.Timestamp.ToString("g")
+                        </MudText>
+                        @if (!string.IsNullOrEmpty(record.FileId))
+                        {
+                            <MudText Typo="Typo.caption">
+                                File: @record.FileId
+                            </MudText>
+                        }
+                        @if (!record.Success)
+                        {
+                            <MudAlert Severity="Severity.Error" Dense="true" Class="mt-2">
+                                @record.ErrorMessage
+                            </MudAlert>
+                        }
+                    </MudTimelineItem>
+                }
+            </MudTimeline>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Info">No records found for this correlation ID</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => showCorrelationTimelineDialog = false)">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<!-- Classification Report Generator -->
+<ClassificationReportGenerator @bind-IsVisible="@showReportGeneratorDialog" />
+
+@code {
+    private List<AuditRecord> auditRecords = new();
+    private List<AuditRecord> filteredAuditRecords = new();
+    private bool isLoading = true;
+    private string? filterFileId;
+    private string? filterCorrelationId;
+    private DateTime? filterFromDate;
+    private DateTime? filterToDate;
+    private AuditActionType selectedActionType = AuditActionType.Unknown;
+    private ProcessingStage selectedStage = ProcessingStage.Unknown;
+    private string? filterUserId;
+    private bool? filterSuccessStatus;
+    private bool showActionDetailsDialog = false;
+    private bool showCorrelationTimelineDialog = false;
+    private AuditRecord? selectedRecord;
+    private string selectedCorrelationId = string.Empty;
+    private List<AuditRecord> correlationRecords = new();
+    private bool showReportGeneratorDialog = false;
+
+    private int totalRecords => auditRecords.Count;
+    private int filteredRecordsCount => filteredAuditRecords.Count;
+    private int successCount => filteredAuditRecords.Count(r => r.Success);
+    private int failureCount => filteredAuditRecords.Count(r => !r.Success);
+    private double successRate => filteredAuditRecords.Count > 0 
+        ? (successCount * 100.0 / filteredAuditRecords.Count) 
+        : 0;
+    private double failureRate => filteredAuditRecords.Count > 0 
+        ? (failureCount * 100.0 / filteredAuditRecords.Count) 
+        : 0;
+    private int uniqueCorrelationIds => filteredAuditRecords.Select(r => r.CorrelationId).Distinct().Count();
+
+    protected override async Task OnInitializedAsync()
+    {
+        filterFromDate = DateTime.Today.AddDays(-30);
+        filterToDate = DateTime.Today.AddDays(1);
+        await LoadAuditRecords();
+    }
+
+    private async Task LoadAuditRecords()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var startDate = filterFromDate ?? DateTime.Today.AddDays(-30);
+            var endDate = filterToDate ?? DateTime.Today.AddDays(1);
+
+            var result = await AuditLogger.GetAuditRecordsAsync(
+                startDate,
+                endDate,
+                selectedActionType,
+                filterUserId,
+                CancellationToken.None);
+
+            if (result.IsFailure)
+            {
+                Snackbar.Add($"Error loading audit records: {result.Error}", Severity.Error);
+                Logger.LogError("Failed to load audit records: {Error}", result.Error);
+                auditRecords = new List<AuditRecord>();
+            }
+            else if (result.IsCancelled())
+            {
+                Snackbar.Add("Operation was cancelled", Severity.Warning);
+                auditRecords = new List<AuditRecord>();
+            }
+            else
+            {
+                auditRecords = result.Value ?? new List<AuditRecord>();
+                ApplyFilters();
+                Logger.LogInformation("Loaded {Count} audit records", auditRecords.Count);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading audit records: {ex.Message}", Severity.Error);
+            Logger.LogError(ex, "Error loading audit records");
+            auditRecords = new List<AuditRecord>();
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        filteredAuditRecords = auditRecords.Where(FilterRecord).ToList();
+        StateHasChanged();
+    }
+
+    private bool FilterRecord(AuditRecord record)
+    {
+        if (!string.IsNullOrEmpty(filterFileId) && 
+            (string.IsNullOrEmpty(record.FileId) || !record.FileId.Contains(filterFileId, StringComparison.OrdinalIgnoreCase)))
+            return false;
+            
+        if (!string.IsNullOrEmpty(filterCorrelationId) && 
+            !record.CorrelationId.Contains(filterCorrelationId, StringComparison.OrdinalIgnoreCase))
+            return false;
+            
+        if (filterFromDate.HasValue && record.Timestamp < filterFromDate.Value)
+            return false;
+            
+        if (filterToDate.HasValue && record.Timestamp > filterToDate.Value)
+            return false;
+            
+        if (selectedActionType != AuditActionType.Unknown && record.ActionType != selectedActionType)
+            return false;
+            
+        if (selectedStage != ProcessingStage.Unknown && record.Stage != selectedStage)
+            return false;
+            
+        if (!string.IsNullOrEmpty(filterUserId) && 
+            (string.IsNullOrEmpty(record.UserId) || !record.UserId.Contains(filterUserId, StringComparison.OrdinalIgnoreCase)))
+            return false;
+            
+        if (filterSuccessStatus.HasValue && record.Success != filterSuccessStatus.Value)
+            return false;
+            
+        return true;
+    }
+
+    private void OnFilterFileIdChanged(string? value)
+    {
+        filterFileId = value;
+        ApplyFilters();
+    }
+
+    private void OnFilterCorrelationIdChanged(string? value)
+    {
+        filterCorrelationId = value;
+        ApplyFilters();
+    }
+
+    private async void OnFilterFromDateChanged(DateTime? value)
+    {
+        filterFromDate = value;
+        await LoadAuditRecords();
+    }
+
+    private async void OnFilterToDateChanged(DateTime? value)
+    {
+        filterToDate = value;
+        await LoadAuditRecords();
+    }
+
+    private void OnSelectedActionTypeChanged(AuditActionType value)
+    {
+        selectedActionType = value;
+        ApplyFilters();
+    }
+
+    private void OnSelectedStageChanged(ProcessingStage value)
+    {
+        selectedStage = value;
+        ApplyFilters();
+    }
+
+    private void OnFilterUserIdChanged(string? value)
+    {
+        filterUserId = value;
+        ApplyFilters();
+    }
+
+    private void OnFilterSuccessStatusChanged(bool? value)
+    {
+        filterSuccessStatus = value;
+        ApplyFilters();
+    }
+
+    private void ClearFilters()
+    {
+        filterFileId = null;
+        filterCorrelationId = null;
+        filterFromDate = DateTime.Today.AddDays(-30);
+        filterToDate = DateTime.Today.AddDays(1);
+        selectedActionType = AuditActionType.Unknown;
+        selectedStage = ProcessingStage.Unknown;
+        filterUserId = null;
+        filterSuccessStatus = null;
+        ApplyFilters();
+    }
+
+    private void ShowActionDetails(AuditRecord record)
+    {
+        selectedRecord = record;
+        showActionDetailsDialog = true;
+    }
+
+    private async void ViewCorrelationTimeline(string correlationId)
+    {
+        selectedCorrelationId = correlationId;
+        
+        try
+        {
+            var result = await AuditLogger.GetAuditRecordsByCorrelationIdAsync(
+                correlationId,
+                CancellationToken.None);
+
+            if (result.IsSuccess && result.Value != null)
+            {
+                correlationRecords = result.Value;
+                showCorrelationTimelineDialog = true;
+            }
+            else
+            {
+                Snackbar.Add($"Error loading correlation timeline: {result.Error}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading correlation timeline");
+            Snackbar.Add($"Error loading correlation timeline: {ex.Message}", Severity.Error);
+        }
+        
+        StateHasChanged();
+    }
+
+    private async Task ExportAuditLog()
+    {
+        Snackbar.Add("Export functionality will be implemented with reporting service", Severity.Info);
+        // TODO: Implement export using IAuditReportingService when available
+    }
+
+    private void GenerateClassificationReport()
+    {
+        showReportGeneratorDialog = true;
+        StateHasChanged();
+    }
+
+    private string GetRelativeTime(DateTime timestamp)
+    {
+        var span = DateTime.Now - timestamp;
+        if (span.TotalMinutes < 1) return "Just now";
+        if (span.TotalHours < 1) return $"{(int)span.TotalMinutes}m ago";
+        if (span.TotalDays < 1) return $"{(int)span.TotalHours}h ago";
+        return $"{(int)span.TotalDays}d ago";
+    }
+
+    private string TruncateString(string value, int maxLength)
+    {
+        return value.Length > maxLength ? value.Substring(0, maxLength) + "..." : value;
+    }
+
+    private string FormatJson(string json)
+    {
+        try
+        {
+            // Simple JSON formatting - in production, use System.Text.Json or Newtonsoft.Json
+            return json.Replace(",", ",\n  ").Replace("{", "{\n  ").Replace("}", "\n}");
+        }
+        catch
+        {
+            return json;
+        }
+    }
+
+    private Color GetActionTypeColor(AuditActionType actionType) => actionType.Value switch
+    {
+        0 => Color.Info,
+        1 => Color.Primary,
+        2 => Color.Secondary,
+        3 => Color.Secondary,
+        4 => Color.Warning,
+        5 => Color.Success,
+        6 => Color.Error,
+        _ => Color.Default
+    };
+
+    private List<AuditRecord> FilteredAuditRecords => filteredAuditRecords;
+}

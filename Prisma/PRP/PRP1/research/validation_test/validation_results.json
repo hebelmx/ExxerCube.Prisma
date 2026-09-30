@@ -1,0 +1,848 @@
+{
+  "summary": {
+    "total_tests": 32,
+    "lookup_wins": 11,
+    "polynomial_wins": 21,
+    "ties": 0,
+    "avg_no_filter": 755.0,
+    "avg_lookup": 661.9375,
+    "avg_polynomial": 616.40625,
+    "avg_improvement_lookup": 93.0625,
+    "avg_improvement_polynomial": 138.59375,
+    "winner": "POLYNOMIAL"
+  },
+  "results": [
+    {
+      "properties": {
+        "blur_score": 249.20125181217065,
+        "contrast": 34.30763451971871,
+        "noise_estimate": 8.971976945929887,
+        "edge_density": 0.037864527629233515
+      },
+      "no_filter": 85,
+      "lookup": 139,
+      "lookup_cluster": 1,
+      "polynomial": 143,
+      "poly_params": {
+        "contrast": 0.5588490405535724,
+        "brightness": 1.1224096653257758,
+        "sharpness": 3.0,
+        "unsharp_radius": 2.1170525190463625,
+        "unsharp_percent": 147,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": -54,
+      "improvement_poly": -58,
+      "doc_id": "222AAA",
+      "blur_sigma": 0.5
+    },
+    {
+      "properties": {
+        "blur_score": 90.39013226379926,
+        "contrast": 32.759393568591996,
+        "noise_estimate": 6.315159239453357,
+        "edge_density": 0.0316387403446227
+      },
+      "no_filter": 206,
+      "lookup": 113,
+      "lookup_cluster": 4,
+      "polynomial": 121,
+      "poly_params": {
+        "contrast": 0.5931454052482995,
+        "brightness": 1.1022247210260467,
+        "sharpness": 2.7725849913784932,
+        "unsharp_radius": 2.4155509339249273,
+        "unsharp_percent": 214,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 93,
+      "improvement_poly": 85,
+      "doc_id": "222AAA",
+      "blur_sigma": 1.0
+    },
+    {
+      "properties": {
+        "blur_score": 56.93351384419277,
+        "contrast": 30.903828097438875,
+        "noise_estimate": 5.477408793820558,
+        "edge_density": 0.02831538918597742
+      },
+      "no_filter": 320,
+      "lookup": 157,
+      "lookup_cluster": 4,
+      "polynomial": 187,
+      "poly_params": {
+        "contrast": 0.7108319599360383,
+        "brightness": 1.0951511228270288,
+        "sharpness": 2.3985260660352403,
+        "unsharp_radius": 2.894983517962105,
+        "unsharp_percent": 241,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 163,
+      "improvement_poly": 133,
+      "doc_id": "222AAA",
+      "blur_sigma": 1.5
+    },
+    {
+      "properties": {
+        "blur_score": 45.8204860367698,
+        "contrast": 29.433511925565018,
+        "noise_estimate": 5.112308496732026,
+        "edge_density": 0.023403921568627452
+      },
+      "no_filter": 287,
+      "lookup": 242,
+      "lookup_cluster": 4,
+      "polynomial": 218,
+      "poly_params": {
+        "contrast": 0.8228495407485368,
+        "brightness": 1.0910360206308871,
+        "sharpness": 2.129667932633607,
+        "unsharp_radius": 3.23539238441058,
+        "unsharp_percent": 250,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 45,
+      "improvement_poly": 69,
+      "doc_id": "222AAA",
+      "blur_sigma": 2.0
+    },
+    {
+      "properties": {
+        "blur_score": 41.41113808619058,
+        "contrast": 28.239385536904766,
+        "noise_estimate": 4.938681521093286,
+        "edge_density": 0.008010814022578729
+      },
+      "no_filter": 297,
+      "lookup": 236,
+      "lookup_cluster": 4,
+      "polynomial": 264,
+      "poly_params": {
+        "contrast": 0.9240438180527694,
+        "brightness": 1.0880776520100588,
+        "sharpness": 1.9273888317490064,
+        "unsharp_radius": 3.479802701445914,
+        "unsharp_percent": 250,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 61,
+      "improvement_poly": 33,
+      "doc_id": "222AAA",
+      "blur_sigma": 2.5
+    },
+    {
+      "properties": {
+        "blur_score": 39.93246761582141,
+        "contrast": 27.336804807596007,
+        "noise_estimate": 4.8780564468211525,
+        "edge_density": 0.000597979797979798
+      },
+      "no_filter": 459,
+      "lookup": 283,
+      "lookup_cluster": 4,
+      "polynomial": 220,
+      "poly_params": {
+        "contrast": 1.0058382820077165,
+        "brightness": 1.085921926339279,
+        "sharpness": 1.784710338287642,
+        "unsharp_radius": 3.6417929203688058,
+        "unsharp_percent": 250,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 176,
+      "improvement_poly": 239,
+      "doc_id": "222AAA",
+      "blur_sigma": 3.0
+    },
+    {
+      "properties": {
+        "blur_score": 39.49078894811329,
+        "contrast": 26.618277990245268,
+        "noise_estimate": 4.863741532976827,
+        "edge_density": 0.00016102198455139632
+      },
+      "no_filter": 803,
+      "lookup": 483,
+      "lookup_cluster": 4,
+      "polynomial": 392,
+      "poly_params": {
+        "contrast": 1.0742234583666257,
+        "brightness": 1.0841868515309083,
+        "sharpness": 1.677784482966552,
+        "unsharp_radius": 3.7545602300637393,
+        "unsharp_percent": 247,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 320,
+      "improvement_poly": 411,
+      "doc_id": "222AAA",
+      "blur_sigma": 3.5
+    },
+    {
+      "properties": {
+        "blur_score": 39.64014723702063,
+        "contrast": 26.056799508012453,
+        "noise_estimate": 4.878301960784314,
+        "edge_density": 6.559714795008913e-05
+      },
+      "no_filter": 867,
+      "lookup": 917,
+      "lookup_cluster": 4,
+      "polynomial": 554,
+      "poly_params": {
+        "contrast": 1.1296344558097555,
+        "brightness": 1.0828353887074587,
+        "sharpness": 1.5982814277805248,
+        "unsharp_radius": 3.833179374263251,
+        "unsharp_percent": 243,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": -50,
+      "improvement_poly": 313,
+      "doc_id": "222AAA",
+      "blur_sigma": 4.0
+    },
+    {
+      "properties": {
+        "blur_score": 1013.0634027943249,
+        "contrast": 32.15067827958018,
+        "noise_estimate": 15.652878787878787,
+        "edge_density": 0.07861036838978015
+      },
+      "no_filter": 97,
+      "lookup": 88,
+      "lookup_cluster": 5,
+      "polynomial": 118,
+      "poly_params": {
+        "contrast": 1.0662667378430348,
+        "brightness": 1.1922326213587748,
+        "sharpness": 3.0,
+        "unsharp_radius": 3.282285052378989,
+        "unsharp_percent": 0,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 9,
+      "improvement_poly": -21,
+      "doc_id": "333BBB",
+      "blur_sigma": 0.5
+    },
+    {
+      "properties": {
+        "blur_score": 190.5520406895755,
+        "contrast": 28.48621619336615,
+        "noise_estimate": 8.80904486036839,
+        "edge_density": 0.06972593582887701
+      },
+      "no_filter": 232,
+      "lookup": 109,
+      "lookup_cluster": 1,
+      "polynomial": 83,
+      "poly_params": {
+        "contrast": 0.8879280120990309,
+        "brightness": 1.1058775050542247,
+        "sharpness": 2.0693818660245253,
+        "unsharp_radius": 3.6085681394684483,
+        "unsharp_percent": 229,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 123,
+      "improvement_poly": 149,
+      "doc_id": "333BBB",
+      "blur_sigma": 1.0
+    },
+    {
+      "properties": {
+        "blur_score": 69.98775549599662,
+        "contrast": 26.139480840299157,
+        "noise_estimate": 6.340849673202614,
+        "edge_density": 0.04333778966131907
+      },
+      "no_filter": 427,
+      "lookup": 214,
+      "lookup_cluster": 4,
+      "polynomial": 192,
+      "poly_params": {
+        "contrast": 1.0954881940535166,
+        "brightness": 1.0869647647480183,
+        "sharpness": 1.6470664074239618,
+        "unsharp_radius": 3.8566731088790465,
+        "unsharp_percent": 245,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 213,
+      "improvement_poly": 235,
+      "doc_id": "333BBB",
+      "blur_sigma": 1.5
+    },
+    {
+      "properties": {
+        "blur_score": 52.85070187022296,
+        "contrast": 24.87944681677539,
+        "noise_estimate": 5.703662358882947,
+        "edge_density": 0.0047586155674390965
+      },
+      "no_filter": 810,
+      "lookup": 585,
+      "lookup_cluster": 4,
+      "polynomial": 574,
+      "poly_params": {
+        "contrast": 1.2370950408712027,
+        "brightness": 1.0816232998876039,
+        "sharpness": 1.4600859963686172,
+        "unsharp_radius": 3.984939835407973,
+        "unsharp_percent": 233,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 225,
+      "improvement_poly": 236,
+      "doc_id": "333BBB",
+      "blur_sigma": 2.0
+    },
+    {
+      "properties": {
+        "blur_score": 49.51554738125142,
+        "contrast": 23.964060295458328,
+        "noise_estimate": 5.555810308972074,
+        "edge_density": 0.0017602495543672014
+      },
+      "no_filter": 1244,
+      "lookup": 1119,
+      "lookup_cluster": 4,
+      "polynomial": 1079,
+      "poly_params": {
+        "contrast": 1.3429901471585528,
+        "brightness": 1.0785773088056758,
+        "sharpness": 1.3440771293947997,
+        "unsharp_radius": 4.0546630907317,
+        "unsharp_percent": 219,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 125,
+      "improvement_poly": 165,
+      "doc_id": "333BBB",
+      "blur_sigma": 2.5
+    },
+    {
+      "properties": {
+        "blur_score": 49.276837490452294,
+        "contrast": 23.2062835627264,
+        "noise_estimate": 5.54848633392751,
+        "edge_density": 0.0007872846108140226
+      },
+      "no_filter": 1588,
+      "lookup": 1505,
+      "lookup_cluster": 4,
+      "polynomial": 1383,
+      "poly_params": {
+        "contrast": 1.4332212746422774,
+        "brightness": 1.0762565772548303,
+        "sharpness": 1.2572385667950374,
+        "unsharp_radius": 4.0964960117521505,
+        "unsharp_percent": 206,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 83,
+      "improvement_poly": 205,
+      "doc_id": "333BBB",
+      "blur_sigma": 3.0
+    },
+    {
+      "properties": {
+        "blur_score": 49.41694811449347,
+        "contrast": 22.529090890385095,
+        "noise_estimate": 5.557760695187166,
+        "edge_density": 0.0004404337492572787
+      },
+      "no_filter": 1650,
+      "lookup": 1652,
+      "lookup_cluster": 4,
+      "polynomial": 1566,
+      "poly_params": {
+        "contrast": 1.5169776558603316,
+        "brightness": 1.074134126845469,
+        "sharpness": 1.1848828984815345,
+        "unsharp_radius": 4.119881409960411,
+        "unsharp_percent": 192,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": -2,
+      "improvement_poly": 84,
+      "doc_id": "333BBB",
+      "blur_sigma": 3.5
+    },
+    {
+      "properties": {
+        "blur_score": 49.58170453150869,
+        "contrast": 21.906252375254724,
+        "noise_estimate": 5.571073232323232,
+        "edge_density": 0.00017899584076054665
+      },
+      "no_filter": 1658,
+      "lookup": 1680,
+      "lookup_cluster": 4,
+      "polynomial": 1609,
+      "poly_params": {
+        "contrast": 1.5967037823176518,
+        "brightness": 1.072113599450564,
+        "sharpness": 1.122410692253148,
+        "unsharp_radius": 4.1296221083258935,
+        "unsharp_percent": 178,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": -22,
+      "improvement_poly": 49,
+      "doc_id": "333BBB",
+      "blur_sigma": 4.0
+    },
+    {
+      "properties": {
+        "blur_score": 675.5421774301597,
+        "contrast": 28.717681797911613,
+        "noise_estimate": 12.327424242424243,
+        "edge_density": 0.05830882352941177
+      },
+      "no_filter": 92,
+      "lookup": 117,
+      "lookup_cluster": 1,
+      "polynomial": 135,
+      "poly_params": {
+        "contrast": 1.1228969202784969,
+        "brightness": 1.1508183950205393,
+        "sharpness": 2.34381980163443,
+        "unsharp_radius": 3.790277480750605,
+        "unsharp_percent": 59,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": -25,
+      "improvement_poly": -43,
+      "doc_id": "333ccc",
+      "blur_sigma": 0.5
+    },
+    {
+      "properties": {
+        "blur_score": 132.60141903920407,
+        "contrast": 26.203126946944156,
+        "noise_estimate": 7.4492595068330365,
+        "edge_density": 0.04596553773024361
+      },
+      "no_filter": 249,
+      "lookup": 131,
+      "lookup_cluster": 1,
+      "polynomial": 116,
+      "poly_params": {
+        "contrast": 1.1002000453962426,
+        "brightness": 1.0934941023046452,
+        "sharpness": 1.697765232131284,
+        "unsharp_radius": 3.8901487441455505,
+        "unsharp_percent": 229,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 118,
+      "improvement_poly": 133,
+      "doc_id": "333ccc",
+      "blur_sigma": 1.0
+    },
+    {
+      "properties": {
+        "blur_score": 58.62350340292089,
+        "contrast": 24.571624919665243,
+        "noise_estimate": 5.854449643493761,
+        "edge_density": 0.023018419489007725
+      },
+      "no_filter": 371,
+      "lookup": 252,
+      "lookup_cluster": 4,
+      "polynomial": 243,
+      "poly_params": {
+        "contrast": 1.270491223660693,
+        "brightness": 1.0812735407146254,
+        "sharpness": 1.4291391460466458,
+        "unsharp_radius": 4.008936074543655,
+        "unsharp_percent": 227,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 119,
+      "improvement_poly": 128,
+      "doc_id": "333ccc",
+      "blur_sigma": 1.5
+    },
+    {
+      "properties": {
+        "blur_score": 48.52383466998848,
+        "contrast": 23.662289477367885,
+        "noise_estimate": 5.47498440285205,
+        "edge_density": 0.003949049316696375
+      },
+      "no_filter": 746,
+      "lookup": 555,
+      "lookup_cluster": 4,
+      "polynomial": 565,
+      "poly_params": {
+        "contrast": 1.3800874383180182,
+        "brightness": 1.0775138047237631,
+        "sharpness": 1.3075019936672514,
+        "unsharp_radius": 4.071257097885685,
+        "unsharp_percent": 214,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 191,
+      "improvement_poly": 181,
+      "doc_id": "333ccc",
+      "blur_sigma": 2.0
+    },
+    {
+      "properties": {
+        "blur_score": 46.81513145690447,
+        "contrast": 22.97197639872566,
+        "noise_estimate": 5.402631461675579,
+        "edge_density": 0.0018055555555555555
+      },
+      "no_filter": 939,
+      "lookup": 900,
+      "lookup_cluster": 4,
+      "polynomial": 914,
+      "poly_params": {
+        "contrast": 1.4644264049578082,
+        "brightness": 1.0752066121001698,
+        "sharpness": 1.2280340866843336,
+        "unsharp_radius": 4.104148257859562,
+        "unsharp_percent": 201,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 39,
+      "improvement_poly": 25,
+      "doc_id": "333ccc",
+      "blur_sigma": 2.5
+    },
+    {
+      "properties": {
+        "blur_score": 46.514174824681014,
+        "contrast": 22.3760499326379,
+        "noise_estimate": 5.393063725490196,
+        "edge_density": 0.0007672311348781937
+      },
+      "no_filter": 1038,
+      "lookup": 986,
+      "lookup_cluster": 4,
+      "polynomial": 971,
+      "poly_params": {
+        "contrast": 1.5390872123470298,
+        "brightness": 1.0732842128700886,
+        "sharpness": 1.1646831287491275,
+        "unsharp_radius": 4.12215085646737,
+        "unsharp_percent": 189,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 52,
+      "improvement_poly": 67,
+      "doc_id": "333ccc",
+      "blur_sigma": 3.0
+    },
+    {
+      "properties": {
+        "blur_score": 46.63338455837284,
+        "contrast": 21.83019079604154,
+        "noise_estimate": 5.398233065953654,
+        "edge_density": 0.0004151812240047534
+      },
+      "no_filter": 1071,
+      "lookup": 1023,
+      "lookup_cluster": 4,
+      "polynomial": 985,
+      "poly_params": {
+        "contrast": 1.6094742004506448,
+        "brightness": 1.071506805440308,
+        "sharpness": 1.1102317858939343,
+        "unsharp_radius": 4.129564806737447,
+        "unsharp_percent": 176,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 48,
+      "improvement_poly": 86,
+      "doc_id": "333ccc",
+      "blur_sigma": 3.5
+    },
+    {
+      "properties": {
+        "blur_score": 46.959644972284096,
+        "contrast": 21.332628008488857,
+        "noise_estimate": 5.416385918003565,
+        "edge_density": 7.204396910279263e-05
+      },
+      "no_filter": 1104,
+      "lookup": 1037,
+      "lookup_cluster": 4,
+      "polynomial": 1015,
+      "poly_params": {
+        "contrast": 1.6752039537580645,
+        "brightness": 1.0698649981078705,
+        "sharpness": 1.063505130037196,
+        "unsharp_radius": 4.128801975814053,
+        "unsharp_percent": 164,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 67,
+      "improvement_poly": 89,
+      "doc_id": "333ccc",
+      "blur_sigma": 4.0
+    },
+    {
+      "properties": {
+        "blur_score": 3691.438210775417,
+        "contrast": 47.67448789628894,
+        "noise_estimate": 24.03635101010101,
+        "edge_density": 0.07164587046939988
+      },
+      "no_filter": 4,
+      "lookup": 2,
+      "lookup_cluster": 3,
+      "polynomial": 15,
+      "poly_params": {
+        "contrast": 2.0,
+        "brightness": 1.3,
+        "sharpness": 3.0,
+        "unsharp_radius": 0.0,
+        "unsharp_percent": 0,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 2,
+      "improvement_poly": -11,
+      "doc_id": "555CCC",
+      "blur_sigma": 0.5
+    },
+    {
+      "properties": {
+        "blur_score": 444.8858504156322,
+        "contrast": 39.99825254605496,
+        "noise_estimate": 11.086860516934046,
+        "edge_density": 0.07236705288175876
+      },
+      "no_filter": 72,
+      "lookup": 19,
+      "lookup_cluster": 1,
+      "polynomial": 37,
+      "poly_params": {
+        "contrast": 0.5413041780082766,
+        "brightness": 1.1481469084558942,
+        "sharpness": 3.0,
+        "unsharp_radius": 0.0,
+        "unsharp_percent": 0,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 53,
+      "improvement_poly": 35,
+      "doc_id": "555CCC",
+      "blur_sigma": 1.0
+    },
+    {
+      "properties": {
+        "blur_score": 94.01039511926612,
+        "contrast": 36.11375383573894,
+        "noise_estimate": 6.695166369578135,
+        "edge_density": 0.06278966131907308
+      },
+      "no_filter": 340,
+      "lookup": 59,
+      "lookup_cluster": 1,
+      "polynomial": 83,
+      "poly_params": {
+        "contrast": 0.5,
+        "brightness": 1.1071377601295649,
+        "sharpness": 3.0,
+        "unsharp_radius": 1.2397350563997294,
+        "unsharp_percent": 148,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 281,
+      "improvement_poly": 257,
+      "doc_id": "555CCC",
+      "blur_sigma": 1.5
+    },
+    {
+      "properties": {
+        "blur_score": 51.784630121917495,
+        "contrast": 34.208653158318285,
+        "noise_estimate": 5.419818775995247,
+        "edge_density": 0.0344229055258467
+      },
+      "no_filter": 520,
+      "lookup": 355,
+      "lookup_cluster": 4,
+      "polynomial": 149,
+      "poly_params": {
+        "contrast": 0.5204036929479992,
+        "brightness": 1.0992627599128253,
+        "sharpness": 3.0,
+        "unsharp_radius": 1.8542638606605142,
+        "unsharp_percent": 193,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 165,
+      "improvement_poly": 371,
+      "doc_id": "555CCC",
+      "blur_sigma": 2.0
+    },
+    {
+      "properties": {
+        "blur_score": 44.45891339306557,
+        "contrast": 32.83259771254938,
+        "noise_estimate": 5.12733734402852,
+        "edge_density": 0.0031053178847296496
+      },
+      "no_filter": 1543,
+      "lookup": 1241,
+      "lookup_cluster": 4,
+      "polynomial": 1102,
+      "poly_params": {
+        "contrast": 0.5952476831096591,
+        "brightness": 1.0965614677257514,
+        "sharpness": 2.768179343823868,
+        "unsharp_radius": 2.3030811618106717,
+        "unsharp_percent": 217,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 302,
+      "improvement_poly": 441,
+      "doc_id": "555CCC",
+      "blur_sigma": 2.5
+    },
+    {
+      "properties": {
+        "blur_score": 43.107799315027705,
+        "contrast": 31.742666650458087,
+        "noise_estimate": 5.076233660130719,
+        "edge_density": 0.0015418894830659536
+      },
+      "no_filter": 1644,
+      "lookup": 1647,
+      "lookup_cluster": 4,
+      "polynomial": 1461,
+      "poly_params": {
+        "contrast": 0.6599673784946076,
+        "brightness": 1.094824430574051,
+        "sharpness": 2.5499839323401736,
+        "unsharp_radius": 2.636246750497762,
+        "unsharp_percent": 232,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": -3,
+      "improvement_poly": 183,
+      "doc_id": "555CCC",
+      "blur_sigma": 3.0
+    },
+    {
+      "properties": {
+        "blur_score": 43.16045305404539,
+        "contrast": 30.76307334914229,
+        "noise_estimate": 5.09304367201426,
+        "edge_density": 0.0006298276886512181
+      },
+      "no_filter": 1697,
+      "lookup": 1665,
+      "lookup_cluster": 4,
+      "polynomial": 1627,
+      "poly_params": {
+        "contrast": 0.7236944437699553,
+        "brightness": 1.0932958779861828,
+        "sharpness": 2.3644177716469663,
+        "unsharp_radius": 2.9111633283947014,
+        "unsharp_percent": 243,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 32,
+      "improvement_poly": 70,
+      "doc_id": "555CCC",
+      "blur_sigma": 3.5
+    },
+    {
+      "properties": {
+        "blur_score": 43.500215370509814,
+        "contrast": 29.898504877815142,
+        "noise_estimate": 5.114835115864528,
+        "edge_density": 0.000154486036838978
+      },
+      "no_filter": 1700,
+      "lookup": 1671,
+      "lookup_cluster": 4,
+      "polynomial": 1604,
+      "poly_params": {
+        "contrast": 0.7854517496625921,
+        "brightness": 1.0918327983743061,
+        "sharpness": 2.2085973923152724,
+        "unsharp_radius": 3.1310103854284437,
+        "unsharp_percent": 249,
+        "median_size": 0,
+        "unsharp_threshold": 2,
+        "bilateral": false
+      },
+      "improvement_lookup": 29,
+      "improvement_poly": 96,
+      "doc_id": "555CCC",
+      "blur_sigma": 4.0
+    }
+  ]
+}

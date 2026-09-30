@@ -1,0 +1,388 @@
+@page "/admin/database-migration"
+@attribute [Authorize(Roles = "Admin")]
+@using Microsoft.EntityFrameworkCore
+@using ExxerCube.Prisma.Infrastructure.Identity
+@using ExxerCube.Prisma.Infrastructure.Database.EntityFramework
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore.Infrastructure
+@attribute [Authorize(Roles = "Administrator")]
+@inject IDbContextFactory<PrismaIdentityDbContext> IdentityDbFactory
+@inject IServiceScopeFactory ScopeFactory
+@inject ISnackbar Snackbar
+@inject ILogger<DatabaseMigration> Logger
+
+<PageTitle>Database Migration</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudText Typo="Typo.h3" Class="mb-2">
+        <MudIcon Icon="@Icons.Material.Filled.Storage" Class="mr-2" />
+        Database Migration Management
+    </MudText>
+
+    <MudText Typo="Typo.body1" Class="mb-6" Color="Color.Secondary">
+        Manage database migrations, check sync status, and monitor schema drift for all databases.
+    </MudText>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+    }
+
+    <MudGrid>
+        <!-- Identity Database Card -->
+        <MudItem xs="12" lg="6">
+            @RenderDatabaseCard("Identity Database (PrismaID)", _identityStatus, "primary")
+        </MudItem>
+
+        <!-- Application Database Card -->
+        <MudItem xs="12" lg="6">
+            @RenderDatabaseCard("Application Database (Prisma)", _appStatus, "secondary")
+        </MudItem>
+    </MudGrid>
+
+    <!-- Global Actions -->
+    <MudPaper Class="pa-4 mt-4" Elevation="2">
+        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h6">Global Actions</MudText>
+            <MudStack Row="true" Spacing="2">
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Default"
+                           OnClick="RefreshAllAsync"
+                           Disabled="_loading"
+                           StartIcon="@Icons.Material.Filled.Refresh">
+                    Refresh All
+                </MudButton>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Warning"
+                           OnClick="ApplyAllPendingAsync"
+                           Disabled="_loading || (!HasPendingMigrations(_identityStatus) && !HasPendingMigrations(_appStatus))"
+                           StartIcon="@Icons.Material.Filled.Upgrade">
+                    Apply All Pending Migrations
+                </MudButton>
+            </MudStack>
+        </MudStack>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private bool _loading = false;
+    private DatabaseStatus _identityStatus = new();
+    private DatabaseStatus _appStatus = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshAllAsync();
+    }
+
+    private RenderFragment RenderDatabaseCard(string title, DatabaseStatus status, string colorScheme) => __builder =>
+    {
+        <MudPaper Class="pa-4" Elevation="3">
+            <MudText Typo="Typo.h5" Class="mb-4">@title</MudText>
+
+            <!-- Connection Status -->
+            <MudAlert Severity="@(status.IsConnected ? Severity.Success : Severity.Error)" Dense="true" Class="mb-3">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                    <MudIcon Icon="@(status.IsConnected ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Error)" />
+                    <MudText>@(status.IsConnected ? "Connected" : "Not Connected")</MudText>
+                </MudStack>
+            </MudAlert>
+
+            @if (!string.IsNullOrEmpty(status.ConnectionString))
+            {
+                <MudText Typo="Typo.caption" Class="mb-3">
+                    <strong>Connection:</strong> @MaskConnectionString(status.ConnectionString)
+                </MudText>
+            }
+
+            @if (!string.IsNullOrEmpty(status.Error))
+            {
+                <MudAlert Severity="Severity.Error" Class="mb-3">@status.Error</MudAlert>
+            }
+
+            <!-- Model Changes Detection -->
+            @if (status.IsConnected)
+            {
+                <MudDivider Class="my-3" />
+
+                <MudText Typo="Typo.h6" Class="mb-2">Schema Drift Detection</MudText>
+
+                @if (status.HasPendingModelChanges)
+                {
+                    <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-3">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.Warning" />
+                            <MudText><strong>Model drift detected!</strong> Code model differs from database schema.</MudText>
+                        </MudStack>
+                    </MudAlert>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Success" Dense="true" Class="mb-3">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" />
+                            <MudText>Code model matches database schema</MudText>
+                        </MudStack>
+                    </MudAlert>
+                }
+
+                <!-- Applied Migrations -->
+                <MudDivider Class="my-3" />
+
+                <MudText Typo="Typo.h6" Class="mb-2">
+                    Applied Migrations
+                    <MudChip T="string" Size="Size.Small" Color="Color.Success">@status.AppliedMigrations.Count</MudChip>
+                </MudText>
+
+                @if (status.AppliedMigrations.Any())
+                {
+                    <MudPaper Elevation="0" Class="pa-2 mb-3" Style="max-height: 200px; overflow-y: auto; background-color: rgba(0,0,0,0.02);">
+                        <MudList T="string" Dense="true">
+                            @foreach (var migration in status.AppliedMigrations.TakeLast(5).Reverse())
+                            {
+                                <MudListItem T="string">
+                                    <MudText Typo="Typo.caption">
+                                        <MudIcon Icon="@Icons.Material.Filled.Done" Size="Size.Small" Color="Color.Success" Class="mr-1" />
+                                        @migration
+                                    </MudText>
+                                </MudListItem>
+                            }
+                        </MudList>
+                        @if (status.AppliedMigrations.Count > 5)
+                        {
+                            <MudText Typo="Typo.caption" Class="ml-4">...and @(status.AppliedMigrations.Count - 5) more</MudText>
+                        }
+                    </MudPaper>
+                }
+
+                <!-- Pending Migrations -->
+                <MudDivider Class="my-3" />
+
+                <MudText Typo="Typo.h6" Class="mb-2">
+                    Pending Migrations
+                    @if (status.PendingMigrations.Any())
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Warning">@status.PendingMigrations.Count</MudChip>
+                    }
+                    else
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Success">0</MudChip>
+                    }
+                </MudText>
+
+                @if (status.PendingMigrations.Any())
+                {
+                    <MudPaper Elevation="0" Class="pa-2 mb-3" Style="background-color: rgba(255,165,0,0.1);">
+                        <MudList T="string" Dense="true">
+                            @foreach (var migration in status.PendingMigrations)
+                            {
+                                <MudListItem T="string">
+                                    <MudText Typo="Typo.body2">
+                                        <MudIcon Icon="@Icons.Material.Filled.PendingActions" Size="Size.Small" Color="Color.Warning" Class="mr-1" />
+                                        @migration
+                                    </MudText>
+                                </MudListItem>
+                            }
+                        </MudList>
+                    </MudPaper>
+
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               OnClick="@(() => ApplyMigrationsAsync(status))"
+                               Disabled="_loading"
+                               FullWidth="true"
+                               StartIcon="@Icons.Material.Filled.Upgrade">
+                        Apply @status.PendingMigrations.Count Migration(s)
+                    </MudButton>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Success" Dense="true">
+                        Database is up to date - no pending migrations
+                    </MudAlert>
+                }
+            }
+        </MudPaper>
+    };
+
+    private async Task RefreshAllAsync()
+    {
+        _loading = true;
+        StateHasChanged();
+
+        try
+        {
+            await Task.WhenAll(
+                CheckDatabaseAsync(_identityStatus, "Identity", true),
+                CheckDatabaseAsync(_appStatus, "Application", false)
+            );
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CheckDatabaseAsync(DatabaseStatus status, string name, bool isIdentity)
+    {
+        status.Clear();
+
+        try
+        {
+            if (isIdentity)
+            {
+                await using var context = await IdentityDbFactory.CreateDbContextAsync();
+                await PopulateStatusAsync(status, context.Database);
+            }
+            else
+            {
+                using var scope = ScopeFactory.CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<PrismaDbContext>();
+                await PopulateStatusAsync(status, context.Database);
+            }
+
+            Logger.LogInformation("{Database} database check completed successfully", name);
+        }
+        catch (Exception ex)
+        {
+            status.Error = $"Error: {ex.Message}";
+            status.IsConnected = false;
+            Logger.LogError(ex, "Error checking {Database} database", name);
+        }
+    }
+
+    private async Task PopulateStatusAsync(DatabaseStatus status, DatabaseFacade database)
+    {
+        status.ConnectionString = database.GetConnectionString() ?? string.Empty;
+        status.IsConnected = await database.CanConnectAsync();
+
+        if (!status.IsConnected)
+        {
+            status.Error = "Cannot connect to database. Please check your connection string.";
+            return;
+        }
+
+        // Get applied migrations
+        var applied = await database.GetAppliedMigrationsAsync();
+        status.AppliedMigrations = applied.ToList();
+
+        // Get pending migrations
+        var pending = await database.GetPendingMigrationsAsync();
+        status.PendingMigrations = pending.ToList();
+
+        // Check for model changes (drift detection)
+        status.HasPendingModelChanges = database.HasPendingModelChanges();
+    }
+
+    private async Task ApplyMigrationsAsync(DatabaseStatus status)
+    {
+        if (!status.PendingMigrations.Any())
+            return;
+
+        _loading = true;
+        StateHasChanged();
+
+        try
+        {
+            var count = status.PendingMigrations.Count;
+
+            if (status == _identityStatus)
+            {
+                await using var context = await IdentityDbFactory.CreateDbContextAsync();
+                await context.Database.MigrateAsync();
+            }
+            else
+            {
+                using var scope = ScopeFactory.CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<PrismaDbContext>();
+                await context.Database.MigrateAsync();
+            }
+
+            Snackbar.Add($"Successfully applied {count} migration(s)", Severity.Success);
+            Logger.LogInformation("Applied {Count} migrations", count);
+
+            await RefreshAllAsync();
+        }
+        catch (Exception ex)
+        {
+            var errorMsg = $"Failed to apply migrations: {ex.Message}";
+            status.Error = errorMsg;
+            Snackbar.Add(errorMsg, Severity.Error);
+            Logger.LogError(ex, "Failed to apply migrations");
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ApplyAllPendingAsync()
+    {
+        _loading = true;
+        StateHasChanged();
+
+        try
+        {
+            var tasks = new List<Task>();
+
+            if (HasPendingMigrations(_identityStatus))
+                tasks.Add(ApplyMigrationsAsync(_identityStatus));
+
+            if (HasPendingMigrations(_appStatus))
+                tasks.Add(ApplyMigrationsAsync(_appStatus));
+
+            await Task.WhenAll(tasks);
+
+            Snackbar.Add("All pending migrations applied successfully", Severity.Success);
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private bool HasPendingMigrations(DatabaseStatus status) =>
+        status.IsConnected && status.PendingMigrations.Any();
+
+    private static string MaskConnectionString(string connectionString)
+    {
+        if (string.IsNullOrEmpty(connectionString))
+            return string.Empty;
+
+        var parts = connectionString.Split(';');
+        var maskedParts = parts.Select(part =>
+        {
+            var trimmed = part.TrimStart();
+            if (trimmed.StartsWith("Password", StringComparison.OrdinalIgnoreCase) ||
+                trimmed.StartsWith("Pwd", StringComparison.OrdinalIgnoreCase))
+            {
+                return part.Split('=')[0] + "=***";
+            }
+            return part;
+        });
+
+        return string.Join(";", maskedParts);
+    }
+
+    private class DatabaseStatus
+    {
+        public bool IsConnected { get; set; }
+        public string ConnectionString { get; set; } = string.Empty;
+        public string? Error { get; set; }
+        public List<string> AppliedMigrations { get; set; } = new();
+        public List<string> PendingMigrations { get; set; } = new();
+        public bool HasPendingModelChanges { get; set; }
+
+        public void Clear()
+        {
+            IsConnected = false;
+            ConnectionString = string.Empty;
+            Error = null;
+            AppliedMigrations.Clear();
+            PendingMigrations.Clear();
+            HasPendingModelChanges = false;
+        }
+    }
+}

@@ -1,0 +1,69 @@
+{
+  "clusters": {
+    "0": {
+      "images": [
+        "555CCC_Q0_Pristine",
+        "555CCC_Q05_VeryGood"
+      ],
+      "documents": [
+        "555CCC"
+      ],
+      "characteristics": {
+        "description": "Cluster 0",
+        "avg_blur": 6905.8973689136965,
+        "avg_noise": 0.4727366974849263,
+        "avg_contrast": 51.89853600967351
+      }
+    },
+    "1": {
+      "images": [
+        "222AAA_Q0_Pristine",
+        "333BBB_Q0_Pristine",
+        "333ccc_Q0_Pristine",
+        "222AAA_Q05_VeryGood",
+        "333BBB_Q05_VeryGood",
+        "333ccc_Q05_VeryGood",
+        "222AAA_Q1_Poor",
+        "333BBB_Q1_Poor",
+        "333ccc_Q1_Poor",
+        "555CCC_Q1_Poor"
+      ],
+      "documents": [
+        "222AAA",
+        "333ccc",
+        "333BBB",
+        "555CCC"
+      ],
+      "characteristics": {
+        "description": "Cluster 1",
+        "avg_blur": 1436.734596836103,
+        "avg_noise": 1.0128368528221334,
+        "avg_contrast": 32.838950374622286
+      }
+    },
+    "2": {
+      "images": [
+        "222AAA_Q15_Medium",
+        "333BBB_Q15_Medium",
+        "333ccc_Q15_Medium",
+        "555CCC_Q15_Medium",
+        "222AAA_Q2_MediumPoor",
+        "333BBB_Q2_MediumPoor",
+        "333ccc_Q2_MediumPoor",
+        "555CCC_Q2_MediumPoor"
+      ],
+      "documents": [
+        "222AAA",
+        "333ccc",
+        "333BBB",
+        "555CCC"
+      ],
+      "characteristics": {
+        "description": "Cluster 2",
+        "avg_blur": 1238.2479549008597,
+        "avg_noise": 6.829963289265562,
+        "avg_contrast": 25.088312448161474
+      }
+    }
+  }
+}

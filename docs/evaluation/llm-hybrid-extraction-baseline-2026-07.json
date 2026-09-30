@@ -1,0 +1,482 @@
+{
+  "GeneratedAtUtc": "2026-07-04T04:24:41.5318926\u002B00:00",
+  "TextModel": "llama3.1:8b",
+  "VisionModel": "gemma3:12b",
+  "OllamaBaseUrl": "http://localhost:11434",
+  "OllamaReachable": true,
+  "Caveat": "SMALL-N / DIRECTIONAL (N=3) \u2014 this is a baseline, not a statistical claim. 3 fixtures is enough to catch gross regressions, not to certify accuracy.",
+  "FixturesEvaluated": [
+    "222AAA-44444444442025",
+    "333BBB-44444444442025",
+    "333ccc-6666666662025"
+  ],
+  "Results": [
+    {
+      "FixtureId": "222AAA-44444444442025",
+      "Track": "Deterministic",
+      "Field": "NumeroExpediente",
+      "GoldRaw": "A/AS1-1111-222222-AAA",
+      "GoldNormalized": "A-AS1-1111-222222-AAA",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "Missing",
+      "SkipReason": null
+    },
+    {
+      "FixtureId": "222AAA-44444444442025",
+      "Track": "Deterministic",
+      "Field": "NumeroOficio",
+      "GoldRaw": "222/AAA/-4444444444/2025",
+      "GoldNormalized": "222-AAA-4444444444-2025",
+      "CandidateRaw": "AGAFADAFSON2/2025/000084",
+      "CandidateNormalized": "AGAFADAFSON2-2025-000084",
+      "Status": "Mismatch",
+      "SkipReason": null
+    },
+    {
+      "FixtureId": "222AAA-44444444442025",
+      "Track": "Deterministic",
+      "Field": "AutoridadNombre",
+      "GoldRaw": "SUBDELEGACION 8 SAN ANGEL",
+      "GoldNormalized": "SUBDELEGACION 8 SAN ANGEL",
+      "CandidateRaw": "Comisi\u00F3n Nacional Bancaria y de Valores",
+      "CandidateNormalized": "COMISION NACIONAL BANCARIA Y DE VALORES",
+      "Status": "Mismatch",
+      "SkipReason": null
+    },
+    {
+      "FixtureId": "222AAA-44444444442025",
+      "Track": "Deterministic",
+      "Field": "ParteCount",
+      "GoldRaw": "1",
+      "GoldNormalized": "1",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "deterministic track does not extract SolicitudPartes (architecturally out of scope)"
+    },
+    {
+      "FixtureId": "222AAA-44444444442025",
+      "Track": "LlmText",
+      "Field": "NumeroExpediente",
+      "GoldRaw": "A/AS1-1111-222222-AAA",
+      "GoldNormalized": "A-AS1-1111-222222-AAA",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADAFSON2/2025/000084\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "222AAA-44444444442025",
+      "Track": "LlmText",
+      "Field": "NumeroOficio",
+      "GoldRaw": "222/AAA/-4444444444/2025",
+      "GoldNormalized": "222-AAA-4444444444-2025",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADAFSON2/2025/000084\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "222AAA-44444444442025",
+      "Track": "LlmText",
+      "Field": "AutoridadNombre",
+      "GoldRaw": "SUBDELEGACION 8 SAN ANGEL",
+      "GoldNormalized": "SUBDELEGACION 8 SAN ANGEL",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADAFSON2/2025/000084\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "222AAA-44444444442025",
+      "Track": "LlmText",
+      "Field": "ParteCount",
+      "GoldRaw": "1",
+      "GoldNormalized": "1",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADAFSON2/2025/000084\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "222AAA-44444444442025",
+      "Track": "LlmVision",
+      "Field": "NumeroExpediente",
+      "GoldRaw": "A/AS1-1111-222222-AAA",
+      "GoldNormalized": "A-AS1-1111-222222-AAA",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADFSON/2025/000084\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "222AAA-44444444442025",
+      "Track": "LlmVision",
+      "Field": "NumeroOficio",
+      "GoldRaw": "222/AAA/-4444444444/2025",
+      "GoldNormalized": "222-AAA-4444444444-2025",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADFSON/2025/000084\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "222AAA-44444444442025",
+      "Track": "LlmVision",
+      "Field": "AutoridadNombre",
+      "GoldRaw": "SUBDELEGACION 8 SAN ANGEL",
+      "GoldNormalized": "SUBDELEGACION 8 SAN ANGEL",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADFSON/2025/000084\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "222AAA-44444444442025",
+      "Track": "LlmVision",
+      "Field": "ParteCount",
+      "GoldRaw": "1",
+      "GoldNormalized": "1",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADFSON/2025/000084\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "333BBB-44444444442025",
+      "Track": "Deterministic",
+      "Field": "NumeroExpediente",
+      "GoldRaw": "H/IN1-1111-222222-AAA",
+      "GoldNormalized": "H-IN1-1111-222222-AAA",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "Missing",
+      "SkipReason": null
+    },
+    {
+      "FixtureId": "333BBB-44444444442025",
+      "Track": "Deterministic",
+      "Field": "NumeroOficio",
+      "GoldRaw": "333/BBB/-4444444444/2025",
+      "GoldNormalized": "333-BBB-4444444444-2025",
+      "CandidateRaw": "AGAFADAFSON2/2025/000083",
+      "CandidateNormalized": "AGAFADAFSON2-2025-000083",
+      "Status": "Mismatch",
+      "SkipReason": null
+    },
+    {
+      "FixtureId": "333BBB-44444444442025",
+      "Track": "Deterministic",
+      "Field": "AutoridadNombre",
+      "GoldRaw": "ADMINISTRACION DESCONCENTRADA DE AUDITORIA FISCAL DE SONORA \u00222\u0022",
+      "GoldNormalized": "ADMINISTRACION DESCONCENTRADA DE AUDITORIA FISCAL DE SONORA \u00222\u0022",
+      "CandidateRaw": "Comisi\u00F3n Nacional Bancaria y de Valores",
+      "CandidateNormalized": "COMISION NACIONAL BANCARIA Y DE VALORES",
+      "Status": "Mismatch",
+      "SkipReason": null
+    },
+    {
+      "FixtureId": "333BBB-44444444442025",
+      "Track": "Deterministic",
+      "Field": "ParteCount",
+      "GoldRaw": "1",
+      "GoldNormalized": "1",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "deterministic track does not extract SolicitudPartes (architecturally out of scope)"
+    },
+    {
+      "FixtureId": "333BBB-44444444442025",
+      "Track": "LlmText",
+      "Field": "NumeroExpediente",
+      "GoldRaw": "H/IN1-1111-222222-AAA",
+      "GoldNormalized": "H-IN1-1111-222222-AAA",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADAFSON2/2025/000083\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "333BBB-44444444442025",
+      "Track": "LlmText",
+      "Field": "NumeroOficio",
+      "GoldRaw": "333/BBB/-4444444444/2025",
+      "GoldNormalized": "333-BBB-4444444444-2025",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADAFSON2/2025/000083\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "333BBB-44444444442025",
+      "Track": "LlmText",
+      "Field": "AutoridadNombre",
+      "GoldRaw": "ADMINISTRACION DESCONCENTRADA DE AUDITORIA FISCAL DE SONORA \u00222\u0022",
+      "GoldNormalized": "ADMINISTRACION DESCONCENTRADA DE AUDITORIA FISCAL DE SONORA \u00222\u0022",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADAFSON2/2025/000083\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "333BBB-44444444442025",
+      "Track": "LlmText",
+      "Field": "ParteCount",
+      "GoldRaw": "1",
+      "GoldNormalized": "1",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADAFSON2/2025/000083\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "333BBB-44444444442025",
+      "Track": "LlmVision",
+      "Field": "NumeroExpediente",
+      "GoldRaw": "H/IN1-1111-222222-AAA",
+      "GoldNormalized": "H-IN1-1111-222222-AAA",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADFSON/2025/000083\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "333BBB-44444444442025",
+      "Track": "LlmVision",
+      "Field": "NumeroOficio",
+      "GoldRaw": "333/BBB/-4444444444/2025",
+      "GoldNormalized": "333-BBB-4444444444-2025",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADFSON/2025/000083\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "333BBB-44444444442025",
+      "Track": "LlmVision",
+      "Field": "AutoridadNombre",
+      "GoldRaw": "ADMINISTRACION DESCONCENTRADA DE AUDITORIA FISCAL DE SONORA \u00222\u0022",
+      "GoldNormalized": "ADMINISTRACION DESCONCENTRADA DE AUDITORIA FISCAL DE SONORA \u00222\u0022",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADFSON/2025/000083\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "333BBB-44444444442025",
+      "Track": "LlmVision",
+      "Field": "ParteCount",
+      "GoldRaw": "1",
+      "GoldNormalized": "1",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADFSON/2025/000083\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "333ccc-6666666662025",
+      "Track": "Deterministic",
+      "Field": "NumeroExpediente",
+      "GoldRaw": "A/AS1-4444-5555555-HHHH",
+      "GoldNormalized": "A-AS1-4444-5555555-HHHH",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "Missing",
+      "SkipReason": null
+    },
+    {
+      "FixtureId": "333ccc-6666666662025",
+      "Track": "Deterministic",
+      "Field": "NumeroOficio",
+      "GoldRaw": "333/ccc/-666666666/2025",
+      "GoldNormalized": "333-CCC-666666666-2025",
+      "CandidateRaw": "AGAFADAFSON2/2025/000085",
+      "CandidateNormalized": "AGAFADAFSON2-2025-000085",
+      "Status": "Mismatch",
+      "SkipReason": null
+    },
+    {
+      "FixtureId": "333ccc-6666666662025",
+      "Track": "Deterministic",
+      "Field": "AutoridadNombre",
+      "GoldRaw": "JUZGADO CUARTO DE LO MERCANTIL DE PRIMERA INSTANCIA EN MATERIA MERCANTIL EN EL PRIMER PARTIDO JUDICIAL, ZONA METROPOLITANA DE GUAD.",
+      "GoldNormalized": "JUZGADO CUARTO DE LO MERCANTIL DE PRIMERA INSTANCIA EN MATERIA MERCANTIL EN EL PRIMER PARTIDO JUDICIAL, ZONA METROPOLITANA DE GUAD.",
+      "CandidateRaw": "Comisi\u00F3n Nacional Bancaria y de Valores",
+      "CandidateNormalized": "COMISION NACIONAL BANCARIA Y DE VALORES",
+      "Status": "Mismatch",
+      "SkipReason": null
+    },
+    {
+      "FixtureId": "333ccc-6666666662025",
+      "Track": "Deterministic",
+      "Field": "ParteCount",
+      "GoldRaw": "2",
+      "GoldNormalized": "2",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "deterministic track does not extract SolicitudPartes (architecturally out of scope)"
+    },
+    {
+      "FixtureId": "333ccc-6666666662025",
+      "Track": "LlmText",
+      "Field": "NumeroExpediente",
+      "GoldRaw": "A/AS1-4444-5555555-HHHH",
+      "GoldNormalized": "A-AS1-4444-5555555-HHHH",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADAFSON2/2025/000085\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "333ccc-6666666662025",
+      "Track": "LlmText",
+      "Field": "NumeroOficio",
+      "GoldRaw": "333/ccc/-666666666/2025",
+      "GoldNormalized": "333-CCC-666666666-2025",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADAFSON2/2025/000085\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "333ccc-6666666662025",
+      "Track": "LlmText",
+      "Field": "AutoridadNombre",
+      "GoldRaw": "JUZGADO CUARTO DE LO MERCANTIL DE PRIMERA INSTANCIA EN MATERIA MERCANTIL EN EL PRIMER PARTIDO JUDICIAL, ZONA METROPOLITANA DE GUAD.",
+      "GoldNormalized": "JUZGADO CUARTO DE LO MERCANTIL DE PRIMERA INSTANCIA EN MATERIA MERCANTIL EN EL PRIMER PARTIDO JUDICIAL, ZONA METROPOLITANA DE GUAD.",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADAFSON2/2025/000085\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "333ccc-6666666662025",
+      "Track": "LlmText",
+      "Field": "ParteCount",
+      "GoldRaw": "2",
+      "GoldNormalized": "2",
+      "CandidateRaw": null,
+      "CandidateNormalized": null,
+      "Status": "TrackSkipped",
+      "SkipReason": "Gate rejected LLM output: Expediente \u0027AGAFADAFSON2/2025/000085\u0027 does not match required CNBV format (e.g. A/AS1-1111-222222-AAA)."
+    },
+    {
+      "FixtureId": "333ccc-6666666662025",
+      "Track": "LlmVision",
+      "Field": "NumeroExpediente",
+      "GoldRaw": "A/AS1-4444-5555555-HHHH",
+      "GoldNormalized": "A-AS1-4444-5555555-HHHH",
+      "CandidateRaw": "",
+      "CandidateNormalized": null,
+      "Status": "Missing",
+      "SkipReason": null
+    },
+    {
+      "FixtureId": "333ccc-6666666662025",
+      "Track": "LlmVision",
+      "Field": "NumeroOficio",
+      "GoldRaw": "333/ccc/-666666666/2025",
+      "GoldNormalized": "333-CCC-666666666-2025",
+      "CandidateRaw": "AGAFADFSON2/2025/000085",
+      "CandidateNormalized": "AGAFADFSON2-2025-000085",
+      "Status": "Mismatch",
+      "SkipReason": null
+    },
+    {
+      "FixtureId": "333ccc-6666666662025",
+      "Track": "LlmVision",
+      "Field": "AutoridadNombre",
+      "GoldRaw": "JUZGADO CUARTO DE LO MERCANTIL DE PRIMERA INSTANCIA EN MATERIA MERCANTIL EN EL PRIMER PARTIDO JUDICIAL, ZONA METROPOLITANA DE GUAD.",
+      "GoldNormalized": "JUZGADO CUARTO DE LO MERCANTIL DE PRIMERA INSTANCIA EN MATERIA MERCANTIL EN EL PRIMER PARTIDO JUDICIAL, ZONA METROPOLITANA DE GUAD.",
+      "CandidateRaw": "Administraci\u00F3n General de Auditor\u00EDa Fiscal Federal Administraci\u00F3n Desconcentrada de Auditor\u00EDa Fiscal de Sonora \u00222\u0022",
+      "CandidateNormalized": "ADMINISTRACION GENERAL DE AUDITORIA FISCAL FEDERAL ADMINISTRACION DESCONCENTRADA DE AUDITORIA FISCAL DE SONORA \u00222\u0022",
+      "Status": "Mismatch",
+      "SkipReason": null
+    },
+    {
+      "FixtureId": "333ccc-6666666662025",
+      "Track": "LlmVision",
+      "Field": "ParteCount",
+      "GoldRaw": "2",
+      "GoldNormalized": "2",
+      "CandidateRaw": "0",
+      "CandidateNormalized": "0",
+      "Status": "Mismatch",
+      "SkipReason": null
+    }
+  ],
+  "Accuracy": [
+    {
+      "Field": "NumeroExpediente",
+      "Track": "Deterministic",
+      "Matches": 0,
+      "Evaluable": 3,
+      "Accuracy": 0
+    },
+    {
+      "Field": "NumeroOficio",
+      "Track": "Deterministic",
+      "Matches": 0,
+      "Evaluable": 3,
+      "Accuracy": 0
+    },
+    {
+      "Field": "AutoridadNombre",
+      "Track": "Deterministic",
+      "Matches": 0,
+      "Evaluable": 3,
+      "Accuracy": 0
+    },
+    {
+      "Field": "NumeroExpediente",
+      "Track": "LlmVision",
+      "Matches": 0,
+      "Evaluable": 1,
+      "Accuracy": 0
+    },
+    {
+      "Field": "NumeroOficio",
+      "Track": "LlmVision",
+      "Matches": 0,
+      "Evaluable": 1,
+      "Accuracy": 0
+    },
+    {
+      "Field": "AutoridadNombre",
+      "Track": "LlmVision",
+      "Matches": 0,
+      "Evaluable": 1,
+      "Accuracy": 0
+    },
+    {
+      "Field": "ParteCount",
+      "Track": "LlmVision",
+      "Matches": 0,
+      "Evaluable": 1,
+      "Accuracy": 0
+    }
+  ],
+  "Coverage": [
+    {
+      "Track": "Deterministic",
+      "NonNullCandidates": 6,
+      "TotalEvaluations": 12,
+      "Coverage": 0.5
+    },
+    {
+      "Track": "LlmText",
+      "NonNullCandidates": 0,
+      "TotalEvaluations": 12,
+      "Coverage": 0
+    },
+    {
+      "Track": "LlmVision",
+      "NonNullCandidates": 3,
+      "TotalEvaluations": 12,
+      "Coverage": 0.25
+    }
+  ]
+}

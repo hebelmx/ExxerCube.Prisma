@@ -1,0 +1,297 @@
+# Rule: Folder Organization Guidelines - Avoid Crowded Folders
+
+## Why Folder Organization Matters
+
+### 1. Cognitive Load Reduction
+- **Easier navigation** through well-organized codebases
+- **Faster onboarding** for new team members
+- **Reduced search time** when locating specific functionality
+- **Better mental models** of project structure
+
+### 2. Maintainability Benefits
+- **Clearer dependencies** between components
+- **Easier refactoring** when related code is grouped
+- **Simplified testing** with logical test organization
+- **Better code reviews** with focused scope
+
+## Folder Organization Principles
+
+### 1. Single Responsibility Per Folder
+Each folder should have a clear, single purpose:
+
+```plaintext
+✅ Good Structure:
+src/
+├── Core/
+│   ├── Domain/
+│   │   ├── Entities/
+│   │   ├── ValueObjects/
+│   │   ├── Aggregates/
+│   │   └── Events/
+│   ├── Application/
+│   │   ├── Commands/
+│   │   ├── Queries/
+│   │   ├── Handlers/
+│   │   └── Validators/
+│   └── Infrastructure/
+│       ├── Persistence/
+│       ├── ExternalServices/
+│       └── Configuration/
+└── Presentation/
+    ├── WebApi/
+    ├── WebApp/
+    └── ConsoleApp/
+
+❌ Bad Structure:
+src/
+├── Core/
+│   ├── Everything.cs
+│   ├── MoreStuff.cs
+│   ├── Utilities.cs
+│   └── Helpers.cs
+```
+
+### 2. Maximum Files Per Folder Guidelines
+- **Target**: 10-15 files per folder
+- **Maximum**: 25 files (consider subdividing)
+- **Minimum**: 3 files (consider merging with parent)
+
+### 3. Naming Conventions
+- Use **PascalCase** for folder names
+- Be **descriptive** and **specific**
+- Avoid **abbreviations** unless widely understood
+- Use **plural** for collections of similar items
+
+```plaintext
+✅ Good Names:
+- Entities/
+- CommandHandlers/
+- RepositoryImplementations/
+- ExternalServiceClients/
+
+❌ Bad Names:
+- Stuff/
+- Utils/
+- Helpers/
+- Misc/
+```
+
+## Folder Structure Patterns
+
+### 1. Feature-Based Organization
+Organize by business features when appropriate:
+
+```plaintext
+src/
+├── Features/
+│   ├── UserManagement/
+│   │   ├── Commands/
+│   │   ├── Queries/
+│   │   ├── Handlers/
+│   │   └── Validators/
+│   ├── OrderProcessing/
+│   │   ├── Commands/
+│   │   ├── Queries/
+│   │   ├── Handlers/
+│   │   └── Validators/
+│   └── InventoryManagement/
+│       ├── Commands/
+│       ├── Queries/
+│       ├── Handlers/
+│       └── Validators/
+```
+
+### 2. Layer-Based Organization
+Organize by architectural layers:
+
+```plaintext
+src/
+├── Domain/
+│   ├── Entities/
+│   ├── ValueObjects/
+│   ├── Aggregates/
+│   └── Events/
+├── Application/
+│   ├── Commands/
+│   ├── Queries/
+│   ├── Handlers/
+│   └── Validators/
+├── Infrastructure/
+│   ├── Persistence/
+│   ├── ExternalServices/
+│   └── Configuration/
+└── Presentation/
+    ├── Controllers/
+    ├── Views/
+    └── Middleware/
+```
+
+### 3. Hybrid Approach
+Combine feature and layer organization:
+
+```plaintext
+src/
+├── Core/
+│   ├── Domain/
+│   │   ├── UserManagement/
+│   │   ├── OrderProcessing/
+│   │   └── InventoryManagement/
+│   ├── Application/
+│   │   ├── UserManagement/
+│   │   ├── OrderProcessing/
+│   │   └── InventoryManagement/
+│   └── Infrastructure/
+│       ├── Persistence/
+│       ├── ExternalServices/
+│       └── Configuration/
+```
+
+## When to Create Subfolders
+
+### 1. Create Subfolders When:
+- **More than 15 files** in a folder
+- **Different types** of similar items (e.g., Commands vs Queries)
+- **Different implementations** of the same concept
+- **Different domains** or bounded contexts
+
+### 2. Subfolder Examples
+
+```plaintext
+✅ Good Subdivision:
+Application/
+├── Commands/
+│   ├── UserManagement/
+│   ├── OrderProcessing/
+│   └── InventoryManagement/
+├── Queries/
+│   ├── UserManagement/
+│   ├── OrderProcessing/
+│   └── InventoryManagement/
+└── Handlers/
+    ├── UserManagement/
+    ├── OrderProcessing/
+    └── InventoryManagement/
+
+❌ Bad Subdivision:
+Application/
+├── UserCommands/
+├── UserQueries/
+├── UserHandlers/
+├── OrderCommands/
+├── OrderQueries/
+└── OrderHandlers/
+```
+
+## Special Folder Guidelines
+
+### 1. Shared/Common Folders
+- **Common/**: Shared utilities, extensions, constants
+- **Shared/**: Cross-cutting concerns, base classes
+- **Infrastructure/**: External dependencies, configuration
+- **Tests/**: All test-related files
+
+### 2. Configuration Folders
+- **Configuration/**: App settings, dependency injection
+- **Options/**: Strongly-typed configuration classes
+- **Extensions/**: Service collection extensions
+
+### 3. Test Organization
+```plaintext
+tests/
+├── Unit/
+│   ├── Domain/
+│   ├── Application/
+│   └── Infrastructure/
+├── Integration/
+│   ├── Database/
+│   ├── ExternalServices/
+│   └── EndToEnd/
+└── Shared/
+    ├── Fixtures/
+    ├── Builders/
+    └── Helpers/
+```
+
+## Migration Strategy
+
+### 1. Assess Current Structure
+- **Audit existing folders** for file counts
+- **Identify crowded folders** (>25 files)
+- **Document current organization** patterns
+- **Identify pain points** in navigation
+
+### 2. Plan Reorganization
+- **Group related files** by functionality
+- **Identify logical boundaries** for new folders
+- **Consider team workflows** and preferences
+- **Plan incremental migration** to avoid disruption
+
+### 3. Execute Gradually
+- **Start with most crowded** folders
+- **Move files in batches** to minimize conflicts
+- **Update namespaces** and using statements
+- **Update build scripts** and CI/CD
+
+### 4. Validate Changes
+- **Run all tests** after each batch
+- **Verify builds** and deployments
+- **Update documentation** and README files
+- **Communicate changes** to team
+
+## Tools and Automation
+
+### 1. Static Analysis
+- Configure tools to flag crowded folders
+- Set up warnings for folders with >25 files
+- Use analyzers to suggest better organization
+
+### 2. IDE Support
+- Use IDE features for bulk file moves
+- Leverage refactoring tools for namespace updates
+- Configure file templates for consistent structure
+
+### 3. Documentation
+- Maintain folder structure documentation
+- Create navigation guides for new team members
+- Document reasoning for organizational decisions
+
+## Best Practices
+
+### 1. Consistency
+- **Follow established patterns** within the project
+- **Use consistent naming** across all folders
+- **Maintain similar depth** in folder hierarchies
+- **Apply same principles** across different projects
+
+### 2. Simplicity
+- **Avoid deep nesting** (>4 levels)
+- **Keep folder names short** but descriptive
+- **Don't over-organize** small projects
+- **Prefer flat structure** when possible
+
+### 3. Evolution
+- **Review structure regularly** (quarterly)
+- **Refactor when needed** based on team feedback
+- **Adapt to project growth** and changing needs
+- **Document organizational decisions**
+
+## Conclusion
+
+Well-organized folders improve:
+- **Developer productivity** through easier navigation
+- **Code maintainability** with logical grouping
+- **Team collaboration** with clear structure
+- **Project scalability** as codebase grows
+
+Follow these guidelines to create clean, navigable, and maintainable project structures that scale with your team and codebase.
+
+## Enforcement
+
+- **Code Review**: Check folder organization in PRs
+- **Static Analysis**: Configure tools to flag crowded folders
+- **Documentation**: Maintain folder structure guidelines
+- **Regular Audits**: Quarterly reviews of folder organization
+description:
+globs:
+alwaysApply: false
+---

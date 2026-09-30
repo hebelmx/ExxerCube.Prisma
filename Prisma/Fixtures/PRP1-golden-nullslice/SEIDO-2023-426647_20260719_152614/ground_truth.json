@@ -1,0 +1,50 @@
+{
+  "docId": "SEIDO-2023-426647_20260719_152614",
+  "seed": 5003,
+  "chaosLevel": "none",
+  "requirementType": "aseguramiento",
+  "folioSiara": "SEIDO/2023/426647",
+  "numeroOficio": "SEIDO/2023/426647",
+  "numeroExpediente": "H/PL1 - 6135 - 132632 - FGR",
+  "autoridadNombre": "Subprocuraduría Especializada en Investigación de Delincuencia Organizada",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Alonso Muro Gómez",
+  "personaNombre": "Linda Piña del Valle",
+  "personaRfc": "PIDL530206GZV",
+  "solicitudPartes": [
+    {
+      "nombre": "Linda Piña del Valle",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$5,121,041.37",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Subprocuraduría Especializada en Investigación de Delincuencia Organizada",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

@@ -1,0 +1,615 @@
+{
+  "analysis_date": "2025-10-29T20:27:40.510241",
+  "total_errors": 414,
+  "unique_types": 126,
+  "errors_by_project": {
+    "ExxerAI.Nexus": 131,
+    "ExxerAI.Application.LLMServices.Test": 19,
+    "ExxerAI.Application.KpiServices.Test": 11,
+    "ExxerAI.Application.Patterns.Test": 94,
+    "ExxerAI.Domain.Cortex.Test": 21,
+    "ExxerAI.CLI.Test": 7,
+    "ExxerAI.EnhancedRag.System.Test": 3,
+    "ExxerAI.Application.CubeXplorer.Test": 24,
+    "ExxerAI.BusinessIntelligence.Test": 6,
+    "ExxerAI.Application.DocumentServices.Test": 31,
+    "ExxerAI.Application.Core.Test": 14,
+    "ExxerAI.Application.Ports.Test": 13,
+    "ExxerAI.Application.Versioning.Test": 1,
+    "ExxerAI.Domain.AgentOrchestration.Test": 22,
+    "ExxerAI.UI.Test": 8,
+    "ExxerAI.Application.WorkflowServices.Test": 7,
+    "ExxerAI.EnhancedRag.Integration.Test": 2
+  },
+  "actions_needed": {
+    "project_references": {
+      "ExxerAI.Nexus": [
+        "ExxerAI.Application",
+        "Unknown",
+        "ExxerAI.Vault",
+        "ExxerAI.Domain",
+        "ExxerAI.Axioms"
+      ],
+      "ExxerAI.Application.LLMServices.Test": [
+        "ExxerAI.Domain"
+      ],
+      "ExxerAI.Application.KpiServices.Test": [
+        "ExxerAI.Application"
+      ],
+      "ExxerAI.Application.Patterns.Test": [
+        "ExxerAI.Application",
+        "ExxerAI.Domain"
+      ],
+      "ExxerAI.CLI.Test": [
+        "ExxerAI.CLI.Library"
+      ],
+      "ExxerAI.EnhancedRag.System.Test": [
+        "ExxerAI.Vault",
+        "ExxerAI.Nexus"
+      ],
+      "ExxerAI.Application.CubeXplorer.Test": [
+        "ExxerAI.Application",
+        "ExxerAI.Domain",
+        "Unknown"
+      ],
+      "ExxerAI.BusinessIntelligence.Test": [
+        "ExxerAI.Vault",
+        "ExxerAI.Application",
+        "ExxerAI.Nexus"
+      ],
+      "ExxerAI.Application.DocumentServices.Test": [
+        "ExxerAI.Domain"
+      ],
+      "ExxerAI.Application.Core.Test": [
+        "ExxerAI.Domain"
+      ],
+      "ExxerAI.Application.Ports.Test": [
+        "ExxerAI.Domain"
+      ],
+      "ExxerAI.Application.Versioning.Test": [
+        "ExxerAI.Domain"
+      ],
+      "ExxerAI.Domain.AgentOrchestration.Test": [
+        "ExxerAI.Domain"
+      ],
+      "ExxerAI.UI.Test": [
+        "CubeXplorer.UI.Web"
+      ],
+      "ExxerAI.Application.WorkflowServices.Test": [
+        "ExxerAI.Domain"
+      ],
+      "ExxerAI.EnhancedRag.Integration.Test": [
+        "ExxerAI.Vault"
+      ]
+    },
+    "package_references": {
+      "ExxerAI.Nexus": [
+        "PDFsharp"
+      ],
+      "ExxerAI.Domain.Cortex.Test": [
+        "Microsoft.Extensions.DependencyInjection",
+        "Microsoft.Extensions.Configuration"
+      ],
+      "ExxerAI.UI.Test": [
+        "Microsoft.AspNetCore.Mvc.Testing",
+        "Microsoft.Playwright"
+      ]
+    },
+    "investigate": {
+      "ExxerAI.Domain.Cortex.Test": [
+        "EmbeddingResponse",
+        "AdaptationFeedback",
+        "ProcessedResponse",
+        "KnowledgeDistillationRequest",
+        "MemoryConsolidationRequest",
+        "InferenceRequest",
+        "SemanticAnalysisResult",
+        "CompletionResponse",
+        "ResponseProcessingOptions",
+        "CompletionRequest",
+        "OptimizedInferenceResult",
+        "TextGenerationOptions",
+        "TokenUsageStatistics",
+        "EmbeddingRequest",
+        "InferenceResult",
+        "ValidationCriteria",
+        "ModelOptimizationRequest"
+      ],
+      "ExxerAI.UI.Test": [
+        "GraphSearchResults",
+        "VectorDocument",
+        "VectorSearchResults"
+      ]
+    }
+  },
+  "directory_build_props_namespaces": [],
+  "found_in_exxerai": {
+    "DateTimeRange": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "PromotionTemplate": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "QRCodeValidationResult": {
+      "namespace": "ExxerAI.CubeXplorer.Interfaces",
+      "kind": "class",
+      "project": "Unknown"
+    },
+    "SignatureVerificationResult": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "BalanceInformation": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "TokenValidationResult": {
+      "namespace": "ExxerAI.Application.CubeXplorer.Interfaces",
+      "kind": "class",
+      "project": "ExxerAI.Application"
+    },
+    "SATVerificationOptions": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "CFDIValidationOptions": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Interfaces",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "CFDIValidationResult": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Interfaces",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "Bm25DocumentIndex": {
+      "namespace": "ExxerAI.Vault.Services",
+      "kind": "class",
+      "project": "ExxerAI.Vault"
+    },
+    "CFDIStatus": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Interfaces",
+      "kind": "enum",
+      "project": "ExxerAI.Domain"
+    },
+    "SecurityOperation": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "enum",
+      "project": "ExxerAI.Domain"
+    },
+    "TimbradoValidationResult": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Interfaces",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "ParsedStatement": {
+      "namespace": "ExxerAI.CubeXplorer.Interfaces",
+      "kind": "class",
+      "project": "Unknown"
+    },
+    "EIADescriptiveStatistics": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "AccessLogEntry": {
+      "namespace": "ExxerAI.CubeXplorer.Interfaces",
+      "kind": "class",
+      "project": "Unknown"
+    },
+    "EncryptedDocument": {
+      "namespace": "ExxerAI.CubeXplorer.Interfaces",
+      "kind": "class",
+      "project": "Unknown"
+    },
+    "TimbradoSubmissionOptions": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Interfaces",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "DocumentTemplate": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "SecurityAuditReport": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "SecurityAuditScopeType": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "enum",
+      "project": "ExxerAI.Domain"
+    },
+    "TimbradoServiceStatus": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Interfaces",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "DomainSATServiceStatus": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "ITemplateStorageService": {
+      "namespace": "ExxerAI.Application.CubeXplorer.Interfaces",
+      "kind": "interface",
+      "project": "ExxerAI.Application"
+    },
+    "ICubeXDocumentParser": {
+      "namespace": "ExxerAI.CubeXplorer.Interfaces",
+      "kind": "interface",
+      "project": "Unknown"
+    },
+    "TimbradoCancellationResult": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Interfaces",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "ValidatedStatement": {
+      "namespace": "ExxerAI.CubeXplorer.Interfaces",
+      "kind": "class",
+      "project": "Unknown"
+    },
+    "CFDIResponse": {
+      "namespace": "ExxerAI.CubeXplorer.Interfaces",
+      "kind": "class",
+      "project": "Unknown"
+    },
+    "CFDIPdfOptions": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Interfaces",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "PromotionImage": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "TimbradoStatusResponse": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Interfaces",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "QRCodeValidationOptions": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Interfaces",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "SATServiceType": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "enum",
+      "project": "ExxerAI.Domain"
+    },
+    "ValidationRules": {
+      "namespace": "ExxerAI.CubeXplorer.Interfaces",
+      "kind": "class",
+      "project": "Unknown"
+    },
+    "RatesAndChargesInfo": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "AuthorizationResult": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "DigitalSignature": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "IWorkflowExecutor": {
+      "namespace": "ExxerAi.Axioms.Interfaces",
+      "kind": "interface",
+      "project": "ExxerAI.Axioms"
+    },
+    "EncryptionOptions": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "SimpleDocumentIndex": {
+      "namespace": "ExxerAI.Vault.Services",
+      "kind": "class",
+      "project": "ExxerAI.Vault"
+    },
+    "ArtifactSet": {
+      "namespace": "ExxerAI.CubeXplorer.Interfaces",
+      "kind": "class",
+      "project": "Unknown"
+    },
+    "AccessDetails": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models.Security",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "ITimbradoApiClient": {
+      "namespace": "ExxerAI.CubeXplorer.Interfaces",
+      "kind": "interface",
+      "project": "Unknown"
+    },
+    "ModelConfiguration": {
+      "namespace": "ExxerAI.Domain.Configurations",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "TokenUsage": {
+      "namespace": "ExxerAI.Domain.AI",
+      "kind": "record",
+      "project": "ExxerAI.Domain"
+    },
+    "ModelCapabilities": {
+      "namespace": "ExxerAI.Domain.AI",
+      "kind": "record",
+      "project": "ExxerAI.Domain"
+    },
+    "AIProvider": {
+      "namespace": "ExxerAI.Domain.AI",
+      "kind": "enum",
+      "project": "ExxerAI.Domain"
+    },
+    "RateLimitInfo": {
+      "namespace": "ExxerAI.Domain.AI",
+      "kind": "record",
+      "project": "ExxerAI.Domain"
+    },
+    "LLMResponse": {
+      "namespace": "ExxerAI.Domain.AI",
+      "kind": "record",
+      "project": "ExxerAI.Domain"
+    },
+    "EAIFinishReason": {
+      "namespace": "ExxerAI.Domain.AI",
+      "kind": "enum",
+      "project": "ExxerAI.Domain"
+    },
+    "LLMResponseChunk": {
+      "namespace": "ExxerAI.Domain.AI",
+      "kind": "record",
+      "project": "ExxerAI.Domain"
+    },
+    "KpiExxerproPatternSeed": {
+      "namespace": "ExxerAI.Application.Data",
+      "kind": "class",
+      "project": "ExxerAI.Application"
+    },
+    "ExtractionContext": {
+      "namespace": "ExxerAI.Domain.DocumentProcessing",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "LLMPattern": {
+      "namespace": "ExxerAI.Application.Patterns",
+      "kind": "class",
+      "project": "ExxerAI.Application"
+    },
+    "ExtractionPattern": {
+      "namespace": "ExxerAI.Domain.DocumentProcessing",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "OCRRegionPattern": {
+      "namespace": "ExxerAI.Application.Patterns",
+      "kind": "class",
+      "project": "ExxerAI.Application"
+    },
+    "SearchStrategy": {
+      "namespace": "ExxerAI.Application.Enums",
+      "kind": "enum",
+      "project": "ExxerAI.Application"
+    },
+    "CommandRouter": {
+      "namespace": "ExxerAI.CLI.Library.Commands",
+      "kind": "class",
+      "project": "ExxerAI.CLI.Library"
+    },
+    "AgentCommands": {
+      "namespace": "ExxerAI.CLI.Library.Commands",
+      "kind": "class",
+      "project": "ExxerAI.CLI.Library"
+    },
+    "TaskCommands": {
+      "namespace": "ExxerAI.CLI.Library.Commands",
+      "kind": "class",
+      "project": "ExxerAI.CLI.Library"
+    },
+    "WorkflowCommands": {
+      "namespace": "ExxerAI.CLI.Library.Commands",
+      "kind": "class",
+      "project": "ExxerAI.CLI.Library"
+    },
+    "CrossEncoderRerankingService": {
+      "namespace": "ExxerAI.Nexus.Services",
+      "kind": "class",
+      "project": "ExxerAI.Nexus"
+    },
+    "ReciprocalRankFusionService": {
+      "namespace": "ExxerAI.Vault.Services",
+      "kind": "class",
+      "project": "ExxerAI.Vault"
+    },
+    "InMemoryBm25SearchService": {
+      "namespace": "ExxerAI.Vault.Services",
+      "kind": "class",
+      "project": "ExxerAI.Vault"
+    },
+    "PromotionTemplateManager": {
+      "namespace": "ExxerAI.Application.CubeXplorer.Services",
+      "kind": "class",
+      "project": "ExxerAI.Application"
+    },
+    "TemplateMatch": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "ProcessingProgress": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "MatchedRegion": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "CubeXDocumentValidatorService": {
+      "namespace": "ExxerAI.Application.CubeXplorer.Services",
+      "kind": "class",
+      "project": "ExxerAI.Application"
+    },
+    "ReferencePoint": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "ReprocessingResult": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "TemplateVersionInfo": {
+      "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "DocumentProcessingOrchestrator": {
+      "namespace": "ExxerAI.Application.CubeXplorer.Services",
+      "kind": "class",
+      "project": "ExxerAI.Application"
+    },
+    "ProcessingResult": {
+      "namespace": "ExxerAI.CubeXplorer.Interfaces",
+      "kind": "class",
+      "project": "Unknown"
+    },
+    "ProcessingOptions": {
+      "namespace": "ExxerAI.Domain.DocumentProcessing",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "KpiCalculationEngine": {
+      "namespace": "ExxerAI.Vault.Services",
+      "kind": "class",
+      "project": "ExxerAI.Vault"
+    },
+    "DataConciliationEngine": {
+      "namespace": "ExxerAI.Nexus.Services",
+      "kind": "class",
+      "project": "ExxerAI.Nexus"
+    },
+    "DashboardService": {
+      "namespace": "ExxerAI.Nexus.Services",
+      "kind": "class",
+      "project": "ExxerAI.Nexus"
+    },
+    "QuestionParserService": {
+      "namespace": "ExxerAI.Nexus.Services.ConversationalBI",
+      "kind": "class",
+      "project": "ExxerAI.Nexus"
+    },
+    "EconomicMonitoringService": {
+      "namespace": "ExxerAI.Application.Services.BusinessIntelligence",
+      "kind": "class",
+      "project": "ExxerAI.Application"
+    },
+    "ProviderIntelligenceService": {
+      "namespace": "ExxerAI.Application.Services.BusinessIntelligence",
+      "kind": "class",
+      "project": "ExxerAI.Application"
+    },
+    "DocumentMetadata": {
+      "namespace": "ExxerAI.Domain.DocumentProcessing",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "DocumentChangeType": {
+      "namespace": "ExxerAI.Domain.DocumentProcessing",
+      "kind": "enum",
+      "project": "ExxerAI.Domain"
+    },
+    "IDateTimeMachine": {
+      "namespace": "ExxerAI.Domain.DT",
+      "kind": "interface",
+      "project": "ExxerAI.Domain"
+    },
+    "DocumentProcessingResult": {
+      "namespace": "ExxerAI.Domain.DocumentProcessing",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "DocumentChangeEvent": {
+      "namespace": "ExxerAI.Domain.DocumentProcessing",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "DriveWebhookPayload": {
+      "namespace": "ExxerAI.Domain.DT",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "WebhookBatchConfiguration": {
+      "namespace": "ExxerAI.Domain.DT",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "EIAAgentConfiguration": {
+      "namespace": "ExxerAI.Domain.Configurations",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    },
+    "Program": {
+      "namespace": "CubeXplorer.UI.Web",
+      "kind": "class",
+      "project": "CubeXplorer.UI.Web"
+    },
+    "WorkflowConfiguration": {
+      "namespace": "ExxerAI.Domain.Configurations",
+      "kind": "class",
+      "project": "ExxerAI.Domain"
+    }
+  },
+  "top_missing_types": {
+    "SearchStrategy": 29,
+    "OCRRegionPattern": 29,
+    "ExtractionContext": 28,
+    "EIAAgentConfiguration": 22,
+    "DocumentMetadata": 20,
+    "DocumentProcessingResult": 16,
+    "ArtifactSet": 15,
+    "IDateTimeMachine": 15,
+    "AccessLogEntry": 12,
+    "KpiExxerproPatternSeed": 11,
+    "ConcurrentDictionary<,>": 9,
+    "ValidatedStatement": 8,
+    "LLMPattern": 7,
+    "QRCodeValidationResult": 7,
+    "LLMResponseChunk": 6,
+    "CFDIResponse": 5,
+    "ExtractionPattern": 5,
+    "ProcessingResult": 5,
+    "PromotionTemplate": 5,
+    "Regex": 5,
+    "DateTimeRange": 4,
+    "LLMResponse": 4,
+    "ParsedStatement": 4,
+    "WorkflowConfiguration": 4,
+    "SATServiceType": 3,
+    "EIADescriptiveStatistics": 3,
+    "EncryptedDocument": 3,
+    "PdfSharp": 3,
+    "SATVerificationOptions": 3,
+    "StringBuilder": 3
+  }
+}

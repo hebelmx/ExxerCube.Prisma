@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Expediente xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_NumeroOficio>333/ccc/-666666666/2025</Cnbv_NumeroOficio>
+  <Cnbv_NumeroExpediente>A/AS1-4444-5555555-HHHH</Cnbv_NumeroExpediente>
+  <Cnbv_SolicitudSiara>AGAFADAFSON2/2025/000085</Cnbv_SolicitudSiara>
+  <Cnbv_Folio>1011</Cnbv_Folio>
+  <Cnbv_OficioYear>2025</Cnbv_OficioYear>
+  <Cnbv_AreaClave>2</Cnbv_AreaClave>
+  <Cnbv_AreaDescripcion>JUDICIAL</Cnbv_AreaDescripcion>
+  <Cnbv_FechaPublicacion>2025-06-04</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>3</Cnbv_DiasPlazo>
+  <AutoridadNombre>JUZGADO CUARTO DE LO MERCANTIL DE PRIMERA INSTANCIA EN MATERIA MERCANTIL EN EL PRIMER PARTIDO JUDICIAL, ZONA METROPOLITANA DE GUAD.
+</AutoridadNombre>
+  <NombreSolicitante xsi:nil="true" />
+  <Referencia />
+  <Referencia1>840/2025                 </Referencia1>
+  <Referencia2>3031/2025                                                                                                                                                                                               </Referencia2>
+  <TieneAseguramiento>true</TieneAseguramiento>
+  <SolicitudPartes>
+    <ParteId>1</ParteId>
+    <Caracter>Actor</Caracter>
+    <Persona>Fisica</Persona>
+    <Paterno>&amp;nbsp;</Paterno>
+    <Materno>&amp;nbsp;</Materno>
+    <Nombre>BSSA Banco del Sur Sociedad Anónima , institución de banca múltiple , grupo financiero   BSSA</Nombre>
+    <Rfc>             </Rfc>
+  </SolicitudPartes>
+  <SolicitudPartes>
+    <ParteId>2</ParteId>
+    <Caracter>Demandado</Caracter>
+    <Persona>Fisica</Persona>
+    <Paterno>ZU</Paterno>
+    <Materno>CARNAL</Materno>
+    <Nombre>MARCELO </Nombre>
+    <Rfc>             </Rfc>
+  </SolicitudPartes>
+  <SolicitudEspecifica>
+    <SolicitudEspecificaId>1</SolicitudEspecificaId>
+    <InstruccionesCuentasPorConocer>Suena girar atento oficio por las conductas electrónicos respectivos a través del sistema de atención a requerimientos de información de autoridades (SIARA), el cual se encuentra en la página de internet oficial visible en él link Siara.cnBV.BOB.MX a la comisión nacional bancaria y de valores utilizando los formatos estandarizados a fin de que por su conducto requiera la totalidad de las instituciones de crédito y financieras casas de bolsa, bolsa mexicana de valores e instituto para el depósito de valores individual que formen parte del sistema financiero mexicano indicándoles que deberán llevar a cabo la retención de dinero depositado en las cuentas bancarias de inversión nómina ahorro cheques débito cuenta corriente cuentas de valor cuentas de empresas y negocios moneda nacional o extranjera aperturas a nombre de la parte demandada como titular o titular o beneficiario en alguna institución de crédito y o financiera casa de bolsa. bolsa mexicana de valores instituto del depósito de valores que forman parte del sistema financiero mexicano así como otros bienes fungibles como joyas títulos de crédito y valores en general depositados en cajas de seguridad así como en los valores a que se refiere el artículo 2 fracción XXVI fecha de la ley de mercado de valores hasta por la cantidad de $76,813.31 pesos ( SETENTA Y SEIS MIL OCHOCIENTOS TRECE PESOS  31/100  ) lo anterior siempre y cuando se encuentre a nombre de MARCELO ZU CARNAL  con RFC  ZUCM444444555, CURP a y fecha de nacimiento, 
+esto efecto de garantizar el adeudo que tiene con la parte actora en el presente juicio con el apercibimiento donde que no hacerlo hará acreedor a una multa de 4,500 pesos(CUATO MIL QUINIENTOS PESOS 0/100 M.N.) 
+.</InstruccionesCuentasPorConocer>
+    <PersonasSolicitud>
+      <PersonaId>1</PersonaId>
+      <Caracter>Demandado</Caracter>
+      <Persona>Fisica</Persona>
+      <Paterno>ZU</Paterno>
+      <Materno>CARNAL</Materno>
+      <Nombre>MARCELO</Nombre>
+      <Rfc>ZUCM444444555</Rfc>
+      <Relacion />
+      <Domicilio />
+      <Complementarios>CURP: ZUCM444444ABCDEF01, Fecha de nacimiento  01/01/1991</Complementarios>
+    </PersonasSolicitud>
+  </SolicitudEspecifica>
+</Expediente>

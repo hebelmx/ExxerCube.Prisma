@@ -1,0 +1,639 @@
+# Input Validation Standards
+
+## Meta
+**Title**: Input Validation Standards
+**Description**: Comprehensive input validation standards for validation patterns and sanitization
+**Applies-to**: All C# code in ExxerAI project
+
+## Requirements
+
+<requirement priority="critical">
+**Description**: Use comprehensive input validation for all public methods
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Comprehensive input validation
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        // Validate cancellation token first
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("Agent creation cancelled due to cancellation token");
+            return ResultExtensions.Cancelled<Agent>();
+        }
+
+        // Validate name parameter
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            _logger.LogError("Agent creation failed: name is null, empty, or whitespace");
+            return Result<Agent>.WithFailure("Agent name cannot be null, empty, or whitespace");
+        }
+
+        if (name.Length > 100)
+        {
+            _logger.LogError("Agent creation failed: name exceeds maximum length of 100 characters");
+            return Result<Agent>.WithFailure("Agent name cannot exceed 100 characters");
+        }
+
+        // Validate name format using regex
+        if (!Regex.IsMatch(name, @"^[a-zA-Z0-9\s\-_]+$"))
+        {
+            _logger.LogError("Agent creation failed: name contains invalid characters");
+            return Result<Agent>.WithFailure("Agent name can only contain letters, numbers, spaces, hyphens, and underscores");
+        }
+
+        // Validate capabilities parameter
+        if (capabilities == null)
+        {
+            _logger.LogError("Agent creation failed: capabilities is null");
+            return Result<Agent>.WithFailure("Agent capabilities cannot be null");
+        }
+
+        // Validate capabilities enum value
+        if (!Enum.IsDefined(typeof(AgentCapabilities), capabilities))
+        {
+            _logger.LogError("Agent creation failed: invalid capabilities value: {Capabilities}", capabilities);
+            return Result<Agent>.WithFailure($"Invalid agent capabilities: {capabilities}");
+        }
+
+        // Sanitize input
+        var sanitizedName = name.Trim();
+
+        _logger.LogInformation("Creating agent with validated input: {AgentName}, {Capabilities}", sanitizedName, capabilities);
+
+        var agent = new Agent { Name = new AgentName(sanitizedName), Capabilities = capabilities };
+        var result = await _repository.AddAsync(agent, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created successfully: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Agent creation failed: {AgentName}, Errors: {Errors}",
+                sanitizedName, string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No input validation
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", name);
+
+        // No validation of input parameters
+        var agent = new Agent { Name = new AgentName(name), Capabilities = capabilities };
+        var result = await _repository.AddAsync(agent, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Use FluentValidation for complex validation scenarios
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: FluentValidation for complex validation
+public class CreateAgentCommandValidator : AbstractValidator<CreateAgentCommand>
+{
+    public CreateAgentCommandValidator()
+    {
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Agent name is required")
+            .MaximumLength(100).WithMessage("Agent name cannot exceed 100 characters")
+            .Matches(@"^[a-zA-Z0-9\s\-_]+$").WithMessage("Agent name can only contain letters, numbers, spaces, hyphens, and underscores")
+            .MustAsync(async (name, cancellation) =>
+            {
+                // Check for duplicate names
+                return !await IsAgentNameExistsAsync(name, cancellation);
+            }).WithMessage("Agent name already exists");
+
+        RuleFor(x => x.Capabilities)
+            .NotNull().WithMessage("Agent capabilities are required")
+            .IsInEnum().WithMessage("Invalid agent capabilities");
+
+        RuleFor(x => x.Email)
+            .EmailAddress().WithMessage("Invalid email format")
+            .When(x => !string.IsNullOrEmpty(x.Email));
+
+        RuleFor(x => x.Description)
+            .MaximumLength(500).WithMessage("Description cannot exceed 500 characters")
+            .When(x => !string.IsNullOrEmpty(x.Description));
+    }
+
+    private async Task<bool> IsAgentNameExistsAsync(string name, CancellationToken cancellationToken)
+    {
+        // Implementation to check if agent name exists
+        return false; // Placeholder
+    }
+}
+
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+    private readonly IValidator<CreateAgentCommand> _validator;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository, IValidator<CreateAgentCommand> validator)
+    {
+        _logger = logger;
+        _repository = repository;
+        _validator = validator;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(CreateAgentCommand command, CancellationToken cancellationToken = default)
+    {
+        // Validate command using FluentValidation
+        var validationResult = await _validator.ValidateAsync(command, cancellationToken);
+
+        if (!validationResult.IsValid)
+        {
+            var errors = validationResult.Errors.Select(e => e.ErrorMessage);
+            _logger.LogError("Agent creation validation failed: {Errors}", string.Join(", ", errors));
+            return Result<Agent>.WithFailure(errors);
+        }
+
+        _logger.LogInformation("Creating agent with validated command: {AgentName}", command.Name);
+
+        var agent = new Agent
+        {
+            Name = new AgentName(command.Name.Trim()),
+            Capabilities = command.Capabilities,
+            Email = command.Email?.Trim(),
+            Description = command.Description?.Trim()
+        };
+
+        var result = await _repository.AddAsync(agent, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created successfully: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Agent creation failed: {AgentName}, Errors: {Errors}",
+                command.Name, string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No FluentValidation
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public async Task<Result<Agent>> CreateAgentAsync(CreateAgentCommand command, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", command.Name);
+
+        // No validation of command
+        var agent = new Agent
+        {
+            Name = new AgentName(command.Name),
+            Capabilities = command.Capabilities
+        };
+
+        var result = await _repository.AddAsync(agent, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Implement input sanitization and encoding
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Input sanitization and encoding
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, string description, CancellationToken cancellationToken = default)
+    {
+        // Sanitize and encode input
+        var sanitizedName = SanitizeAgentName(name);
+        var sanitizedDescription = SanitizeDescription(description);
+
+        if (string.IsNullOrWhiteSpace(sanitizedName))
+        {
+            _logger.LogError("Agent creation failed: name is empty after sanitization");
+            return Result<Agent>.WithFailure("Agent name cannot be empty");
+        }
+
+        _logger.LogInformation("Creating agent with sanitized input: {AgentName}", sanitizedName);
+
+        var agent = new Agent
+        {
+            Name = new AgentName(sanitizedName),
+            Description = sanitizedDescription
+        };
+
+        var result = await _repository.AddAsync(agent, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created successfully: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Agent creation failed: {AgentName}, Errors: {Errors}",
+                sanitizedName, string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+
+    private static string SanitizeAgentName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return string.Empty;
+
+        // Remove HTML tags and encode
+        var sanitized = System.Web.HttpUtility.HtmlEncode(name.Trim());
+
+        // Remove any remaining script tags
+        sanitized = Regex.Replace(sanitized, @"<script[^>]*>.*?</script>", "", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
+        // Limit length
+        return sanitized.Length > 100 ? sanitized.Substring(0, 100) : sanitized;
+    }
+
+    private static string SanitizeDescription(string description)
+    {
+        if (string.IsNullOrWhiteSpace(description))
+            return string.Empty;
+
+        // Remove HTML tags and encode
+        var sanitized = System.Web.HttpUtility.HtmlEncode(description.Trim());
+
+        // Remove any remaining script tags
+        sanitized = Regex.Replace(sanitized, @"<script[^>]*>.*?</script>", "", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
+        // Limit length
+        return sanitized.Length > 500 ? sanitized.Substring(0, 500) : sanitized;
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No input sanitization
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, string description, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", name);
+
+        // No sanitization of input
+        var agent = new Agent
+        {
+            Name = new AgentName(name),
+            Description = description
+        };
+
+        var result = await _repository.AddAsync(agent, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Validate complex objects and nested properties
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Complex object validation
+public class AgentConfigurationValidator : AbstractValidator<AgentConfiguration>
+{
+    public AgentConfigurationValidator()
+    {
+        RuleFor(x => x.MaxConcurrentTasks)
+            .GreaterThan(0).WithMessage("Max concurrent tasks must be greater than 0")
+            .LessThanOrEqualTo(100).WithMessage("Max concurrent tasks cannot exceed 100");
+
+        RuleFor(x => x.TimeoutSeconds)
+            .GreaterThan(0).WithMessage("Timeout must be greater than 0")
+            .LessThanOrEqualTo(3600).WithMessage("Timeout cannot exceed 1 hour");
+
+        RuleFor(x => x.Capabilities)
+            .NotNull().WithMessage("Capabilities are required")
+            .Must(capabilities => capabilities.Any()).WithMessage("At least one capability must be specified");
+
+        RuleForEach(x => x.Capabilities)
+            .IsInEnum().WithMessage("Invalid capability value");
+
+        RuleFor(x => x.Settings)
+            .SetValidator(new AgentSettingsValidator());
+    }
+}
+
+public class AgentSettingsValidator : AbstractValidator<AgentSettings>
+{
+    public AgentSettingsValidator()
+    {
+        RuleFor(x => x.ApiKey)
+            .NotEmpty().WithMessage("API key is required")
+            .MinimumLength(32).WithMessage("API key must be at least 32 characters");
+
+        RuleFor(x => x.Endpoint)
+            .NotEmpty().WithMessage("Endpoint is required")
+            .Must(BeValidUrl).WithMessage("Invalid endpoint URL");
+
+        RuleFor(x => x.RetryCount)
+            .GreaterThanOrEqualTo(0).WithMessage("Retry count cannot be negative")
+            .LessThanOrEqualTo(10).WithMessage("Retry count cannot exceed 10");
+    }
+
+    private static bool BeValidUrl(string url)
+    {
+        return Uri.TryCreate(url, UriKind.Absolute, out _);
+    }
+}
+
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+    private readonly IValidator<AgentConfiguration> _configurationValidator;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository, IValidator<AgentConfiguration> configurationValidator)
+    {
+        _logger = logger;
+        _repository = repository;
+        _configurationValidator = configurationValidator;
+    }
+
+    public async Task<Result<Agent>> CreateAgentWithConfigurationAsync(string name, AgentConfiguration configuration, CancellationToken cancellationToken = default)
+    {
+        // Validate complex configuration object
+        var validationResult = await _configurationValidator.ValidateAsync(configuration, cancellationToken);
+
+        if (!validationResult.IsValid)
+        {
+            var errors = validationResult.Errors.Select(e => e.ErrorMessage);
+            _logger.LogError("Agent configuration validation failed: {Errors}", string.Join(", ", errors));
+            return Result<Agent>.WithFailure(errors);
+        }
+
+        // Validate name separately
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            _logger.LogError("Agent creation failed: name is empty");
+            return Result<Agent>.WithFailure("Agent name cannot be empty");
+        }
+
+        _logger.LogInformation("Creating agent with validated configuration: {AgentName}", name);
+
+        var agent = new Agent
+        {
+            Name = new AgentName(name.Trim()),
+            Configuration = configuration
+        };
+
+        var result = await _repository.AddAsync(agent, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created successfully: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Agent creation failed: {AgentName}, Errors: {Errors}",
+                name, string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No complex object validation
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public async Task<Result<Agent>> CreateAgentWithConfigurationAsync(string name, AgentConfiguration configuration, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", name);
+
+        // No validation of complex configuration object
+        var agent = new Agent
+        {
+            Name = new AgentName(name),
+            Configuration = configuration
+        };
+
+        var result = await _repository.AddAsync(agent, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Use custom validation attributes and business rules
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Custom validation attributes and business rules
+public class ValidAgentNameAttribute : ValidationAttribute
+{
+    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    {
+        if (value == null)
+            return new ValidationResult("Agent name cannot be null");
+
+        var name = value.ToString();
+
+        if (string.IsNullOrWhiteSpace(name))
+            return new ValidationResult("Agent name cannot be empty or whitespace");
+
+        if (name.Length > 100)
+            return new ValidationResult("Agent name cannot exceed 100 characters");
+
+        if (!Regex.IsMatch(name, @"^[a-zA-Z0-9\s\-_]+$"))
+            return new ValidationResult("Agent name can only contain letters, numbers, spaces, hyphens, and underscores");
+
+        // Check for reserved names
+        var reservedNames = new[] { "admin", "system", "root", "guest" };
+        if (reservedNames.Contains(name.ToLowerInvariant()))
+            return new ValidationResult("Agent name cannot be a reserved name");
+
+        return ValidationResult.Success;
+    }
+}
+
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public async Task<Result<Agent>> CreateAgentAsync([ValidAgentName] string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        // Validate using custom attribute
+        var validationContext = new ValidationContext(name);
+        var validationResults = new List<ValidationResult>();
+
+        if (!Validator.TryValidateObject(name, validationContext, validationResults, true))
+        {
+            var errors = validationResults.Select(v => v.ErrorMessage);
+            _logger.LogError("Agent creation validation failed: {Errors}", string.Join(", ", errors));
+            return Result<Agent>.WithFailure(errors);
+        }
+
+        // Additional business rule validation
+        var businessRuleResult = ValidateBusinessRules(name, capabilities);
+        if (businessRuleResult.IsFailure)
+        {
+            _logger.LogError("Agent creation business rule validation failed: {Errors}",
+                string.Join(", ", businessRuleResult.Errors));
+            return businessRuleResult.ToResult<Agent>();
+        }
+
+        _logger.LogInformation("Creating agent with validated input: {AgentName}", name);
+
+        var agent = new Agent { Name = new AgentName(name.Trim()), Capabilities = capabilities };
+        var result = await _repository.AddAsync(agent, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created successfully: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Agent creation failed: {AgentName}, Errors: {Errors}",
+                name, string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+
+    private Result ValidateBusinessRules(string name, AgentCapabilities capabilities)
+    {
+        var errors = new List<string>();
+
+        // Business rule: Advanced capabilities require longer names
+        if (capabilities.HasFlag(AgentCapabilities.Advanced) && name.Length < 5)
+        {
+            errors.Add("Advanced agents must have names with at least 5 characters");
+        }
+
+        // Business rule: System capabilities require specific naming pattern
+        if (capabilities.HasFlag(AgentCapabilities.System) && !name.StartsWith("sys_"))
+        {
+            errors.Add("System agents must have names starting with 'sys_'");
+        }
+
+        return errors.Any() ? Result.WithFailure(errors) : Result.Success();
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No custom validation attributes or business rules
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", name);
+
+        // No custom validation or business rules
+        var agent = new Agent { Name = new AgentName(name), Capabilities = capabilities };
+        var result = await _repository.AddAsync(agent, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>

@@ -1,0 +1,11 @@
+EXPEDIENTE: 12345/2024
+
+CAUSA: DEMANDA DE PAGO DE DEUDA
+
+ACCION SOLICITADA: Se solicita el pago de la cantidad de $50,000.00 (CINCUENTA MIL PESOS 00/100 M.N.) por concepto de deuda contraída el día 15 de enero de 2024.
+
+FECHA: 15 de enero de 2024
+
+MONTO: $50,000.00 MXN
+
+Este documento contiene información de prueba para validar la extracción de campos mediante el sistema de OCR.

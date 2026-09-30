@@ -1,0 +1,3 @@
+Loading ground truths...
+[Cluster 2] Starting GA with 2 images
+[Cluster 2] Skipped - too few images

@@ -1,0 +1,315 @@
+# Rule: Avoid Regions - Prefer Better Design Patterns
+
+## Why Regions Are Problematic
+
+### 1. Regions Hide Complexity Instead of Solving It
+Regions are often used to organize large, unwieldy classes by grouping related members. However, this approach:
+- **Masks design problems** rather than addressing them
+- **Creates false sense of organization** in poorly structured code
+- **Makes refactoring harder** by hiding dependencies and coupling
+- **Reduces code readability** by adding visual noise
+
+### 2. Regions Violate Single Responsibility Principle
+When you need regions to organize a class, it's usually a sign that:
+- The class has too many responsibilities
+- Methods are not cohesive
+- The class is doing too much
+- Design patterns are being ignored
+
+## Better Design Alternatives
+
+### 1. Extract Smaller, Focused Classes
+Instead of regions, extract related functionality into separate classes:
+
+```csharp
+// ❌ Bad: Large class with regions
+public class OrderProcessor
+{
+    #region Validation
+    private bool ValidateOrder(Order order) { /* ... */ }
+    private bool ValidateCustomer(Customer customer) { /* ... */ }
+    #endregion
+
+    #region Processing
+    private void ProcessPayment(Order order) { /* ... */ }
+    private void UpdateInventory(Order order) { /* ... */ }
+    #endregion
+
+    #region Notifications
+    private void SendConfirmationEmail(Order order) { /* ... */ }
+    private void SendShippingNotification(Order order) { /* ... */ }
+    #endregion
+}
+
+// ✅ Good: Separate focused classes
+public class OrderValidator
+{
+    public bool ValidateOrder(Order order) { /* ... */ }
+    public bool ValidateCustomer(Customer customer) { /* ... */ }
+}
+
+public class OrderProcessor
+{
+    private readonly OrderValidator _validator;
+    private readonly PaymentProcessor _paymentProcessor;
+    private readonly InventoryManager _inventoryManager;
+    private readonly NotificationService _notificationService;
+
+    public OrderProcessor(
+        OrderValidator validator,
+        PaymentProcessor paymentProcessor,
+        InventoryManager inventoryManager,
+        NotificationService notificationService)
+    {
+        _validator = validator;
+        _paymentProcessor = paymentProcessor;
+        _inventoryManager = inventoryManager;
+        _notificationService = notificationService;
+    }
+
+    public async Task<Result<Order>> ProcessOrderAsync(Order order)
+    {
+        // Clean, focused orchestration
+    }
+}
+```
+
+### 2. Use Polymorphic Design
+Replace region-based organization with polymorphic patterns:
+
+```csharp
+// ❌ Bad: Region-based strategy
+public class DocumentProcessor
+{
+    #region PDF Processing
+    private void ProcessPdf(Document doc) { /* ... */ }
+    private void ExtractPdfText(Document doc) { /* ... */ }
+    #endregion
+
+    #region Word Processing
+    private void ProcessWord(Document doc) { /* ... */ }
+    private void ExtractWordText(Document doc) { /* ... */ }
+    #endregion
+}
+
+// ✅ Good: Polymorphic design
+public interface IDocumentProcessor
+{
+    Task<Result<ProcessedDocument>> ProcessAsync(Document document);
+}
+
+public class PdfDocumentProcessor : IDocumentProcessor
+{
+    public async Task<Result<ProcessedDocument>> ProcessAsync(Document document)
+    {
+        // Focused PDF processing logic
+    }
+}
+
+public class WordDocumentProcessor : IDocumentProcessor
+{
+    public async Task<Result<ProcessedDocument>> ProcessAsync(Document document)
+    {
+        // Focused Word processing logic
+    }
+}
+```
+
+### 3. Leverage Generic Classes
+Use generics to create reusable, type-safe components:
+
+```csharp
+// ❌ Bad: Region-based repository
+public class Repository
+{
+    #region Customer Operations
+    public Customer GetCustomer(int id) { /* ... */ }
+    public void SaveCustomer(Customer customer) { /* ... */ }
+    public void DeleteCustomer(int id) { /* ... */ }
+    #endregion
+
+    #region Order Operations
+    public Order GetOrder(int id) { /* ... */ }
+    public void SaveOrder(Order order) { /* ... */ }
+    public void DeleteOrder(int id) { /* ... */ }
+    #endregion
+}
+
+// ✅ Good: Generic repository
+public interface IRepository<T> where T : class, IEntity
+{
+    Task<T?> GetByIdAsync(int id);
+    Task<Result<T>> SaveAsync(T entity);
+    Task<Result> DeleteAsync(int id);
+}
+
+public class Repository<T> : IRepository<T> where T : class, IEntity
+{
+    private readonly DbContext _context;
+
+    public Repository(DbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<T?> GetByIdAsync(int id)
+    {
+        return await _context.Set<T>().FindAsync(id);
+    }
+
+    public async Task<Result<T>> SaveAsync(T entity)
+    {
+        // Generic save logic
+    }
+
+    public async Task<Result> DeleteAsync(int id)
+    {
+        // Generic delete logic
+    }
+}
+```
+
+### 4. Use Composition Over Regions
+Compose functionality instead of organizing with regions:
+
+```csharp
+// ❌ Bad: Region-based service
+public class UserService
+{
+    #region Authentication
+    public bool Authenticate(string username, string password) { /* ... */ }
+    public void Logout(int userId) { /* ... */ }
+    #endregion
+
+    #region Profile Management
+    public void UpdateProfile(int userId, Profile profile) { /* ... */ }
+    public Profile GetProfile(int userId) { /* ... */ }
+    #endregion
+
+    #region Permissions
+    public bool HasPermission(int userId, string permission) { /* ... */ }
+    public void GrantPermission(int userId, string permission) { /* ... */ }
+    #endregion
+}
+
+// ✅ Good: Composed services
+public class UserService
+{
+    private readonly IAuthenticationService _authService;
+    private readonly IProfileService _profileService;
+    private readonly IPermissionService _permissionService;
+
+    public UserService(
+        IAuthenticationService authService,
+        IProfileService profileService,
+        IPermissionService permissionService)
+    {
+        _authService = authService;
+        _profileService = profileService;
+        _permissionService = permissionService;
+    }
+
+    public async Task<Result<AuthResult>> AuthenticateAsync(string username, string password)
+    {
+        return await _authService.AuthenticateAsync(username, password);
+    }
+
+    public async Task<Result<Profile>> GetProfileAsync(int userId)
+    {
+        return await _profileService.GetProfileAsync(userId);
+    }
+}
+```
+
+## Guidelines for Better Design
+
+### 1. Class Size Guidelines
+- **Target**: 50-200 lines per class
+- **Maximum**: 300 lines (consider refactoring if exceeded)
+- **Methods**: 10-20 lines maximum
+- **Properties**: Group related properties into separate classes
+
+### 2. When to Extract Classes
+Extract a new class when:
+- A class has more than 3-4 public methods
+- Methods can be grouped by functionality
+- A class has multiple responsibilities
+- You find yourself wanting to add regions
+
+### 3. Design Patterns to Prefer
+- **Strategy Pattern**: For different algorithms/behaviors
+- **Factory Pattern**: For object creation
+- **Builder Pattern**: For complex object construction
+- **Decorator Pattern**: For adding functionality
+- **Composite Pattern**: For tree-like structures
+
+### 4. Generic and Reusable Design
+- Use generics for type-safe, reusable components
+- Create interfaces for testability and flexibility
+- Implement composition over inheritance
+- Use dependency injection for loose coupling
+
+## Benefits of Avoiding Regions
+
+### 1. Better Testability
+- Smaller classes are easier to unit test
+- Clear responsibilities make mocking simpler
+- Isolated functionality reduces test complexity
+
+### 2. Improved Maintainability
+- Changes are localized to specific classes
+- Easier to understand and modify
+- Reduced risk of breaking unrelated functionality
+
+### 3. Enhanced Reusability
+- Focused classes can be reused in different contexts
+- Generic components provide type safety
+- Polymorphic design enables flexibility
+
+### 4. Better Code Organization
+- Clear separation of concerns
+- Logical grouping through class structure
+- Easier to navigate and understand
+
+## Migration Strategy
+
+### 1. Identify Region Usage
+- Look for `#region` directives in code
+- Identify related functionality within regions
+- Document dependencies and coupling
+
+### 2. Plan Extraction
+- Group related methods and properties
+- Identify potential new class names
+- Consider interfaces and abstractions
+
+### 3. Extract Gradually
+- Start with the most isolated functionality
+- Maintain existing public APIs during transition
+- Update tests to reflect new structure
+
+### 4. Refactor Dependencies
+- Update dependency injection
+- Modify calling code
+- Ensure backward compatibility
+
+## Conclusion
+
+Regions are a code smell that indicates design problems. Instead of hiding complexity, embrace it by:
+- Creating smaller, focused classes
+- Using polymorphic and generic design
+- Implementing proper separation of concerns
+- Leveraging composition and dependency injection
+
+This approach leads to more maintainable, testable, and reusable code that follows SOLID principles and modern design patterns.
+
+## Enforcement
+
+- **Code Review**: Reject code with regions
+- **Static Analysis**: Configure tools to flag region usage
+- **Refactoring**: Prioritize region removal in technical debt
+- **Documentation**: Update coding standards to prohibit regions
+description:
+globs:
+alwaysApply: false
+---

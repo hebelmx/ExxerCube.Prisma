@@ -1,0 +1,50 @@
+{
+  "docId": "SHCP-2024-157330_20260719_152551",
+  "seed": 5001,
+  "chaosLevel": "none",
+  "requirementType": "fiscal",
+  "folioSiara": "SHCP/2024/157330",
+  "numeroOficio": "SHCP/2024/157330",
+  "numeroExpediente": "B/FI1-9774-508296-SAT",
+  "autoridadNombre": "Secretaría de Hacienda y Crédito Público",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Conchita Sosa Arellano",
+  "personaNombre": "Rubén Reyes Olivares",
+  "personaRfc": "REOR8005135A0",
+  "solicitudPartes": [
+    {
+      "nombre": "Rubén Reyes Olivares",
+      "caracter": "Contribuyente"
+    }
+  ],
+  "monto": "$6,110,939.52",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Secretaría de Hacienda y Crédito Público",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

@@ -1,0 +1,455 @@
+# Rule: File Handling Best Practices and Standards
+
+## Objective
+
+Establish comprehensive guidelines for safe, efficient, and maintainable file handling operations across all programming languages and platforms. Ensure consistent practices for file I/O, error handling, and resource management.
+
+## Core Principles
+
+### 1. Resource Management
+- **Always close files** after use to prevent resource leaks
+- **Use appropriate disposal patterns** for your programming language
+- **Handle exceptions gracefully** to maintain system stability
+- **Validate file operations** before and after execution
+
+### 2. Error Handling
+- **Implement robust error handling** for all file operations
+- **Provide meaningful error messages** for debugging
+- **Handle platform-specific issues** appropriately
+- **Log file operations** for troubleshooting
+
+## Implementation Guidelines
+
+### 1. File Opening and Closing Patterns
+
+#### C# (.NET) Patterns
+```csharp
+// ✅ Good: Using statement for automatic disposal
+public async Task<string> ReadFileAsync(string filePath)
+{
+    try
+    {
+        using var fileStream = File.OpenRead(filePath);
+        using var reader = new StreamReader(fileStream, Encoding.UTF8);
+        return await reader.ReadToEndAsync();
+    }
+    catch (FileNotFoundException ex)
+    {
+        _logger.LogError(ex, "File not found: {FilePath}", filePath);
+        throw;
+    }
+    catch (UnauthorizedAccessException ex)
+    {
+        _logger.LogError(ex, "Access denied to file: {FilePath}", filePath);
+        throw;
+    }
+}
+
+// ✅ Good: Async file operations with cancellation
+public async Task WriteFileAsync(string filePath, string content, CancellationToken cancellationToken = default)
+{
+    try
+    {
+        using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None);
+        using var writer = new StreamWriter(fileStream, Encoding.UTF8);
+        await writer.WriteAsync(content, cancellationToken);
+        await writer.FlushAsync(cancellationToken);
+    }
+    catch (IOException ex)
+    {
+        _logger.LogError(ex, "Failed to write file: {FilePath}", filePath);
+        throw;
+    }
+}
+```
+
+#### Python Patterns
+```python
+# ✅ Good: Context manager for automatic cleanup
+def read_file(file_path: str) -> str:
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            return file.read()
+    except FileNotFoundError as e:
+        logger.error(f"File not found: {file_path}")
+        raise
+    except PermissionError as e:
+        logger.error(f"Permission denied: {file_path}")
+        raise
+
+# ✅ Good: Async file operations
+async def write_file_async(file_path: str, content: str) -> None:
+    try:
+        async with aiofiles.open(file_path, 'w', encoding='utf-8') as file:
+            await file.write(content)
+    except OSError as e:
+        logger.error(f"Failed to write file: {file_path}")
+        raise
+```
+
+#### JavaScript/Node.js Patterns
+```javascript
+// ✅ Good: Promise-based file operations
+const fs = require('fs').promises;
+
+async function readFile(filePath) {
+    try {
+        const content = await fs.readFile(filePath, 'utf8');
+        return content;
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            logger.error(`File not found: ${filePath}`);
+        } else if (error.code === 'EACCES') {
+            logger.error(`Permission denied: ${filePath}`);
+        }
+        throw error;
+    }
+}
+
+async function writeFile(filePath, content) {
+    try {
+        await fs.writeFile(filePath, content, 'utf8');
+    } catch (error) {
+        logger.error(`Failed to write file: ${filePath}`, error);
+        throw error;
+    }
+}
+```
+
+### 2. File Validation and Security
+
+#### Input Validation
+```csharp
+// ✅ Good: Validate file paths and content
+public class FileValidator
+{
+    public static Result<string> ValidateFilePath(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+            return Result<string>.WithFailure("File path cannot be null or empty");
+
+        if (Path.GetInvalidPathChars().Any(c => filePath.Contains(c)))
+            return Result<string>.WithFailure("File path contains invalid characters");
+
+        if (!Path.IsPathRooted(filePath) && !Path.IsPathFullyQualified(filePath))
+            return Result<string>.WithFailure("File path must be absolute or fully qualified");
+
+        return Result<string>.Success(filePath);
+    }
+
+    public static Result<long> ValidateFileSize(string filePath, long maxSizeBytes = 100 * 1024 * 1024)
+    {
+        try
+        {
+            var fileInfo = new FileInfo(filePath);
+            if (fileInfo.Exists && fileInfo.Length > maxSizeBytes)
+                return Result<long>.WithFailure($"File size exceeds maximum allowed size of {maxSizeBytes} bytes");
+
+            return Result<long>.Success(fileInfo.Length);
+        }
+        catch (Exception ex)
+        {
+            return Result<long>.WithFailure($"Failed to validate file size: {ex.Message}");
+        }
+    }
+}
+```
+
+#### Security Considerations
+```csharp
+// ✅ Good: Secure file operations
+public class SecureFileHandler
+{
+    private readonly string _allowedDirectory;
+    private readonly string[] _allowedExtensions;
+
+    public SecureFileHandler(string allowedDirectory, string[] allowedExtensions)
+    {
+        _allowedDirectory = Path.GetFullPath(allowedDirectory);
+        _allowedExtensions = allowedExtensions;
+    }
+
+    public Result<string> ValidateAndSanitizePath(string filePath)
+    {
+        var fullPath = Path.GetFullPath(filePath);
+
+        // Prevent directory traversal attacks
+        if (!fullPath.StartsWith(_allowedDirectory, StringComparison.OrdinalIgnoreCase))
+            return Result<string>.WithFailure("Access denied: Path outside allowed directory");
+
+        // Validate file extension
+        var extension = Path.GetExtension(filePath).ToLowerInvariant();
+        if (!_allowedExtensions.Contains(extension))
+            return Result<string>.WithFailure($"File type not allowed: {extension}");
+
+        return Result<string>.Success(fullPath);
+    }
+}
+```
+
+### 3. Encoding and Format Handling
+
+#### Character Encoding
+```csharp
+// ✅ Good: Explicit encoding handling
+public class FileEncodingHandler
+{
+    public static async Task<string> ReadWithEncodingAsync(string filePath, Encoding encoding)
+    {
+        using var fileStream = File.OpenRead(filePath);
+        using var reader = new StreamReader(fileStream, encoding, detectEncodingFromByteOrderMarks: true);
+        return await reader.ReadToEndAsync();
+    }
+
+    public static async Task WriteWithEncodingAsync(string filePath, string content, Encoding encoding)
+    {
+        using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None);
+        using var writer = new StreamWriter(fileStream, encoding);
+        await writer.WriteAsync(content);
+        await writer.FlushAsync();
+    }
+}
+```
+
+#### Platform-Specific Line Endings
+```csharp
+// ✅ Good: Cross-platform line ending handling
+public class CrossPlatformFileHandler
+{
+    public static string NormalizeLineEndings(string content)
+    {
+        // Convert all line endings to platform-specific format
+        return content.Replace("\r\n", "\n").Replace("\r", "\n").Replace("\n", Environment.NewLine);
+    }
+
+    public static async Task<string> ReadWithNormalizedLineEndingsAsync(string filePath)
+    {
+        var content = await File.ReadAllTextAsync(filePath, Encoding.UTF8);
+        return NormalizeLineEndings(content);
+    }
+}
+```
+
+### 4. File Monitoring and Logging
+
+#### File Operation Logging
+```csharp
+// ✅ Good: Comprehensive file operation logging
+public class FileOperationLogger
+{
+    private readonly ILogger<FileOperationLogger> _logger;
+
+    public FileOperationLogger(ILogger<FileOperationLogger> logger)
+    {
+        _logger = logger;
+    }
+
+    public async Task<Result<T>> ExecuteWithLoggingAsync<T>(
+        string operation,
+        string filePath,
+        Func<Task<T>> operationFunc)
+    {
+        var startTime = DateTime.UtcNow;
+
+        try
+        {
+            _logger.LogInformation("Starting {Operation} on file: {FilePath}", operation, filePath);
+
+            var result = await operationFunc();
+
+            var duration = DateTime.UtcNow - startTime;
+            _logger.LogInformation("Completed {Operation} on file: {FilePath} in {Duration}ms",
+                operation, filePath, duration.TotalMilliseconds);
+
+            return Result<T>.Success(result);
+        }
+        catch (Exception ex)
+        {
+            var duration = DateTime.UtcNow - startTime;
+            _logger.LogError(ex, "Failed {Operation} on file: {FilePath} after {Duration}ms",
+                operation, filePath, duration.TotalMilliseconds);
+
+            return Result<T>.WithFailure($"File operation failed: {ex.Message}");
+        }
+    }
+}
+```
+
+### 5. Batch File Operations
+
+#### Efficient Batch Processing
+```csharp
+// ✅ Good: Batch file operations with progress tracking
+public class BatchFileProcessor
+{
+    private readonly ILogger<BatchFileProcessor> _logger;
+    private readonly SemaphoreSlim _semaphore;
+
+    public BatchFileProcessor(ILogger<BatchFileProcessor> logger, int maxConcurrency = 5)
+    {
+        _logger = logger;
+        _semaphore = new SemaphoreSlim(maxConcurrency);
+    }
+
+    public async Task<Result<BatchResult>> ProcessFilesAsync(
+        IEnumerable<string> filePaths,
+        Func<string, Task<Result>> processor,
+        IProgress<int>? progress = null)
+    {
+        var results = new List<FileResult>();
+        var totalFiles = filePaths.Count();
+        var processedCount = 0;
+
+        await Parallel.ForEachAsync(filePaths, async (filePath, cancellationToken) =>
+        {
+            await _semaphore.WaitAsync(cancellationToken);
+            try
+            {
+                var result = await processor(filePath);
+                lock (results)
+                {
+                    results.Add(new FileResult(filePath, result));
+                    processedCount++;
+                    progress?.Report((int)((double)processedCount / totalFiles * 100));
+                }
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        });
+
+        var successfulCount = results.Count(r => r.Result.IsSuccess);
+        var failedCount = results.Count(r => r.Result.IsFailure);
+
+        _logger.LogInformation("Batch processing completed: {Successful} successful, {Failed} failed",
+            successfulCount, failedCount);
+
+        return Result<BatchResult>.Success(new BatchResult(results));
+    }
+}
+```
+
+## Anti-Patterns to Avoid
+
+### 1. Improper Resource Management
+```csharp
+// ❌ Bad: Not disposing resources
+public string ReadFile(string filePath)
+{
+    var fileStream = File.OpenRead(filePath); // Never closed!
+    var reader = new StreamReader(fileStream);
+    return reader.ReadToEnd(); // Stream not disposed
+}
+
+// ❌ Bad: Manual try-finally (error-prone)
+public string ReadFile(string filePath)
+{
+    FileStream? fileStream = null;
+    StreamReader? reader = null;
+    try
+    {
+        fileStream = File.OpenRead(filePath);
+        reader = new StreamReader(fileStream);
+        return reader.ReadToEnd();
+    }
+    finally
+    {
+        reader?.Dispose(); // Manual disposal is error-prone
+        fileStream?.Dispose();
+    }
+}
+```
+
+### 2. Poor Error Handling
+```csharp
+// ❌ Bad: Swallowing exceptions
+public string ReadFile(string filePath)
+{
+    try
+    {
+        return File.ReadAllText(filePath);
+    }
+    catch
+    {
+        return string.Empty; // Silent failure
+    }
+}
+
+// ❌ Bad: Generic exception handling
+public string ReadFile(string filePath)
+{
+    try
+    {
+        return File.ReadAllText(filePath);
+    }
+    catch (Exception ex)
+    {
+        throw new Exception("File read failed", ex); // Loses original exception type
+    }
+}
+```
+
+### 3. Security Vulnerabilities
+```csharp
+// ❌ Bad: No path validation
+public void WriteFile(string userProvidedPath, string content)
+{
+    File.WriteAllText(userProvidedPath, content); // Path traversal vulnerability
+}
+
+// ❌ Bad: Hardcoded paths
+public void WriteFile(string fileName, string content)
+{
+    var path = $@"C:\Temp\{fileName}"; // Platform-specific, hardcoded
+    File.WriteAllText(path, content);
+}
+```
+
+## Best Practices Summary
+
+### 1. Resource Management
+- **Use language-specific disposal patterns** (using, with, try-with-resources)
+- **Always close files** explicitly or use automatic disposal
+- **Handle exceptions** in disposal blocks
+- **Use async/await** for file operations when possible
+
+### 2. Error Handling
+- **Catch specific exceptions** (FileNotFoundException, UnauthorizedAccessException)
+- **Provide meaningful error messages** with context
+- **Log errors** with appropriate detail levels
+- **Return Result<T>** pattern for error handling
+
+### 3. Security
+- **Validate file paths** before operations
+- **Prevent directory traversal** attacks
+- **Check file permissions** and access rights
+- **Use secure file naming** conventions
+
+### 4. Performance
+- **Use buffered I/O** for large files
+- **Implement progress tracking** for long operations
+- **Consider memory usage** for large file operations
+- **Use appropriate concurrency** limits
+
+### 5. Cross-Platform Compatibility
+- **Handle line endings** appropriately
+- **Use platform-agnostic** path separators
+- **Consider file system** differences
+- **Test on multiple platforms**
+
+## Enforcement
+
+- **Code Review**: Check file handling patterns in PRs
+- **Static Analysis**: Configure tools to detect resource leaks
+- **Unit Tests**: Include file operation tests
+- **Integration Tests**: Test file operations in real scenarios
+- **Security Scanning**: Validate file path handling
+
+## Conclusion
+
+Proper file handling is critical for application stability, security, and performance. Follow these guidelines to ensure robust, maintainable, and secure file operations across all platforms and programming languages.
+description:
+globs:
+alwaysApply: false
+---

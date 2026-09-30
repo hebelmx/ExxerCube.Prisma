@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "dependencies": {
+    ".NETCoreApp,Version=v8.0": {
+      "Contoso.Logging": {
+        "type": "Direct",
+        "resolved": "1.2.3",
+        "contentHash": "mock",
+        "dependencies": {
+          "Contoso.Core": "2.0.0"
+        }
+      },
+      "Contoso.Core": {
+        "type": "Transitive",
+        "resolved": "2.0.0",
+        "contentHash": "mock"
+      }
+    }
+  }
+}

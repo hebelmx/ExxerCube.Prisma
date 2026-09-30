@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>AGAFADAFSON2/2025/763109</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>AGAFADAFSON2/2025/763109</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Administración Desconcentrada de Auditoría Fiscal de Jalisco</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>AGAFADAFSON2/2025/763109</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>H/IN2-4034-376793-AAA</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>8</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>Frida Negrete Barrios</NombreSolicitante>
+  <Referencia>REF-3594</Referencia>
+  <Referencia1>REF1-9566</Referencia1>
+  <Referencia2>REF2-5154</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Evelio Segura Cordero</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Detallar operaciones superiores a $100,000.00 MN
+- Incluir números de cuenta, saldos y movimientos
+- Especificar fechas de apertura y cierre de cuentas
+- Indicar titulares y co-titulares de las cuentas
+- Proporcionar información de todas las cuentas bancarias</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Evelio Segura Cordero</Nombre>
+    <Rfc>SECE491111Y81</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Ampliación Jalisco No. 3409, Col. San Soledad de la Montaña, Municipio Vieja Ghana, Oaxaca, C.P. 99458</Domicilio>
+    <Complementarios>Tel: (814)801-2783x4430, Email: amora@example.org</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

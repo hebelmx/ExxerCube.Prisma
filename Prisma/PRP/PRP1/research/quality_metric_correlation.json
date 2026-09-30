@@ -1,0 +1,172 @@
+[
+  {
+    "level": "Q0_Pristine",
+    "baseline_edits": 30,
+    "avg_blur": 3512.3,
+    "avg_noise": 0.2,
+    "avg_contrast": 38.5,
+    "avg_quality_score": 78.2,
+    "doc_details": {
+      "222AAA": {
+        "blur": 1815.9723826500297,
+        "noise": 0.0,
+        "contrast": 34.868151236706204,
+        "quality_score": 80.08407561835311
+      },
+      "333BBB": {
+        "blur": 2171.1788925823184,
+        "noise": 0.4416654382844553,
+        "contrast": 34.865693519987026,
+        "quality_score": 72.43284675999351
+      },
+      "333ccc": {
+        "blur": 1473.7061667950356,
+        "noise": 0.4416654382844553,
+        "contrast": 30.700608131930714,
+        "quality_score": 70.35030406596536
+      },
+      "555CCC": {
+        "blur": 8588.522502970885,
+        "noise": 0.0,
+        "contrast": 53.74910092248076,
+        "quality_score": 90.0
+      }
+    }
+  },
+  {
+    "level": "Q05_VeryGood",
+    "baseline_edits": 575,
+    "avg_blur": 2248.4,
+    "avg_noise": 1.0,
+    "avg_contrast": 36.5,
+    "avg_quality_score": 77.1,
+    "doc_details": {
+      "222AAA": {
+        "blur": 1163.2387123973926,
+        "noise": 0.9736553407624358,
+        "contrast": 33.32262622030633,
+        "quality_score": 71.66131311015317
+      },
+      "333BBB": {
+        "blur": 1570.8572893202677,
+        "noise": 1.1216575868153438,
+        "contrast": 33.26304316065959,
+        "quality_score": 77.27361738454428
+      },
+      "333ccc": {
+        "blur": 1036.2744353211053,
+        "noise": 1.146185693975689,
+        "contrast": 29.2717184247858,
+        "quality_score": 69.2717184247858
+      },
+      "555CCC": {
+        "blur": 5223.2722348565085,
+        "noise": 0.9454733949698526,
+        "contrast": 50.04797109686627,
+        "quality_score": 90.0
+      }
+    }
+  },
+  {
+    "level": "Q1_Poor",
+    "baseline_edits": 538,
+    "avg_blur": 1284.0,
+    "avg_noise": 1.5,
+    "avg_contrast": 33.0,
+    "avg_quality_score": 77.1,
+    "doc_details": {
+      "222AAA": {
+        "blur": 666.7263210233318,
+        "noise": 1.4336793708872686,
+        "contrast": 30.48615539907739,
+        "quality_score": 76.11648124873304
+      },
+      "333BBB": {
+        "blur": 891.4572910429633,
+        "noise": 1.5796644665903188,
+        "contrast": 30.145740250687464,
+        "quality_score": 76.49646746115916
+      },
+      "333ccc": {
+        "blur": 578.8487794495207,
+        "noise": 1.571376576783373,
+        "contrast": 26.78083025771683,
+        "quality_score": 72.33890020209854
+      },
+      "555CCC": {
+        "blur": 2999.0856977790645,
+        "noise": 1.4188186158379927,
+        "contrast": 44.684937144365435,
+        "quality_score": 83.40295679621227
+      }
+    }
+  },
+  {
+    "level": "Q15_Medium",
+    "baseline_edits": 4185,
+    "avg_blur": 1266.7,
+    "avg_noise": 7.4,
+    "avg_contrast": 26.9,
+    "avg_quality_score": 76.1,
+    "doc_details": {
+      "222AAA": {
+        "blur": 1017.489494000848,
+        "noise": 7.103143127928467,
+        "contrast": 25.566727256254335,
+        "quality_score": 76.53699778646795
+      },
+      "333BBB": {
+        "blur": 1223.2446410562793,
+        "noise": 7.755661496538437,
+        "contrast": 24.60782229600988,
+        "quality_score": 75.21892691847475
+      },
+      "333ccc": {
+        "blur": 962.5842715760099,
+        "noise": 7.396634648571652,
+        "contrast": 22.774309976379197,
+        "quality_score": 67.86394122555839
+      },
+      "555CCC": {
+        "blur": 1863.307523726504,
+        "noise": 7.513309050551503,
+        "contrast": 34.778228450539984,
+        "quality_score": 84.63211778343737
+      }
+    }
+  },
+  {
+    "level": "Q2_MediumPoor",
+    "baseline_edits": 6590,
+    "avg_blur": 1209.8,
+    "avg_noise": 6.2,
+    "avg_contrast": 23.2,
+    "avg_quality_score": 72.1,
+    "doc_details": {
+      "222AAA": {
+        "blur": 1108.0653659321151,
+        "noise": 6.023360712442401,
+        "contrast": 22.30006168365955,
+        "quality_score": 69.66659712562084
+      },
+      "333BBB": {
+        "blur": 1201.6849768175186,
+        "noise": 6.489799484935229,
+        "contrast": 21.408853056434722,
+        "quality_score": 68.65543271807542
+      },
+      "333ccc": {
+        "blur": 1088.6499379751142,
+        "noise": 6.263645991624881,
+        "contrast": 20.227831463882165,
+        "quality_score": 67.0650312860085
+      },
+      "555CCC": {
+        "blur": 1440.957428122488,
+        "noise": 6.09415180153192,
+        "contrast": 29.042665402131952,
+        "quality_score": 83.01311430670049
+      }
+    }
+  }
+]

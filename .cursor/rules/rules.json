@@ -1,0 +1,35 @@
+{
+  "version": "1.0",
+  "packs": [
+    {
+      "id": "pack.refactoring",
+      "title": "Refactoring Standards",
+      "rules": [1034, 1033, 1032, 7, 1028, 1042, 1041, 1030, 701, 702, 703]
+    },
+    {
+      "id": "pack.testing",
+      "title": "Testing Standards",
+      "rules": [1029, 305, 306, 307, 308]
+    },
+    {
+      "id": "pack.architecture",
+      "title": "Architecture & Patterns",
+      "rules": [1031, 1008, 1044, 1016, 1018, 1036]
+    },
+    {
+      "id": "pack.cqrs",
+      "title": "CQRS & Application Layer",
+      "rules": [1031, 1014, 1013]
+    },
+    {
+      "id": "pack.docs",
+      "title": "Documentation & XML Comments",
+      "rules": [0401, 0402, 0403]
+    },
+    {
+      "id": "pack.tooling",
+      "title": "Agent Tooling & Autonomy",
+      "rules": [0002, 0003, 0004, 0005, 1023, 1024, 1010]
+    }
+  ]
+}

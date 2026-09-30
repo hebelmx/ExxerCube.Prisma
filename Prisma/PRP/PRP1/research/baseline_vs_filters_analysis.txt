@@ -1,0 +1,57 @@
+================================================================================
+BASELINE vs PIL vs OpenCV Comparison
+================================================================================
+
+BEST PERFORMANCE PER DEGRADATION LEVEL:
+--------------------------------------------------------------------------------
+
+Q0_Pristine:
+  Baseline (NO FILTER): 30 edits
+  Best PIL: PIL_14 - 491 edits
+  Best OpenCV: OpenCV_14 - 339 edits
+  ✓ WINNER: BASELINE (NO FILTER)
+    → Filtering DEGRADES quality on this level!
+
+Q05_VeryGood:
+  Baseline (NO FILTER): 575 edits
+  Best PIL: PIL_3 - 497 edits
+  Best OpenCV: OpenCV_3 - 382 edits
+  ✓ WINNER: OpenCV (OpenCV_3) - 33.6% better than baseline
+
+Q1_Poor:
+  Baseline (NO FILTER): 538 edits
+  Best PIL: PIL_14 - 506 edits
+  Best OpenCV: OpenCV_3 - 404 edits
+  ✓ WINNER: OpenCV (OpenCV_3) - 24.9% better than baseline
+
+Q15_Medium:
+  Baseline (NO FILTER): 4185 edits
+  Best PIL: PIL_16 - 965 edits
+  Best OpenCV: OpenCV_10 - 1326 edits
+  ✓ WINNER: PIL (PIL_16) - 76.9% better than baseline
+
+Q2_MediumPoor:
+  Baseline (NO FILTER): 6590 edits
+  Best PIL: PIL_0 - 1444 edits
+  Best OpenCV: OpenCV_10 - 2454 edits
+  ✓ WINNER: PIL (PIL_0) - 78.1% better than baseline
+
+================================================================================
+OVERALL STATISTICS:
+================================================================================
+
+Baseline Average: 2383.6 edits
+PIL Average: 842.0 edits
+OpenCV Average: 1311.3 edits
+
+================================================================================
+QUALITY THRESHOLD ANALYSIS:
+================================================================================
+
+When does NO FILTER beat all optimized filters?
+
+  Q0_Pristine: BASELINE WINS (30 vs 339)
+  Q05_VeryGood: Filters help (33.6% improvement)
+  Q1_Poor: Filters help (24.9% improvement)
+  Q15_Medium: Filters help (76.9% improvement)
+  Q2_MediumPoor: Filters help (78.1% improvement)

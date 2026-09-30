@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Generated files
+test_corpus.json
+test_output/
+generated_samples/
+*.log
+job_progress.log
+
+# Fixtures
+Prp1Dummy/
+fixtures/
+*.png
+*.pdf
+*.docx
+*.xml
+!**/example_*.xml
+
+# OS
+.DS_Store
+Thumbs.db

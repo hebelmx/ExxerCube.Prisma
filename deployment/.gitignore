@@ -1,0 +1,33 @@
+# Deployment Directory - Git Ignore Rules
+
+# Certificate private keys and PFX files (NEVER COMMIT THESE!)
+certs/*.pfx
+certs/*.p12
+certs/*.key
+certs/*-key.pem
+certs/ca-key.pem
+
+# Backup files
+certs/*.bak
+certs/*~
+
+# Temporary certificate generation files
+certs/*.csr
+certs/*.srl
+certs/*-san.cnf
+
+# Production configuration with secrets
+config/appsettings.Production.json
+
+# Deployment packages
+*.tar.gz
+*.zip
+publish/
+
+# Logs
+*.log
+
+# Allow these files (safe to commit)
+!certs/ca.crt
+!certs/README.md
+!config/appsettings.Production.template.json

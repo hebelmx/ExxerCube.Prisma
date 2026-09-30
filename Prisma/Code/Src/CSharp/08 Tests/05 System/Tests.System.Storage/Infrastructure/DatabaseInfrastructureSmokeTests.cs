@@ -1,0 +1,318 @@
+using ExxerCube.Prisma.Testing.Infrastructure.Docker;
+
+namespace ExxerCube.Prisma.Tests.System.Storage.Infrastructure;
+
+/// <summary>
+/// Smoke tests for SQL Server container infrastructure.
+/// Verifies that the Docker container can start, the database can be created,
+/// EF Core migrations can be applied, data can be seeded, and basic CRUD operations work.
+/// These tests validate the testing infrastructure itself, not business logic.
+/// </summary>
+// No [Collection]: shares the assembly-level SqlServerContainerFixture (one container) but runs
+// in its own implicit collection. It is the SOLE user of the canonical shared database
+// (PrismaTestDb) — the pipeline writer classes use isolated databases — so it cannot collide.
+// This class deliberately exercises the shared-DB fixture operations (ApplyMigrations/CleanDatabase).
+public sealed class DatabaseInfrastructureSmokeTests : IDisposable
+{
+    private readonly SqlServerContainerFixture _fixture;
+    private PrismaDbContext? _dbContext;
+
+    public DatabaseInfrastructureSmokeTests(SqlServerContainerFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
+    private void Log(string message)
+    {
+        TestContext.Current?.SendDiagnosticMessage(message);
+    }
+
+    private void Log(Exception ex, string message)
+    {
+        var fullMessage = $"{message}\nException: {ex.GetType().Name}: {ex.Message}\nStackTrace: {ex.StackTrace}";
+        TestContext.Current?.SendDiagnosticMessage(fullMessage);
+    }
+
+    /// <summary>
+    /// Health check test to verify Docker/Podman is available before running container tests.
+    /// This test runs first and has a long timeout to allow Docker to start if needed.
+    /// </summary>
+    [Fact(Timeout = 90000)] // 90 seconds timeout to allow Docker/Podman to start
+    public async Task AAA_DockerOrPodman_ShouldBeAvailable()
+    {
+        Log("=== HEALTH CHECK: Docker/Podman Availability ===");
+        Log("This test verifies that a container runtime (Docker or Podman) is available.");
+        Log("If Docker/Podman is not running, the test will attempt to start it automatically.");
+        Log("");
+
+        // Check Docker/Podman status and attempt auto-start
+        var status = await DockerHealthCheck.CheckAndStartDockerAsync();
+
+        // Log detailed status information
+        Log($"Container Runtime Status:");
+        Log($"  - Installed: {status.IsInstalled}");
+        Log($"  - Running: {status.IsRunning}");
+        Log($"  - Runtime: {status.Runtime ?? "None"}");
+        Log($"  - Message: {status.Message}");
+        Log("");
+
+        // Assert that container runtime is available
+        status.IsInstalled.ShouldBeTrue(
+            "A container runtime (Docker or Podman) must be installed to run container tests.\n" +
+            "Please install one of the following:\n" +
+            "  - Docker Desktop: https://www.docker.com/products/docker-desktop\n" +
+            "  - Podman: https://podman.io/getting-started/installation");
+
+        status.IsRunning.ShouldBeTrue(
+            $"Container runtime ({status.Runtime ?? "unknown"}) is installed but not running.\n" +
+            status.Message + "\n" +
+            "The test attempted to start it automatically, but this may require:\n" +
+            "  - Starting Docker Desktop manually (Windows/Mac)\n" +
+            "  - Running with elevated permissions (Linux: sudo or docker group)\n" +
+            "  - Waiting for the container runtime to fully initialize");
+
+        Log($"✅ Container runtime ({status.Runtime}) is available and ready!");
+        Log("All subsequent container tests should now be able to run.");
+    }
+
+    [Fact]
+    public void Container_ShouldBeAvailable()
+    {
+        // Assert - Container should be running and available
+        _fixture.IsAvailable.ShouldBeTrue("SQL Server container should be running");
+        _fixture.ConnectionString.ShouldNotBeNullOrWhiteSpace("Connection string should be configured");
+        _fixture.Database.ShouldBe("PrismaTestDb");
+
+        Log($"✅ SQL Server container is available at: {_fixture.ConnectionString}");
+    }
+
+    [Fact]
+    public async Task Database_ShouldExist_AndAcceptConnections()
+    {
+        // Arrange - Ensure container is available
+        _fixture.EnsureAvailable();
+
+        // Act - Try to connect to the database
+        await using var connection = new SqlConnection(_fixture.ConnectionString);
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+
+        // Assert - Connection should be open and database should be PrismaTestDb
+        connection.State.ShouldBe(global::System.Data.ConnectionState.Open);
+        connection.Database.ShouldBe("PrismaTestDb");
+
+        Log($"✅ Successfully connected to database: {connection.Database}");
+    }
+
+    [Fact]
+    public async Task EFCore_ShouldCreateSchema_WhenApplyingMigrations()
+    {
+        // Arrange - Ensure container is available
+        _fixture.EnsureAvailable();
+
+        // Act - Apply migrations (create database schema)
+        await _fixture.ApplyMigrationsAsync(
+            connStr => new PrismaDbContext(new DbContextOptionsBuilder<PrismaDbContext>()
+                .UseSqlServer(connStr)
+                .Options),
+            TestContext.Current.CancellationToken);
+
+        // Assert - Verify tables were created
+        await using var connection = new SqlConnection(_fixture.ConnectionString);
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+
+        await using var cmd = connection.CreateCommand();
+        cmd.CommandText = @"
+            SELECT COUNT(*)
+            FROM INFORMATION_SCHEMA.TABLES
+            WHERE TABLE_TYPE = 'BASE TABLE'
+            AND TABLE_SCHEMA = 'dbo'";
+
+        var tableCount = (int)await cmd.ExecuteScalarAsync(TestContext.Current.CancellationToken);
+
+        // Should have created FileMetadata, Persona, ReviewCases, ReviewDecisions, AuditRecords, SLAStatus, RequirementTypeDictionary tables
+        tableCount.ShouldBeGreaterThan(0, "Database should have tables after migrations");
+
+        Log($"✅ EF Core schema created successfully. Table count: {tableCount}");
+    }
+
+    [Fact]
+    public async Task Database_ShouldSeedData_Successfully()
+    {
+        // Arrange - Create database and context
+        _fixture.EnsureAvailable();
+        await _fixture.CleanDatabaseAsync();
+        await _fixture.ApplyMigrationsAsync(
+            connStr => new PrismaDbContext(new DbContextOptionsBuilder<PrismaDbContext>()
+                .UseSqlServer(connStr)
+                .Options),
+            TestContext.Current.CancellationToken);
+
+        // Act - Seed test data
+        await _fixture.SeedDataAsync(
+            connStr => new PrismaDbContext(new DbContextOptionsBuilder<PrismaDbContext>()
+                .UseSqlServer(connStr)
+                .Options),
+            async context =>
+            {
+                // Seed FileMetadata
+                context.FileMetadata.Add(CreateFileMetadata("test-file-001", "test.pdf", FileFormat.Pdf));
+                context.FileMetadata.Add(CreateFileMetadata("test-file-002", "document.xml", FileFormat.Xml));
+
+                // Seed Persona (ParteId is auto-generated by database)
+                context.Persona.Add(CreatePersona("Juan", "Pérez", "García", "RFC123456789"));
+                context.Persona.Add(CreatePersona("María", "González", "López", "RFC987654321"));
+
+                await Task.CompletedTask;
+            },
+            TestContext.Current.CancellationToken);
+
+        // Assert - Verify seeded data exists
+        _dbContext = new PrismaDbContext(new DbContextOptionsBuilder<PrismaDbContext>()
+            .UseSqlServer(_fixture.ConnectionString)
+            .Options);
+
+        var fileCount = await _dbContext.FileMetadata.CountAsync(TestContext.Current.CancellationToken);
+        var personaCount = await _dbContext.Persona.CountAsync(TestContext.Current.CancellationToken);
+
+        fileCount.ShouldBe(2, "Should have seeded 2 file metadata records");
+        personaCount.ShouldBe(2, "Should have seeded 2 persona records");
+
+        Log($"✅ Test data seeded successfully. Files: {fileCount}, Personas: {personaCount}");
+    }
+
+    [Fact]
+    public async Task Database_ShouldSupport_BasicCrudOperations()
+    {
+        // Arrange - Create database and context
+        _fixture.EnsureAvailable();
+        await _fixture.ApplyMigrationsAsync(
+            connStr => new PrismaDbContext(new DbContextOptionsBuilder<PrismaDbContext>()
+                .UseSqlServer(connStr)
+                .Options),
+            TestContext.Current.CancellationToken);
+
+        _dbContext = new PrismaDbContext(new DbContextOptionsBuilder<PrismaDbContext>()
+            .UseSqlServer(_fixture.ConnectionString)
+            .Options);
+
+        // Act & Assert - CREATE
+        var fileMetadata = CreateFileMetadata("crud-test-001", "crud-test.pdf", FileFormat.Pdf);
+        _dbContext.FileMetadata.Add(fileMetadata);
+        var createResult = await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        createResult.ShouldBe(1, "Should have inserted 1 record");
+
+        Log($"✅ CREATE: Inserted FileMetadata with ID: {fileMetadata.FileId}");
+
+        // Act & Assert - READ
+        var retrievedFile = await _dbContext.FileMetadata
+            .FirstOrDefaultAsync(f => f.FileId == "crud-test-001", TestContext.Current.CancellationToken);
+        retrievedFile.ShouldNotBeNull();
+        retrievedFile.FileName.ShouldBe("crud-test.pdf");
+        retrievedFile.Format.ShouldBe(FileFormat.Pdf);
+
+        Log($"✅ READ: Retrieved FileMetadata with ID: {retrievedFile.FileId}");
+
+        // Act & Assert - UPDATE
+        retrievedFile.FileName = "updated-crud-test.pdf";
+        _dbContext.FileMetadata.Update(retrievedFile);
+        var updateResult = await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        updateResult.ShouldBe(1, "Should have updated 1 record");
+
+        var updatedFile = await _dbContext.FileMetadata
+            .FirstOrDefaultAsync(f => f.FileId == "crud-test-001", TestContext.Current.CancellationToken);
+        updatedFile.ShouldNotBeNull();
+        updatedFile.FileName.ShouldBe("updated-crud-test.pdf");
+
+        Log($"✅ UPDATE: Updated FileName to: {updatedFile.FileName}");
+
+        // Act & Assert - DELETE
+        _dbContext.FileMetadata.Remove(updatedFile);
+        var deleteResult = await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        deleteResult.ShouldBe(1, "Should have deleted 1 record");
+
+        var deletedFile = await _dbContext.FileMetadata
+            .FirstOrDefaultAsync(f => f.FileId == "crud-test-001", TestContext.Current.CancellationToken);
+        deletedFile.ShouldBeNull("Record should be deleted");
+
+        Log("✅ DELETE: Deleted FileMetadata with ID: crud-test-001");
+    }
+
+    [Fact]
+    public async Task Database_ShouldCleanup_BetweenTests()
+    {
+        // Arrange - Seed some data
+        _fixture.EnsureAvailable();
+        await _fixture.ApplyMigrationsAsync(
+            connStr => new PrismaDbContext(new DbContextOptionsBuilder<PrismaDbContext>()
+                .UseSqlServer(connStr)
+                .Options),
+            TestContext.Current.CancellationToken);
+
+        await _fixture.SeedDataAsync(
+            connStr => new PrismaDbContext(new DbContextOptionsBuilder<PrismaDbContext>()
+                .UseSqlServer(connStr)
+                .Options),
+            async context =>
+            {
+                context.FileMetadata.Add(CreateFileMetadata("cleanup-test-001", "cleanup.pdf", FileFormat.Pdf));
+                await Task.CompletedTask;
+            },
+            TestContext.Current.CancellationToken);
+
+        // Act - Clean database
+        await _fixture.CleanDatabaseAsync();
+
+        // Assert - Verify all data is removed but schema remains
+        _dbContext = new PrismaDbContext(new DbContextOptionsBuilder<PrismaDbContext>()
+            .UseSqlServer(_fixture.ConnectionString)
+            .Options);
+
+        var fileCount = await _dbContext.FileMetadata.CountAsync(TestContext.Current.CancellationToken);
+        fileCount.ShouldBe(0, "All data should be cleaned");
+
+        // Verify schema still exists
+        await using var connection = new SqlConnection(_fixture.ConnectionString);
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var cmd = connection.CreateCommand();
+        cmd.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'FileMetadata'";
+        var tableExists = (int)await cmd.ExecuteScalarAsync(TestContext.Current.CancellationToken);
+        tableExists.ShouldBe(1, "FileMetadata table should still exist after cleanup");
+
+        Log("✅ Database cleanup verified. Data removed, schema preserved.");
+    }
+
+    // Helper methods for creating test entities
+
+    private static FileMetadata CreateFileMetadata(string fileId, string fileName, FileFormat format)
+    {
+        return new FileMetadata
+        {
+            FileId = fileId,
+            FileName = fileName,
+            FilePath = $"/files/{fileName}",
+            DownloadTimestamp = DateTime.UtcNow,
+            Checksum = Guid.NewGuid().ToString("N"),
+            FileSize = 1024,
+            Format = format
+        };
+    }
+
+    private static Persona CreatePersona(string nombre, string paterno, string? materno, string? rfc)
+    {
+        return new Persona
+        {
+            // ParteId is auto-generated by database (identity column)
+            Nombre = nombre,
+            Paterno = paterno,
+            Materno = materno,
+            Rfc = rfc,
+            Caracter = "Contribuyente",
+            PersonaTipo = "Fisica"
+        };
+    }
+
+    public void Dispose()
+    {
+        _dbContext?.Dispose();
+    }
+}

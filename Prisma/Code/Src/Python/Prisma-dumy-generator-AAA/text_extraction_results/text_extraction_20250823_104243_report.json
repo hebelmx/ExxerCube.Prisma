@@ -1,0 +1,39 @@
+{
+  "benchmark_info": {
+    "total_images": 3,
+    "timestamp": "2025-08-23T10:42:43.833086",
+    "phase": "Text Extraction Quality (Phase 1)"
+  },
+  "extractor_performance": {
+    "DocTR": {
+      "success_rate": 100.0,
+      "avg_processing_time": 3.76,
+      "avg_confidence": 0.737,
+      "successful_extractions": 3,
+      "total_tests": 3
+    },
+    "PaddleOCR": {
+      "success_rate": 100.0,
+      "avg_processing_time": 19.16,
+      "avg_confidence": 0,
+      "successful_extractions": 3,
+      "total_tests": 3
+    }
+  },
+  "text_quality_metrics": {
+    "DocTR": {
+      "avg_characters_per_doc": 1727,
+      "avg_words_per_doc": 265,
+      "avg_lines_per_doc": 62,
+      "total_characters_extracted": 5181,
+      "total_words_extracted": 795
+    },
+    "PaddleOCR": {
+      "avg_characters_per_doc": 0,
+      "avg_words_per_doc": 0,
+      "avg_lines_per_doc": 0,
+      "total_characters_extracted": 0,
+      "total_words_extracted": 0
+    }
+  }
+}

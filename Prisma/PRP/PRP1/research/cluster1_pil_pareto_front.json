@@ -1,0 +1,572 @@
+[
+  {
+    "id": 0,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 2.0593944121763688,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 130,
+      "Q2_MediumPoor_222AAA": 293,
+      "Q1_Poor_333BBB": 125,
+      "Q2_MediumPoor_333BBB": 434,
+      "Q1_Poor_333ccc": 156,
+      "Q2_MediumPoor_333ccc": 366,
+      "Q1_Poor_555CCC": 18,
+      "Q2_MediumPoor_555CCC": 218
+    },
+    "total_edits": 1740
+  },
+  {
+    "id": 1,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.2883062117383395,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 130,
+      "Q2_MediumPoor_222AAA": 268,
+      "Q1_Poor_333BBB": 116,
+      "Q2_MediumPoor_333BBB": 440,
+      "Q1_Poor_333ccc": 127,
+      "Q2_MediumPoor_333ccc": 325,
+      "Q1_Poor_555CCC": 24,
+      "Q2_MediumPoor_555CCC": 182
+    },
+    "total_edits": 1612
+  },
+  {
+    "id": 2,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.9771683747029152,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 131,
+      "Q2_MediumPoor_222AAA": 292,
+      "Q1_Poor_333BBB": 144,
+      "Q2_MediumPoor_333BBB": 437,
+      "Q1_Poor_333ccc": 143,
+      "Q2_MediumPoor_333ccc": 322,
+      "Q1_Poor_555CCC": 27,
+      "Q2_MediumPoor_555CCC": 153
+    },
+    "total_edits": 1649
+  },
+  {
+    "id": 3,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.811403950345634,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 141,
+      "Q2_MediumPoor_222AAA": 309,
+      "Q1_Poor_333BBB": 129,
+      "Q2_MediumPoor_333BBB": 450,
+      "Q1_Poor_333ccc": 137,
+      "Q2_MediumPoor_333ccc": 308,
+      "Q1_Poor_555CCC": 19,
+      "Q2_MediumPoor_555CCC": 151
+    },
+    "total_edits": 1644
+  },
+  {
+    "id": 4,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.8984388473995402,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 137,
+      "Q2_MediumPoor_222AAA": 316,
+      "Q1_Poor_333BBB": 132,
+      "Q2_MediumPoor_333BBB": 436,
+      "Q1_Poor_333ccc": 137,
+      "Q2_MediumPoor_333ccc": 312,
+      "Q1_Poor_555CCC": 15,
+      "Q2_MediumPoor_555CCC": 151
+    },
+    "total_edits": 1636
+  },
+  {
+    "id": 5,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.893990760443923,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 140,
+      "Q2_MediumPoor_222AAA": 309,
+      "Q1_Poor_333BBB": 131,
+      "Q2_MediumPoor_333BBB": 440,
+      "Q1_Poor_333ccc": 135,
+      "Q2_MediumPoor_333ccc": 324,
+      "Q1_Poor_555CCC": 14,
+      "Q2_MediumPoor_555CCC": 149
+    },
+    "total_edits": 1642
+  },
+  {
+    "id": 6,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.8929657293759539,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 136,
+      "Q2_MediumPoor_222AAA": 306,
+      "Q1_Poor_333BBB": 133,
+      "Q2_MediumPoor_333BBB": 436,
+      "Q1_Poor_333ccc": 133,
+      "Q2_MediumPoor_333ccc": 331,
+      "Q1_Poor_555CCC": 16,
+      "Q2_MediumPoor_555CCC": 145
+    },
+    "total_edits": 1636
+  },
+  {
+    "id": 7,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.811443027957884,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 141,
+      "Q2_MediumPoor_222AAA": 309,
+      "Q1_Poor_333BBB": 129,
+      "Q2_MediumPoor_333BBB": 450,
+      "Q1_Poor_333ccc": 137,
+      "Q2_MediumPoor_333ccc": 308,
+      "Q1_Poor_555CCC": 19,
+      "Q2_MediumPoor_555CCC": 151
+    },
+    "total_edits": 1644
+  },
+  {
+    "id": 8,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.2869858890858004,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 131,
+      "Q2_MediumPoor_222AAA": 267,
+      "Q1_Poor_333BBB": 122,
+      "Q2_MediumPoor_333BBB": 440,
+      "Q1_Poor_333ccc": 126,
+      "Q2_MediumPoor_333ccc": 323,
+      "Q1_Poor_555CCC": 22,
+      "Q2_MediumPoor_555CCC": 160
+    },
+    "total_edits": 1591
+  },
+  {
+    "id": 9,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.8787382888631334,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 145,
+      "Q2_MediumPoor_222AAA": 297,
+      "Q1_Poor_333BBB": 135,
+      "Q2_MediumPoor_333BBB": 391,
+      "Q1_Poor_333ccc": 130,
+      "Q2_MediumPoor_333ccc": 324,
+      "Q1_Poor_555CCC": 17,
+      "Q2_MediumPoor_555CCC": 154
+    },
+    "total_edits": 1593
+  },
+  {
+    "id": 10,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.3679787013399751,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 134,
+      "Q2_MediumPoor_222AAA": 304,
+      "Q1_Poor_333BBB": 125,
+      "Q2_MediumPoor_333BBB": 370,
+      "Q1_Poor_333ccc": 127,
+      "Q2_MediumPoor_333ccc": 320,
+      "Q1_Poor_555CCC": 22,
+      "Q2_MediumPoor_555CCC": 179
+    },
+    "total_edits": 1581
+  },
+  {
+    "id": 11,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.9563953138978718,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 132,
+      "Q2_MediumPoor_222AAA": 289,
+      "Q1_Poor_333BBB": 130,
+      "Q2_MediumPoor_333BBB": 430,
+      "Q1_Poor_333ccc": 133,
+      "Q2_MediumPoor_333ccc": 407,
+      "Q1_Poor_555CCC": 20,
+      "Q2_MediumPoor_555CCC": 157
+    },
+    "total_edits": 1698
+  },
+  {
+    "id": 12,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.9904516284006855,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 130,
+      "Q2_MediumPoor_222AAA": 307,
+      "Q1_Poor_333BBB": 125,
+      "Q2_MediumPoor_333BBB": 432,
+      "Q1_Poor_333ccc": 136,
+      "Q2_MediumPoor_333ccc": 329,
+      "Q1_Poor_555CCC": 32,
+      "Q2_MediumPoor_555CCC": 149
+    },
+    "total_edits": 1640
+  },
+  {
+    "id": 13,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.3083534944109354,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 136,
+      "Q2_MediumPoor_222AAA": 306,
+      "Q1_Poor_333BBB": 119,
+      "Q2_MediumPoor_333BBB": 400,
+      "Q1_Poor_333ccc": 121,
+      "Q2_MediumPoor_333ccc": 325,
+      "Q1_Poor_555CCC": 21,
+      "Q2_MediumPoor_555CCC": 155
+    },
+    "total_edits": 1583
+  },
+  {
+    "id": 14,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.252996278292203,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 101,
+      "Q2_MediumPoor_222AAA": 281,
+      "Q1_Poor_333BBB": 123,
+      "Q2_MediumPoor_333BBB": 407,
+      "Q1_Poor_333ccc": 140,
+      "Q2_MediumPoor_333ccc": 327,
+      "Q1_Poor_555CCC": 29,
+      "Q2_MediumPoor_555CCC": 172
+    },
+    "total_edits": 1580
+  },
+  {
+    "id": 15,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 2.0596406253371558,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 132,
+      "Q2_MediumPoor_222AAA": 292,
+      "Q1_Poor_333BBB": 127,
+      "Q2_MediumPoor_333BBB": 436,
+      "Q1_Poor_333ccc": 158,
+      "Q2_MediumPoor_333ccc": 369,
+      "Q1_Poor_555CCC": 18,
+      "Q2_MediumPoor_555CCC": 212
+    },
+    "total_edits": 1744
+  },
+  {
+    "id": 16,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 2.0504591826086145,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 129,
+      "Q2_MediumPoor_222AAA": 299,
+      "Q1_Poor_333BBB": 130,
+      "Q2_MediumPoor_333BBB": 429,
+      "Q1_Poor_333ccc": 145,
+      "Q2_MediumPoor_333ccc": 405,
+      "Q1_Poor_555CCC": 18,
+      "Q2_MediumPoor_555CCC": 202
+    },
+    "total_edits": 1757
+  },
+  {
+    "id": 17,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.252996278292203,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 101,
+      "Q2_MediumPoor_222AAA": 281,
+      "Q1_Poor_333BBB": 123,
+      "Q2_MediumPoor_333BBB": 407,
+      "Q1_Poor_333ccc": 140,
+      "Q2_MediumPoor_333ccc": 327,
+      "Q1_Poor_555CCC": 29,
+      "Q2_MediumPoor_555CCC": 172
+    },
+    "total_edits": 1580
+  },
+  {
+    "id": 18,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 2.0331879192039755,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 134,
+      "Q2_MediumPoor_222AAA": 288,
+      "Q1_Poor_333BBB": 139,
+      "Q2_MediumPoor_333BBB": 434,
+      "Q1_Poor_333ccc": 142,
+      "Q2_MediumPoor_333ccc": 365,
+      "Q1_Poor_555CCC": 18,
+      "Q2_MediumPoor_555CCC": 152
+    },
+    "total_edits": 1672
+  },
+  {
+    "id": 19,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.4890241027554851,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 122,
+      "Q2_MediumPoor_222AAA": 313,
+      "Q1_Poor_333BBB": 126,
+      "Q2_MediumPoor_333BBB": 405,
+      "Q1_Poor_333ccc": 129,
+      "Q2_MediumPoor_333ccc": 325,
+      "Q1_Poor_555CCC": 21,
+      "Q2_MediumPoor_555CCC": 163
+    },
+    "total_edits": 1604
+  },
+  {
+    "id": 20,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.3313382362417463,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 109,
+      "Q2_MediumPoor_222AAA": 277,
+      "Q1_Poor_333BBB": 123,
+      "Q2_MediumPoor_333BBB": 398,
+      "Q1_Poor_333ccc": 145,
+      "Q2_MediumPoor_333ccc": 323,
+      "Q1_Poor_555CCC": 22,
+      "Q2_MediumPoor_555CCC": 171
+    },
+    "total_edits": 1568
+  },
+  {
+    "id": 21,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.2096795804903677,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 130,
+      "Q2_MediumPoor_222AAA": 275,
+      "Q1_Poor_333BBB": 126,
+      "Q2_MediumPoor_333BBB": 384,
+      "Q1_Poor_333ccc": 126,
+      "Q2_MediumPoor_333ccc": 339,
+      "Q1_Poor_555CCC": 28,
+      "Q2_MediumPoor_555CCC": 155
+    },
+    "total_edits": 1563
+  },
+  {
+    "id": 22,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.2552924868861752,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 103,
+      "Q2_MediumPoor_222AAA": 277,
+      "Q1_Poor_333BBB": 125,
+      "Q2_MediumPoor_333BBB": 404,
+      "Q1_Poor_333ccc": 141,
+      "Q2_MediumPoor_333ccc": 321,
+      "Q1_Poor_555CCC": 29,
+      "Q2_MediumPoor_555CCC": 184
+    },
+    "total_edits": 1584
+  },
+  {
+    "id": 23,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.2745821086788993,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 131,
+      "Q2_MediumPoor_222AAA": 314,
+      "Q1_Poor_333BBB": 125,
+      "Q2_MediumPoor_333BBB": 414,
+      "Q1_Poor_333ccc": 137,
+      "Q2_MediumPoor_333ccc": 312,
+      "Q1_Poor_555CCC": 23,
+      "Q2_MediumPoor_555CCC": 161
+    },
+    "total_edits": 1617
+  },
+  {
+    "id": 24,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 2.0593944121763688,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 130,
+      "Q2_MediumPoor_222AAA": 293,
+      "Q1_Poor_333BBB": 125,
+      "Q2_MediumPoor_333BBB": 434,
+      "Q1_Poor_333ccc": 156,
+      "Q2_MediumPoor_333ccc": 366,
+      "Q1_Poor_555CCC": 18,
+      "Q2_MediumPoor_555CCC": 218
+    },
+    "total_edits": 1740
+  },
+  {
+    "id": 25,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.9765984464800697,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 131,
+      "Q2_MediumPoor_222AAA": 296,
+      "Q1_Poor_333BBB": 143,
+      "Q2_MediumPoor_333BBB": 435,
+      "Q1_Poor_333ccc": 146,
+      "Q2_MediumPoor_333ccc": 322,
+      "Q1_Poor_555CCC": 17,
+      "Q2_MediumPoor_555CCC": 155
+    },
+    "total_edits": 1645
+  },
+  {
+    "id": 26,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.2469573408560324,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 140,
+      "Q2_MediumPoor_222AAA": 280,
+      "Q1_Poor_333BBB": 121,
+      "Q2_MediumPoor_333BBB": 397,
+      "Q1_Poor_333ccc": 136,
+      "Q2_MediumPoor_333ccc": 322,
+      "Q1_Poor_555CCC": 24,
+      "Q2_MediumPoor_555CCC": 154
+    },
+    "total_edits": 1574
+  },
+  {
+    "id": 27,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.8759879984527386,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 142,
+      "Q2_MediumPoor_222AAA": 293,
+      "Q1_Poor_333BBB": 133,
+      "Q2_MediumPoor_333BBB": 392,
+      "Q1_Poor_333ccc": 138,
+      "Q2_MediumPoor_333ccc": 387,
+      "Q1_Poor_555CCC": 16,
+      "Q2_MediumPoor_555CCC": 150
+    },
+    "total_edits": 1651
+  },
+  {
+    "id": 28,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.0496885066663735,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 104,
+      "Q2_MediumPoor_222AAA": 307,
+      "Q1_Poor_333BBB": 121,
+      "Q2_MediumPoor_333BBB": 375,
+      "Q1_Poor_333ccc": 144,
+      "Q2_MediumPoor_333ccc": 323,
+      "Q1_Poor_555CCC": 28,
+      "Q2_MediumPoor_555CCC": 157
+    },
+    "total_edits": 1559
+  },
+  {
+    "id": 29,
+    "cluster": 1,
+    "genome": {
+      "contrast_factor": 1.328161920751487,
+      "median_size": 3
+    },
+    "objectives": {
+      "Q1_Poor_222AAA": 136,
+      "Q2_MediumPoor_222AAA": 274,
+      "Q1_Poor_333BBB": 126,
+      "Q2_MediumPoor_333BBB": 396,
+      "Q1_Poor_333ccc": 142,
+      "Q2_MediumPoor_333ccc": 324,
+      "Q1_Poor_555CCC": 21,
+      "Q2_MediumPoor_555CCC": 182
+    },
+    "total_edits": 1601
+  }
+]
