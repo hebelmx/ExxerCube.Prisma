@@ -465,10 +465,11 @@
             var startDate = filterFromDate ?? DateTime.Today.AddDays(-30);
             var endDate = filterToDate ?? DateTime.Today.AddDays(1);
 
+            // Unknown is the "All actions" choice in the filter; querying for it would match nothing.
             var result = await AuditLogger.GetAuditRecordsAsync(
                 startDate,
                 endDate,
-                selectedActionType,
+                selectedActionType == AuditActionType.Unknown ? null : selectedActionType,
                 filterUserId,
                 CancellationToken.None);
 
