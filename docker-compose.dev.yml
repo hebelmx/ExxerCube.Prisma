@@ -220,6 +220,12 @@ services:
         APP_VERSION: ${APP_VERSION:-0.0.0-compose}
     container_name: prisma-orion
     image: prisma-orion:dev
+    # Orion drives headless Chromium. Cap it so a browser leak degrades this container, not the host
+    # (a per-poll leak once reached 24 browsers, 15 cores and 2,712 PIDs). pids_limit counts threads;
+    # normal operation (.NET + Playwright driver + discovery and download browsers) stays well under it.
+    pids_limit: 1024
+    cpus: 4
+    mem_limit: 4g
     networks:
       - prisma-dev
     ports:
@@ -246,6 +252,8 @@ services:
       Siara__AuthMode: "AutomatedLogin"
       Siara__Automated__LoginUrl: "http://siara-simulator:8080/login"
       Siara__Automated__PostLoginSelector: ".case-list"
+      # Page loaded before re-probing the warm session (the simulator's case list lives at "/").
+      Siara__Automated__DashboardUrl: "http://siara-simulator:8080/"
       Siara__Credentials__Username: "BANEJEMPLO"
       Siara__Credentials__Password: "password123"
       # Document storage path (shared volume).

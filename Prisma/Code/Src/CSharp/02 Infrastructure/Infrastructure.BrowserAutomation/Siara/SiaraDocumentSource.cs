@@ -272,24 +272,32 @@ public sealed class SiaraDocumentSource : ISiaraDocumentSource, IAsyncDisposable
         RequestedBy = "siara-document-discovery",
     };
 
-    /// <summary>Releases the warm session on scope teardown so it never leaks; the browser is torn down by the scope.</summary>
+    /// <summary>
+    /// Releases the warm session on scope teardown so it never leaks. The browser itself is closed by the
+    /// scoped <see cref="PlaywrightBrowserAutomationAdapter"/>'s own disposal, which the same scope runs, so
+    /// the scope must be disposed asynchronously (<c>CreateAsyncScope</c>).
+    /// </summary>
     public async ValueTask DisposeAsync()
     {
-        if (_provider is not null && _session is not null)
+        try
         {
-            // Use a fresh token: release must run even during shutdown.
-            var release = await _provider.ReleaseAsync(_session, CancellationToken.None).ConfigureAwait(false);
-            if (release.IsFailure)
+            if (_provider is not null && _session is not null)
             {
-                _logger.LogWarning(
-                    "Failed to release warm SIARA discovery session {SessionId}: {Error}",
-                    _session.SessionId,
-                    release.Error);
+                // Use a fresh token: release must run even during shutdown.
+                var release = await _provider.ReleaseAsync(_session, CancellationToken.None).ConfigureAwait(false);
+                if (release.IsFailure)
+                {
+                    _logger.LogWarning(
+                        "Failed to release warm SIARA discovery session {SessionId}: {Error}",
+                        _session.SessionId,
+                        release.Error);
+                }
             }
-
-            _session = null;
         }
-
-        _gate.Dispose();
+        finally
+        {
+            _session = null;
+            _gate.Dispose();
+        }
     }
 }

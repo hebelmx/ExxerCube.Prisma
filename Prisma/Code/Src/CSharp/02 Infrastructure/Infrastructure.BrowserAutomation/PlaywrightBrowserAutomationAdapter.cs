@@ -16,13 +16,21 @@ namespace ExxerCube.Prisma.Infrastructure.BrowserAutomation;
 /// <summary>
 /// Playwright-based implementation of browser automation agent for downloading regulatory documents.
 /// </summary>
-public class PlaywrightBrowserAutomationAdapter : IBrowserAutomationAgent, IBrowserSessionContext
+/// <remarks>
+/// Registered scoped: <see cref="DisposeAsync"/> runs at scope teardown and closes the browser, its child
+/// processes and the Playwright driver, so a consumer that never calls <see cref="CloseBrowserAsync"/> cannot
+/// leak a Chromium. Relaunching closes the previous browser, and hydrating a storage-state closes the context
+/// it replaces, so a long-lived scope holds at most one browser and one context we created.
+/// </remarks>
+public class PlaywrightBrowserAutomationAdapter : IBrowserAutomationAgent, IBrowserSessionContext, IAsyncDisposable
 {
     private readonly ILogger<PlaywrightBrowserAutomationAdapter> _logger;
     private readonly BrowserAutomationOptions _options;
     private IPlaywright? _playwright;
     private IBrowser? _browser;
     private IPage? _page;
+    private IBrowserContext? _ownedContext;
+    private bool _disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PlaywrightBrowserAutomationAdapter"/> class.
@@ -42,7 +50,11 @@ public class PlaywrightBrowserAutomationAdapter : IBrowserAutomationAgent, IBrow
     {
         try
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
             _logger.LogInformation("Launching browser session");
+
+            // A relaunch on the same instance (e.g. a session re-acquire) must not orphan the previous browser.
+            await CloseBrowserCoreAsync().ConfigureAwait(false);
 
             _playwright ??= await Playwright.CreateAsync();
             _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
@@ -56,6 +68,7 @@ public class PlaywrightBrowserAutomationAdapter : IBrowserAutomationAgent, IBrow
             {
                 IgnoreHTTPSErrors = _options.IgnoreHttpsErrors
             });
+            _ownedContext = _page.Context;
             _page.SetDefaultTimeout(_options.PageTimeoutMs);
 
             _logger.LogInformation("Browser session launched successfully");
@@ -216,17 +229,7 @@ public class PlaywrightBrowserAutomationAdapter : IBrowserAutomationAgent, IBrow
     {
         try
         {
-            if (_page != null)
-            {
-                await _page.CloseAsync();
-                _page = null;
-            }
-
-            if (_browser != null)
-            {
-                await _browser.CloseAsync();
-                _browser = null;
-            }
+            await CloseBrowserCoreAsync().ConfigureAwait(false);
 
             _playwright?.Dispose();
             _playwright = null;
@@ -238,6 +241,85 @@ public class PlaywrightBrowserAutomationAdapter : IBrowserAutomationAgent, IBrow
         {
             _logger.LogError(ex, "Failed to close browser session");
             return Result.WithFailure($"Failed to close browser: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Closes the page, the context we created and the browser, then disposes the Playwright driver.
+    /// Safe to call more than once and after <see cref="CloseBrowserAsync"/>.
+    /// </summary>
+    /// <returns>A task that completes when the browser processes have been asked to exit.</returns>
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        try
+        {
+            await CloseBrowserCoreAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            // Disposal runs at scope teardown and must not throw; the driver dispose below still kills the browser.
+            _logger.LogWarning(ex, "Closing the browser during adapter disposal failed");
+        }
+        finally
+        {
+            _playwright?.Dispose();
+            _playwright = null;
+        }
+
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Closes the context this adapter created (and with it the current page) and then the browser. A
+    /// CDP-attached browser is only disconnected, and the operator's own context and tabs are left open.
+    /// Each handle is cleared before it is closed, so a failure part-way through leaves no stale reference.
+    /// </summary>
+    private async Task CloseBrowserCoreAsync()
+    {
+        var context = _ownedContext;
+        var browser = _browser;
+        _page = null;
+        _ownedContext = null;
+        _browser = null;
+
+        if (context is not null)
+        {
+            await context.CloseAsync().ConfigureAwait(false);
+        }
+
+        if (browser is not null)
+        {
+            await browser.CloseAsync().ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Makes <paramref name="page"/> current and closes the context this adapter created before it, so
+    /// repeated hydration (one per watch-loop cycle) does not accumulate contexts and renderer processes.
+    /// </summary>
+    private async Task ReplaceOwnedContextAsync(IPage page, IBrowserContext? ownedContext)
+    {
+        var previous = _ownedContext;
+        _page = page;
+        _ownedContext = ownedContext;
+
+        if (previous is not null && !ReferenceEquals(previous, ownedContext))
+        {
+            try
+            {
+                await previous.CloseAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Closing the replaced browser context failed");
+            }
         }
     }
 
@@ -363,7 +445,7 @@ public class PlaywrightBrowserAutomationAdapter : IBrowserAutomationAgent, IBrow
             });
             var page = await context.NewPageAsync();
             page.SetDefaultTimeout(_options.PageTimeoutMs);
-            _page = page;
+            await ReplaceOwnedContextAsync(page, context).ConfigureAwait(false);
 
             _logger.LogInformation("Restored browser storage-state into a new context");
             return Result.Success();
@@ -390,10 +472,15 @@ public class PlaywrightBrowserAutomationAdapter : IBrowserAutomationAgent, IBrow
 
         try
         {
+            await CloseBrowserCoreAsync().ConfigureAwait(false);
+
             _playwright ??= await Playwright.CreateAsync();
             _browser = await _playwright.Chromium.ConnectOverCDPAsync(endpoint);
 
-            var context = _browser.Contexts.FirstOrDefault() ?? await _browser.NewContextAsync();
+            // The attached browser's own context belongs to the operator: never close it as "ours".
+            var existing = _browser.Contexts.FirstOrDefault();
+            var context = existing ?? await _browser.NewContextAsync();
+            _ownedContext = existing is null ? context : null;
             _page = context.Pages.FirstOrDefault() ?? await context.NewPageAsync();
             _page.SetDefaultTimeout(_options.PageTimeoutMs);
 

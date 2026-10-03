@@ -270,6 +270,19 @@ public sealed class AutomatedLoginSiaraSessionProvider : ISiaraSessionProvider
             return Result<SiaraSession>.WithFailure($"Failed to re-hydrate SIARA session: {rehydrate.Error}");
         }
 
+        // A re-hydrated context starts on a blank page, where the probe can never match. Load a real SIARA
+        // page first, or every re-validation fails and forces a fresh login each cycle.
+        var navigate = await _agent.NavigateToAsync(_options.DashboardUrl, cancellationToken).ConfigureAwait(false);
+        if (navigate.IsCancelled())
+        {
+            return ResultExtensions.Cancelled<SiaraSession>();
+        }
+
+        if (navigate.IsFailure)
+        {
+            return Result<SiaraSession>.WithFailure($"Failed to navigate to SIARA to re-validate the session: {navigate.Error}");
+        }
+
         var probe = await _sessionContext
             .IsAuthenticatedAsync(_options.PostLoginSelector, cancellationToken)
             .ConfigureAwait(false);

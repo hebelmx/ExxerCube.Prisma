@@ -231,6 +231,63 @@ public sealed class AutomatedLoginSiaraSessionProviderTests
     }
 
     [Fact]
+    public async Task EnsureValidAsync_WhenStillAuthenticated_NavigatesToDashboardBeforeProbing()
+    {
+        // A re-hydrated context starts on about:blank: probing there always misses, which forced a full
+        // login (and leaked a browser) on every watch-loop cycle.
+        var agent = AutomatedLoginTestFactory.CreateSuccessfulAgentMock();
+        var context = AutomatedLoginTestFactory.CreateAuthenticatedContextMock();
+        var sut = AutomatedLoginTestFactory.CreateProvider(
+            agent,
+            context,
+            AutomatedLoginTestFactory.CreateAcceptingLoginServiceMock(),
+            new FakeSiaraCredentialSource(),
+            AutomatedLoginTestFactory.CreateCircuitBreaker(),
+            new SiaraAutomatedOptions
+            {
+                LoginUrl = "https://siara.example/login",
+                DashboardUrl = "https://siara.example/",
+                PostLoginSelector = "#dashboard",
+            });
+        var acquired = await sut.AcquireAsync(RequestBy(), TestContext.Current.CancellationToken);
+        agent.ClearReceivedCalls();
+        context.ClearReceivedCalls();
+
+        var result = await sut.EnsureValidAsync(acquired.Value!, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        Received.InOrder(() =>
+        {
+            context.LoadStorageStateAsync("automated-captured-storage-state", Arg.Any<CancellationToken>());
+            agent.NavigateToAsync("https://siara.example/", Arg.Any<CancellationToken>());
+            context.IsAuthenticatedAsync("#dashboard", Arg.Any<CancellationToken>());
+        });
+        await agent.DidNotReceive().LaunchBrowserAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task EnsureValidAsync_WhenDashboardNavigationFails_FailsClosedWithoutProbing()
+    {
+        var agent = AutomatedLoginTestFactory.CreateSuccessfulAgentMock();
+        var context = AutomatedLoginTestFactory.CreateAuthenticatedContextMock();
+        var sut = AutomatedLoginTestFactory.CreateProvider(
+            agent,
+            context,
+            AutomatedLoginTestFactory.CreateAcceptingLoginServiceMock(),
+            new FakeSiaraCredentialSource(),
+            AutomatedLoginTestFactory.CreateCircuitBreaker());
+        var acquired = await sut.AcquireAsync(RequestBy(), TestContext.Current.CancellationToken);
+        context.ClearReceivedCalls();
+        agent.NavigateToAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result.WithFailure("SIARA unreachable"));
+
+        var result = await sut.EnsureValidAsync(acquired.Value!, TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        await context.DidNotReceive().IsAuthenticatedAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task ReleaseAsync_ClosesOwnedBrowser()
     {
         var agent = AutomatedLoginTestFactory.CreateSuccessfulAgentMock();

@@ -189,6 +189,33 @@ public sealed class InteractiveLoginSiaraSessionProviderTests
     }
 
     [Fact]
+    public async Task EnsureValidAsync_WhenStillAuthenticated_NavigatesToDashboardBeforeProbing()
+    {
+        var agent = InteractiveLoginTestFactory.CreateSuccessfulAgentMock();
+        var context = InteractiveLoginTestFactory.CreateAuthenticatedContextMock();
+        var sut = InteractiveLoginTestFactory.CreateProvider(agent, context, new SiaraInteractiveOptions
+        {
+            LoginUrl = "https://siara.example/login",
+            DashboardUrl = "https://siara.example/",
+            PostLoginSelector = "#dashboard",
+        });
+        var acquired = await sut.AcquireAsync(RequestWith(TimeSpan.FromSeconds(1)), TestContext.Current.CancellationToken);
+        acquired.IsSuccess.ShouldBeTrue();
+        agent.ClearReceivedCalls();
+        context.ClearReceivedCalls();
+
+        var result = await sut.EnsureValidAsync(acquired.Value!, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        Received.InOrder(() =>
+        {
+            context.LoadStorageStateAsync("interactive-captured-storage-state", Arg.Any<CancellationToken>());
+            agent.NavigateToAsync("https://siara.example/", Arg.Any<CancellationToken>());
+            context.IsAuthenticatedAsync("#dashboard", Arg.Any<CancellationToken>());
+        });
+    }
+
+    [Fact]
     public async Task EnsureValidAsync_WhenReprobeUnauthenticated_FailsClosed()
     {
         var agent = InteractiveLoginTestFactory.CreateSuccessfulAgentMock();

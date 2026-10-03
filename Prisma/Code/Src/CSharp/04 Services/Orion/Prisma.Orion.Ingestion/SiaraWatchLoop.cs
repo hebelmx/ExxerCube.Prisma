@@ -127,8 +127,9 @@ public sealed class SiaraWatchLoop : IReadinessProbe
             _options.PollInterval);
 
         // One long-lived discovery scope keeps the SIARA session warm across cycles (the document source
-        // re-validates it each pass). Created once for the loop's lifetime.
-        using var discoveryScope = _scopeFactory.CreateScope();
+        // re-validates it each pass). Created once for the loop's lifetime. Disposed asynchronously: the
+        // document source and the browser adapter are IAsyncDisposable, and that disposal closes Chromium.
+        await using var discoveryScope = _scopeFactory.CreateAsyncScope();
 
         ISiaraDocumentSource source;
         try
@@ -382,7 +383,7 @@ public sealed class SiaraWatchLoop : IReadinessProbe
     /// </summary>
     private async Task<IndQuestResults.Result<IngestionResult>> IngestOneAsync(SiaraCase siaraCase, CancellationToken cancellationToken)
     {
-        using var scope = _scopeFactory.CreateScope();
+        await using var scope = _scopeFactory.CreateAsyncScope();
         var orchestrator = scope.ServiceProvider.GetRequiredService<IngestionOrchestrator>();
         return await orchestrator
             .IngestCaseAsync(siaraCase, Guid.NewGuid(), cancellationToken)

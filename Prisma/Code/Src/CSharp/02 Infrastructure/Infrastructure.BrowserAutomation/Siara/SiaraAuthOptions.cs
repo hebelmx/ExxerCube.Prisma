@@ -125,6 +125,13 @@ public sealed class SiaraInteractiveOptions
     public string LoginUrl { get; set; } = "https://siara.cnbv.gob.mx/";
 
     /// <summary>
+    /// Gets or sets the SIARA URL loaded before re-probing a warm session. Importing a storage-state leaves
+    /// the browser on a blank page, so without this navigation the <see cref="PostLoginSelector"/> probe can
+    /// never match and every re-validation forces a fresh login. Defaults to the SIARA portal.
+    /// </summary>
+    public string DashboardUrl { get; set; } = "https://siara.cnbv.gob.mx/";
+
+    /// <summary>
     /// Gets or sets a selector that is present only once authenticated, used to detect that the human has
     /// completed login (fail-closed) and, later, to re-probe the session. Deployment-specific.
     /// </summary>
@@ -146,6 +153,13 @@ public sealed class SiaraAutomatedOptions
 {
     /// <summary>Gets or sets the URL of the SIARA login page the unattended login navigates to.</summary>
     public string LoginUrl { get; set; } = "https://siara.cnbv.gob.mx/";
+
+    /// <summary>
+    /// Gets or sets the SIARA URL loaded before re-probing a warm session. Importing a storage-state leaves
+    /// the browser on a blank page, so without this navigation the <see cref="PostLoginSelector"/> probe can
+    /// never match and every re-validation forces a fresh login. Defaults to the SIARA portal.
+    /// </summary>
+    public string DashboardUrl { get; set; } = "https://siara.cnbv.gob.mx/";
 
     /// <summary>
     /// Gets or sets a selector that is present only once authenticated, used to confirm (fail-closed) and
