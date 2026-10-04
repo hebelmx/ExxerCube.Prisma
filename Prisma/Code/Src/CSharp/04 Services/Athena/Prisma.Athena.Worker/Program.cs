@@ -288,7 +288,8 @@ namespace Prisma.Athena.Worker
                 fileLoader: sp.GetRequiredService<IFileLoader>(),
                 txtFieldExtractor: sp.GetRequiredService<IFieldExtractor<TxtSource>>(),
                 xmlFieldExtractor: sp.GetRequiredService<IFieldExtractor<XmlSource>>(),
-                docxFieldExtractor: sp.GetRequiredService<IFieldExtractor<DocxSource>>()));
+                docxFieldExtractor: sp.GetRequiredService<IFieldExtractor<DocxSource>>(),
+                metadataScopeFactory: sp.GetService<IServiceScopeFactory>()));
             // SmartEnum (EnumModel) JSON converter on the reconciliation hub protocol — same reason as the Orion
             // ingestion edge: domain events on the wire carry SmartEnums that default System.Text.Json cannot
             // reconstruct. Both ends of the edge must agree, so the Reconciliator client registers the same converter.

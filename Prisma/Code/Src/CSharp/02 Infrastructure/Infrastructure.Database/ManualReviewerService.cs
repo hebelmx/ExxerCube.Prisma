@@ -426,11 +426,14 @@ public class ManualReviewerService : IManualReviewerPanel
                                 {
                                     FieldName = kv.Key,
                                     Value = kv.Value.MatchedValue,
-                                    Source = "Reconciliation",
+                                    // The real source(s) of the value, e.g. "XML_HandFilled, PDF_OCR_CNBV".
+                                    Source = string.IsNullOrWhiteSpace(kv.Value.SourceType) ? "Reconciliation" : kv.Value.SourceType,
                                     Confidence = (int)(kv.Value.Confidence * 100),
                                     HasConflict = kv.Value.HasConflict,
                                     AgreementLevel = kv.Value.AgreementLevel,
                                     OriginTrace = $"File {reviewCase.FileId} - UnifiedMetadataRecord.MatchedFields ({kv.Value.SourceType})",
+                                    // Each source's own value, so the reviewer can compare them side by side.
+                                    AllSourceValues = kv.Value.AllValues.Cast<object>().ToList(),
                                 };
                             }
                         }

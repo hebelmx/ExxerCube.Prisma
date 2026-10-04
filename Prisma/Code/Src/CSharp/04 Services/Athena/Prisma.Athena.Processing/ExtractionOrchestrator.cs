@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,8 +10,10 @@ using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Models;
+using ExxerCube.Prisma.Domain.Services;
 using ExxerCube.Prisma.Domain.Sources;
 using ExxerCube.Prisma.Domain.ValueObjects;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Prisma.Athena.Processing;
@@ -39,6 +42,7 @@ public sealed class ExtractionOrchestrator
     private readonly IFieldExtractor<DocxSource>? _docxFieldExtractor;
     private readonly IEventPublisher _eventPublisher;
     private readonly ILogger _logger;
+    private readonly IServiceScopeFactory? _metadataScopeFactory;
 
     /// <summary>Quality confidence threshold below which documents are rejected (Q1_Poor.Value = 1).</summary>
     private const int QualityRejectionThreshold = 2;
@@ -53,6 +57,10 @@ public sealed class ExtractionOrchestrator
     /// <param name="txtFieldExtractor">Optional: Field extractor turning Stage 2 OCR text into an Expediente for Stage 3 fusion.</param>
     /// <param name="xmlFieldExtractor">Optional: Field extractor for XML companion case files (MVP-PATH 2.1 multi-source fusion).</param>
     /// <param name="docxFieldExtractor">Optional: Field extractor for DOCX companion case files (MVP-PATH 2.1 multi-source fusion).</param>
+    /// <param name="metadataScopeFactory">
+    /// Optional scope factory used to resolve <see cref="IUnifiedMetadataStore"/> (scoped) after fusion, to save
+    /// the per-field fusion detail the review page shows. When <see langword="null"/> nothing is saved.
+    /// </param>
     public ExtractionOrchestrator(
         IEventPublisher eventPublisher,
         ILogger logger,
@@ -62,9 +70,11 @@ public sealed class ExtractionOrchestrator
         IFileLoader? fileLoader = null,
         IFieldExtractor<TxtSource>? txtFieldExtractor = null,
         IFieldExtractor<XmlSource>? xmlFieldExtractor = null,
-        IFieldExtractor<DocxSource>? docxFieldExtractor = null)
+        IFieldExtractor<DocxSource>? docxFieldExtractor = null,
+        IServiceScopeFactory? metadataScopeFactory = null)
     {
         _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
+        _metadataScopeFactory = metadataScopeFactory;
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _qualityAnalyzer = qualityAnalyzer;
         _ocrExecutor = ocrExecutor;
@@ -353,7 +363,44 @@ public sealed class ExtractionOrchestrator
         _logger.LogInformation("Stage 3 complete: Fusion - FileId: {FileId}, Conflicts: {Conflicts}",
             fileId, result.ConflictingFields.Count);
 
+        await SaveFusionRecordAsync(fileId, result, cancellationToken).ConfigureAwait(false);
+
         return result;
+    }
+
+    /// <summary>
+    /// Saves the per-field fusion detail (values, sources, agreement, each source's own value) under the case
+    /// FileId. Only the fused expediente crosses into the Reconciliator, so this is how the review page gets
+    /// that detail. Fail-open: a failure is logged and never stops the pipeline.
+    /// </summary>
+    private async Task SaveFusionRecordAsync(Guid fileId, FusionResult fusionResult, CancellationToken cancellationToken)
+    {
+        if (_metadataScopeFactory is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await using var scope = _metadataScopeFactory.CreateAsyncScope();
+            var store = scope.ServiceProvider.GetService<IUnifiedMetadataStore>();
+            if (store is null)
+            {
+                return;
+            }
+
+            var save = await store.SaveAsync(fileId.ToString(), FusionMetadataRecordBuilder.From(fusionResult), cancellationToken)
+                .ConfigureAwait(false);
+            if (save.IsFailure)
+            {
+                _logger.LogWarning(
+                    "Saving the fusion record for FileId {FileId} failed: {Error} (pipeline continues)", fileId, save.Error);
+            }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex, "Saving the fusion record for FileId {FileId} threw (pipeline continues)", fileId);
+        }
     }
 
     // ========================================================================
@@ -549,6 +596,9 @@ public sealed class ExtractionOrchestrator
         return (expediente, metadata);
     }
 
+    /// <summary>Date formats seen in SIARA XML: <c>30/09/2026</c> (generated corpus) and <c>2025-06-04</c> (legacy set).</summary>
+    private static readonly string[] DeadlineDateFormats = ["dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd", "yyyyMMdd"];
+
     private static Expediente MapExtractedFieldsToExpediente(ExtractedFields fields)
     {
         var additional = fields.AdditionalFields ?? new Dictionary<string, string?>();
@@ -587,6 +637,24 @@ public sealed class ExtractionOrchestrator
                 Nombre    = nombre ?? string.Empty,
                 Domicilio = domicilio,
             });
+        }
+
+        // Deadline fields: XmlFieldExtractor surfaces Cnbv_DiasPlazo / Cnbv_FechaPublicacion as strings in
+        // AdditionalFields. Fusion fuses the typed fields and the Reconciliator's SLA reads them, so a value that
+        // stays only in the bag leaves every case with DiasPlazo = 0 and no SLA. Unreadable values stay unset.
+        if (int.TryParse(additional.GetValueOrDefault("DiasPlazo"), NumberStyles.None, CultureInfo.InvariantCulture, out var diasPlazo))
+        {
+            expediente.DiasPlazo = diasPlazo;
+        }
+
+        if (DateTime.TryParseExact(
+                additional.GetValueOrDefault("FechaPublicacion"),
+                DeadlineDateFormats,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out var fechaPublicacion))
+        {
+            expediente.FechaPublicacion = fechaPublicacion;
         }
 
         // Propagate TieneAseguramiento from AdditionalFields so the classifier's

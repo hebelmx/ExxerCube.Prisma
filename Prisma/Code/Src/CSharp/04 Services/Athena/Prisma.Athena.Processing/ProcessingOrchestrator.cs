@@ -117,7 +117,7 @@ public sealed class ProcessingOrchestrator
         // (Reconciliator) in separate processes. Stage logic lives in the halves; this class composes them.
         _extractionOrchestrator = new ExtractionOrchestrator(
             eventPublisher, logger, qualityAnalyzer, ocrExecutor, fusionService, fileLoader, txtFieldExtractor,
-            xmlFieldExtractor, docxFieldExtractor);
+            xmlFieldExtractor, docxFieldExtractor, metadataScopeFactory: scopeFactory);
         _reconciliationOrchestrator = new ReconciliationOrchestrator(
             eventPublisher, logger, classifier, exporter, reviewCaseScopeFactory: scopeFactory,
             exportGatePolicy: _exportGatePolicy);

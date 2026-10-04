@@ -424,13 +424,10 @@
 
 	private List<string> GetFieldSources(FieldAnnotation annotation)
 	{
-		var sources = new List<string>();
-		if (!string.IsNullOrEmpty(annotation.Source))
-		{
-			sources.Add(annotation.Source);
-		}
-		// Add additional sources if available from annotation metadata
-		return sources;
+		// Source can name several sources ("XML_HandFilled, PDF_OCR_CNBV"): one chip each.
+		return string.IsNullOrWhiteSpace(annotation.Source)
+			? new List<string>()
+			: annotation.Source.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
 	}
 
 
@@ -451,14 +448,32 @@
 			{
 				FieldName = f.FieldName,
 				UnifiedValue = f.Value?.ToString() ?? "-",
-				XmlValue = f.Source == "XML" ? f.Value?.ToString() : null,
-				DocxValue = f.Source == "DOCX" ? f.Value?.ToString() : null,
-				PdfValue = f.Source == "PDF" ? f.Value?.ToString() : null,
-				OcrValue = f.Source == "OCR" ? f.Value?.ToString() : null
+				XmlValue = SourceValue(f, "XML"),
+				DocxValue = SourceValue(f, "DOCX"),
+				PdfValue = SourceValue(f, "PDF"),
+				OcrValue = SourceValue(f, "OCR")
 			})
 			.ToList();
 
 		return conflicted;
+	}
+
+	/// <summary>
+	/// The value one source family gave for a field: taken from the per-source values the extractor recorded
+	/// (source types such as XML_HandFilled, DOCX_OCR_Authority, PDF_OCR_CNBV), else from the annotation's own
+	/// source. A scanned PDF read through OCR is shown under PDF.
+	/// </summary>
+	private static string? SourceValue(FieldAnnotation annotation, string family)
+	{
+		var fromSources = annotation.AllSourceValues
+			.OfType<FieldValue>()
+			.FirstOrDefault(v => v.SourceType.StartsWith(family + "_", StringComparison.OrdinalIgnoreCase));
+		if (fromSources is not null)
+		{
+			return fromSources.Value;
+		}
+
+		return annotation.Source == family ? annotation.Value?.ToString() : null;
 	}
 
 	private class FieldComparison

@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
@@ -195,6 +196,7 @@ public class IngestionOrchestrator
         FileFormat primaryFormat = FileFormat.Unknown;
         string? primaryUrl = null;
         string? primaryFileName = null;
+        string? primaryHash = null;
         long primarySizeBytes = 0;
         bool anyNew = false;
         bool anyMissing = false;
@@ -335,6 +337,7 @@ public class IngestionOrchestrator
                 primaryFormat = file.Format;
                 primaryUrl = file.Url;
                 primaryFileName = file.FileName;
+                primaryHash = hash;
                 primarySizeBytes = downloaded.Content.LongLength;
             }
         }
@@ -398,6 +401,21 @@ public class IngestionOrchestrator
             }
         }
 
+        // Record the case's file metadata (keyed by the case FileId) before the broadcast, so it exists
+        // before any downstream process reads it: the review page needs it, and the SLA row has a foreign
+        // key to it. Fail-open: a metadata failure never blocks ingestion.
+        await RecordCaseFileMetadataAsync(
+            BuildCaseFileMetadata(
+                caseFileId,
+                primaryFileName ?? string.Empty,
+                primaryRelativePath ?? string.Empty,
+                primaryUrl,
+                primaryHash ?? string.Empty,
+                primarySizeBytes,
+                primaryFormat,
+                now),
+            cancellationToken).ConfigureAwait(false);
+
         // Broadcast ONE event covering the case (complete or best-effort partial).
         var evt = new DocumentDownloadedEvent
         {
@@ -448,6 +466,68 @@ public class IngestionOrchestrator
     // -------------------------------------------------------------------------
     // Private shared helpers
     // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Builds the <see cref="FileMetadata"/> row for a case from its primary file (PDF preferred). The row is
+    /// keyed by the case FileId — the id every downstream process, review case and SLA row uses.
+    /// </summary>
+    internal static FileMetadata BuildCaseFileMetadata(
+        Guid caseFileId,
+        string primaryFileName,
+        string primaryRelativePath,
+        string? primaryUrl,
+        string primaryHash,
+        long primarySizeBytes,
+        FileFormat primaryFormat,
+        DateTime downloadedAtUtc) => new()
+    {
+        FileId = caseFileId.ToString(),
+        FileName = primaryFileName,
+        FilePath = primaryRelativePath,
+        Url = primaryUrl,
+        Checksum = primaryHash,
+        FileSize = primarySizeBytes,
+        Format = primaryFormat,
+        Channel = "SIARA",
+        DownloadTimestamp = downloadedAtUtc,
+        DownloadDateTime = downloadedAtUtc,
+    };
+
+    /// <summary>
+    /// Persists the case's <see cref="FileMetadata"/> through a per-call scope (the logger is scoped).
+    /// Fail-open: when no database is wired the call is a no-op, and a failure — including a case whose
+    /// FileId was already recorded by an earlier ingestion — is logged and never blocks ingestion.
+    /// </summary>
+    private async Task RecordCaseFileMetadataAsync(FileMetadata metadata, CancellationToken cancellationToken)
+    {
+        if (_scopeFactory is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await using var scope = _scopeFactory.CreateAsyncScope();
+            var metadataLogger = scope.ServiceProvider.GetService<IFileMetadataLogger>();
+            if (metadataLogger is null)
+            {
+                return;
+            }
+
+            var result = await metadataLogger.LogFileMetadataAsync(metadata, cancellationToken).ConfigureAwait(false);
+            if (result.IsFailure)
+            {
+                _logger.LogInformation(
+                    "File metadata for case FileId {FileId} was not recorded (already recorded or unavailable): {Error}",
+                    metadata.FileId,
+                    result.Error);
+            }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex, "Recording file metadata failed for case FileId {FileId} (ingestion continues)", metadata.FileId);
+        }
+    }
 
     /// <summary>
     /// Downloads a single file from the given URL.

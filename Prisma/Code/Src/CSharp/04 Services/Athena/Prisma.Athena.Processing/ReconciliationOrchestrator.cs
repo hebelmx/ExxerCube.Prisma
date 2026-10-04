@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using ExxerCube.Prisma.Application.Services;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
@@ -142,6 +143,10 @@ public sealed class ReconciliationOrchestrator
         // G-C2b: pass handoffPath so the ReviewCase rows carry it for the reviewer-approval handler.
         await PersistReviewCaseAsync(fileId, fusionResult, classificationResult, isComplete, handoffPath, cancellationToken)
             .ConfigureAwait(false);
+
+        // SLA TRACKING: start the case's deadline clock from the fused expediente (intake date + DiasPlazo in
+        // business days). Fail-open, like review-case persistence.
+        await TrackSlaAsync(fileId, fusionResult?.FusedExpediente, cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -363,6 +368,68 @@ public sealed class ReconciliationOrchestrator
             _logger.LogWarning(ex,
                 "Review-case persistence threw for file {FileId} (fail-open — pipeline continues)", fileId);
         }
+    }
+
+    /// <summary>
+    /// Starts (or refreshes) the case's SLA from the fused expediente through <see cref="SLATrackingService"/>.
+    /// The intake date is the expediente's <c>FechaRecepcion</c>, else its <c>FechaPublicacion</c>, else now
+    /// (the moment the case reached Prisma). Without a positive <c>DiasPlazo</c> no deadline can be computed,
+    /// so tracking is skipped rather than guessed. Fail-open: a failure is logged and never throws.
+    /// </summary>
+    private async Task TrackSlaAsync(Guid fileId, Expediente? expediente, CancellationToken cancellationToken)
+    {
+        if (_reviewCaseScopeFactory is null)
+        {
+            return; // No DB wired — silent no-op.
+        }
+
+        if (expediente is null || expediente.DiasPlazo <= 0)
+        {
+            _logger.LogWarning(
+                "SLA tracking skipped for file {FileId}: the expediente carries no positive DiasPlazo ({DiasPlazo})",
+                fileId, expediente?.DiasPlazo);
+            return;
+        }
+
+        var intakeDate = ResolveSlaIntakeDate(expediente, DateTime.UtcNow);
+
+        try
+        {
+            await using var scope = _reviewCaseScopeFactory.CreateAsyncScope();
+            if (scope.ServiceProvider.GetService<ISLAEnforcer>() is null)
+            {
+                _logger.LogDebug("ISLAEnforcer not registered in scope — SLA tracking skipped for file {FileId}", fileId);
+                return;
+            }
+
+            var tracker = ActivatorUtilities.CreateInstance<SLATrackingService>(scope.ServiceProvider);
+            var result = await tracker.TrackSLAAsync(fileId.ToString(), intakeDate, expediente.DiasPlazo, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (result.IsFailure)
+            {
+                _logger.LogWarning(
+                    "SLA tracking returned failure for file {FileId}: {Error} (pipeline continues)", fileId, result.Error);
+            }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex, "SLA tracking threw for file {FileId} (fail-open — pipeline continues)", fileId);
+        }
+    }
+
+    /// <summary>
+    /// The date the SLA clock starts from: <c>FechaRecepcion</c>, else <c>FechaPublicacion</c>, else
+    /// <paramref name="now"/>. Unset dates (<see cref="DateTime.MinValue"/>) are skipped.
+    /// </summary>
+    internal static DateTime ResolveSlaIntakeDate(Expediente expediente, DateTime now)
+    {
+        if (expediente.FechaRecepcion != default)
+        {
+            return expediente.FechaRecepcion;
+        }
+
+        return expediente.FechaPublicacion != default ? expediente.FechaPublicacion : now;
     }
 
     // ========================================================================
