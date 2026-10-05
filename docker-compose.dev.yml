@@ -415,6 +415,10 @@ services:
       # siara-simulator:8080 is not resolvable from the browser; the sim is host-published on 8084.
       NavigationTargets__SiaraBrowserUrl: "http://localhost:8084"
       Siara__BaseUrl: "http://siara-simulator:8080"
+      # /browser-automation signs in to the simulator like the Orion downloader. These are the
+      # simulator's public fake credentials (tools/Siara.Simulator appsettings), dev compose only.
+      Siara__Credentials__Username: "BANEJEMPLO"
+      Siara__Credentials__Password: "password123"
       Storage__BasePath: "/data/documents"
       SEQ_URL: "http://seq:80"
       OTLP_ENDPOINT: ${OTLP_ENDPOINT:-http://seq:4317}

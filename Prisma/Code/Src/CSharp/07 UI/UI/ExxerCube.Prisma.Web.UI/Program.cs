@@ -379,6 +379,13 @@ Inner Stack Trace:
             configuration.GetSection("BrowserAutomation").Bind(options);
         });
 
+        // /browser-automation signs in to SIARA with the same configured credentials as the Orion downloader
+        // (Siara:Credentials:*, read through the secret-store keys in SiaraAuthOptions; never logged).
+        services.Configure<ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions>(
+            configuration.GetSection(ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions.SectionName));
+        services.AddSingleton<ExxerCube.Prisma.Domain.Interfaces.ISiaraCredentialSource,
+            ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.ConfiguredSiaraCredentialSource>();
+
         // Configure navigation targets
         services.Configure<ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.NavigationTargetOptions>(options =>
         {

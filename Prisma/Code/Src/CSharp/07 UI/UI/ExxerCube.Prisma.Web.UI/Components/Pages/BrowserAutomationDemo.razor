@@ -5,13 +5,14 @@
 @using ExxerCube.Prisma.Domain.Enum
 @using ExxerCube.Prisma.Infrastructure.BrowserAutomation
 @using Microsoft.Extensions.Options
-@using AngleSharp.Html.Parser
 @using Microsoft.JSInterop
 @using Microsoft.Extensions.Logging
 @inject IBrowserAutomationAgent BrowserAgent
 @inject IOptions<BrowserAutomationOptions> BrowserOptions
 @inject ISnackbar Snackbar
 @inject ILogger<BrowserAutomationDemo> Logger
+@inject ISiaraLoginService SiaraLogin
+@inject ISiaraCredentialSource SiaraCredentials
 @implements IDisposable
 
 <PageTitle>Browser Automation - Document Download</PageTitle>
@@ -377,200 +378,116 @@
         _progressPercent = 100;
     }
 
+    /// <summary>
+    /// Signs in to SIARA the way the Orion downloader does (configured credentials, allowed-host check, shared
+    /// login selectors), waits on the dashboard until it lists enough documents, and downloads them through the
+    /// signed-in browser session. The simulator gates both its dashboard and its document store on that session,
+    /// so an anonymous HTTP client finds nothing.
+    /// </summary>
     private async Task NavigateToSiara(IBrowserAutomationAgent agent)
     {
-        _statusMessage = "Navigating to SIARA Simulator (CNBV document simulator)...";
-        StateHasChanged();
-
-        // Use editable SIARA URL
+        var loginUrl = $"{_siaraUrl.TrimEnd('/')}/login";
         _statusMessage = $"Connecting to SIARA at {_siaraUrl}...";
-        StateHasChanged();
+        SafeStateHasChanged();
 
-        var navResult = await agent.NavigateToAsync(_siaraUrl);
-
+        var navResult = await agent.NavigateToAsync(loginUrl);
         if (!navResult.IsSuccess)
         {
             _statusMessage = $"Failed to connect to SIARA: {navResult.Error}";
-            Snackbar.Add($"SIARA connection failed. Make sure SIARA Simulator is running at {_siaraUrl}", Severity.Warning);
-            _progressPercent = 100;
+            Logger.LogWarning("SIARA connection failed at {Url}: {Error}", loginUrl, navResult.Error);
+            SafeSnackbarAdd($"SIARA connection failed. Make sure SIARA Simulator is running at {_siaraUrl}", Severity.Warning);
             return;
         }
 
-        _statusMessage = "Connected to SIARA - performing login...";
-        StateHasChanged();
-
-        // Wait for login form to load
-        var waitResult = await agent.WaitForSelectorAsync("#username", 10000);
-        if (!waitResult.IsSuccess)
-        {
-            _statusMessage = "Login form not found - SIARA may already be logged in or unavailable";
-            Snackbar.Add("Could not find login form", Severity.Warning);
-            _progressPercent = 100;
-            return;
-        }
-
-        await Task.Delay(1000);
-
-        // Fill username field (any username works in demo mode)
-        _statusMessage = "Entering credentials...";
-        StateHasChanged();
-
-        var fillUsernameResult = await agent.FillInputAsync("#username", "BancoDemo");
-        if (!fillUsernameResult.IsSuccess)
-        {
-            _statusMessage = $"Failed to fill username: {fillUsernameResult.Error}";
-            Snackbar.Add("Login failed at username field", Severity.Error);
-            _progressPercent = 100;
-            return;
-        }
-
-        await Task.Delay(500);
-
-        // Fill password field (any password works in demo mode)
-        var fillPasswordResult = await agent.FillInputAsync("#password", "demo123");
-        if (!fillPasswordResult.IsSuccess)
-        {
-            _statusMessage = $"Failed to fill password: {fillPasswordResult.Error}";
-            Snackbar.Add("Login failed at password field", Severity.Error);
-            _progressPercent = 100;
-            return;
-        }
-
-        await Task.Delay(500);
-
-        // Click login button
-        _statusMessage = "Clicking login button...";
-        StateHasChanged();
-
-        var clickResult = await agent.ClickElementAsync("button[type='submit']");
-        if (!clickResult.IsSuccess)
-        {
-            _statusMessage = $"Failed to click login: {clickResult.Error}";
-            Snackbar.Add("Login button click failed", Severity.Error);
-            _progressPercent = 100;
-            return;
-        }
-
-        // Wait for dashboard to load after login
-        _statusMessage = "Logging in... waiting for dashboard...";
-        StateHasChanged();
-        await Task.Delay(5000); // Match test: PostLoginWaitMs = 5000
-
-        _statusMessage = "Successfully logged in! Viewing dashboard for 3 seconds...";
-        Snackbar.Add("SIARA login successful - simulator running!", Severity.Success);
-        StateHasChanged();
-        await Task.Delay(3000); // Match test: pause to view dashboard
-
-        // Watch SIARA for a period (like the test does - 3 minutes, but we'll use shorter for demo)
-        _statusMessage = "Watching SIARA dashboard as cases arrive...";
+        _statusMessage = "Connected to SIARA - signing in...";
         SafeStateHasChanged();
 
-        try
+        var credentialResult = await SiaraCredentials.GetCredentialsAsync();
+        if (!credentialResult.IsSuccess || credentialResult.Value is null)
         {
-            await Task.Delay(TimeSpan.FromMinutes(3)); // Match test: watch for 3 minutes
-        }
-        catch (TaskCanceledException)
-        {
-            Logger.LogInformation("SIARA watch period cancelled - user likely navigated away");
+            _statusMessage = "SIARA credentials are not configured (Siara:Credentials:Username / Password).";
+            SafeSnackbarAdd("SIARA credentials are not configured", Severity.Error);
             return;
         }
 
-        _statusMessage = "Watch period complete. Collecting documents from page...";
-        _progressPercent = 50;
+        Result loginResult;
+        using (var credential = credentialResult.Value)
+        {
+            loginResult = await credential.UseAsync((username, password) => SiaraLogin.LoginAsync(agent, username, password));
+        }
+
+        if (!loginResult.IsSuccess)
+        {
+            _statusMessage = $"SIARA sign-in failed: {loginResult.Error}";
+            Logger.LogWarning("SIARA sign-in failed: {Error}", loginResult.Error);
+            SafeSnackbarAdd("SIARA sign-in failed", Severity.Error);
+            return;
+        }
+
+        _statusMessage = "Signed in - watching the SIARA dashboard for new cases...";
+        _progressPercent = 20;
+        SafeSnackbarAdd("Signed in to SIARA", Severity.Success);
         SafeStateHasChanged();
 
-        // STEP: Collect Documents using AngleSharp + HttpClient (matches test approach)
-        try
+        // Cases arrive on the dashboard over time; poll it until it lists enough documents.
+        var patterns = new[] { "*.pdf", "*.xml", "*.docx" };
+        var deadline = DateTime.UtcNow + SiaraWatchTimeout;
+        List<DownloadableFile> available = new();
+        while (DateTime.UtcNow < deadline)
         {
-            using var httpClient = new HttpClient();
-
-            // Fetch HTML from dashboard
-            _statusMessage = "Fetching dashboard HTML...";
-            SafeStateHasChanged();
-            var html = await httpClient.GetStringAsync($"{_siaraUrl}/");
-
-            // Parse HTML with AngleSharp
-            var parser = new HtmlParser();
-            var document = await parser.ParseDocumentAsync(html);
-
-            // Find all document links (PDF, DOCX, XML)
-            var docLinks = document.QuerySelectorAll("a[href$='.pdf'], a[href$='.docx'], a[href$='.xml']")
-                .Select(a => a.GetAttribute("href"))
-                .Where(href => !string.IsNullOrEmpty(href))
-                .Select(href => href!.StartsWith("http") ? href : $"{_siaraUrl}{href}")
-                .Distinct()
-                .ToList();
-
-            _statusMessage = $"Found {docLinks.Count} document links in HTML";
-            SafeStateHasChanged();
-            SafeSnackbarAdd($"Found {docLinks.Count} documents!", Severity.Success);
-
-            if (!docLinks.Any())
+            var listed = await agent.IdentifyDownloadableFilesAsync(patterns);
+            if (listed.IsSuccess && listed.Value is not null)
             {
-                _statusMessage = "No documents found on dashboard";
-                SafeSnackbarAdd("No SIARA documents found. Simulator may not have generated any cases yet.", Severity.Warning);
-                _progressPercent = 100;
-                return;
-            }
-
-            // Download documents
-            var linksToDownload = docLinks.Take(_downloadCount).ToList();
-            _statusMessage = $"Downloading {linksToDownload.Count} documents...";
-            SafeStateHasChanged();
-
-            const int maxConcurrentDownloads = 3;
-            for (int i = 0; i < linksToDownload.Count; i += maxConcurrentDownloads)
-            {
-                var batch = linksToDownload.Skip(i).Take(maxConcurrentDownloads).ToList();
-                var downloadTasks = batch.Select(async link =>
+                available = listed.Value;
+                if (available.Count >= _downloadCount)
                 {
-                    var fileName = Path.GetFileName(link);
-
-                    _statusMessage = $"Downloading {fileName}...";
-                    SafeStateHasChanged();
-
-                    var bytes = await httpClient.GetByteArrayAsync(link);
-
-                    var downloadedFile = new DownloadedFile
-                    {
-                        FileName = fileName,
-                        Content = bytes,
-                        Url = link,
-                        Format = DetermineFileFormat(fileName)
-                    };
-
-                    _downloadedFiles.Add(downloadedFile);
-                    SafeSnackbarAdd($"Downloaded: {fileName}", Severity.Success);
-                });
-
-                await Task.WhenAll(downloadTasks);
-
-                _progressPercent = 50 + ((i + maxConcurrentDownloads) * 50 / linksToDownload.Count);
-                SafeStateHasChanged();
-
-                if (i + maxConcurrentDownloads < linksToDownload.Count)
-                {
-                    await Task.Delay(300);
+                    break;
                 }
             }
 
-            _statusMessage = $"Successfully downloaded {_downloadedFiles.Count(f => f.Url.Contains(_siaraUrl))} SIARA documents";
-            _progressPercent = 100;
+            _statusMessage = $"Watching the SIARA dashboard: {available.Count} document(s) listed so far...";
             SafeStateHasChanged();
+            await Task.Delay(SiaraPollInterval);
         }
-        catch (JSDisconnectedException ex)
+
+        if (available.Count == 0)
         {
-            Logger.LogInformation(ex, "Circuit disconnected during SIARA document collection");
-            // User navigated away - this is fine, just stop processing
+            _statusMessage = "No documents appeared on the SIARA dashboard.";
+            Logger.LogWarning("No SIARA documents were listed within {Timeout}", SiaraWatchTimeout);
+            SafeSnackbarAdd("No SIARA documents found. The simulator may not have released any cases yet.", Severity.Warning);
+            return;
         }
-        catch (Exception ex)
+
+        var toDownload = available.Take(_downloadCount).ToList();
+        for (var i = 0; i < toDownload.Count; i++)
         {
-            _statusMessage = $"Error collecting documents: {ex.Message}";
-            Logger.LogError(ex, "Error collecting SIARA documents");
-            SafeSnackbarAdd($"Failed to collect documents: {ex.Message}", Severity.Error);
-            _progressPercent = 100;
+            var file = toDownload[i];
+            _statusMessage = $"Downloading {file.FileName}...";
+            _progressPercent = 20 + (i * 80 / toDownload.Count);
+            SafeStateHasChanged();
+
+            var download = await agent.DownloadFileAsync(file.Url);
+            if (download.IsSuccess && download.Value is not null)
+            {
+                _downloadedFiles.Add(download.Value);
+                SafeStateHasChanged();
+            }
+            else
+            {
+                Logger.LogWarning("SIARA download failed for {FileName}: {Error}", file.FileName, download.Error);
+                SafeSnackbarAdd($"Download failed: {file.FileName}", Severity.Warning);
+            }
         }
+
+        _statusMessage = $"Downloaded {_downloadedFiles.Count} SIARA documents";
+        _progressPercent = 100;
     }
+
+    /// <summary>How long to wait for the dashboard to list enough documents.</summary>
+    private static readonly TimeSpan SiaraWatchTimeout = TimeSpan.FromSeconds(90);
+
+    /// <summary>How often the dashboard is re-read while waiting for cases.</summary>
+    private static readonly TimeSpan SiaraPollInterval = TimeSpan.FromSeconds(2);
 
     private FileFormat DetermineFileFormat(string fileName)
     {

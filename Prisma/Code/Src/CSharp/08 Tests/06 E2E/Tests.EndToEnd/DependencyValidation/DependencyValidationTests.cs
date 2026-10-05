@@ -18,11 +18,11 @@ public class DependencyValidationTests : IClassFixture<TestWebApplicationFactory
     [Trait("Category", "E2E")]
     [Trait("Category", "DI")]
     [Trait("Category", "WebApplicationFactory")]
-    public void AllCriticalServices_ShouldBeResolvable()
+    public async Task AllCriticalServices_ShouldBeResolvable()
     {
         using var client = _factory.CreateClient();
 
-        using var scope = _factory.Services.CreateScope();
+        await using var scope = _factory.Services.CreateAsyncScope();
         var scopedProvider = scope.ServiceProvider;
 
         scopedProvider.GetService<DocumentIngestionService>().ShouldNotBeNull();
@@ -61,11 +61,33 @@ public class DependencyValidationTests : IClassFixture<TestWebApplicationFactory
         httpClient.BaseAddress.ShouldNotBeNull();
     }
 
+    /// <summary>
+    /// /browser-automation signs in to SIARA through the same login service and configured credential source as
+    /// the Orion downloader; without configured credentials the read must fail closed rather than fall back.
+    /// </summary>
     [Fact]
     [Trait("Category", "E2E")]
     [Trait("Category", "DI")]
     [Trait("Category", "WebApplicationFactory")]
-    public void ServiceLifetimes_ShouldBeCorrect()
+    public async Task BrowserAutomationPage_SiaraSignInServices_ResolveAndFailClosedWithoutCredentials()
+    {
+        using var client = _factory.CreateClient();
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        scope.ServiceProvider.GetService<ISiaraLoginService>().ShouldNotBeNull();
+        var credentials = scope.ServiceProvider.GetService<ISiaraCredentialSource>();
+        credentials.ShouldNotBeNull();
+
+        var result = await credentials.GetCredentialsAsync(TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeFalse("no Siara:Credentials are configured for the test host");
+    }
+
+    [Fact]
+    [Trait("Category", "E2E")]
+    [Trait("Category", "DI")]
+    [Trait("Category", "WebApplicationFactory")]
+    public async Task ServiceLifetimes_ShouldBeCorrect()
     {
         using var client = _factory.CreateClient();
 
@@ -73,8 +95,8 @@ public class DependencyValidationTests : IClassFixture<TestWebApplicationFactory
         var singleton2 = _factory.Services.GetRequiredService<IHttpClientFactory>();
         singleton1.ShouldBeSameAs(singleton2);
 
-        using var scope1 = _factory.Services.CreateScope();
-        using var scope2 = _factory.Services.CreateScope();
+        await using var scope1 = _factory.Services.CreateAsyncScope();
+        await using var scope2 = _factory.Services.CreateAsyncScope();
         var scoped1 = scope1.ServiceProvider.GetRequiredService<DocumentIngestionService>();
         var scoped2 = scope2.ServiceProvider.GetRequiredService<DocumentIngestionService>();
         scoped1.ShouldNotBeSameAs(scoped2);
@@ -84,11 +106,11 @@ public class DependencyValidationTests : IClassFixture<TestWebApplicationFactory
     [Trait("Category", "E2E")]
     [Trait("Category", "DI")]
     [Trait("Category", "WebApplicationFactory")]
-    public void ShouldNotHaveCircularDependencies()
+    public async Task ShouldNotHaveCircularDependencies()
     {
         using var client = _factory.CreateClient();
 
-        using var scope = _factory.Services.CreateScope();
+        await using var scope = _factory.Services.CreateAsyncScope();
         var scopedProvider = scope.ServiceProvider;
 
         var exception = Record.Exception(() =>
@@ -125,11 +147,11 @@ public class DependencyValidationTests : IClassFixture<TestWebApplicationFactory
     [Trait("Category", "E2E")]
     [Trait("Category", "DI")]
     [Trait("Category", "WebApplicationFactory")]
-    public void HostedServices_ShouldResolveWithoutScopeViolations()
+    public async Task HostedServices_ShouldResolveWithoutScopeViolations()
     {
         using var client = _factory.CreateClient();
 
-        using var scope = _factory.Services.CreateScope();
+        await using var scope = _factory.Services.CreateAsyncScope();
         var provider = scope.ServiceProvider;
 
         var hostedServices = provider.GetServices<IHostedService>().ToList();
@@ -143,12 +165,12 @@ public class DependencyValidationTests : IClassFixture<TestWebApplicationFactory
     [Trait("Category", "E2E")]
     [Trait("Category", "DI")]
     [Trait("Category", "WebApplicationFactory")]
-    public void ShouldValidateScopesAndBuild()
+    public async Task ShouldValidateScopesAndBuild()
     {
         using var client = _factory.CreateClient();
 
         var scopeFactory = _factory.Services.GetRequiredService<IServiceScopeFactory>();
-        using var scope = scopeFactory.CreateScope();
+        await using var scope = scopeFactory.CreateAsyncScope();
         var provider = scope.ServiceProvider;
 
         provider.ShouldNotBeNull("Service provider should be available from WebApplicationFactory");
@@ -175,10 +197,10 @@ public class DependencyValidationTests : IClassFixture<TestWebApplicationFactory
     [Trait("Category", "E2E")]
     [Trait("Category", "DI")]
     [Trait("Category", "WebApplicationFactory")]
-    public void Options_ShouldBeBindable()
+    public async Task Options_ShouldBeBindable()
     {
         using var client = _factory.CreateClient();
-        using var scope = _factory.Services.CreateScope();
+        await using var scope = _factory.Services.CreateAsyncScope();
         var sp = scope.ServiceProvider;
 
         var browserOptions = sp.GetRequiredService<IOptionsMonitor<BrowserAutomationOptions>>().CurrentValue;
