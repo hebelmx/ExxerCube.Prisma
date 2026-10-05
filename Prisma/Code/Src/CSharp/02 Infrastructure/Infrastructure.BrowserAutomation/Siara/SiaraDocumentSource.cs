@@ -233,6 +233,19 @@ public sealed class SiaraDocumentSource : ISiaraDocumentSource, IAsyncDisposable
             }
         }
 
+        try
+        {
+            return await ListFilesAsync(session, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            await ParkBrowserAsync().ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>Navigates to SIARA and lists the downloadable files on the hydrated, authenticated page.</summary>
+    private async Task<Result<IReadOnlyList<DownloadableFile>>> ListFilesAsync(SiaraSession session, CancellationToken cancellationToken)
+    {
         var navigate = await _agent.NavigateToAsync(_navigationTarget.BaseUrl, cancellationToken).ConfigureAwait(false);
         if (navigate.IsCancelled())
         {
@@ -262,6 +275,28 @@ public sealed class SiaraDocumentSource : ISiaraDocumentSource, IAsyncDisposable
             session.AcquiredBy.ActorId);
 
         return Result<IReadOnlyList<DownloadableFile>>.Success(filesResult.Value);
+    }
+
+    /// <summary>
+    /// Leaves the warm browser on <c>about:blank</c> between polls (GitHub #2). A live SIARA page keeps repainting,
+    /// which headless Chromium renders in software on the CPU (~46% idle on the simulator dashboard, ~0% parked).
+    /// The session is unaffected: the next poll re-hydrates it into a fresh context and navigates back. Fail-open:
+    /// a failed park only costs CPU, so it never fails discovery.
+    /// </summary>
+    private async Task ParkBrowserAsync()
+    {
+        try
+        {
+            var park = await _agent.NavigateToAsync("about:blank", CancellationToken.None).ConfigureAwait(false);
+            if (park.IsFailure)
+            {
+                _logger.LogDebug("Parking the discovery browser on about:blank failed: {Error}", park.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Parking the discovery browser on about:blank threw");
+        }
     }
 
     private SiaraSessionRequest BuildSessionRequest() => new()

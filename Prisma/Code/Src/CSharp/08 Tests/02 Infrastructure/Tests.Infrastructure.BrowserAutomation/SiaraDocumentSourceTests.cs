@@ -72,6 +72,56 @@ public sealed class SiaraDocumentSourceTests
         allUrls.ShouldContain(DocUrl);
     }
 
+    // GitHub #2: the warm discovery browser sat on the live SIARA dashboard between polls, which repaints
+    // continuously (~46% CPU idle on the simulator, in software via SwiftShader). Parked on about:blank it idles at
+    // ~0%. Safe: the next poll re-hydrates the session into a fresh context and navigates back to SIARA.
+
+    [Fact]
+    public async Task DiscoverCasesAsync_AfterListing_ParksTheBrowserOnABlankPage()
+    {
+        var agent = SiaraDocumentDownloaderTestFactory.CreateAgentMock();
+        var nav = SiaraDocumentSourceTestFactory.CreateNavigationTargetMock();
+        var sut = SiaraDocumentSourceTestFactory.CreateSource(agent: agent, navigationTarget: nav);
+
+        var result = await sut.DiscoverCasesAsync(Ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        Received.InOrder(() =>
+        {
+            agent.NavigateToAsync("https://siara.local", Arg.Any<CancellationToken>());
+            nav.RetrieveDocumentsAsync(agent, Arg.Any<CancellationToken>());
+            agent.NavigateToAsync("about:blank", Arg.Any<CancellationToken>());
+        });
+    }
+
+    [Fact]
+    public async Task DiscoverCasesAsync_ListingFails_StillParksTheBrowser()
+    {
+        var agent = SiaraDocumentDownloaderTestFactory.CreateAgentMock();
+        var nav = SiaraDocumentSourceTestFactory.CreateNavigationTargetMock();
+        nav.RetrieveDocumentsAsync(Arg.Any<IBrowserAutomationAgent>(), Arg.Any<CancellationToken>())
+            .Returns(Result<List<DownloadableFile>>.WithFailure("SIARA page did not load"));
+        var sut = SiaraDocumentSourceTestFactory.CreateSource(agent: agent, navigationTarget: nav);
+
+        var result = await sut.DiscoverCasesAsync(Ct);
+
+        result.IsFailure.ShouldBeTrue();
+        await agent.Received(1).NavigateToAsync("about:blank", Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DiscoverCasesAsync_ParkingFails_StillReturnsTheCases()
+    {
+        var agent = SiaraDocumentDownloaderTestFactory.CreateAgentMock();
+        agent.NavigateToAsync("about:blank", Arg.Any<CancellationToken>()).Returns(Result.WithFailure("navigation failed"));
+        var sut = SiaraDocumentSourceTestFactory.CreateSource(agent: agent);
+
+        var result = await sut.DiscoverCasesAsync(Ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.SelectMany(c => c.Files).Select(f => f.Url).ShouldContain(DocUrl);
+    }
+
     [Fact]
     public async Task DiscoverCasesAsync_HydratesAuthenticatedStorageState()
     {
