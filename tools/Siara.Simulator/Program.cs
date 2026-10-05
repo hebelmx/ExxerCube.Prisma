@@ -105,8 +105,13 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// Serve static files from the document store (now gated by the middleware above).
-var documentStorePath = Path.Combine(builder.Environment.ContentRootPath, "..", "bulk_generated_documents_all_formats");
+// Serve static files from the document store (now gated by the middleware above). Resolve it exactly as
+// CaseService does, so the files served are the ones the cases were listed from.
+var documentSourcePath = builder.Configuration.GetSection("SimulatorSettings").Get<SimulatorSettings>()?.DocumentSourcePath
+    ?? new SimulatorSettings().DocumentSourcePath;
+var documentStorePath = Path.IsPathRooted(documentSourcePath)
+    ? documentSourcePath
+    : Path.Combine(builder.Environment.ContentRootPath, documentSourcePath);
 if (Directory.Exists(documentStorePath))
 {
     app.UseStaticFiles(new StaticFileOptions
