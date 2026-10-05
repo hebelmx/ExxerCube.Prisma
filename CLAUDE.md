@@ -23,7 +23,7 @@ dotnet test <test-project.csproj> --filter-query "/Namespace/ClassName/MethodNam
 dotnet test <test-project.csproj> --filter-query "[category=fast]"
 ```
 
-Build artifacts go to a `BuildArtifacts/Prisma/` folder next to the repository root (override with the `ArtifactsBaseDir` env var; see Directory.Build.props). Pass `-c Debug` (or `-c Release`) to `dotnet test --no-build` so it resolves the configuration-specific output path.
+Build artifacts go to a `BuildArtifacts/<repo folder name>/` folder next to the repository root, so two checkouts side by side never share binaries (override with the `ArtifactsBaseDir` env var; see Directory.Build.props). Pass `-c Debug` (or `-c Release`) to `dotnet test --no-build` so it resolves the configuration-specific output path.
 
 ## Architecture
 

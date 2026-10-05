@@ -34,9 +34,11 @@
 		<CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
 
 		<!-- Build artifacts outside repository (keeps repo clean).
-		     Overridable via the ArtifactsBaseDir env var / -p:. Defaults to a BuildArtifacts/Prisma/
-		     folder next to the repository root (cross-platform). -->
-		<ArtifactsBaseDir Condition="'$(ArtifactsBaseDir)' == ''">$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', '..', '..', '..', 'BuildArtifacts', 'Prisma'))/</ArtifactsBaseDir>
+		     Overridable via the ArtifactsBaseDir env var / -p:. Defaults to BuildArtifacts/<repo folder name>/
+		     next to the repository root (cross-platform), so two checkouts side by side never overwrite
+		     each other's binaries. -->
+		<PrismaRepoRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..', '..', '..'))</PrismaRepoRoot>
+		<ArtifactsBaseDir Condition="'$(ArtifactsBaseDir)' == ''">$([MSBuild]::NormalizePath('$(PrismaRepoRoot)', '..', 'BuildArtifacts', '$([System.IO.Path]::GetFileName($(PrismaRepoRoot.TrimEnd(&quot;/\&quot;.ToCharArray()))))'))/</ArtifactsBaseDir>
 		<BaseOutputPath>$(ArtifactsBaseDir)bin\$(MSBuildProjectName)\</BaseOutputPath>
 		<OutputPath>$(BaseOutputPath)$(Configuration)\</OutputPath>
 		<!-- Mutation-testing (Stryker.NET) accommodation. Stryker reconstructs the test-binary path as
