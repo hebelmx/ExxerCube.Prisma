@@ -132,7 +132,20 @@ public class SLAUpdateBackgroundService : BackgroundService
                 break;
             }
 
-            var batchTasks = batch.Select(async slaStatus =>
+            // One at a time: every update runs on this cycle's single scoped DbContext, and EF Core does not
+            // support concurrent operations on one context (GitHub #1: running a batch with Task.WhenAll made
+            // ~75 of 81 updates fail every minute). ~100 rows a minute is well within a sequential pass.
+            var batchResults = new List<(bool Success, bool Escalated, bool Cancelled)>(batch.Count);
+            foreach (var slaStatus in batch)
+            {
+                batchResults.Add(await UpdateOneAsync(slaStatus).ConfigureAwait(false));
+                if (batchResults[^1].Cancelled)
+                {
+                    break;
+                }
+            }
+
+            async Task<(bool Success, bool Escalated, bool Cancelled)> UpdateOneAsync(ExxerCube.Prisma.Domain.Entities.SLAStatus slaStatus)
             {
                 try
                 {
@@ -178,9 +191,7 @@ public class SLAUpdateBackgroundService : BackgroundService
                     _logger.LogError(ex, "Exception updating SLA status for file {FileId}", slaStatus.FileId);
                     return (Success: false, Escalated: false, Cancelled: false);
                 }
-            });
-
-            var batchResults = await Task.WhenAll(batchTasks).ConfigureAwait(false);
+            }
 
             foreach (var result in batchResults)
             {
