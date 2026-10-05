@@ -125,8 +125,8 @@
 													@source
 												</MudChip>
 											}
-											<MudText Typo="Typo.body2" Class="mr-2">
-												@(context.Value?.ToString() ?? "N/A")
+											<MudText Typo="Typo.body2" Class="mr-2" title="@(context.Value?.ToString())">
+												@ShortValue(context.Value)
 											</MudText>
 											<MudProgressCircular Value="@context.Confidence" 
 															   Size="Size.Small"
@@ -456,6 +456,22 @@
 			.ToList();
 
 		return conflicted;
+	}
+
+	/// <summary>
+	/// A field value short enough for a table cell; long values (e.g. the oficio body text) are cut with an
+	/// ellipsis and shown in full in the cell's tooltip.
+	/// </summary>
+	private static string ShortValue(object? value)
+	{
+		const int MaxLength = 160;
+		var text = value?.ToString();
+		if (string.IsNullOrEmpty(text))
+		{
+			return "N/A";
+		}
+
+		return text.Length <= MaxLength ? text : string.Concat(text.AsSpan(0, MaxLength).TrimEnd(), "…");
 	}
 
 	/// <summary>

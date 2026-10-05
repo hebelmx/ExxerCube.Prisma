@@ -107,9 +107,17 @@ public static class FusionMetadataRecordBuilder
     {
         if (field.ConflictingValues.Count > 0)
         {
-            return field.ConflictingValues
+            var values = field.ConflictingValues
                 .Select(v => new FieldValue(fieldName, v.Value, (float)field.Confidence, v.Source.Name))
                 .ToList();
+
+            // Fusion may list only the losing sources; the winner's own value is the fused value.
+            if (field.WinningSource is { } winner && values.All(v => v.SourceType != winner.Name))
+            {
+                values.Add(new FieldValue(fieldName, field.Value, (float)field.Confidence, winner.Name));
+            }
+
+            return values;
         }
 
         if (field.Decision == FusionDecision.AllAgree)

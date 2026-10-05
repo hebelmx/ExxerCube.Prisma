@@ -326,13 +326,23 @@ public sealed class ReconciliationOrchestrator
             // FieldConflictAlertBuilder.From is pure/sync; empty when all fields agree.
             var conflictAlerts = FieldConflictAlertBuilder.From(fusionResult);
 
+            using var scope = _reviewCaseScopeFactory.CreateScope();
+
+            // 3-process path: the fusion result rebuilt from the handoff counts the conflicts but carries no
+            // per-field detail, so the alerts above come out empty and a case held for unresolved conflicts would
+            // get no review case at all. Use the alerts the Extractor saved for this file instead.
+            if (conflictAlerts.Count == 0 && fusionResult?.ConflictingFields.Count > 0)
+            {
+                conflictAlerts = await LoadSavedConflictAlertsAsync(scope.ServiceProvider, fileId, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
             var metadata = new UnifiedMetadataRecord
             {
                 Expediente = fusionResult?.FusedExpediente,
                 FieldConflictAlerts = conflictAlerts,
             };
 
-            using var scope = _reviewCaseScopeFactory.CreateScope();
             var panel = scope.ServiceProvider.GetService<IManualReviewerPanel>();
             if (panel is null)
             {
@@ -368,6 +378,38 @@ public sealed class ReconciliationOrchestrator
             _logger.LogWarning(ex,
                 "Review-case persistence threw for file {FileId} (fail-open — pipeline continues)", fileId);
         }
+    }
+
+    /// <summary>
+    /// The conflict alerts the Extractor saved with the case's fusion record. Fail-open: no store, no record or a
+    /// failure yields an empty list (the review case is still persisted, just without field-mismatch detail).
+    /// </summary>
+    private async Task<List<FieldConflictAlert>> LoadSavedConflictAlertsAsync(
+        IServiceProvider services, Guid fileId, CancellationToken cancellationToken)
+    {
+        var store = services.GetService<IUnifiedMetadataStore>();
+        if (store is null)
+        {
+            return new List<FieldConflictAlert>();
+        }
+
+        try
+        {
+            var saved = await store.GetByFileIdAsync(fileId.ToString(), cancellationToken).ConfigureAwait(false);
+            if (saved.IsSuccess && saved.Value is not null)
+            {
+                return saved.Value.FieldConflictAlerts;
+            }
+
+            _logger.LogWarning(
+                "No saved fusion record for file {FileId}; its review case will carry no field-mismatch detail", fileId);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex, "Loading the saved fusion record for file {FileId} failed (pipeline continues)", fileId);
+        }
+
+        return new List<FieldConflictAlert>();
     }
 
     /// <summary>
