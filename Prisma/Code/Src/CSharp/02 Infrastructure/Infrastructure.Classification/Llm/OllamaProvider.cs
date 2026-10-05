@@ -7,6 +7,7 @@ using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Llm;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using ExxerCube.Prisma.Domain.Models;
 
 namespace ExxerCube.Prisma.Infrastructure.Classification.Llm;
 

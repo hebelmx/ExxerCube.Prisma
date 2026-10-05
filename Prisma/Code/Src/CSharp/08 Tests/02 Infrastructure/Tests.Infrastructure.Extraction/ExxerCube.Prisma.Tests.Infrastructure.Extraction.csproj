@@ -66,6 +66,8 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <!-- The LLM extraction eval harness drives the real Classification LLM providers. -->
+    <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.Ocr.csproj" />
     <!-- Real AdaptiveTxtFieldExtractor is used in PdfOcrFieldExtractor tests so the
          PDF→OCR orchestration is verified against genuine field parsing (boundaries mocked). -->

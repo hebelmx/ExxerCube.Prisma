@@ -1,9 +1,9 @@
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Llm;
-using ExxerCube.Prisma.Infrastructure.Classification.Llm;
 using ExxerCube.Prisma.Infrastructure.Extraction.Txt.Llm;
 using Meziantou.Extensions.Logging.Xunit.v3;
 using Microsoft.Extensions.Options;
+using ExxerCube.Prisma.Domain.Models;
 
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.Txt;
 

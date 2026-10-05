@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Infrastructure.Classification.Llm;
+namespace ExxerCube.Prisma.Domain.Models;
 
 /// <summary>
 /// Top-level options for the LLM provider subsystem.

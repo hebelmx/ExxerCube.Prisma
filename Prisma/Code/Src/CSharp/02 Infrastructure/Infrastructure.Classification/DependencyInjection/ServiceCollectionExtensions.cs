@@ -3,6 +3,7 @@ using ExxerCube.Prisma.Infrastructure.Classification.Llm;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using ExxerCube.Prisma.Domain.Models;
 
 namespace ExxerCube.Prisma.Infrastructure.Classification.DependencyInjection;
 

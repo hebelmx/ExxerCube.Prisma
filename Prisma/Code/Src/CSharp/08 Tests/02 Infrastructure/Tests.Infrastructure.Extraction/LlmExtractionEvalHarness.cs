@@ -10,6 +10,7 @@ using ExxerCube.Prisma.Infrastructure.Extraction.Txt;
 using ExxerCube.Prisma.Infrastructure.Extraction.Txt.Llm;
 using Meziantou.Extensions.Logging.Xunit.v3;
 using Microsoft.Extensions.Options;
+using ExxerCube.Prisma.Domain.Models;
 
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction;
 

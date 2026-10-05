@@ -2,8 +2,8 @@ using System.Text.Json;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Llm;
-using ExxerCube.Prisma.Infrastructure.Classification.Llm;
 using Microsoft.Extensions.Options;
+using ExxerCube.Prisma.Domain.Models;
 
 namespace ExxerCube.Prisma.Infrastructure.Extraction.Txt.Llm;
 

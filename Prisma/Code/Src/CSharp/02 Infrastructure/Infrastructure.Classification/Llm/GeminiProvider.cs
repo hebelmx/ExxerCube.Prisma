@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ExxerCube.Prisma.Domain.Llm;
+using ExxerCube.Prisma.Domain.Models;
 
 namespace ExxerCube.Prisma.Infrastructure.Classification.Llm;
 

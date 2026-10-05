@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Domain.Models;
 
 namespace ExxerCube.Prisma.Infrastructure.Classification.Llm;
 

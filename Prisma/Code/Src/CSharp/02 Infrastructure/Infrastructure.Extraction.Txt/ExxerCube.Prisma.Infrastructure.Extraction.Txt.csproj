@@ -13,11 +13,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
     <PackageReference Include="IndQuestResults" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
     <!-- LlmTxtFieldExtractor depends on LlmProvidersOptions from Classification -->
-    <ProjectReference Include="..\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
   </ItemGroup>
 </Project>

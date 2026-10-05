@@ -1,6 +1,7 @@
 using ExxerCube.Prisma.Domain.Llm;
 using ExxerCube.Prisma.Infrastructure.Classification.Llm;
 using Microsoft.Extensions.Options;
+using ExxerCube.Prisma.Domain.Models;
 
 namespace ExxerCube.Prisma.Tests.Infrastructure.Classification;
 
