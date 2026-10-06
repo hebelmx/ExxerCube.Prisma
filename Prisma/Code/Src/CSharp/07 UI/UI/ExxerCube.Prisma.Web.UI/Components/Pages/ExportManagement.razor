@@ -100,7 +100,7 @@
                     <!-- Export Format Selection -->
                     <MudItem xs="12" Class="mb-4">
                         <MudText Typo="Typo.subtitle1" Class="mb-2">Export Format</MudText>
-                        <MudRadioGroup T="ExportFormat" @bind-SelectedValue="@exportFormat">
+                        <MudRadioGroup T="ExportFormat" @bind-Value="@exportFormat">
                             <MudRadio T="ExportFormat" Value="@ExportFormat.SiroXml" Color="Color.Primary" HelperText="Regulatory-compliant XML format for SIRO submission">
                                 SIRO XML
                             </MudRadio>

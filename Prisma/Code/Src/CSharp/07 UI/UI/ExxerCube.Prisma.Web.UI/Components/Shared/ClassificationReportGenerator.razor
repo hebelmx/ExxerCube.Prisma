@@ -32,7 +32,7 @@
             <!-- Format Selection -->
             <MudItem xs="12" Class="mb-4">
                 <MudText Typo="Typo.subtitle1" Class="mb-2">Export Format</MudText>
-                <MudRadioGroup T="ReportFormat" @bind-SelectedValue="@reportRequest.Format">
+                <MudRadioGroup T="ReportFormat" @bind-Value="@reportRequest.Format">
                     <MudRadio T="ReportFormat" Value="@ReportFormat.Csv" Color="Color.Primary" HelperText="Best for Excel and data analysis">
                         CSV (Comma-Separated Values)
                     </MudRadio>
