@@ -5,11 +5,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ExxerCube Prisma — SIARA requests, read and reconciled</title>
   <meta name="description" content="Prisma downloads CNBV SIARA requests, reads the PDF, DOCX and XML of every case, reconciles them field by field, tracks the business-day deadline and prepares the response. Source-available, built in .NET 10.">
-  <meta property="og:title" content="ExxerCube Prisma — SIARA requests, read and reconciled">
-  <meta property="og:description" content="Automated processing of CNBV/SIARA regulatory requests for Mexican financial institutions.">
-  <meta property="og:type" content="website">
+  <meta name="author" content="Abel Briones">
+  <meta name="theme-color" content="#1C2433">
+  <link rel="canonical" href="https://hebelmx.github.io/ExxerCube.Prisma/">
   <link rel="alternate" hreflang="en" href="https://hebelmx.github.io/ExxerCube.Prisma/">
   <link rel="alternate" hreflang="es-MX" href="https://hebelmx.github.io/ExxerCube.Prisma/es/">
+  <link rel="alternate" hreflang="x-default" href="https://hebelmx.github.io/ExxerCube.Prisma/">
+  <meta property="og:site_name" content="ExxerCube Prisma">
+  <meta property="og:title" content="ExxerCube Prisma — SIARA requests, read and reconciled">
+  <meta property="og:description" content="Prisma downloads CNBV SIARA requests, reads the PDF, DOCX and XML, reconciles them field by field and tracks the business-day deadline. Watch the six-minute demo.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hebelmx.github.io/ExxerCube.Prisma/">
+  <meta property="og:image" content="https://hebelmx.github.io/ExxerCube.Prisma/media/og-en.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="ExxerCube Prisma: a SIARA oficio and the reconciled record extracted from it">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="es_MX">
+  <meta name="twitter:card" content="summary_large_image">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Person",
+        "@id": "https://hebelmx.github.io/abel-briones/#person",
+        "name": "Abel Briones",
+        "url": "https://hebelmx.github.io/abel-briones/",
+        "sameAs": ["https://github.com/hebelmx"]
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://hebelmx.github.io/ExxerCube.Prisma/#app",
+        "name": "ExxerCube Prisma",
+        "url": "https://hebelmx.github.io/ExxerCube.Prisma/",
+        "applicationCategory": "BusinessApplication",
+        "applicationSubCategory": "Regulatory compliance (RegTech)",
+        "operatingSystem": "Windows, Linux",
+        "description": "Automated processing of CNBV SIARA regulatory requests for Mexican financial institutions: download, OCR, three-source reconciliation, classification, business-day deadlines, human review and export to SIRO XML, Excel and PDF.",
+        "inLanguage": ["en", "es-MX"],
+        "image": "https://hebelmx.github.io/ExxerCube.Prisma/media/og-en.png",
+        "author": { "@id": "https://hebelmx.github.io/abel-briones/#person" },
+        "license": "https://polyformproject.org/licenses/noncommercial/1.0.0/",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "Free to read and evaluate; production use requires a commercial license." }
+      },
+      {
+        "@type": "SoftwareSourceCode",
+        "name": "ExxerCube Prisma source code",
+        "codeRepository": "https://github.com/hebelmx/ExxerCube.Prisma",
+        "programmingLanguage": ["C#", "Python"],
+        "runtimePlatform": ".NET 10",
+        "author": { "@id": "https://hebelmx.github.io/abel-briones/#person" },
+        "license": "https://polyformproject.org/licenses/noncommercial/1.0.0/"
+      }
+    ]
+  }
+  </script>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,6 +77,7 @@
         <span>ExxerCube Prisma</span>
       </a>
       <nav class="top-nav" aria-label="Page">
+        <a href="#demo">Demo</a>
         <a href="#how">How it works</a>
         <a href="#reconcile">Reconciliation</a>
         <a href="#trust">Security</a>
@@ -45,7 +97,7 @@
           <p class="lede">Authorities send Mexican financial institutions a steady stream of <i>oficios</i> through the CNBV's SIARA portal — freezes, unfreezes, information requests — each due in a few business days. Prisma downloads each case, reads the PDF, DOCX and XML, checks them against each other, and hands your team a verified record with the deadline already counted.</p>
           <div class="actions">
             <a class="btn btn-primary" href="#license">Request a pilot</a>
-            <a class="btn btn-quiet" href="https://github.com/hebelmx/ExxerCube.Prisma">Read the source</a>
+            <a class="btn btn-quiet" href="#demo">Watch the demo</a>
           </div>
         </div>
 
@@ -77,6 +129,38 @@
           </div>
           <figcaption>Synthetic example. Every name, RFC and amount in this repository is fictitious.</figcaption>
         </figure>
+      </div>
+    </section>
+
+    <!-- Demo: the six videos are one sequence, so the playlist is numbered. Each item links to
+         YouTube (works without JavaScript); the script swaps the poster for a youtube-nocookie
+         player only when someone presses play. Video ids live in data-yt; empty means not yet uploaded. -->
+    <section class="section demo" id="demo" aria-labelledby="demo-title">
+      <div class="wrap">
+        <h2 id="demo-title">See Prisma work a case, start to finish</h2>
+        <p class="section-intro">Six short videos, six minutes in all, recorded on the running system with a synthetic case. Start with the overview, or jump to the part you care about.</p>
+        <div class="demo-grid" data-lang="en">
+          <figure class="stage">
+            <div class="screen" id="demo-screen">
+              <img id="demo-poster" src="media/v1-en.jpg" width="1280" height="720" alt="Prisma's Document Processing page comparing the XML and the scanned PDF of a case">
+              <button class="play" id="demo-play" type="button" aria-describedby="demo-now">
+                <span class="play-stamp">Play<small>1:30</small></span>
+              </button>
+            </div>
+            <figcaption id="demo-now">
+              <h3 id="demo-name">Overview</h3>
+              <p id="demo-text">What Prisma does with a SIARA request, from download to the audit trail, in ninety seconds.</p>
+            </figcaption>
+          </figure>
+          <ol class="playlist" aria-label="Demo videos">
+            <li><a href="#demo" data-yt="" data-poster="media/v1-en.jpg" data-time="1:30" data-alt="Prisma's Document Processing page comparing the XML and the scanned PDF of a case" aria-current="true"><span class="pl-name">Overview</span><span class="pl-text">What Prisma does with a SIARA request, from download to the audit trail, in ninety seconds.</span><span class="pl-time">1:30</span></a></li>
+            <li><a href="#demo" data-yt="" data-poster="media/v2-en.jpg" data-time="0:45" data-alt="The downloader signing in to the SIARA simulator in its own browser window"><span class="pl-name">From SIARA to Prisma</span><span class="pl-text">The downloader signs in on its own schedule, collects every new case with all its files and hands them to processing.</span><span class="pl-time">0:45</span></a></li>
+            <li><a href="#demo" data-yt="" data-poster="media/v3-en.jpg" data-time="1:00" data-alt="The fused field table, with the oficio number marked as a conflict between sources"><span class="pl-name">Three sources, one answer</span><span class="pl-text">The XML, Word file and scanned PDF compared field by field, and a conflict flagged instead of guessed.</span><span class="pl-time">1:00</span></a></li>
+            <li><a href="#demo" data-yt="" data-poster="media/v4-en.jpg" data-time="1:00" data-alt="The SLA dashboard listing active cases with their deadlines and time remaining"><span class="pl-name">Review queue and deadlines</span><span class="pl-text">A reviewer's day: cases closest to their deadline first, corrections with notes, and escalation before a deadline is missed.</span><span class="pl-time">1:00</span></a></li>
+            <li><a href="#demo" data-yt="" data-poster="media/v5-en.jpg" data-time="0:45" data-alt="An audit trail record showing who did what, when and for which case"><span class="pl-name">Export and audit trail</span><span class="pl-text">Exports in the regulator's formats, and an append-only record of every action you can show an examiner.</span><span class="pl-time">0:45</span></a></li>
+            <li><a href="#demo" data-yt="" data-poster="media/v6-en.jpg" data-time="1:00" data-alt="A terminal showing the full-pipeline end-to-end test passing"><span class="pl-name">Under the hood</span><span class="pl-text">For engineers: the hexagonal .NET 10 architecture, its tests, and the end-to-end gate running all three processes.</span><span class="pl-time">1:00</span></a></li>
+          </ol>
+        </div>
       </div>
     </section>
 
@@ -180,7 +264,7 @@
           <p><a href="https://github.com/hebelmx/ExxerCube.Prisma">Browse the repository</a> or start with the <a href="https://github.com/hebelmx/ExxerCube.Prisma/blob/main/QUICKSTART.md">quick start</a>.</p>
         </div>
         <dl class="facts">
-          <div><dt>4,700+</dt><dd>automated tests across 50 test projects</dd></div>
+          <div><dt>3,800+</dt><dd>automated test methods across 50 test projects</dd></div>
           <div><dt>31</dt><dd>production projects, each with a single responsibility</dd></div>
           <div><dt>3</dt><dd>document sources reconciled per case</dd></div>
           <div><dt>26</dt><dd>architecture decision records, written as the system was built</dd></div>
@@ -211,9 +295,10 @@
 
   <footer class="foot">
     <div class="wrap foot-grid">
-      <p>ExxerCube Prisma is built by ExxerCube / IndFusion. Copyright © 2025–2026 Abel Briones.</p>
+      <p>ExxerCube Prisma is designed and built by <a href="https://hebelmx.github.io/abel-briones/" rel="author">Abel Briones</a> (ExxerCube / IndFusion). Copyright © 2025–2026 Abel Briones.</p>
       <p>All documents, names and identifiers shown here and in the repository are synthetic. The SIARA simulator used for testing is not affiliated with the CNBV or the Government of Mexico.</p>
     </div>
   </footer>
+  <script src="demo.js" defer></script>
 </body>
 </html>
