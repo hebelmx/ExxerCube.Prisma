@@ -1,0 +1,50 @@
+{
+  "docId": "IMSS-2025-691903_20260704_050229",
+  "seed": 2000,
+  "chaosLevel": "none",
+  "requirementType": "aseguramiento",
+  "folioSiara": "IMSS/2025/691903",
+  "numeroOficio": "IMSS/2025/691903",
+  "numeroExpediente": "B/IN2-2741-142971-AAA",
+  "autoridadNombre": "Procuraduría General de la República - Visitaduría General",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Raquel Tórrez Leiva",
+  "personaNombre": "Rodrigo Menchaca Tamayo",
+  "personaRfc": "METR070107LTE",
+  "solicitudPartes": [
+    {
+      "nombre": "Rodrigo Menchaca Tamayo",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$601,394.37",
+  "fechaDiligencia": "04/07/2026",
+  "juzgadoNombre": "Procuraduría General de la República - Visitaduría General",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

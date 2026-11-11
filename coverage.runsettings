@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Code Coverage Configuration for ExxerCube Prisma -->
+<!-- Optimized for Branch Coverage + CI/CD Integration -->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="Code Coverage" uri="datacollector://Microsoft/CodeCoverage/2.0" assemblyQualifiedName="Microsoft.VisualStudio.Coverage.DynamicCoverageDataCollector, Microsoft.VisualStudio.TraceCollector, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <Configuration>
+          <CodeCoverage>
+            <!-- BRANCH COVERAGE ENABLED -->
+            <ModulePaths>
+              <Include>
+                <!-- Core Domain -->
+                <ModulePath>.*ExxerCube\.Prisma\.Domain\.dll$</ModulePath>
+                <ModulePath>.*ExxerCube\.Prisma\.Application\.dll$</ModulePath>
+
+                <!-- Infrastructure -->
+                <ModulePath>.*ExxerCube\.Prisma\.Infrastructure\..*\.dll$</ModulePath>
+
+                <!-- Orion Services -->
+                <ModulePath>.*Prisma\.Orion\..*\.dll$</ModulePath>
+
+                <!-- Athena Services -->
+                <ModulePath>.*Prisma\.Athena\..*\.dll$</ModulePath>
+
+                <!-- Composition -->
+                <ModulePath>.*Prisma\.Composition\.dll$</ModulePath>
+
+                <!-- UI (if needed) -->
+                <ModulePath>.*ExxerCube\.Prisma\.Web\.UI\.dll$</ModulePath>
+              </Include>
+              <Exclude>
+                <!-- Exclude test assemblies -->
+                <ModulePath>.*Tests\.dll$</ModulePath>
+                <ModulePath>.*\.Tests\..*\.dll$</ModulePath>
+
+                <!-- Exclude third-party -->
+                <ModulePath>.*\\Microsoft\..*</ModulePath>
+                <ModulePath>.*\\System\..*</ModulePath>
+                <ModulePath>.*\\NSubstitute\..*</ModulePath>
+                <ModulePath>.*\\xunit\..*</ModulePath>
+                <ModulePath>.*\\Shouldly\..*</ModulePath>
+              </Exclude>
+            </ModulePaths>
+
+            <!-- ATTRIBUTES TO EXCLUDE -->
+            <Attributes>
+              <Exclude>
+                <!-- Compiler-generated code -->
+                <Attribute>^System\.Diagnostics\.DebuggerHiddenAttribute$</Attribute>
+                <Attribute>^System\.Diagnostics\.DebuggerNonUserCodeAttribute$</Attribute>
+                <Attribute>^System\.CodeDom\.Compiler\.GeneratedCodeAttribute$</Attribute>
+                <Attribute>^System\.Diagnostics\.CodeAnalysis\.ExcludeFromCodeCoverageAttribute$</Attribute>
+
+                <!-- Test attributes -->
+                <Attribute>^Xunit\..*Attribute$</Attribute>
+                <Attribute>^NUnit\.Framework\..*Attribute$</Attribute>
+              </Exclude>
+            </Attributes>
+
+            <!-- FUNCTIONS TO EXCLUDE -->
+            <Functions>
+              <Exclude>
+                <!-- Property getters/setters (covered by initialization) -->
+                <Function>^.*\.get_.*$</Function>
+                <Function>^.*\.set_.*$</Function>
+
+                <!-- Constructors for record types (auto-generated) -->
+                <Function>^.*\.\$.*$</Function>
+
+                <!-- ToString, GetHashCode, Equals (boilerplate) -->
+                <Function>^.*\.ToString\(\)$</Function>
+                <Function>^.*\.GetHashCode\(\)$</Function>
+                <Function>^.*\.Equals\(.*\)$</Function>
+              </Exclude>
+            </Functions>
+
+            <!-- COLLECT BRANCH COVERAGE (CRITICAL FOR MUTATION TESTING) -->
+            <UseVerifiableInstrumentation>True</UseVerifiableInstrumentation>
+            <AllowLowIntegrityProcesses>True</AllowLowIntegrityProcesses>
+            <CollectFromChildProcesses>True</CollectFromChildProcesses>
+            <CollectAspDotNet>False</CollectAspDotNet>
+
+            <!-- SOURCES TO INCLUDE -->
+            <Sources>
+              <Exclude>
+                <!-- Exclude migrations -->
+                <Source>.*\\Migrations\\.*</Source>
+
+                <!-- Exclude generated files -->
+                <Source>.*\.g\.cs$</Source>
+                <Source>.*\.designer\.cs$</Source>
+                <Source>.*AssemblyInfo\.cs$</Source>
+
+                <!-- Exclude GlobalUsings -->
+                <Source>.*GlobalUsings\.cs$</Source>
+              </Exclude>
+            </Sources>
+
+          </CodeCoverage>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+
+  <!-- TEST EXECUTION SETTINGS -->
+  <RunConfiguration>
+    <MaxCpuCount>0</MaxCpuCount>
+    <ResultsDirectory>.\TestResults</ResultsDirectory>
+    <TargetPlatform>x64</TargetPlatform>
+    <TreatNoTestsAsError>false</TreatNoTestsAsError>
+  </RunConfiguration>
+
+  <!-- LOGGING -->
+  <LoggerRunSettings>
+    <Loggers>
+      <Logger friendlyName="console" enabled="True">
+        <Configuration>
+          <Verbosity>minimal</Verbosity>
+        </Configuration>
+      </Logger>
+      <Logger friendlyName="trx" enabled="True">
+        <Configuration>
+          <LogFileName>testresults.trx</LogFileName>
+        </Configuration>
+      </Logger>
+    </Loggers>
+  </LoggerRunSettings>
+</RunSettings>

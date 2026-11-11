@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Expediente xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_NumeroOficio>333/BBB/-4444444444/2025  </Cnbv_NumeroOficio>
+  <Cnbv_NumeroExpediente>H/IN1-1111-222222-AAA    </Cnbv_NumeroExpediente>
+  <Cnbv_SolicitudSiara>AGAFADAFSON2/2025/000083</Cnbv_SolicitudSiara>
+  <Cnbv_Folio>12345</Cnbv_Folio>
+  <Cnbv_OficioYear>2025</Cnbv_OficioYear>
+  <Cnbv_AreaClave>1</Cnbv_AreaClave>
+  <Cnbv_AreaDescripcion>HACENDARIO</Cnbv_AreaDescripcion>
+  <Cnbv_FechaPublicacion>2025-06-04</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>10</Cnbv_DiasPlazo>
+  <AutoridadNombre>ADMINISTRACION DESCONCENTRADA DE AUDITORIA FISCAL DE SONORA "2"</AutoridadNombre>
+  <NombreSolicitante xsi:nil="true" />
+  <Referencia>GRM4500039/24</Referencia>
+  <Referencia1>                         </Referencia1>
+  <Referencia2>AGAFADAFSON2/2025/000083                                                                                                                                                                                </Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <ParteId>1</ParteId>
+    <Caracter>Contribuyente Auditado</Caracter>
+    <Persona>Moral</Persona>
+    <Paterno />
+    <Materno />
+    <Nombre>ABARROTEROS FALSOS DE LA NACION</Nombre>
+    <Rfc>             </Rfc>
+  </SolicitudPartes>
+  <SolicitudEspecifica>
+    <SolicitudEspecificaId>1</SolicitudEspecificaId>
+    <InstruccionesCuentasPorConocer>Sector: Casas de Bolsa
+1.	Copia Certificada de los estados de cuenta 
+2.	Copia certificada de contratos de intermediación bursátil en su caso las modificaciones
+3.	Documentos de identificación que presentó el titular al abrir los contratos
+4.	comprobante de domicilio que presenta el titular al abrir los contratos 
+Sector: Instituciones de Banca Múltiple.
+1.	Copia convertir picada de estados de cuenta
+2.	copia certificada de estados de cuenta de intermediación bursátil en su caso las modificaciones
+3.	copia certificada del contrato de cajas de seguridad
+4.	copia certificada de las tarjetas de firma autorizada si en su caso las modificaciones
+5.	documentos de identificación que presentó el titular al abrir la cuenta
+6.	comprobante de domicilio que presentó el titular al abrir la cuenta
+
+Sector : Sociedades financieras de Objeto Múltiple
+1.	Copia certificada de los estados de cuenta
+2.	copia certificada de contratos en su caso modificaciones
+3.	documentos de intermediación que presentó el titular al abrir la cuenta-contrato
+4.	comprobante de domicilio que presentó el titular al abrir el contrato</InstruccionesCuentasPorConocer>
+    <PersonasSolicitud>
+      <PersonaId>1</PersonaId>
+      <Caracter>Tercero vinculado fiscalmente</Caracter>
+      <Persona>Fisica</Persona>
+      <Paterno>PEREZ</Paterno>
+      <Materno>Y PEREZ</Materno>
+      <Nombre>JHON DOE</Nombre>
+      <Rfc>DOPJ111111222</Rfc>
+      <Relacion />
+      <Domicilio>Parque Lira S/N 1 Sec Bosque de Chapultepec CP 11850</Domicilio>
+      <Complementarios />
+    </PersonasSolicitud>
+  </SolicitudEspecifica>
+</Expediente>

@@ -1,0 +1,202 @@
+{
+  "metadata": {
+    "description": "OCR baseline edit distances without image enhancement",
+    "generated": "2025-11-27T18:39:45.208808",
+    "ocr_engine": "tesseract",
+    "ocr_params": {
+      "lang": "spa",
+      "psm": 6
+    },
+    "notes": "Edit distance = Levenshtein distance between OCR output and ground truth (pristine PRP1)"
+  },
+  "ground_truth_lengths": {
+    "222AAA": 1821,
+    "333BBB": 1782,
+    "333ccc": 1145,
+    "555CCC": 1795
+  },
+  "documents": [
+    "222AAA",
+    "333BBB",
+    "333ccc",
+    "555CCC"
+  ],
+  "quality_levels": [
+    "PRP1_Pristine",
+    "Q1_Poor",
+    "Q2_MediumPoor",
+    "Q3_Low",
+    "Q4_VeryLow"
+  ],
+  "cluster_mapping": {
+    "cluster_0": {
+      "description": "Ultra-sharp images",
+      "levels": [
+        "PRP1_Pristine",
+        "Q1_Poor"
+      ],
+      "characteristics": {
+        "blur": 6905.9,
+        "noise": 0.47,
+        "contrast": 51.9
+      }
+    },
+    "cluster_1": {
+      "description": "Normal quality images",
+      "levels": [
+        "Q1_Poor",
+        "Q2_MediumPoor"
+      ],
+      "characteristics": {
+        "blur": 1436.7,
+        "noise": 1.01,
+        "contrast": 32.8
+      }
+    },
+    "cluster_2": {
+      "description": "Degraded images",
+      "levels": [
+        "Q2_MediumPoor",
+        "Q3_Low",
+        "Q4_VeryLow"
+      ],
+      "characteristics": {
+        "blur": 1238.2,
+        "noise": 6.83,
+        "contrast": 25.1
+      }
+    }
+  },
+  "baseline_results": {
+    "PRP1_Pristine": {
+      "222AAA": {
+        "edit_distance": 0,
+        "ocr_length": 1821,
+        "ground_truth_length": 1821,
+        "error_rate": 0.0
+      },
+      "333BBB": {
+        "edit_distance": 0,
+        "ocr_length": 1782,
+        "ground_truth_length": 1782,
+        "error_rate": 0.0
+      },
+      "333ccc": {
+        "edit_distance": 0,
+        "ocr_length": 1145,
+        "ground_truth_length": 1145,
+        "error_rate": 0.0
+      },
+      "555CCC": {
+        "edit_distance": 0,
+        "ocr_length": 1795,
+        "ground_truth_length": 1795,
+        "error_rate": 0.0
+      }
+    },
+    "Q1_Poor": {
+      "222AAA": {
+        "edit_distance": 138,
+        "ocr_length": 1765,
+        "ground_truth_length": 1821,
+        "error_rate": 7.58
+      },
+      "333BBB": {
+        "edit_distance": 82,
+        "ocr_length": 1810,
+        "ground_truth_length": 1782,
+        "error_rate": 4.6
+      },
+      "333ccc": {
+        "edit_distance": 148,
+        "ocr_length": 1189,
+        "ground_truth_length": 1145,
+        "error_rate": 12.93
+      },
+      "555CCC": {
+        "edit_distance": 18,
+        "ocr_length": 1809,
+        "ground_truth_length": 1795,
+        "error_rate": 1.0
+      }
+    },
+    "Q2_MediumPoor": {
+      "222AAA": {
+        "edit_distance": 554,
+        "ocr_length": 1838,
+        "ground_truth_length": 1821,
+        "error_rate": 30.42
+      },
+      "333BBB": {
+        "edit_distance": 667,
+        "ocr_length": 1634,
+        "ground_truth_length": 1782,
+        "error_rate": 37.43
+      },
+      "333ccc": {
+        "edit_distance": 789,
+        "ocr_length": 1371,
+        "ground_truth_length": 1145,
+        "error_rate": 68.91
+      },
+      "555CCC": {
+        "edit_distance": 1518,
+        "ocr_length": 2741,
+        "ground_truth_length": 1795,
+        "error_rate": 84.57
+      }
+    },
+    "Q3_Low": {
+      "222AAA": {
+        "edit_distance": 1478,
+        "ocr_length": 440,
+        "ground_truth_length": 1821,
+        "error_rate": 81.16
+      },
+      "333BBB": {
+        "edit_distance": 1538,
+        "ocr_length": 257,
+        "ground_truth_length": 1782,
+        "error_rate": 86.31
+      },
+      "333ccc": {
+        "edit_distance": 922,
+        "ocr_length": 268,
+        "ground_truth_length": 1145,
+        "error_rate": 80.52
+      },
+      "555CCC": {
+        "edit_distance": 1613,
+        "ocr_length": 194,
+        "ground_truth_length": 1795,
+        "error_rate": 89.86
+      }
+    },
+    "Q4_VeryLow": {
+      "222AAA": {
+        "edit_distance": 1818,
+        "ocr_length": 4,
+        "ground_truth_length": 1821,
+        "error_rate": 99.84
+      },
+      "333BBB": {
+        "edit_distance": 1780,
+        "ocr_length": 2,
+        "ground_truth_length": 1782,
+        "error_rate": 99.89
+      },
+      "333ccc": {
+        "edit_distance": 1143,
+        "ocr_length": 3,
+        "ground_truth_length": 1145,
+        "error_rate": 99.83
+      },
+      "555CCC": {
+        "edit_distance": 1793,
+        "ocr_length": 4,
+        "ground_truth_length": 1795,
+        "error_rate": 99.89
+      }
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "docId": "INFONAVIT-2024-331476_20260719_152553",
+  "seed": 5001,
+  "chaosLevel": "none",
+  "requirementType": "aseguramiento",
+  "folioSiara": "INFONAVIT/2024/331476",
+  "numeroOficio": "INFONAVIT/2024/331476",
+  "numeroExpediente": "B/FI1-9294-296032-SAT",
+  "autoridadNombre": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "María Elena Concepción Alfaro",
+  "personaNombre": "Alma Mejía Nieves",
+  "personaRfc": "MENA0005229TD",
+  "solicitudPartes": [
+    {
+      "nombre": "Alma Mejía Nieves",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$5,895,027.63",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

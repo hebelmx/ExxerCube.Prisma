@@ -1,0 +1,57 @@
+# =============================================================================
+# ExxerCube.Prisma — Staging host-port override
+# =============================================================================
+# Purpose:
+#   The base docker-compose.dev.yml publishes several services on host ports that
+#   are commonly already bound on a shared dev/staging box (1433 SQL, 5341 Seq,
+#   8081 Orion). This override remaps ONLY the published host ports so the Prisma
+#   stack can come up alongside other running containers WITHOUT changing any
+#   internal, service-to-service wiring (which uses service names + container
+#   ports, e.g. sqlserver:1433, seq:80, and is unaffected by host remapping).
+#
+# Usage:
+#   docker compose -f docker-compose.dev.yml -f docker-compose.staging.override.yml up --build -d
+#
+# Remapped host ports (host -> container):
+#   sqlserver      1435 -> 1433   (base 1433 collides with other SQL container)
+#   seq            15341 -> 80,  15342 -> 5341   (base 5341 collides with exxer-seq)
+#   orion          18081 -> 8080  (base 8081 collides with exxer-seq's 8081)
+#
+# Unchanged (already free on the box):
+#   siara-simulator 8084, athena 8082, reconciliator 8083, web-ui 8085
+# =============================================================================
+services:
+
+  # NOTE: the `!override` tag REPLACES the base service's ports list instead of
+  # appending to it. Without it, Compose merges (appends) list entries and the
+  # colliding base host ports (1433 / 5341 / 8081) would still be published.
+  sqlserver:
+    ports: !override
+      - "1435:1433"
+
+  seq:
+    ports: !override
+      - "15341:80"
+      - "15342:5341"
+
+  orion:
+    ports: !override
+      - "18081:8080"
+
+  # GH#24: X11-forward the Web.UI container to the host desktop so the
+  # /browser-automation demo can launch a VISIBLE, recordable Chromium window.
+  # Host prerequisite (once, demo-only): `xhost +local:` — see QUICKSTART.md.
+  # These entries MERGE with the base web-ui service (no !override): the DISPLAY
+  # env is added to the existing environment map, the socket mount is appended.
+  web-ui:
+    environment:
+      # Inherit the host's X display (SSH X-forward / seat 1 may be :1, etc.); fall back to :0.
+      DISPLAY: "${DISPLAY:-:0}"
+    volumes:
+      - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
+    # LLM demo: let the container reach the HOST's Ollama daemon (bound on the host,
+    # not in the compose network). host-gateway resolves host.docker.internal to the
+    # docker bridge gateway. Requires Ollama to listen on 0.0.0.0 (OLLAMA_HOST=0.0.0.0),
+    # not the default 127.0.0.1 — see LlmProviders__Ollama__BaseUrl in .env.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

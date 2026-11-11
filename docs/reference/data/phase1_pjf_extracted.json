@@ -1,0 +1,2441 @@
+[
+  {
+    "source_file": "Que-PJF.pdf",
+    "category": "PJF",
+    "entidades": [
+      {
+        "nombre": "TRIBUNAL ELECTORAL, SALA SUPERIOR Sala Superior Mgdo",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL ELECTORAL DEL PODERJUDICIAL DE LA FEDERACIÓN",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Electoral del Poder Judicial de la Federación",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Electoral del Poder Judicial de la Federación tiene competencia para pronunciarsesobre la inconstitucionalidad de leyes",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Electoral del Poder Judicial de la Federación, los Tribunales Cole- giados y Unitarios de Circuito y Juzgados de Distrito,así como del Consejo de la Judicatura Federal y sus órganos auxiliares, la cual ilustra particularmente los16 procesos y procedimientos de su competencia",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Electoral del Poder Judicial de la Federación, los Magistrados de los Tribunales de Circuito",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Electoral del Poder Judicial de la Federación, como órgano jurisdiccional especia- lizado en esa materia, resolver en forma definitiva einatacable conflictos e impugnaciones contra actos de autoridades electorales",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Electoraldel Poder Judicial de la Federación",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL ELECTORAL DEL PODER JUDICIAL DE LA FEDERACIÓN 1",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Electoral es un órgano especializado del Poder Judicial de la Federación y máxima autoridad jurisdiccional en materia electoral, excepto cuando se trate de acciones de inconstitucionalidad de leyeselectorales federales y locales, cuya resolución co- rresponde a la Suprema Corte de Justicia de la Nación",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Electoral del Poder Judicial de la Federación está facultado para resolver, de maneradefinitiva e inatacable, los medios de impugnaciónprevistos en la Ley General de Sistemas de Mediosde Impugnación en Materia Electoral, ya sea en una oen dos instancias",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Electoral del Poder Judicial de laFederación",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Electoral cuenta con una Comisión de Administración, encargada de la adminis-tración, vigilancia, disciplina y carrera judicial de eseórgano jurisdiccional",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Electoral conoce y re- suelve, entre otros, los siguientes asuntos",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Electoral del Poder Judicial de la Federa-ción o el Instituto Federal Electoral, con sus respecti-vos trabajadores",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Electoral del Poder Judicial de la Federación tiene competencia parapronunciarse sobre la inconstitucionalidadde leyes",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Electoral sólo puede manifestarse res-pecto de algún acto o resolución o sobre la interpre-tación de un precepto constitucional, siempre que éstano sea para verificar la conformidad de una ley electo-ral con el propio Ordenamiento Supremo, ya que delo contrario estaría ejerciendo una facultad que cons-titucionalmente no le corresponde",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Colegiado de Circuito representa al tribunal, distribuye los asun- tos entre los Magistrados y dirige los debates que sepresentan a la hora de resolver los juicios, además de que firma las resoluciones del tribunal, con el Magis- trado ponente y el secretario de acuerdos",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Electoral del Poder Judicial de laFederación, a través de su Sala Superior y de las Salas Regionales, y los Tribunales Colegiados de Circuito",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Colegiado de Circuito",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Electoral, se requieren tressentencias de la Sala Superior o cinco de las Salas Regionales",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Electoral, decide entre doso más criterios contradictorios cuál de ellos debe pre- valecer o, en su caso, emite un criterio propio que se impone a los criterios encontrados",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "CONSEJO DE LA JUDICATURA FEDERAL Ministro Mariano Azuela Güitrón Presidente Consejeros Luis María Aguilar Morales Adolfo O",
+        "tipo": "Consejo",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "CONSEJO DE LA JUDICATURA FEDERAL",
+        "tipo": "Consejo",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Consejo de la Judicatura",
+        "tipo": "Consejo",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Consejo de la Judicatura Federal y sus órganos auxiliares, la cual ilustra particularmente los16 procesos y procedimientos de su competencia",
+        "tipo": "Consejo",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Consejo de la Judicatura Federal que cumple con importantes funciones de carácter admi-nistrativo, de disciplina y vigilancia y tiene bajo su res- ponsabilidad al Instituto de la Judicatura Federal que se preocupa de la formación de Magistrados,Jueces, Secretarios y Actuarios a fin de que posean los atributos constitucionales de independencia, impar- cialidad, objetividad, profesionalismo y excelencia quedeben regir la carrera judicial",
+        "tipo": "Consejo",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Consejo de la Judicatura Federal es un órgano del Poder Judicial de la Federación con independencia técnica, de gestión y para emitir sus resoluciones, quetiene a su cargo la administración, vigilancia, disciplina y carrera judicial del Poder Judicial de la Federación, con excepción de la Suprema Corte de Justicia de laNación y del Tribunal Electoral",
+        "tipo": "Consejo",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Consejo de la Judicatura Federal apoya a los juzgados y tribunales federales con la dotación de re- cursos materiales",
+        "tipo": "Consejo",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "CONSEJO DE LA JUDICATURA FEDERAL76 Dentro del Poder Judicial de la Federación existe la carrera judicial, que es el sistema de ingreso y promo-ción de los servidores públicos de carácter jurisdiccio-nal",
+        "tipo": "Consejo",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Consejo de la JudicaturaFederal, con excepción del Instituto Federal de Defen- soría Pública",
+        "tipo": "Consejo",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Consejo de la Judicatura Fede- ral que está encargado de la prestación de los serviciosde defensa penal y asesoría jurídica administrativa,fiscal y civil en forma gratuita, bajo los principios deprobidad, honradez y profesionalismo, a la poblaciónque carece de medios para pagar un abogado",
+        "tipo": "Consejo",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Consejo de la Judicatura Federal y los que éstos emitan en forma conjunta",
+        "tipo": "Consejo",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Consejo de la Judicatura Federal , Supre- ma Corte de Justicia de la Nación, México, 2002",
+        "tipo": "Consejo",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Consejo de la Judicatura Federal, que regula la or-ganización y funcionamiento del Consejo de la Ju-dicatura Federal",
+        "tipo": "Consejo",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Dirección General de la Coordinación de Compilación y Sistematización de Tesis de la Suprema Corte de Justicia de la Nación",
+        "tipo": "Dirección",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "comisión de un delito",
+        "tipo": "Comisión",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Comisión Permanente",
+        "tipo": "Comisión",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Comisión de Administración, encargada de la adminis-tración, vigilancia, disciplina y carrera judicial de eseórgano jurisdiccional",
+        "tipo": "Comisión",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Comisión de Administración",
+        "tipo": "Comisión",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la NaciónAv",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "SUPREMA CORTE DE JUSTICIA DE LA NACIÓN 5DIRECTORIO TRIBUNAL ELECTORAL, SALA SUPERIOR Sala Superior Mgdo",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "SUPREMA CORTE DE JUSTICIADE LA NACIÓN",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación, consciente de la importancia de que la sociedad civil conozca qué es el Poder Judicial de la Federación y cuál es su fun- cionamiento, ha decidido publicar, por cuarta vez, laobra",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación enfatiza su intención de abundar sobre aspec-tos que solamente en raras ocasiones llaman laatención del público, como son el trabajo de los secre-tarios y actuarios",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación Ministro Mariano Azuela Güitrón Ministra Margarita Beatriz Luna Ramos Ministra Olga María Sánchez Cordero de García VillegasEn el artículo 133 de la Constitución Política de los Estados Unidos Mexicanos se establece el principio de supremacía constitucional, por el cual la Constitu-ción Federal y las leyes que de ella emanen, así como los tratados celebrados con potencias extranjeras, suscritos por el presidente de la República con apro-bación del Senado, constituyen la Ley Suprema de toda la Unión",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación, los Ma- gistrados del Tribunal Electoral del Poder Judicial de la Federación, los Magistrados de los Tribunales de Circuito",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación, los Magistrados electorales, los Magistradosde Tribunales de Circuito",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación o en materia pe-nal, en la que la suplencia opera aun ante laausencia de conceptos de violación del reo",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación, cuando se suscitan conflictos entre Poderes",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación, en los que se denuncia la posible contradicción entre normas de carácter general",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia, mediante un análisis abstracto de la constitucionalidad de la norma, la declara inconstitucional, ésta no puede volver a tenervigencia ni aplicársele a nadie, lo que significa que las sentencias dictadas en las acciones de inconstitu- cionalidad tienen efectos generales, siempre que laresolución se adopte mediante el voto de ocho o más de sus Ministros",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación está facul- tada para averiguar algún hecho o hechos que cons-tituyan una grave violación de garantías individuales",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación está facultada para practicar de oficio la averigua-ción de algún hecho que constituya la violación del votopúblico, cuando a su juicio pueda ponerse en duda lalegalidad de todo el proceso de elección de algúnPoder de la Unión",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia dela Nación emite una opinión autorizada que remite a losórganos competentes",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "SUPREMA CORTE DE JUSTICIA DE LA NACIÓN 1",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación es el Máximo Tribunal del país",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia se requiereser mexicano por nacimiento, tener cuando menos 35años cumplidos y título profesional de licenciado enderecho expedido por lo menos diez años antes dela designación",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación funciona en Pleno",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación puede conocer, entre otros, de los siguientesasuntos",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación, por loque el Tribunal Electoral sólo puede manifestarse res-pecto de algún acto o resolución o sobre la interpre-tación de un precepto constitucional, siempre que éstano sea para verificar la conformidad de una ley electo-ral con el propio Ordenamiento Supremo, ya que delo contrario estaría ejerciendo una facultad que cons-titucionalmente no le corresponde",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de laNación y del Tribunal Electoral",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justiciade la Nación, quienes son designados por el Senado deuna terna que propone el presidente de la República,así como del personal jurisdiccional adscrito al TribunalElectoral, el cual se rige por las disposiciones que esta-blece su Comisión de Administración",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación y de algunosfuncionarios del Tribunal Electoral",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación, México, 2002, pp",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación, mediante laelaboración de los correspondientes proyectos deresolución, con los que dan cuenta a los Ministros,quienes resuelven en definitiva",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación, los Magistrados deCircuito o los Jueces de Distrito, en los juicios o proce-dimientos legales que se tramitan ante ellos",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación, México, 2002, p",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación o la Sala Superior del Tribunal Electoral, decide entre doso más criterios contradictorios cuál de ellos debe pre- valecer o, en su caso, emite un criterio propio que se impone a los criterios encontrados",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia, de carácter oficial y permanente que tiene por objetodifundir los criterios aislados y de jurisprudencia emitidos por los órganos jurisdiccionales competen- tes del Poder Judicial de la Federación, esto es, porel Pleno y las Salas de la Suprema Corte de Justicia de la Nación y los Tribunales Colegiados de Circuito, así como los Acuerdos del más Alto Tribunal del país,del Consejo de la Judicatura Federal y los que éstos emitan en forma conjunta",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "SUPREMA CORTE DE JUSTICIA DE LA NACIÓN, El concurso mercantil y el IFECOM , Suprema Corte de Justicia de la Nación, México, 2002",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación, México, 2002",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación, México, 2001",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "SUPREMA CORTE DE JUSTICIA DE LA NACIÓN, CD-ROM Jurisprudencia y Tesis Aisladas 1917-2002,IUS 2002, México, 2002",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación, rela- tivo al envío de asuntos de su competencia origina- ria a las Salas",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación, rela- tivo a la determinación de los asuntos que conser- vará para su resolución y el envío de los de sucompetencia originaria a las Salas y a los Tribuna- les Colegiados de Circuito",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "SALA SUPERIOR Sala Superior Mgdo",
+        "tipo": "Sala",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Sala Superior y de sus Salas Regionales",
+        "tipo": "Sala",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Sala Superior y cinco Salas Regionales",
+        "tipo": "Sala",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Sala Superior es un órgano per-manente, con sede en el Distrito Federal",
+        "tipo": "Sala",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Sala Superior y duran en su cargo un periodo im-prorrogable de ocho años",
+        "tipo": "Sala",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Sala Superior del Tribunal Electoral conoce y re- suelve, entre otros, los siguientes asuntos",
+        "tipo": "Sala",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Sala Superior y de las Salas Regionales, y los Tribunales Colegiados de Circuito",
+        "tipo": "Sala",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Sala Superior o cinco de las Salas Regionales",
+        "tipo": "Sala",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Sala Superior p ara que sea obligatoria",
+        "tipo": "Sala",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Sala Superior del Tribunal Electoral, decide entre doso más criterios contradictorios cuál de ellos debe pre- valecer o, en su caso, emite un criterio propio que se impone a los criterios encontrados",
+        "tipo": "Sala",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Pleno tengan validez, excepto cuando se trate decontroversias constitucionales o acciones de incons- titucionalidad, en las que se requiere la presencia de al menos ocho Ministros",
+        "tipo": "Pleno",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Pleno de la Suprema Corte de Justicia de la Nación puede conocer, entre otros, de los siguientesasuntos",
+        "tipo": "Pleno",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Pleno puede resol- ver directamente los asuntos o expedir acuerdos pararemitirlos a las Salas y a los Tribunales Colegiados de Circuito, para lograr mayor prontitud en su despacho",
+        "tipo": "Pleno",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Pleno de la Suprema Corte",
+        "tipo": "Pleno",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Pleno de la Suprema Corte de Justicia de la Nación",
+        "tipo": "Pleno",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Pleno o en Comisiones",
+        "tipo": "Pleno",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "pleno ejercicio de sus derechos civi les y políticos",
+        "tipo": "Pleno",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Pleno de la Corte, de entre los Magis- trados de Circuito y Jueces de Distrito",
+        "tipo": "Pleno",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Pleno y las Salas de la Suprema Corte de Justicia de la Nación",
+        "tipo": "Pleno",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Pleno de la SupremaCorte alcance un número calificado de ocho votos",
+        "tipo": "Pleno",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Pleno y las Salas de la Suprema Corte de Justicia de la Nación y los Tribunales Colegiados de Circuito, así como los Acuerdos del más Alto Tribunal del país,del Consejo de la Judicatura Federal y los que éstos emitan en forma conjunta",
+        "tipo": "Pleno",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Pleno de la Suprema Corte de Justicia de la Nación, rela- tivo al envío de asuntos de su competencia origina- ria a las Salas",
+        "tipo": "Pleno",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Pleno de la Suprema Corte de Justicia de la Nación, rela- tivo a la determinación de los asuntos que conser- vará para su resolución y el envío de los de sucompetencia originaria a las Salas y a los Tribuna- les Colegiados de Circuito",
+        "tipo": "Pleno",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Pleno del Consejo de la Judicatura Federal, que regula la or-ganización y funcionamiento del Consejo de la Ju-dicatura Federal",
+        "tipo": "Pleno",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Dirección General de la Coordinación de Compilación y Sistematización",
+        "tipo": "Dirección",
+        "source": "llm:PJF"
+      },
+      {
+        "nombre": "Comité Editorial",
+        "tipo": "Consejo",
+        "source": "llm:PJF"
+      },
+      {
+        "nombre": "Primera Sala",
+        "tipo": "Sala",
+        "source": "llm:PJF"
+      },
+      {
+        "nombre": "Segunda Sala",
+        "tipo": "Sala",
+        "source": "llm:PJF"
+      },
+      {
+        "nombre": "Tribunal Electoral",
+        "tipo": "Tribunal",
+        "source": "llm:PJF"
+      },
+      {
+        "nombre": "Secretaría",
+        "tipo": "Secretaría",
+        "source": "llm:PJF"
+      },
+      {
+        "nombre": "Dirección",
+        "tipo": "Dirección",
+        "source": "llm:PJF"
+      },
+      {
+        "nombre": "Pleno (SCJN)",
+        "tipo": "Pleno",
+        "source": "llm:PJF"
+      },
+      {
+        "nombre": "Salas (SCJN)",
+        "tipo": "Sala",
+        "source": "llm:PJF"
+      },
+      {
+        "nombre": "Tribunales Colegiados de Circuito",
+        "tipo": "Tribunal",
+        "source": "llm:PJF"
+      },
+      {
+        "nombre": "Tribunales Unitarios de Circuito",
+        "tipo": "Tribunal",
+        "source": "llm:PJF"
+      },
+      {
+        "nombre": "Instituto de la Judicatura Federal",
+        "tipo": "Consejo",
+        "source": "llm:PJF"
+      },
+      {
+        "nombre": "Visitaduría Judicial",
+        "tipo": "Consejo",
+        "source": "llm:PJF"
+      },
+      {
+        "nombre": "Contraloría del Poder Judicial de la Federación",
+        "tipo": "Consejo",
+        "source": "llm:PJF"
+      },
+      {
+        "nombre": "Instituto Federal de Defensoría Pública",
+        "tipo": "Consejo",
+        "source": "llm:PJF"
+      },
+      {
+        "nombre": "Instituto Federal de Especialistas de Concursos Mercantiles",
+        "tipo": "Consejo",
+        "source": "llm:PJF"
+      },
+      {
+        "nombre": "Tribunales Colegiados y Unitarios de Circuito",
+        "tipo": "Tribunal",
+        "source": "llm:PJF"
+      },
+      {
+        "nombre": "Congreso de la Unión",
+        "tipo": "Cámara",
+        "source": "llm:PJF"
+      }
+    ],
+    "stats": {
+      "raw": 142,
+      "unique": 119
+    }
+  },
+  {
+    "source_file": "EdoMexico2025.pdf",
+    "category": "Juzgados_EdoMex",
+    "entidades": [
+      {
+        "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE AMECAMECA JUZGADO CIVIL DE CUANTÍA MENOR DEL DISTRITO JUDICIAL DE CHALCO JUZGADO CIVIL DE CUANTÍA MENOR DEL DISTRITO JUDICIAL DE CHALCO CON RESIDENCIA EN IXTAPALUCA JUZGADO CIVIL DE CUANTÍA MENOR DEL DISTRITO JUDICIAL DE CHALCO CON RESIDENCIA EN VALLE DE CHALCO SOLIDARIDAD Fracción del lote",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Chalco",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL DE CHALCO JUZGADO DE CONTROL Y DE JUICIO ORAL DE CHALCO JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE CHALCO Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 EJECUCION DE SENTENCIAS JUZGADO DE EJECUCION DE SENTENCIAS DE CHALCO Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACUSATORI JUZGADO DE EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACU DE CHALCO Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 CONTROL Y JUICIOS ORALES JUZGADO DE JUICIO ORAL DE CHALCO JUZGADO FAMILIAR DEL DISTRITO JUDICIAL DE CHALCO JUZGADO PENAL DE PRIMERA INSTANCIA DE CHALCO Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 FAMILIARES Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 PENAL Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 CIVILES PRIMERA INSTANCIA JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE CHALCO JUZGADO QUINTO CIVIL DEL DISTRITO JUDICIAL DE CHALCO CON RESIDENCIA EN AMECAMECA Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 Fracción del lote",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Chalco",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DEL DISTRITO JUDICIAL DE CUAUTITLAN CON RESIDENCIA EN CUAUTITLAN IZCALLI Calle cisnes",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE TULTITLAN JUZGADO CIVIL DE CUANTÍA MENOR DEL DISTRITO JUDICIAL DE CUAUTITLÁN Plaza Hidalgo Esquina Francisco Villa, Centro, 54900 Calle Artículo 123 Esquina Maestro Alfonso Reyes, Guadalupe, 54805 CIVILES PRIMERA INSTANCIA JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE CUAUTITLAN JUZGADO CUARTO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLÁN Calle Artículo 123 Esquina Maestro Alfonso Reyes, Guadalupe, 54805 FAMILIARES Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Hidalgo",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL DE CUAUTITLÁN JUZGADO DE CONTROL Y DE JUICIO ORAL DE CUAUTITLAN JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE CUAUTITLÁN Calle Porfirio Díaz s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLAN CON RESIDENCIA EN CUAUTITLAN IZCALLI JUZGADO OCTAVO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLAN CON RESIDENCIA EN CUAUTITLAN IZCALLI JUZGADO PENAL DE PRIMERA INSTANCIA DE CUAUTITLAN Calle Porfirio Díaz s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE COACALCO Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL DE ECATEPEC JUZGADO DE CONTROL Y DE JUICIO ORAL DE ECATEPEC JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE ECATEPEC DE MORELOS Cerro de Chiconautla s",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Morelos",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PENAL DEL DISTRITO JUDICIAL DE ECATEPEC DE MORELOS Cerro de Chiconautla s",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Morelos",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE ACAMBAY Plaza Higaldo No",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE ATLACOMULCO Adolfo López Mateos 106, esquina cerrada Adolfo López Mateos, Lic",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL DE EL ORO Independencia s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y DE JUICIO ORAL DE EL ORO Independencia s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Independencia s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PENAL DE EL ORO JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE EL ORO JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE EL ORO CON RESIDENCIA EN ATLACOMULCO JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE EL ORO CON RESIDENCIA EN ATLACOMULCO JUZGADO CIVIL DE CUANTIA MENOR DE SAN FELIPE DEL PROGRESO JUZGADO DE CONTROL DE IXTLAHUACA JUZGADO DE CONTROL Y DE JUICIO ORAL DE IXTLAHUACA JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE IXTLAHUACA JUZGADO DE EJECUCION DE SENTENCIAS DE IXTLAHUACA DIRECCIÓN",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PENAL DE PRIMERA INSTANCIA DEL DISTRITO JUDICIAL Di IXTLAHUACA, ESTADO DE MÉXICO JUZGADO PENAL DEL DISTRITO JUDICIAL DE IXTLAHUACA JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE IXTLAHUACA JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE IXTLAHUACA ALMACEN INDEPENDENCIA JUZGADO CIVIL DE CUANTIA MENOR DE JILOTEPEC JUZGADO CIVIL DE JILOTEPEC JUZGADO DE CONTROL DE JILOTEPEC DE Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Estado De México",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE JILOTEPEC JUZGADO DE EJECUCION DE SENTENCIAS DE JILOTEPEC Ignacio Allende No",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PENAL DE JILOTEPEC JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE JILOTEPEC JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE JILOTEPEC JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE JILOTEPEC, CON RESIDENCIA EN ACULCO JUZGADO CIVIL DE CUANTIA MENOR DE OTZOLOTEPEC JUZGADO CIVIL DE CUANTIA MENOR DE TEMOAYA JUZGADO CIVIL DE CUANTIA MENOR DE XONACATLAN JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE LERMA CON RESIDENCIA EN XONACATLAN JUZGADO DE CONTROL DE LERMA JUZGADO DE CONTROL Y DE JUICIO ORAL DE LERMA JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE LERMA Ignacio Allende No",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PENAL DE LERMA JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE LERMA JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE LERMA JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE LERMA JUZGADO CIVIL DE CUANTIA MENOR DE LA PAZ Carretera Mexico-Toluca k",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Toluca",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL DE NEZAHUALCÓYOTL Prolongación Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Nezahualcóyotl",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y DE JUICIO ORAL DE NEZAHUALCÓYOTL Prolongación Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Nezahualcóyotl",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Prolongación Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PENAL DEL DISTRITO JUDICIAL DE NEZAHUALCÓYOTL Prolongación Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Nezahualcóyotl",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE TEOTIHUACAN Calle Potrero s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL DE OTUMBA CONTROL Y JUICIOS ORALES Carretera a Santa Barbara S",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y DE JUICIO ORAL DE OTUMBA Carretera a Santa Barbara S",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Carretera a Santa Bárbara S",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PENAL DE OTUMBA CONTROL Y JUICIOS ORALES Carretera a Santa Barbara S",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL DE SULTEPEC DISTRITO SULTEPEC CONTROL Y JUICIOS ORALES Libramiento Sultepec S",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y DE JUICIO ORAL DE SULTEPEC Libramiento Sultepec S",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Libramiento Sultepec S",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE TEJUPILCO Sor Juana Inés de la Cruz s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL DE TEMASCALTEPEC Plaza Principal Juarez No,1, Centro, 51300 JUZGADO DE CONTROL Y DE JUICIO ORAL DE TEMASCALTEPEC Plaza Principal Juarez No,1, Centro, 51300 JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DE Plaza Principal Juarez No,1, Centro, 51300 TEMASCALTEPEC EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACUSATORI JUZGADO DE EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACU Plaza Principal Juarez No,1, Centro, 51300 TEMASCALTEPEC CONTROL Y JUICIOS ORALES JUZGADO DE JUICIO ORAL DE TEMASCALTEPEC Plaza Principal Juarez No,1, Centro, 51300 DISTRITO TENANGO DEL VALLE CIVILES DE CUANTIA MENOR JUZGADO CIVIL DE CUANTIA MENOR DE SANTIAGO TIANGUISTENCO Carretera la Marquesa- Tenango km 18",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE XALATLACO Paraje Denominado Tlilac Entre Manuela Ortíz, Eustolgio Galindo Y Camina Público Vecinal, Barrio De San Agustín, 52680 CIVILES PRIMERA INSTANCIA JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE TENANGO DEL VALLE Carretera la Marquesa- Tenango km 18",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL DE TENANGO DEL VALLE k",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y DE JUICIO ORAL DE TENANGO DEL VALLE k",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO k",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PENAL DE PRIMERA INSTANCIA DEL DISTRITO JUDICIAL DE k",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PENAL DEL DISTRITO JUDICIAL TENANGO DEL VALLE k",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE IXTAPAN DE LA SAL Carretera Federal Ixtapan de la Sal Y Tonalico S",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE TENANCINGO Privada de Héctor Gordillo, Barrio El Salitre, 52400 JUZGADO DE CONTROL DE TENANCINGO CONTROL Y JUICIOS ORALES Privada de Héctor Gordillo, Barrio El Salitre, 52400 JUZGADO DE CONTROL Y DE JUICIO ORAL DE TENANCINGO Privada de Héctor Gordillo, Barrio El Salitre, 52400 JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Privada de Héctor Gordillo, Barrio El Salitre, 52400 JUDICIAL DE TENANCINGO EJECUCION DE SENTENCIAS JUZGADO DE EJECUCION DE SENTENCIAS DE TENANCINGO Privada de Héctor Gordillo, Barrio El Salitre, 52400 EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACUSATORI JUZGADO DE EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACU DE Privada de Héctor Gordillo, Barrio El Salitre, 52400 TENANCINGO JUZGADO DE JUICIO ORAL DE TENANCINGO JUZGADO PENAL DE TENANCINGO CONTROL Y JUICIOS ORALES Privada de Héctor Gordillo, Barrio El Salitre, 52400 PENAL Privada de Héctor Gordillo, Barrio El Salitre, 52400 CIVILES PRIMERA INSTANCIA JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE TENANCINGO Privada de Héctor Gordillo, Barrio El Salitre, 52400 JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE TENANCINGO CON Carretera Federal Ixtapan de la Sal 8 Tonatico S",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE CHIAUTLA DISTRITO TEXCOCO CIVILES DE CUANTIA MENOR Calle 2 de Abril s",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Texcoco",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE CHICOLOAPAN Plaza de la Constitución s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE CHICONCUAC Calle Basilio Cantabrana s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL DE TEXCOCO Miguel Chiconcuac, 55800 CONTROL Y JUICIOS ORALES Carretera a San Miguel Tlaixpan S",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Texcoco",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y DE JUICIO ORAL DE TEXCOCO Carretera a San Miguel Tlaixpan S",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Texcoco",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Carretera a San Miguel Tlaixpan S",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PENAL DE PRIMERA INSTANCIA DEL DISTRITO JUDICIAL DE Carretera a San Miguel Tlaixpan S",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE NAUCALPAN Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL DE TLALNEPANTLA Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y DE JUICIO ORAL DE TLALNEPANTLA Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PENAL DEL DISTRITO JUDICIAL DE TLALNEPANTLA Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE METEPEC Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE TOLUCA Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Toluca",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE VILLA VICTORIA Calle 13 de Mayo s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE ZINACANTEPEC Jardín Constitución No",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL DE TOLUCA k",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Toluca",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y DE JUICIO ORAL DE TOLUCA k",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Toluca",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PENAL DEL DISTRITO JUDICIAL DE TOLUCA k",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Toluca",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DEL DISTRITO JUDICIAL DE VALLE DE BRAVO Cerrada de Fray Gregorio Jimenez de la Cuenca s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL DE VALLE DE BRAVO Cerrada de Fray Gregorio Jimenez de la Cuenca s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y DE JUICIO ORAL DE VALLE DE BRAVO Cerrada de Fray Gregorio Jimenez de la Cuenca s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Cerrada de Fray Gregorio Jimenez de la Cuenca s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DE CUANTIA MENOR DE ZUMPANGO Antiguo camino a Jilotzingo s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CIVIL DEL DISTRITO JUDICIAL DE ZUMPANGO Antiguo camino a Jilotzingo s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y DE JUICIO ORAL DE ZUMPANGO Antiguo camino a Jilotzingo s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Antiguo camino a Jilotzingo s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO FAMILIAR DE PRIMERA INSTANCIA DE ZUMPANGO Antiguo camino a Jilotzingo s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PENAL DE PRIMERA INSTANCIA DE ZUMPANGO Calle Plaza Juárez s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE CHALCO CON RESIDENCIA EN VALLE DE CHALCO SOLIDARIDAD Popocatepetl s",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Chalco",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE CHALCO JUZGADO QUINTO CIVIL DEL DISTRITO JUDICIAL DE CHALCO CON RESIDENCIA EN AMECAMECA Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 Fracción del lote",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Chalco",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEXTO CIVIL DEL DISTRITO JUDICIAL DE CHALCO CON RESIDENCIA EN IXTAPALUCA JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE CHALCO CON RESIDENCIA EN AMECAMECA WWW PJEDOMEX",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Chalco",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE CUAUTITLAN JUZGADO CUARTO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLÁN Calle Artículo 123 Esquina Maestro Alfonso Reyes, Guadalupe, 54805 FAMILIARES Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO OCTAVO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLAN CON RESIDENCIA EN CUAUTITLAN IZCALLI JUZGADO PENAL DE PRIMERA INSTANCIA DE CUAUTITLAN Calle Porfirio Díaz s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE CUAUTITLAN JUZGADO PRIMERO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLAN Calle Artículo 123 Esquina Maestro Alfonso Reyes, Guadalupe, 54805 FAMILIARES Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO QUINTO CIVIL DEL DISTRITO JUDICIAL DE CUAUTITLAN Calle Artículo 123 Esquina Maestro Alfonso Reyes, Guadalupe, 54805 FAMILIARES",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE CUAUTITLÁN JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE CUAUTITLAN CON RESIDENCIA EN CUAUTITLAN IZCALLI JUZGADO SEGUNDO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLAN CON RESIDENCIA EN CUAUTITLAN IZCALLI JUZGADO SEPTIMO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLAN JUZGADO SEPTIMO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLÁN CON RESIDENCIA EN CUAUTITLÁN IZCALLI JUZGADO SEXTO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLAN Calle Artículo 123 Esquina Maestro Alfonso Reyes, Guadalupe, 54805 Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE CUAUTITLAN CON RESIDENCIA EN CUAUTITLAN IZCALLI JUZGADO TERCERO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLÁN CON RESIDENCIA EN CUAUTITLÁN IZCALLI Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE ECATEPEC DE MORELOS CON RESIDENCIA EN COACALCO DE BERRIOZÁBAL JUZGADO CUARTO FAMILIAR DEL DISTRITO JUDICIAL DE ECATEPEC DE MORELOS CON RESIDENCIA EN COACALCO DE BERRIOZÁBAL Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Morelos",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO OCTAVO FAMILIAR DEL DISTRITO JUDICIAL DE ECATEPEC DE Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Ecatepec",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO FAMILIAR DEL DISTRITO JUDICIAL DE ECATEPEC DE Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Ecatepec",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO MERCANTIL DEL DISTRITO JUDICIAL DE ECATEPECDE Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Ecatepec",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO QUINTO CIVIL DEL DISTRITO JUDICIAL DE ECATEPEC DE Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Ecatepec",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO QUINTO FAMILIAR DEL DISTRITO JUDICIAL DE ECATEPEC DE Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Ecatepec",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE ECATEPEC DE Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Ecatepec",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEGUNDO FAMILIAR DEL DISTRITO JUDICIAL DE ECATEPEC DE Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Ecatepec",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEXTO CIVIL DEL DISTRITO JUDICIAL DE ECATEPEC DEMORELOS",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Morelos",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEXTO FAMILIAR DEL DISTRITO JUDICIAL DE ECATEPEC DE Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Ecatepec",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE ECATEPEC DE Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Ecatepec",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO TERCERO FAMILIAR DEL DISTRITO JUDICIAL DE ECATEPEC DE Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Ecatepec",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE EL ORO JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE EL ORO CON RESIDENCIA EN ATLACOMULCO JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE EL ORO CON RESIDENCIA EN ATLACOMULCO JUZGADO CIVIL DE CUANTIA MENOR DE SAN FELIPE DEL PROGRESO JUZGADO DE CONTROL DE IXTLAHUACA JUZGADO DE CONTROL Y DE JUICIO ORAL DE IXTLAHUACA JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE IXTLAHUACA JUZGADO DE EJECUCION DE SENTENCIAS DE IXTLAHUACA DIRECCIÓN",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE IXTLAHUACA JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE IXTLAHUACA ALMACEN INDEPENDENCIA JUZGADO CIVIL DE CUANTIA MENOR DE JILOTEPEC JUZGADO CIVIL DE JILOTEPEC JUZGADO DE CONTROL DE JILOTEPEC DE Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE JILOTEPEC JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE JILOTEPEC JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE JILOTEPEC, CON RESIDENCIA EN ACULCO JUZGADO CIVIL DE CUANTIA MENOR DE OTZOLOTEPEC JUZGADO CIVIL DE CUANTIA MENOR DE TEMOAYA JUZGADO CIVIL DE CUANTIA MENOR DE XONACATLAN JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE LERMA CON RESIDENCIA EN XONACATLAN JUZGADO DE CONTROL DE LERMA JUZGADO DE CONTROL Y DE JUICIO ORAL DE LERMA JUZGADO DE CONTROL Y TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE LERMA Ignacio Allende No",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE LERMA JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE LERMA JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE LERMA JUZGADO CIVIL DE CUANTIA MENOR DE LA PAZ Carretera Mexico-Toluca k",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Toluca",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE NEZAHUALCÓYOTL Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Nezahualcóyotl",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CUARTO FAMILIAR DEL DISTRITO JUDICIAL DE Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE NEZAHUALCOYOTL Prolongación Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO FAMILIAR DEL DISTRITO JUDICIAL DE Prolongación Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO MERCANTIL DEL DISTRITO JUDICIAL DE Prolongación Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO QUINTO CIVIL DE NEZAHUALCÓYOTL",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Nezahualcóyotl",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO QUINTO FAMILIAR DEL DISTRITO JUDICIAL DE Prolongación Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE NEZAHUALCOYOTL Prolongación Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEXTO CIVIL DE NEZAHUALCÓYOTL",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Nezahualcóyotl",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEXTO FAMILIAR DEL DISTRITO JUDICIAL DE NEZAHUALCÓYOTL Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Nezahualcóyotl",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE NEZAHUALCÓYOTL Prolongación Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Nezahualcóyotl",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO TERCERO FAMILIAR DEL DISTRITO JUDICIAL DE Prolongación Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE OTUMBA Carretera a Santa Barbara S",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE OTUMBA Carretera a Santa Bárbara S",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE OTUMBA CON Calle Potrero s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE TENANGO DEL VALLE Carretera la Marquesa- Tenango km 18",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE TENANGO DEL VALLE",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO MERCANTIL DEL DISTRITO JUDICIAL DE TENANGO DEL Paraje Denominado Tlilac Entre Manuela Ortiz, Eustolgio Galindo Y Camino VALLE CON RESIDENCIA EN XALATLACO Público Vecinal, Barrio De San Agustín, 52680 CIVILES PRIMERA INSTANCIA JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE TENANGO DEL Carretera la Marquesa- Tenango km 18",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE TENANGO DEL VALLE",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE TENANCINGO Privada de Héctor Gordillo, Barrio El Salitre, 52400 JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE TENANCINGO CON Carretera Federal Ixtapan de la Sal 8 Tonatico S",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE TENANCINGO Privada de Héctor Gordillo, Barrio El Salitre, 52400 JUZGADO CIVIL DE CUANTIA MENOR DE CHIAUTLA DISTRITO TEXCOCO CIVILES DE CUANTIA MENOR Calle 2 de Abril s",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Texcoco",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO FAMILIAR DEL DISTRITO JUDICIAL DE TEXCOCO Carretera Texcoco- Molino De Flores Km",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Texcoco",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO MERCANTIL DEL DISTRITO JUDICIAL DE TEXCOCO Carretera Texcoco- Molino De Flores Km",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Texcoco",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE TEXCOCO Carretera Texcoco- Molino De Flores Km",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Texcoco",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEGUNDO FAMILIAR DEL DISTRITO JUDICIAL DE TEXCOCO Carretera Texcoco- Molino De Flores Km",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Texcoco",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE TEXCOCO Carretera Texcoco- Molino De Flores Km",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Texcoco",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO TERCERO FAMILIAR DEL DISTRITO JUDICIAL DE TEXCOCO Carretera Texcoco- Molino De Flores Km",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Texcoco",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE TLALNEPANTLA CON Ay",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CUARTO FAMILIAR DEL DISTRITO JUDICIAL DE TLALNEPANTLA Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CUARTO MERCANTIL DEL DISTRITO JUDICIAL DE TLALNEPANTLA",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO DÉCIMO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE Fernando Montes de Oca s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO NOVENO CIVIL DEL DISTRITO JUDICIAL DE TLALNEPANTLA CON Prolongación Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO NOVENO FAMILIAR DEL DISTRITO JUDICIAL DE TLALNEPANTLA Paseo del Ferrocarril s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO OCTAVO CIVIL DEL DISTRITO JUDICIAL DE TLALNEPANTLA CON Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO OCTAVO FAMILIAR DEL DISTRITO JUDICIAL DE TLALNEPANTLA Paseo del Ferrocarril s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO FAMILIAR DEL DISTRITO JUDICIAL DE TLALNEPANTLA Paseo del Ferrocarril s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO MERCANTIL DEL DISTRITO JUDICIAL DE Paseo del Ferrocarril s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO QUINTO CIVIL DEL DISTRITO JUDICIAL DE TLALNEPANTLA CON Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO QUINTO FAMILIAR DEL DISTRITO JUDICIAL DE TLALNEPANTLA Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO QUINTO MERCANTIL DEL DISTRITO JUDICIAL DE TLALNEPANTLA Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE TLALNEPANTLA Paseo del Ferrocarril s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEGUNDO FAMILIAR DEL DISTRITO JUDICIAL DE TLALNEPANTLA Paseo del Ferrocarril s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEXTO CIVIL DEL DISTRITO JUDICIAL DE TLALNEPANTLA CON Fernando Montes de Oca s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEXTO FAMILIAR DEL DISTRITO JUDICIAL DE TLALNEPANTLA Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEXTO MERCANTIL DEL DISTRITO JUDICIAL DE TLALNEPANTLA Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE TLALNEPANTLA Paseo del Ferrocarril s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO TERCERO FAMILIAR DEL DISTRITO JUDICIAL DE TLALNEPANTLA Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO TERCERO MERCANTIL DEL DISTRITO JUDICIAL DE Paseo del Ferrocarril s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE TOLUCA Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Toluca",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CUARTO FAMILIAR DEL DISTRITO JUDICIAL DE TOLUCA CON Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Toluca",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO CUARTO MERCANTIL DEL DISTRITO JUDICIAL DE TOLUCA Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Toluca",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO NOVENO FAMILIAR DEL DISTRITO JUDICIAL DE TOLUCA JUZGADO OCTAVO FAMILIAR DEL DISTRITO JUDICIAL DE TOLUCA JUZGADO OCTAVO MERCANTIL DEL DISTRITO JUDICIAL DE TOLUCA JUZGADO PENAL DEL DISTRITO JUDICIAL DE TOLUCA k",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Toluca",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO CIVIL DE CUANTIA MENOR DE TOLUCA JUZGADO PRIMERO FAMILIAR DEL DISTRITO JUDICIAL DE TOLUCA JUZGADO PRIMERO MERCANTIL DEL DISTRITO JUDICIAL DE TOLUCA JUZGADO PRIMERO PENAL DE PRIMERA INSTANCIA DEL DISTRITO JUDICIAL DE TOLUCA Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Toluca",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO QUINTO CIVIL DEL DISTRITO JUDICIAL DE TOLUCA CON RESIDENCIA EN METEPEC JUZGADO QUINTO FAMILIAR DEL DISTRITO JUDICIAL DE TOLUCA JUZGADO QUINTO MERCANTIL DEL DISTRITO JUDICIAL DE TOLUCA Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Toluca",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE TOLUCA JUZGADO SEGUNDO FAMILIAR DEL DISTRITO JUDICIAL DE TOLUCA JUZGADO SEGUNDO MERCANTIL DEL DISTRITO JUDICIAL DE TOLUCA Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Toluca",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEXTO CIVIL DEL DISTRITO JUDICIAL DE TOLUCA CON Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Toluca",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEXTO FAMILIAR DEL DISTRITO JUDICIAL DE TOLUCA Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Toluca",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEXTO MERCANTIL DEL DISTRITO JUDICIAL DE TOLUCA Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Toluca",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE TOLUCA Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Toluca",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO TERCERO FAMILIAR DEL DISTRITO JUDICIAL DE TOLUCA CON Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Toluca",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO TERCERO MERCANTIL DEL DISTRITO JUDICIAL DE TOLUCA Av",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Toluca",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO PRIMERO FAMILIAR DEL DISTRITO JUDICIAL DE ZUMPANGO Antiguo camino a Jilotzingo s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEGUNDO FAMILIAR DEL DISTRITO JUDICIAL DE ZUMPANGO Antiguo camino a Jilotzingo s",
+        "tipo": "Juzgado",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE CHALCO Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 EJECUCION DE SENTENCIAS JUZGADO DE EJECUCION DE SENTENCIAS DE CHALCO Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACUSATORI JUZGADO DE EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACU DE CHALCO Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 CONTROL Y JUICIOS ORALES JUZGADO DE JUICIO ORAL DE CHALCO JUZGADO FAMILIAR DEL DISTRITO JUDICIAL DE CHALCO JUZGADO PENAL DE PRIMERA INSTANCIA DE CHALCO Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 FAMILIARES Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 PENAL Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 CIVILES PRIMERA INSTANCIA JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE CHALCO JUZGADO QUINTO CIVIL DEL DISTRITO JUDICIAL DE CHALCO CON RESIDENCIA EN AMECAMECA Carretera Chalco - San Andres Mixquic, San Mateo Huitzilzingo, 56625 Fracción del lote",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Chalco",
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE CUAUTITLÁN Calle Porfirio Díaz s",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE ECATEPEC DE MORELOS Cerro de Chiconautla s",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Morelos",
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Independencia s",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE IXTLAHUACA JUZGADO DE EJECUCION DE SENTENCIAS DE IXTLAHUACA DIRECCIÓN",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE JILOTEPEC JUZGADO DE EJECUCION DE SENTENCIAS DE JILOTEPEC Ignacio Allende No",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO JUDICIAL DE LERMA Ignacio Allende No",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Prolongación Av",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Carretera a Santa Bárbara S",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Libramiento Sultepec S",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL DE ENJUICIAMIENTO DE Plaza Principal Juarez No,1, Centro, 51300 TEMASCALTEPEC EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACUSATORI JUZGADO DE EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACU Plaza Principal Juarez No,1, Centro, 51300 TEMASCALTEPEC CONTROL Y JUICIOS ORALES JUZGADO DE JUICIO ORAL DE TEMASCALTEPEC Plaza Principal Juarez No,1, Centro, 51300 DISTRITO TENANGO DEL VALLE CIVILES DE CUANTIA MENOR JUZGADO CIVIL DE CUANTIA MENOR DE SANTIAGO TIANGUISTENCO Carretera la Marquesa- Tenango km 18",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO k",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Privada de Héctor Gordillo, Barrio El Salitre, 52400 JUDICIAL DE TENANCINGO EJECUCION DE SENTENCIAS JUZGADO DE EJECUCION DE SENTENCIAS DE TENANCINGO Privada de Héctor Gordillo, Barrio El Salitre, 52400 EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACUSATORI JUZGADO DE EJECUCION DE SENTENCIAS SISTEMA PROCESAL ACU DE Privada de Héctor Gordillo, Barrio El Salitre, 52400 TENANCINGO JUZGADO DE JUICIO ORAL DE TENANCINGO JUZGADO PENAL DE TENANCINGO CONTROL Y JUICIOS ORALES Privada de Héctor Gordillo, Barrio El Salitre, 52400 PENAL Privada de Héctor Gordillo, Barrio El Salitre, 52400 CIVILES PRIMERA INSTANCIA JUZGADO PRIMERO CIVIL DEL DISTRITO JUDICIAL DE TENANCINGO Privada de Héctor Gordillo, Barrio El Salitre, 52400 JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE TENANCINGO CON Carretera Federal Ixtapan de la Sal 8 Tonatico S",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Carretera a San Miguel Tlaixpan S",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Av",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Cerrada de Fray Gregorio Jimenez de la Cuenca s",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL DE ENJUICIAMIENTO DEL DISTRITO Antiguo camino a Jilotzingo s",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "centro de justicia estatal,, 52600 JUZGADO CIVIL DE CUANTIA MENOR DE XALATLACO Paraje Denominado Tlilac Entre Manuela Ortíz, Eustolgio Galindo Y Camina Público Vecinal, Barrio De San Agustín, 52680 CIVILES PRIMERA INSTANCIA JUZGADO CUARTO CIVIL DEL DISTRITO JUDICIAL DE TENANGO DEL VALLE Carretera la Marquesa- Tenango km 18",
+        "tipo": "Centro",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "centro de justicia CON RESIDENCIA EN TIANGUISTENCO estatal,, 52600 CONTROL Y JUICIOS ORALES JUZGADO DE CONTROL DE TENANGO DEL VALLE k",
+        "tipo": "Centro",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "centro de justicia VALLE CON RESIDENCIA EN TIANGUISTENCO estatal,, 52600 JUZGADO TERCERO CIVIL DEL DISTRITO JUDICIAL DE TENANGO DEL VALLE",
+        "tipo": "Centro",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Juzgado Civil de Cuantia Menor de Amecameca",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Civil de Cuantía Menor del Distrito Judicial de Chalco",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Civil de Cuantía Menor del Distrito Judicial de Chalco con residencia en Ixtapaluca",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Civil de Cuantía Menor del Distrito Judicial de Chalco con residencia en Valle de Chalco Solidaridad",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Cuarto Civil del Distrito Judicial de Chalco con residencia en Valle de Chalco Solidaridad",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado de Control de Chalco",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado de Control y De Juicio Oral de Chalco",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado de Control y Tribunal de Enjuiciamiento del Distrito Judicial de Chalco",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado de Ejecución de Sentencias de Chalco",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado de Ejecución de Sentencias Sistema Procesal Acusatorio de Chalco",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado de Juicio Oral de Chalco",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Familiar del Distrito Judicial de Chalco",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Penal de Primera Instancia de Chalco",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Primero Civil del Distrito Judicial de Chalco",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Quinto Civil del Distrito Judicial de Chalco con residencia en Amecameca",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Septimo Civil del Distrito Judicial de Chalco con residencia en Amecameca",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Sexto Civil del Distrito Judicial de Chalco con residencia en Ixtapaluca",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Tercero Civil del Distrito Judicial de Chalco con residencia en Amecameca",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Civil del Distrito Judicial de Cuautitlán",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Tribunal de Enjuiciamiento del Distrito Judicial de Cuautitlán",
+        "tipo": "Tribunal",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Secretaría",
+        "tipo": "Secretaría",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Dirección",
+        "tipo": "Dirección",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Civil de Cuantia Menor de Tultitlán",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Cuarto Civil del Distrito Judicial de Cuautitlán",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Cuarto Familiar del Distrito Judicial de Cuautitlán",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado de Control y Tribunal de Enjuiciamiento del Distrito Judicial de Cuautitlán",
+        "tipo": "Tribunal",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado de Ejecución de Sentencias de Cuautitlán (Cuautitlán Izcalli)",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Familiar del Distrito Judicial de Cuautitlán con residencia en Cuautitlán Izcalli",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Octavo Familiar del Distrito Judicial de Cuautitlán con residencia en Cuautitlán Izcalli",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Penal de Primera Instancia de Cuautitlán",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Poder Judicial del Estado de México",
+        "tipo": "Dirección",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "STRITO JUDICIAL DE CUAUTITLÁN",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "JUZGADO SEGUNDO CIVIL DEL DISTRITO JUDICIAL DE CUAUTITLAN",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "JUZGADO SEPTIMO FAMILIAR DEL DISTRITO JUDICIAL DE CUAUTITLÁN",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado de Judio Oral de Ecatepec",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Decimo Familiar del Distrito Judicial de Ecatepec de Morelos",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Decimo Primerio Familiar del Distrito Judicial de Ecatepec de Morelos con residencia en Tecamac",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Familiares",
+        "tipo": "Secretaría",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Dirección",
+        "tipo": "Dirección",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Penal del Distrito Judicial de Ecatepec de Morelos",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Primero Familiar del Distrito Judicial de Ecatepec de Morelos",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Primerio Mercantil del Distrito Judicial de Ecatepec de Morelos",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Quinto Civil del Distrito Judicial de Ecatepec de Morelos con residencia en Tecamac progresivo, santo Tomás Chiconautla, 55740",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Quinto Familiar del Distrito Judicial de Ecatepec de Morelos",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Segundo Civil del Distrito Judicial de Ecatepec de Morelos",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Segundo Familiar del Distrito Judicial de Ecatepec de Morelos",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Septimo Familiar del Distrito Judicial de Ecatepec de Morelos",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Sexto Civil del Distrito Judicial de Ecatepec de Morelos",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Sexto Familiar del Distrito Judicial de Ecatepec de Morelos",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Tercero Civil del Distrito Judicial de Ecatepec de Morelos",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Tercero Familiar del Distrito Judicial de Ecatepec de Morelos",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      },
+      {
+        "nombre": "Juzgado Civil de Cuantia Menor de Acambay",
+        "tipo": "Juzgado",
+        "source": "llm:Juzgados_EdoMex"
+      }
+    ],
+    "stats": {
+      "raw": 238,
+      "unique": 230
+    }
+  },
+  {
+    "source_file": "OrganosJurisdiccionales_por_Cto.pdf",
+    "category": "PJF_Organos",
+    "entidades": [
+      {
+        "nombre": "CONSEJO DE LA JUDICATURA FEDERAL DIRECCIÓN GENERAL DE ESTADÍSTICA JUDICIAL 1 DISTRIBUCIÓN DE LOS ÓRGANOS JURISDICCIONALES POR CIRCUITO JUDICIAL AL 31 DE DICIEMBRE DE 2020 Fuente",
+        "tipo": "Consejo",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "CONSEJO DE LA JUDICATURA FEDERAL DIRECCIÓN GENERAL DE ESTADÍSTICA JUDICIAL 2 DISTRIBUCIÓN DE LOS ÓRGANOS JURISDICCIONALES POR CIRCUITO JUDICIAL AL 31 DE DICIEMBRE DE 202 1 Fuente",
+        "tipo": "Consejo",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "CONSEJO DE LA JUDICATURA FEDERAL DIRECCIÓN GENERAL DE ESTADÍSTICA JUDICIAL 3 DISTRIBUCIÓN DE LOS ÓRGANOS JURISDICCIONALES POR CIRCUITO JUDICIAL AL 31 DE DICIEMBRE DE 202 2 Fuente",
+        "tipo": "Consejo",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "CONSEJO DE LA JUDICATURA FEDERAL DIRECCIÓN GENERAL DE ESTADÍSTICA JUDICIAL 4 DISTRIBUCIÓN DE LOS ÓRGANOS JURISDICCIONALES POR CIRCUITO JUDICIAL AL 31 DE DICIEMBRE DE 202 3 Fuente",
+        "tipo": "Consejo",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "CONSEJO DE LA JUDICATURA FEDERAL DIRECCIÓN GENERAL DE ESTADÍSTICA JUDICIAL 5 DISTRIBUCIÓN DE LOS ÓRGANOS JURISDICCIONALES POR CIRCUITO JUDICIAL AL 31 DE DICIEMBRE DE 202 4 Fuente",
+        "tipo": "Consejo",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "CONSEJO DE LA JUDICATURA FEDERAL DIRECCIÓN GENERAL DE ESTADÍSTICA JUDICIAL 6 DISTRIBUCIÓN DE LOS ÓRGANOS JURISDICCIONALES POR CIRCUITO JUDICIAL AL 3 0 DE ABRIL DE 202 5 Fuente",
+        "tipo": "Consejo",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "DIRECCIÓN GENERAL DE ESTADÍSTICA JUDICIAL 1 DISTRIBUCIÓN DE LOS ÓRGANOS JURISDICCIONALES POR CIRCUITO JUDICIAL AL 31 DE DICIEMBRE DE 2020 Fuente",
+        "tipo": "Dirección",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "DIRECCIÓN GENERAL DE ESTADÍSTICA JUDICIAL 2 DISTRIBUCIÓN DE LOS ÓRGANOS JURISDICCIONALES POR CIRCUITO JUDICIAL AL 31 DE DICIEMBRE DE 202 1 Fuente",
+        "tipo": "Dirección",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "DIRECCIÓN GENERAL DE ESTADÍSTICA JUDICIAL 3 DISTRIBUCIÓN DE LOS ÓRGANOS JURISDICCIONALES POR CIRCUITO JUDICIAL AL 31 DE DICIEMBRE DE 202 2 Fuente",
+        "tipo": "Dirección",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "DIRECCIÓN GENERAL DE ESTADÍSTICA JUDICIAL 4 DISTRIBUCIÓN DE LOS ÓRGANOS JURISDICCIONALES POR CIRCUITO JUDICIAL AL 31 DE DICIEMBRE DE 202 3 Fuente",
+        "tipo": "Dirección",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "DIRECCIÓN GENERAL DE ESTADÍSTICA JUDICIAL 5 DISTRIBUCIÓN DE LOS ÓRGANOS JURISDICCIONALES POR CIRCUITO JUDICIAL AL 31 DE DICIEMBRE DE 202 4 Fuente",
+        "tipo": "Dirección",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "DIRECCIÓN GENERAL DE ESTADÍSTICA JUDICIAL 6 DISTRIBUCIÓN DE LOS ÓRGANOS JURISDICCIONALES POR CIRCUITO JUDICIAL AL 3 0 DE ABRIL DE 202 5 Fuente",
+        "tipo": "Dirección",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Centro nacional de justicia especializadoTribunales laborales federalesTribunales colegiados de circuitoTribunales unitarios de circuitoPlenos de circuitoTotalJuzgados de distrito auxiliaresTribunales unitarios auxiliaresTribunales colegiados auxiliaresTotal 1",
+        "tipo": "Centro",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Centro nacional de justicia especializadoTribunales laborales federalesTribunales colegiados de circuitoTribunales colegiados de apelaciónPlenos de circuitoTotalJuzgados de distrito auxiliaresTribunales colegiados auxiliaresTotal 1",
+        "tipo": "Centro",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Centro nacional de justicia especializadoTribunales laborales federalesTribunales colegiados de circuitoTribunales colegiados de apelaciónPlenos regionalesTotalJuzgados de distrito auxiliaresTribunales colegiados auxiliaresTotal 1",
+        "tipo": "Centro",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Consejo de la Judicatura Federal",
+        "tipo": "Consejo",
+        "source": "llm:PJF_Organos"
+      },
+      {
+        "nombre": "Dirección General de Estadística Judicial",
+        "tipo": "Dirección",
+        "source": "llm:PJF_Organos"
+      },
+      {
+        "nombre": "Secretaría",
+        "tipo": "Secretaría",
+        "source": "llm:PJF_Organos"
+      },
+      {
+        "nombre": "Dirección",
+        "tipo": "Dirección",
+        "source": "llm:PJF_Organos"
+      },
+      {
+        "nombre": "Centro Nacional de Justicia Especializado",
+        "tipo": "CENTRO",
+        "source": "llm:PJF_Organos"
+      },
+      {
+        "nombre": "Tribunales laborales federales",
+        "tipo": "Tribunal",
+        "source": "llm:PJF_Organos"
+      },
+      {
+        "nombre": "Tribunales colegiados de circuito",
+        "tipo": "Tribunal",
+        "source": "llm:PJF_Organos"
+      },
+      {
+        "nombre": "Tribunales colegiados de apelación",
+        "tipo": "Tribunal",
+        "source": "llm:PJF_Organos"
+      },
+      {
+        "nombre": "Plenos regionales",
+        "tipo": "Pleno",
+        "source": "llm:PJF_Organos"
+      }
+    ],
+    "stats": {
+      "raw": 37,
+      "unique": 24
+    }
+  },
+  {
+    "source_file": "metodologiaDirectorioOrganos_06102022.pdf",
+    "category": "PJF_Metodologia",
+    "entidades": [
+      {
+        "nombre": "JUZGADO CUARTO DE DISTRITO EN EL ESTADO DE AGUASCALIENTES, CON RESIDENCIA EN LA CIUDAD DEL MISMO NOMBRE 1140040 1140040 01",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Aguascalientes",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO QUINTO DE DISTRITO EN EL ESTADO DE AGUASCALIENTES, CON RESIDENCIA EN LA CIUDAD DEL MISMO NOMBRE 1140050 1140050 01",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Aguascalientes",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEXTO DE DISTRITO EN EL ESTADO DE AGUASCALIENTES, CON RESIDENCIA EN LA CIUDAD DEL MISMO NOMBRE 1140060 1140060 16",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Aguascalientes",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SÉPTIMO DE DISTRITO EN EL ESTADO DE AGUASCALIENTES, CON RESIDENCIA EN LA CIUDAD DEL MISMO NOMBRE 1140070 1140070 01",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Aguascalientes",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO QUINTO DE DISTRITO EN EL ESTADO DE BAJA CALIFORNIA, CON RESIDENCIA EN TIJUANA",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Baja California",
+        "source": "regex"
+      },
+      {
+        "nombre": "JUZGADO SEGUNDO DE DISTRITO DE PROCESOS PENALES FEDERALES EN EL ESTADO DE BAJA CALIFORNIA, CON RESIDENCIA EN TIJUANA 234A020 2340050 01",
+        "tipo": "Juzgado",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Colegiado en Materia de Trabajo del Sexto Circuito, inicialmente con domicilio en Puebla, presenta diversas modificaciones, entre ellas cambios de residencia entre Pu ebla y Tlaxcala , hasta pasar de un carácter ordinario a auxiliar y viceversa",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL COLEGIADO EN MATERIA DE TRABAJO DEL SEXTO CIRCUITO, CON RESIDENCIA EN PUEBLA, PUEBLA N154020",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL COLEGIADO DEL VIGÉSIMO OCTAVO CIRCUITO CON RESIDENCIA EN TLAXCALA, TLAXCALA W150000 N154020 2 5 PRIMER TRIBUNAL COLEGIADO DEL VIGÉSIMO OCTAVO CIRCUITO, CON RESIDENCIA EN APIZACO, TLAXCALA W250010 N154020 3 5 CUARTO TRIBUNAL COLEGIADO DE CIRCUITO DEL CENTRO AUXILIAR DE LA SEGUNDA REGIÓN, CON RESIDENCIA EN SAN ANDRÉS CHOLULA, PUEBLA N25C040 N154020 4 5 SEGUNDO TRIBUNAL COLEGIADO EN MATERIA DE TRABAJO DEL SEXTO CIRCUITO, CON RESIDENCIA EN PUEBLA, PUEBLA N154020",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "tribunal colegiado tendrá el consecutivo 02 y un Tribunal colegiado sin numeración tendrá el consecutivo 00",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Unitario del Decimoquinto Circuito, con Residencia en Tijuana, Baja California , con la clave interna de 23600 E0, con la fecha de alta del 3 de septiembre de 2001 e identificada en el acuerdo número 41",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL UNITARIO DEL DECIMOQUINTO CIRCUITO, CON RESIDENCIA EN TIJUANA, BAJA CALIFORNIA 23600E0 23600E0 03",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Colegiado del Décimo Sexto Circuito, con Residencia en Guanajuato, Guanajuato , con fundamento en el Acuerdo General 3",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Colegiado en Materia Civil del Decimosexto Circuito, con Residencia en Guanajuato, Guanajuato, con fundamento en el Acuerdo General 51",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Colegiado en Materias Civil y de Trabajo a Segundo Tribunal Colegiado en Materia Civil",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Colegiado en Materia Civil a Segundo Tribunal Colegiado en Materias Civil y de Trabajo",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Tribunal Colegiado del Décimo Sexto Circuito y el Cuarto Tribunal Colegiado del Décimo Sexto Circuito",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL COLEGIADO DEL DECIMOSEXTO CIRCUITO, CON RESIDENCIA EN GUANAJUATO, GUANAJUATO C150040 C150040 01",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL COLEGIADO EN MATERIA CIVIL DEL DECIMOSEXTO CIRCUITO, CON RESIDENCIA EN GUANAJUATO, GUANAJUATO C153020",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "TRIBUNAL COLEGIADO EN MATERIAS CIVIL Y DE TRABAJO DEL DECIMOSEXTO CIRCUITO, CON RESIDENCIA EN GUANAJUATO, GUANAJUATO C156020 C150040 01",
+        "tipo": "Tribunal",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Consejo de la Judicatura Federal",
+        "tipo": "Consejo",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Dirección General de Estadística Judicial 6 de octubre de 202 2 1 Metodología para integrar el directorio de órganos jurisdiccionales Los sistemas de gestión del Consejo de la Judicatura Federal",
+        "tipo": "Dirección",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Dirección General de Estadística Judicial 6 de octubre de 202 2 2 Un emplo de esta historia se muestra en el cuadro 2 , donde el Segundo Tribunal Colegiado en Materia de Trabajo del Sexto Circuito, inicialmente con domicilio en Puebla, presenta diversas modificaciones, entre ellas cambios de residencia entre Pu ebla y Tlaxcala , hasta pasar de un carácter ordinario a auxiliar y viceversa",
+        "tipo": "Dirección",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Dirección General de Estadística Judicial 6 de octubre de 202 2 3 Cuadro 3",
+        "tipo": "Dirección",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Dirección General de Estadística Judicial 6 de octubre de 202 2 4 Para el caso de los órgan os del tipo de plenos de circuito, los cuales se componen por los magistrados adscritos a los tribunales colegiados del circuito respectivo o, en su caso, por sus presidentes , el sistema de recursos humanos y de presupuesto sólo dispone del registro de aqu ellos plenos que cuenten con una plantilla laboral a su cargo",
+        "tipo": "Dirección",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Dirección General de Estadística Judicial 6 de octubre de 202 2 5 Esta estimación se colecta a partir d el Sistema Integral para la Administración de Recursos Humanos",
+        "tipo": "Dirección",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Dirección General de Estadística Judicial 6 de octubre de 202 2 6 Nombre órgano Clave interna cjf Clave inicial Fecha inicial Fecha final No",
+        "tipo": "Dirección",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Dirección General de Estadística Judicial 6 de octubre de 202 2 7 fundamento en el Acuerdo General 39",
+        "tipo": "Dirección",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Dirección General de Estadística Judicial 6 de octubre de 202 2 8 Cuadro 6",
+        "tipo": "Dirección",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Comisión de Creación de Nuevos Órganos y del Pleno del Consejo y otras fuentes de información que se detallan más adelante , se integró un directorio de órganos jurisdiccionales activos entre enero de 2015 a la fecha1",
+        "tipo": "Comisión",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación -SCJN -",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia Nacional",
+        "tipo": "Tribunal",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Pleno del Consejo y otras fuentes de información que se detallan más adelante , se integró un directorio de órganos jurisdiccionales activos entre enero de 2015 a la fecha1",
+        "tipo": "Pleno",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Pleno del Consejo, relativo a la integración y funcionamiento de los Plenos de Circuito, y que enlista a los plenos especializados y sin especialización que comenzaron funciones a partir del 24 de junio de 2013",
+        "tipo": "Pleno",
+        "jurisdiccion": "Federal",
+        "source": "regex"
+      },
+      {
+        "nombre": "Pleno del Consejo",
+        "tipo": "Pleno",
+        "jurisdiccion": null,
+        "source": "regex"
+      },
+      {
+        "nombre": "Dirección General de Estadística Judicial",
+        "tipo": "Dirección",
+        "source": "llm:PJF_Metodologia"
+      },
+      {
+        "nombre": "Segundo Tribunal Colegiado en Materia de Trabajo del Sexto Circuito",
+        "tipo": "Tribunal",
+        "source": "llm:PJF_Metodologia"
+      },
+      {
+        "nombre": "Tribunal Colegiado del Vigésimo Octavo Circuito",
+        "tipo": "Tribunal",
+        "source": "llm:PJF_Metodologia"
+      },
+      {
+        "nombre": "Primer Tribunal Colegiado del Vigésimo Octavo Circuito",
+        "tipo": "Tribunal",
+        "source": "llm:PJF_Metodologia"
+      },
+      {
+        "nombre": "Cuatro Tribunal Colegiado de Circuito del Centro Auxiliar de la Segunda Región",
+        "tipo": "Tribunal",
+        "source": "llm:PJF_Metodologia"
+      },
+      {
+        "nombre": "Suprema Corte de Justicia de la Nación",
+        "tipo": "Tribunal",
+        "source": "llm:PJF_Metodologia"
+      }
+    ],
+    "stats": {
+      "raw": 48,
+      "unique": 41
+    }
+  }
+]

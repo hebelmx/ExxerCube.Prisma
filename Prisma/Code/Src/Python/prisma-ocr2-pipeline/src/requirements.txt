@@ -1,0 +1,35 @@
+# OCR Pipeline Requirements
+
+# Core OCR dependencies
+pytesseract>=0.3.10
+opencv-python>=4.8.0
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# PDF processing
+pdf2image>=1.16.3
+pypdf>=3.15.0
+
+# Text processing
+unidecode>=1.3.6
+python-dateutil>=2.8.2
+
+# Image processing
+scikit-image>=0.21.0
+scipy>=1.11.0
+
+# CLI and utilities
+click>=8.1.0
+tqdm>=4.65.0
+pyyaml>=6.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.0
+
+# Development tools
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.5.0
+pre-commit>=3.3.0

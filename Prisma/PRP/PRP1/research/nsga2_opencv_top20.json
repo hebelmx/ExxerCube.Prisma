@@ -1,0 +1,522 @@
+[
+  {
+    "id": 39,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.0613227094780204,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 53,
+      "bilateral_sigma_space": 80,
+      "unsharp_amount": 1.9279251186816224,
+      "unsharp_radius": 2.7403656728475707
+    },
+    "objectives": {
+      "Q1_222AAA": 58,
+      "Q1_333BBB": 59,
+      "Q1_333ccc": 109,
+      "Q1_555CCC": 14,
+      "Q2_222AAA": 529,
+      "Q2_333BBB": 737,
+      "Q2_333ccc": 694,
+      "Q2_555CCC": 608
+    },
+    "total_edits_Q1": 240,
+    "total_edits_Q2": 2568,
+    "total_edits_all": 2808,
+    "category": "best_q1"
+  },
+  {
+    "id": 31,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.1845998369427184,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.650232425087997,
+      "unsharp_radius": 2.5560318531848543
+    },
+    "objectives": {
+      "Q1_222AAA": 68,
+      "Q1_333BBB": 74,
+      "Q1_333ccc": 105,
+      "Q1_555CCC": 0,
+      "Q2_222AAA": 647,
+      "Q2_333BBB": 975,
+      "Q2_333ccc": 923,
+      "Q2_555CCC": 1202
+    },
+    "total_edits_Q1": 247,
+    "total_edits_Q2": 3747,
+    "total_edits_all": 3994,
+    "category": "best_q1"
+  },
+  {
+    "id": 3,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.067198713542715,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 53,
+      "bilateral_sigma_space": 80,
+      "unsharp_amount": 1.930251476954923,
+      "unsharp_radius": 2.7333071712548853
+    },
+    "objectives": {
+      "Q1_222AAA": 58,
+      "Q1_333BBB": 66,
+      "Q1_333ccc": 110,
+      "Q1_555CCC": 14,
+      "Q2_222AAA": 527,
+      "Q2_333BBB": 661,
+      "Q2_333ccc": 694,
+      "Q2_555CCC": 665
+    },
+    "total_edits_Q1": 248,
+    "total_edits_Q2": 2547,
+    "total_edits_all": 2795,
+    "category": "best_q1"
+  },
+  {
+    "id": 56,
+    "genome": {
+      "denoise_h": 6,
+      "clahe_clip": 1.0994484330360694,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.6762752602127025,
+      "unsharp_radius": 2.849045967410608
+    },
+    "objectives": {
+      "Q1_222AAA": 75,
+      "Q1_333BBB": 87,
+      "Q1_333ccc": 88,
+      "Q1_555CCC": 0,
+      "Q2_222AAA": 565,
+      "Q2_333BBB": 1029,
+      "Q2_333ccc": 821,
+      "Q2_555CCC": 1356
+    },
+    "total_edits_Q1": 250,
+    "total_edits_Q2": 3771,
+    "total_edits_all": 4021,
+    "category": "best_q1"
+  },
+  {
+    "id": 48,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.013509807288226,
+      "bilateral_d": 7,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.85817844061093,
+      "unsharp_radius": 2.652606031781906
+    },
+    "objectives": {
+      "Q1_222AAA": 80,
+      "Q1_333BBB": 52,
+      "Q1_333ccc": 89,
+      "Q1_555CCC": 39,
+      "Q2_222AAA": 513,
+      "Q2_333BBB": 765,
+      "Q2_333ccc": 646,
+      "Q2_555CCC": 1417
+    },
+    "total_edits_Q1": 260,
+    "total_edits_Q2": 3341,
+    "total_edits_all": 3601,
+    "category": "best_q1"
+  },
+  {
+    "id": 17,
+    "genome": {
+      "denoise_h": 6,
+      "clahe_clip": 1.0976476234611765,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.6738420057030863,
+      "unsharp_radius": 3.914800549728294
+    },
+    "objectives": {
+      "Q1_222AAA": 78,
+      "Q1_333BBB": 86,
+      "Q1_333ccc": 96,
+      "Q1_555CCC": 1,
+      "Q2_222AAA": 616,
+      "Q2_333BBB": 1066,
+      "Q2_333ccc": 793,
+      "Q2_555CCC": 1198
+    },
+    "total_edits_Q1": 261,
+    "total_edits_Q2": 3673,
+    "total_edits_all": 3934,
+    "category": "best_q1"
+  },
+  {
+    "id": 73,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.0199280912015296,
+      "bilateral_d": 7,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.8593789743338192,
+      "unsharp_radius": 2.652606031781906
+    },
+    "objectives": {
+      "Q1_222AAA": 79,
+      "Q1_333BBB": 52,
+      "Q1_333ccc": 93,
+      "Q1_555CCC": 39,
+      "Q2_222AAA": 511,
+      "Q2_333BBB": 781,
+      "Q2_333ccc": 644,
+      "Q2_555CCC": 1434
+    },
+    "total_edits_Q1": 263,
+    "total_edits_Q2": 3370,
+    "total_edits_all": 3633,
+    "category": "best_q1"
+  },
+  {
+    "id": 75,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.1655335867701766,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 85,
+      "bilateral_sigma_space": 50,
+      "unsharp_amount": 1.9113739921622663,
+      "unsharp_radius": 1.393267951155104
+    },
+    "objectives": {
+      "Q1_222AAA": 102,
+      "Q1_333BBB": 119,
+      "Q1_333ccc": 162,
+      "Q1_555CCC": 42,
+      "Q2_222AAA": 509,
+      "Q2_333BBB": 652,
+      "Q2_333ccc": 526,
+      "Q2_555CCC": 541
+    },
+    "total_edits_Q1": 425,
+    "total_edits_Q2": 2228,
+    "total_edits_all": 2653,
+    "category": "best_q2"
+  },
+  {
+    "id": 6,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.1601727613681,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 70,
+      "bilateral_sigma_space": 78,
+      "unsharp_amount": 1.9027127572713471,
+      "unsharp_radius": 2.6040244706514253
+    },
+    "objectives": {
+      "Q1_222AAA": 93,
+      "Q1_333BBB": 86,
+      "Q1_333ccc": 166,
+      "Q1_555CCC": 12,
+      "Q2_222AAA": 524,
+      "Q2_333BBB": 644,
+      "Q2_333ccc": 459,
+      "Q2_555CCC": 636
+    },
+    "total_edits_Q1": 357,
+    "total_edits_Q2": 2263,
+    "total_edits_all": 2620,
+    "category": "best_q2"
+  },
+  {
+    "id": 10,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.0485250521786496,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 88,
+      "bilateral_sigma_space": 50,
+      "unsharp_amount": 1.8566200436127254,
+      "unsharp_radius": 3.914711710237714
+    },
+    "objectives": {
+      "Q1_222AAA": 120,
+      "Q1_333BBB": 131,
+      "Q1_333ccc": 243,
+      "Q1_555CCC": 54,
+      "Q2_222AAA": 499,
+      "Q2_333BBB": 619,
+      "Q2_333ccc": 527,
+      "Q2_555CCC": 623
+    },
+    "total_edits_Q1": 548,
+    "total_edits_Q2": 2268,
+    "total_edits_all": 2816,
+    "category": "best_q2"
+  },
+  {
+    "id": 8,
+    "genome": {
+      "denoise_h": 13,
+      "clahe_clip": 1.0885971045260638,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 86,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.6266996865200198,
+      "unsharp_radius": 2.6997629186726657
+    },
+    "objectives": {
+      "Q1_222AAA": 110,
+      "Q1_333BBB": 126,
+      "Q1_333ccc": 169,
+      "Q1_555CCC": 31,
+      "Q2_222AAA": 335,
+      "Q2_333BBB": 722,
+      "Q2_333ccc": 643,
+      "Q2_555CCC": 570
+    },
+    "total_edits_Q1": 436,
+    "total_edits_Q2": 2270,
+    "total_edits_all": 2706,
+    "category": "best_q2"
+  },
+  {
+    "id": 60,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.1674280630564442,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 83,
+      "bilateral_sigma_space": 78,
+      "unsharp_amount": 1.7415158074702923,
+      "unsharp_radius": 2.6040244706514253
+    },
+    "objectives": {
+      "Q1_222AAA": 92,
+      "Q1_333BBB": 120,
+      "Q1_333ccc": 183,
+      "Q1_555CCC": 30,
+      "Q2_222AAA": 492,
+      "Q2_333BBB": 575,
+      "Q2_333ccc": 524,
+      "Q2_555CCC": 681
+    },
+    "total_edits_Q1": 425,
+    "total_edits_Q2": 2272,
+    "total_edits_all": 2697,
+    "category": "best_q2"
+  },
+  {
+    "id": 94,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.1622111976284677,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 88,
+      "bilateral_sigma_space": 73,
+      "unsharp_amount": 1.8559200777812823,
+      "unsharp_radius": 4.013280639598856
+    },
+    "objectives": {
+      "Q1_222AAA": 134,
+      "Q1_333BBB": 101,
+      "Q1_333ccc": 187,
+      "Q1_555CCC": 50,
+      "Q2_222AAA": 502,
+      "Q2_333BBB": 658,
+      "Q2_333ccc": 508,
+      "Q2_555CCC": 607
+    },
+    "total_edits_Q1": 472,
+    "total_edits_Q2": 2275,
+    "total_edits_all": 2747,
+    "category": "best_q2"
+  },
+  {
+    "id": 27,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.0961504757202556,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 87,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.9003500006849017,
+      "unsharp_radius": 3.8750520371701196
+    },
+    "objectives": {
+      "Q1_222AAA": 149,
+      "Q1_333BBB": 144,
+      "Q1_333ccc": 185,
+      "Q1_555CCC": 60,
+      "Q2_222AAA": 521,
+      "Q2_333BBB": 706,
+      "Q2_333ccc": 499,
+      "Q2_555CCC": 555
+    },
+    "total_edits_Q1": 538,
+    "total_edits_Q2": 2281,
+    "total_edits_all": 2819,
+    "category": "best_q2"
+  },
+  {
+    "id": 45,
+    "genome": {
+      "denoise_h": 13,
+      "clahe_clip": 1.159932802326897,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 69,
+      "bilateral_sigma_space": 78,
+      "unsharp_amount": 1.9027127572713471,
+      "unsharp_radius": 2.6040244706514253
+    },
+    "objectives": {
+      "Q1_222AAA": 91,
+      "Q1_333BBB": 80,
+      "Q1_333ccc": 153,
+      "Q1_555CCC": 12,
+      "Q2_222AAA": 371,
+      "Q2_333BBB": 739,
+      "Q2_333ccc": 642,
+      "Q2_555CCC": 552
+    },
+    "total_edits_Q1": 336,
+    "total_edits_Q2": 2304,
+    "total_edits_all": 2640,
+    "category": "best_compromise"
+  },
+  {
+    "id": 50,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.0770353210459995,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 70,
+      "bilateral_sigma_space": 87,
+      "unsharp_amount": 1.6470908392469084,
+      "unsharp_radius": 1.4727287133450582
+    },
+    "objectives": {
+      "Q1_222AAA": 94,
+      "Q1_333BBB": 94,
+      "Q1_333ccc": 127,
+      "Q1_555CCC": 47,
+      "Q2_222AAA": 475,
+      "Q2_333BBB": 633,
+      "Q2_333ccc": 577,
+      "Q2_555CCC": 670
+    },
+    "total_edits_Q1": 362,
+    "total_edits_Q2": 2355,
+    "total_edits_all": 2717,
+    "category": "best_compromise"
+  },
+  {
+    "id": 89,
+    "genome": {
+      "denoise_h": 6,
+      "clahe_clip": 1.05695420988369,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 81,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.8566200436127254,
+      "unsharp_radius": 4.096960500983585
+    },
+    "objectives": {
+      "Q1_222AAA": 94,
+      "Q1_333BBB": 106,
+      "Q1_333ccc": 156,
+      "Q1_555CCC": 50,
+      "Q2_222AAA": 464,
+      "Q2_333BBB": 686,
+      "Q2_333ccc": 485,
+      "Q2_555CCC": 703
+    },
+    "total_edits_Q1": 406,
+    "total_edits_Q2": 2338,
+    "total_edits_all": 2744,
+    "category": "best_compromise"
+  },
+  {
+    "id": 47,
+    "genome": {
+      "denoise_h": 7,
+      "clahe_clip": 1.0786453607907223,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 88,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.9055262717989736,
+      "unsharp_radius": 1.4897336862290436
+    },
+    "objectives": {
+      "Q1_222AAA": 105,
+      "Q1_333BBB": 121,
+      "Q1_333ccc": 124,
+      "Q1_555CCC": 40,
+      "Q2_222AAA": 548,
+      "Q2_333BBB": 669,
+      "Q2_333ccc": 613,
+      "Q2_555CCC": 542
+    },
+    "total_edits_Q1": 390,
+    "total_edits_Q2": 2372,
+    "total_edits_all": 2762,
+    "category": "best_compromise"
+  },
+  {
+    "id": 96,
+    "genome": {
+      "denoise_h": 14,
+      "clahe_clip": 1.911057352502809,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 86,
+      "bilateral_sigma_space": 84,
+      "unsharp_amount": 1.865600995942909,
+      "unsharp_radius": 2.6997629186726657
+    },
+    "objectives": {
+      "Q1_222AAA": 133,
+      "Q1_333BBB": 152,
+      "Q1_333ccc": 176,
+      "Q1_555CCC": 6,
+      "Q2_222AAA": 413,
+      "Q2_333BBB": 719,
+      "Q2_333ccc": 664,
+      "Q2_555CCC": 524
+    },
+    "total_edits_Q1": 467,
+    "total_edits_Q2": 2320,
+    "total_edits_all": 2787,
+    "category": "best_compromise"
+  },
+  {
+    "id": 61,
+    "genome": {
+      "denoise_h": 5,
+      "clahe_clip": 1.167614704293242,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 88,
+      "bilateral_sigma_space": 50,
+      "unsharp_amount": 1.7417699967243598,
+      "unsharp_radius": 3.914711710237714
+    },
+    "objectives": {
+      "Q1_222AAA": 120,
+      "Q1_333BBB": 118,
+      "Q1_333ccc": 195,
+      "Q1_555CCC": 51,
+      "Q2_222AAA": 442,
+      "Q2_333BBB": 655,
+      "Q2_333ccc": 558,
+      "Q2_555CCC": 657
+    },
+    "total_edits_Q1": 484,
+    "total_edits_Q2": 2312,
+    "total_edits_all": 2796,
+    "category": "best_compromise"
+  }
+]

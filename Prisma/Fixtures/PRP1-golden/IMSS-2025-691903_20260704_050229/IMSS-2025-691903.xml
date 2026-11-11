@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>IMSS/2025/691903</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>IMSS/2025/691903</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Dirección de Control y Evaluación</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>IMSS/2025/691903</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>B/IN2-2741-142971-AAA</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>10</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>Raquel Tórrez Leiva</NombreSolicitante>
+  <Referencia>REF-2061</Referencia>
+  <Referencia1>REF1-9232</Referencia1>
+  <Referencia2>REF2-1475</Referencia2>
+  <TieneAseguramiento>true</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Rodrigo Menchaca Tamayo</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Incluir números de cuenta, saldos y movimientos
+- Proceder al aseguramiento inmediato de las cuentas identificadas
+- Especificar fechas de apertura y cierre de cuentas
+- Impedir cualquier disposición de los recursos
+- Indicar titulares y co-titulares de las cuentas</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Rodrigo Menchaca Tamayo</Nombre>
+    <Rfc>METR070107LTE</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Viaducto Djibouti No. 1383, Col. San Leonardo de la Montaña, Municipio Nueva Liberia, Nuevo León, C.P. 60848</Domicilio>
+    <Complementarios>Tel: 653-516-9958, Email: ibrito@example.org</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

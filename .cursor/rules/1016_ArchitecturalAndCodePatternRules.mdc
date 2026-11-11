@@ -1,0 +1,111 @@
+---
+description: Core architecture and code conventions for CQRS, validation, and test layering
+globs:
+alwaysApply: true
+---
+
+# Architecture & Code Standards (Core)
+
+## 1. Project Layout
+
+- Organize by function:
+  - `*.Application`: Handlers, commands, queries, validators
+  - `*.Domain`: Entities, aggregates, value objects, events
+  - `*.Infrastructure`: Repository implementations, EF Core, external services
+  - `*.WebApi` / `*.Worker`: Entry points (API, background tasks)
+  - `*.Hexagonal Architecture`: This architecture is implemented
+
+## 2. CQRS and Handler Rules
+
+- Commands and Queries must be separated
+- Handlers implement:
+  - `I"Cliente"CommandHandler<T>`
+  - `I"Cliente"QueryHandler<TQuery, TResult>`
+- No direct `DbContext` in handlers
+- Repositories must abstract persistence logic
+- Generice Repository pattern is suggested for CRUD operation ISpecification form more complicated Query
+- Don't trow Exceptions always Return a Result<T>
+- Domain Design is encouraged.
+
+## 3. Validation Standards
+
+- Use FluentValidation for all commands and queries.
+- Validators live alongside commands/queries in Application.
+- Every handler must validate input before processing.
+
+## 4. Logging
+
+- Inject and use `ILogger<T>` in all command/query handlers.
+- Always use structurated logging
+- Serilog logger is used
+- Log key steps (input received, success, exception).
+- Log any non normal Flow
+
+## 5. Modern C# Sharp
+
+- Use Modern C# Features to write short, readable, and maintainable code while adhering to best practices:
+    - Prefer expression-bodied members for one-liners.
+    - Use switch expressions and type patterns for cleaner logic:
+    - Prefer Immutability like Initi, Records, ReadOnly"Collections"<T>
+    - Use LINQ Wisely
+    - Apply Expression-Bodied Members
+    - Use the null-coalescing (??) and null-conditional (?.) operators.
+    - Use async/await for asynchronous operations. on Background operations use ConfigureAwait(false);
+    - Use the new Lock type for efficient synchronous locking; use SemaphoreSlim with await for asynchronous concurrency control.
+    - Use using var to automatically dispose of resources at the end of the scope.
+    - Prefer modern using declarations over old using(...) { } blocks.
+    - Use await using for resources implementing IAsyncDisposable.
+    - Use Parallel.ForEachAsync to run parallel tasks and execute continuation logic immediately after each task completes.
+    - Respect CancellationToken in APIs.
+
+## 5. Testing Standards
+
+- Use:
+  - `XUnit v3` as the test framework
+  - `NSubstitute` for mocking
+  - `Shouldly` for assertions
+- Avoid:
+  - `Moq`
+  - `FluentAssertions`
+- Structure:
+  - `*.Tests.Unit`: Pure logic validation
+  - `*.Tests.Integration`: Real repository and DI
+
+## 6. General Guidelines
+  - Support inmutable data as much as possible
+  - Support pure methods as much as possible
+  - SOLID, Clean and pragmatic concepts must be applied
+  - Use modern pather designs principles
+  - Use algorithm and optimization when needed and documented
+  - Support async and cancellation tokens
+  - Avoid mixing domain logic with data access
+
+## 7   DON'Ts FOR ADVANCED C# DEVELOPERS
+
+## Don't Use Regions, prefer sub clases
+
+  - Async & Concurrency
+    - Avoid .Result, .Wait(), or .GetAwaiter().GetResult().
+    - Never use async void except for event handlers.
+    - Don't use lock in async code—prefer SemaphoreSlim.
+    - Don't use lock(this) or lock(typeof(...)).
+    - Always support and dispose CancellationTokenSource.
+    - Avoid foreach mutation on ConcurrentDictionary.
+
+  - Memory & Resource Management
+    - Avoid static mutable fields across tests.
+    - Don't allocate blindly in hot paths—use Span<T>, pools.
+    - Use IDisposable properly; suppress finalizers.
+    - Don’t assume struct mutations affect original value.
+
+  - Performance & Correctness
+    - Don't use excesive LINQ in performance-critical paths.
+    - Never throw inside finally—suppresses exceptions.
+    - Use throw; not throw ex; to preserve stack traces.
+
+  - Safety & API Design
+    - Don't return ref/Span<T> from async methods.
+    - Avoid inheritance for extensibility—use interfaces.
+    - Don’t hardcode DateTime.Now—inject IDateTimeMachine, IClock or DateTimeOffset.
+    - Keep layers separated—no business logic in UI.
+    - Don’t bury complex logic in lambdas—name them.

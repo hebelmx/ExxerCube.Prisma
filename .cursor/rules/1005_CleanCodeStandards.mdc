@@ -1,0 +1,479 @@
+---
+globs: *.cs
+description: Comprehensive clean code standards and best practices for maintainable software development
+---
+
+# Clean Code Standards
+
+## Meta
+
+**Title**: Clean Code Standards
+**Description**: Establishes comprehensive standards for writing clean, readable, and maintainable code
+**Created-at**: 2025-01-05T23:35:00Z
+**Last-updated-at**: 2025-01-05T23:35:00Z
+**Applies-to**: All programming languages, code readability, maintainability
+**File-matcher**: *.cs files for C# specific examples
+
+## Requirements
+
+### <requirement priority="critical">
+**Description**: Use meaningful and descriptive names for variables, functions, and classes
+**Examples**:
+<correct-example>
+```csharp
+public class OrderProcessor
+{
+    public async Task<Result<OrderDto>> ProcessCustomerOrderAsync(OrderRequest orderRequest, CancellationToken ct)
+    {
+        var customerOrder = await _orderRepository.GetByIdAsync(orderRequest.OrderId, ct);
+        var discountAmount = CalculateDiscountAmount(customerOrder.TotalAmount);
+        var finalPrice = customerOrder.TotalAmount - discountAmount;
+
+        return Result<OrderDto>.Success(new OrderDto(customerOrder, finalPrice));
+    }
+
+    private decimal CalculateDiscountAmount(decimal totalAmount)
+    {
+        const decimal DiscountRate = 0.10m; // 10% discount
+        return totalAmount * DiscountRate;
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public class OP
+{
+    public async Task<Result<OrderDto>> ProcessAsync(OrderRequest req, CancellationToken ct)
+    {
+        var o = await _repo.GetByIdAsync(req.Id, ct);
+        var d = CalculateDiscount(o.Amount);
+        var fp = o.Amount - d;
+
+        return Result<OrderDto>.Success(new OrderDto(o, fp));
+    }
+
+    private decimal CalculateDiscount(decimal amt)
+    {
+        const decimal rate = 0.10m;
+        return amt * rate;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: Avoid hard-coded numbers and magic strings - use named constants
+**Examples**:
+<correct-example>
+```csharp
+public static class Constants
+{
+    public const decimal StandardDiscountRate = 0.10m;
+    public const decimal PremiumDiscountRate = 0.15m;
+    public const int MaximumOrderItems = 100;
+    public const string DefaultCurrency = "USD";
+    public const int MinimumOrderAmount = 10;
+}
+
+public class OrderCalculator
+{
+    public decimal CalculateDiscount(decimal orderAmount)
+    {
+        if (orderAmount >= Constants.MinimumOrderAmount)
+        {
+            return orderAmount * Constants.StandardDiscountRate;
+        }
+        return 0m;
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public class OrderCalculator
+{
+    public decimal CalculateDiscount(decimal orderAmount)
+    {
+        if (orderAmount >= 10) // Magic number
+        {
+            return orderAmount * 0.10m; // Magic number
+        }
+        return 0m;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Write short functions that do one thing (Single Responsibility Principle)
+**Examples**:
+<correct-example>
+```csharp
+public class OrderService
+{
+    public async Task<Result<OrderDto>> ProcessOrderAsync(OrderRequest request, CancellationToken ct)
+    {
+        var validationResult = ValidateOrderRequest(request);
+        if (validationResult.IsFailure)
+            return Result<OrderDto>.WithFailure(validationResult.Error!);
+
+        var order = await CreateOrderAsync(request, ct);
+        var discount = CalculateDiscount(order);
+        var finalOrder = ApplyDiscount(order, discount);
+
+        return Result<OrderDto>.Success(new OrderDto(finalOrder));
+    }
+
+    private Result ValidateOrderRequest(OrderRequest request)
+    {
+        if (request == null)
+            return Result.WithFailure("Order request cannot be null");
+
+        if (request.Items == null || !request.Items.Any())
+            return Result.WithFailure("Order must contain at least one item");
+
+        return Result.Success();
+    }
+
+    private async Task<Order> CreateOrderAsync(OrderRequest request, CancellationToken ct)
+    {
+        // Order creation logic
+        return new Order();
+    }
+
+    private decimal CalculateDiscount(Order order)
+    {
+        // Discount calculation logic
+        return 0m;
+    }
+
+    private Order ApplyDiscount(Order order, decimal discount)
+    {
+        // Apply discount logic
+        return order;
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public class OrderService
+{
+    public async Task<Result<OrderDto>> ProcessOrderAsync(OrderRequest request, CancellationToken ct)
+    {
+        // Validation, creation, discount calculation, and discount application all in one function
+        if (request == null)
+            return Result<OrderDto>.WithFailure("Order request cannot be null");
+
+        if (request.Items == null || !request.Items.Any())
+            return Result<OrderDto>.WithFailure("Order must contain at least one item");
+
+        var order = await _orderRepository.CreateAsync(request, ct);
+        var discount = order.TotalAmount * 0.10m;
+        order.TotalAmount -= discount;
+
+        return Result<OrderDto>.Success(new OrderDto(order));
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Follow DRY principle - Don't Repeat Yourself
+**Examples**:
+<correct-example>
+```csharp
+public static class ValidationExtensions
+{
+    public static Result ValidateNotNull<T>(T value, string parameterName) where T : class
+    {
+        return value == null
+            ? Result.WithFailure($"{parameterName} cannot be null")
+            : Result.Success();
+    }
+
+    public static Result ValidateNotEmpty(string value, string parameterName)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? Result.WithFailure($"{parameterName} cannot be empty")
+            : Result.Success();
+    }
+}
+
+public class OrderValidator
+{
+    public Result ValidateOrder(OrderRequest request)
+    {
+        var customerValidation = ValidationExtensions.ValidateNotNull(request.Customer, nameof(request.Customer));
+        if (customerValidation.IsFailure)
+            return customerValidation;
+
+        var customerNameValidation = ValidationExtensions.ValidateNotEmpty(request.Customer.Name, "Customer name");
+        if (customerNameValidation.IsFailure)
+            return customerNameValidation;
+
+        return Result.Success();
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public class OrderValidator
+{
+    public Result ValidateOrder(OrderRequest request)
+    {
+        if (request.Customer == null)
+            return Result.WithFailure("Customer cannot be null");
+
+        if (string.IsNullOrWhiteSpace(request.Customer.Name))
+            return Result.WithFailure("Customer name cannot be empty");
+
+        if (request.Items == null)
+            return Result.WithFailure("Items cannot be null");
+
+        if (string.IsNullOrWhiteSpace(request.Items.First().Name))
+            return Result.WithFailure("Item name cannot be empty");
+
+        return Result.Success();
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Use comments sparingly and make them meaningful - explain why, not what
+**Examples**:
+<correct-example>
+```csharp
+public class OrderProcessor
+{
+    public async Task<Result<OrderDto>> ProcessOrderAsync(OrderRequest request, CancellationToken ct)
+    {
+        // Early validation to fail fast and avoid unnecessary processing
+        var validationResult = ValidateOrderRequest(request);
+        if (validationResult.IsFailure)
+            return Result<OrderDto>.WithFailure(validationResult.Error!);
+
+        // Apply business rules: premium customers get 15% discount, standard customers get 10%
+        var discountRate = request.Customer.IsPremium ? 0.15m : 0.10m;
+        var discountAmount = request.TotalAmount * discountRate;
+
+        var order = await CreateOrderWithDiscountAsync(request, discountAmount, ct);
+        return Result<OrderDto>.Success(new OrderDto(order));
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public class OrderProcessor
+{
+    public async Task<Result<OrderDto>> ProcessOrderAsync(OrderRequest request, CancellationToken ct)
+    {
+        // Validate the request
+        var validationResult = ValidateOrderRequest(request);
+        if (validationResult.IsFailure)
+            return Result<OrderDto>.WithFailure(validationResult.Error!);
+
+        // Calculate discount
+        var discountRate = request.Customer.IsPremium ? 0.15m : 0.10m;
+        var discountAmount = request.TotalAmount * discountRate;
+
+        // Create order
+        var order = await CreateOrderWithDiscountAsync(request, discountAmount, ct);
+        return Result<OrderDto>.Success(new OrderDto(order));
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Encapsulate nested conditionals into functions with descriptive names
+**Examples**:
+<correct-example>
+```csharp
+public class OrderValidator
+{
+    public Result ValidateOrder(OrderRequest request)
+    {
+        var customerValidation = ValidateCustomer(request.Customer);
+        if (customerValidation.IsFailure)
+            return customerValidation;
+
+        var itemsValidation = ValidateOrderItems(request.Items);
+        if (itemsValidation.IsFailure)
+            return itemsValidation;
+
+        return Result.Success();
+    }
+
+    private Result ValidateCustomer(Customer customer)
+    {
+        if (customer == null)
+            return Result.WithFailure("Customer cannot be null");
+
+        if (string.IsNullOrWhiteSpace(customer.Name))
+            return Result.WithFailure("Customer name cannot be empty");
+
+        if (customer.Age < 18)
+            return Result.WithFailure("Customer must be at least 18 years old");
+
+        return Result.Success();
+    }
+
+    private Result ValidateOrderItems(IEnumerable<OrderItem> items)
+    {
+        if (items == null || !items.Any())
+            return Result.WithFailure("Order must contain at least one item");
+
+        foreach (var item in items)
+        {
+            if (string.IsNullOrWhiteSpace(item.Name))
+                return Result.WithFailure("Item name cannot be empty");
+
+            if (item.Quantity <= 0)
+                return Result.WithFailure("Item quantity must be greater than zero");
+        }
+
+        return Result.Success();
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public class OrderValidator
+{
+    public Result ValidateOrder(OrderRequest request)
+    {
+        if (request.Customer == null)
+            return Result.WithFailure("Customer cannot be null");
+
+        if (string.IsNullOrWhiteSpace(request.Customer.Name))
+            return Result.WithFailure("Customer name cannot be empty");
+
+        if (request.Customer.Age < 18)
+            return Result.WithFailure("Customer must be at least 18 years old");
+
+        if (request.Items == null || !request.Items.Any())
+            return Result.WithFailure("Order must contain at least one item");
+
+        foreach (var item in request.Items)
+        {
+            if (string.IsNullOrWhiteSpace(item.Name))
+                return Result.WithFailure("Item name cannot be empty");
+
+            if (item.Quantity <= 0)
+                return Result.WithFailure("Item quantity must be greater than zero");
+        }
+
+        return Result.Success();
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Follow established coding standards and conventions
+**Examples**:
+<correct-example>
+```csharp
+// C# Naming Conventions
+public class OrderProcessor // PascalCase for classes
+{
+    private readonly IOrderRepository _orderRepository; // camelCase with underscore for private fields
+    private readonly ILogger<OrderProcessor> _logger;
+
+    public OrderProcessor(IOrderRepository orderRepository, ILogger<OrderProcessor> logger) // PascalCase for methods
+    {
+        _orderRepository = orderRepository;
+        _logger = logger;
+    }
+
+    public async Task<Result<OrderDto>> ProcessOrderAsync(OrderRequest request, CancellationToken ct) // Async suffix
+    {
+        // Implementation
+    }
+
+    private decimal CalculateDiscount(decimal amount) // camelCase for private methods
+    {
+        const decimal StandardDiscountRate = 0.10m; // PascalCase for constants
+        return amount * StandardDiscountRate;
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// Inconsistent naming conventions
+public class orderProcessor // Should be PascalCase
+{
+    private readonly IOrderRepository orderRepository; // Should have underscore prefix
+    private readonly ILogger<OrderProcessor> Logger; // Should be camelCase
+
+    public orderProcessor(IOrderRepository orderRepository, ILogger<OrderProcessor> logger) // Should be PascalCase
+    {
+        this.orderRepository = orderRepository;
+        this.Logger = logger;
+    }
+
+    public async Task<Result<OrderDto>> ProcessOrder(OrderRequest request, CancellationToken ct) // Missing Async suffix
+    {
+        // Implementation
+    }
+
+    private decimal calculateDiscount(decimal amount) // Should be PascalCase
+    {
+        const decimal standardDiscountRate = 0.10m; // Should be PascalCase
+        return amount * standardDiscountRate;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+## Clean Code Principles
+
+### Core Principles
+1. **Meaningful Names**: Names should reveal intent and purpose
+2. **Single Responsibility**: Functions and classes should have one reason to change
+3. **DRY Principle**: Don't Repeat Yourself - eliminate code duplication
+4. **Constants Over Magic Numbers**: Use named constants for all values
+5. **Descriptive Comments**: Explain why, not what
+6. **Consistent Formatting**: Follow language-specific conventions
+
+### Code Organization
+- **Small Functions**: Keep functions short and focused
+- **Clear Structure**: Organize code logically
+- **Consistent Naming**: Follow established conventions
+- **Proper Abstraction**: Use appropriate levels of abstraction
+
+## Context
+
+This rule establishes comprehensive clean code standards for writing maintainable and readable code. It emphasizes:
+
+1. **Readability**: Code should be self-documenting through good naming
+2. **Maintainability**: Code should be easy to modify and extend
+3. **Consistency**: Follow established conventions and standards
+4. **Simplicity**: Avoid unnecessary complexity
+5. **Clarity**: Make code intent clear and obvious
+
+The rule prioritizes writing code that humans can understand easily, following the principle that "Anybody can write code that a computer can understand. Good programmers write code that humans can understand."
+
+## References
+
+<reference as="dependency" href=".cursor/rules/0000RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/1001CSharpCodingStandards.mdc" reason="C# coding standards">C# Enhancement Standards</reference>
+<reference as="context" href=".cursor/rules/0001GeneralEngineeringPrinciples.mdc" reason="General engineering principles">General Engineering Principles</reference>
+description:
+globs:
+alwaysApply: false
+---

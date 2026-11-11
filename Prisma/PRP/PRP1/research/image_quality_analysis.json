@@ -1,0 +1,324 @@
+{
+  "Pristine Originals": {
+    "222AAA-44444444442025_page-0001.jpg": {
+      "metrics": {
+        "blur_score": 1813.9940857991683,
+        "noise_score": 0.0,
+        "contrast": 34.86599251307044,
+        "brightness": 242.49085632798574
+      },
+      "recommendations": {
+        "denoise_h": 5,
+        "clahe_clip": 2.5,
+        "quality_class": "medium"
+      }
+    },
+    "222AAA-44444444442025_page-0002.jpg": {
+      "metrics": {
+        "blur_score": 1724.54367771836,
+        "noise_score": 0.0,
+        "contrast": 33.59719334463961,
+        "brightness": 243.64176446821153
+      },
+      "recommendations": {
+        "denoise_h": 5,
+        "clahe_clip": 2.5,
+        "quality_class": "medium"
+      }
+    },
+    "222AAA-44444444442025_page-0003.jpg": {
+      "metrics": {
+        "blur_score": 1958.4195032679738,
+        "noise_score": 0.0,
+        "contrast": 35.51178418696328,
+        "brightness": 242.07520237670826
+      },
+      "recommendations": {
+        "denoise_h": 5,
+        "clahe_clip": 2.5,
+        "quality_class": "medium"
+      }
+    },
+    "222AAA-44444444442025_page-0004.jpg": {
+      "metrics": {
+        "blur_score": 563.7327458110517,
+        "noise_score": 0.0,
+        "contrast": 23.167292619996175,
+        "brightness": 249.381781580511
+      },
+      "recommendations": {
+        "denoise_h": 5,
+        "clahe_clip": 3.0,
+        "quality_class": "low"
+      }
+    },
+    "333BBB-44444444442025_page1.png": {
+      "metrics": {
+        "blur_score": 2171.1788925823184,
+        "noise_score": 0.0,
+        "contrast": 34.865693519987026,
+        "brightness": 241.3520127748069
+      },
+      "recommendations": {
+        "denoise_h": 5,
+        "clahe_clip": 2.5,
+        "quality_class": "medium"
+      }
+    },
+    "333ccc-6666666662025_page1.png": {
+      "metrics": {
+        "blur_score": 1473.7061667950356,
+        "noise_score": 0.0,
+        "contrast": 30.700608131930714,
+        "brightness": 244.17721702317291
+      },
+      "recommendations": {
+        "denoise_h": 5,
+        "clahe_clip": 2.5,
+        "quality_class": "medium"
+      }
+    },
+    "555CCC-66666662025_page1.png": {
+      "metrics": {
+        "blur_score": 8588.522502970885,
+        "noise_score": 0.0,
+        "contrast": 53.74910092248076,
+        "brightness": 237.74599524658348
+      },
+      "recommendations": {
+        "denoise_h": 5,
+        "clahe_clip": 1.5,
+        "quality_class": "pristine"
+      }
+    },
+    "LogoMexico.jpg": {
+      "metrics": {
+        "blur_score": 274.36513233596884,
+        "noise_score": 0.0,
+        "contrast": 75.33840513326663,
+        "brightness": 209.57781575520832
+      },
+      "recommendations": {
+        "denoise_h": 5,
+        "clahe_clip": 1.5,
+        "quality_class": "high"
+      }
+    }
+  },
+  "Q1_Poor (Degraded)": {
+    "222AAA-44444444442025_page-0001.jpg": {
+      "metrics": {
+        "blur_score": 666.7263210233318,
+        "noise_score": 1.4825796886582654,
+        "contrast": 30.48615539907739,
+        "brightness": 234.36517219251337
+      },
+      "recommendations": {
+        "denoise_h": 5,
+        "clahe_clip": 2.5,
+        "quality_class": "medium"
+      }
+    },
+    "333BBB-44444444442025_page1.png": {
+      "metrics": {
+        "blur_score": 891.4572910429633,
+        "noise_score": 1.4825796886582654,
+        "contrast": 30.145740250687464,
+        "brightness": 233.5560360962567
+      },
+      "recommendations": {
+        "denoise_h": 5,
+        "clahe_clip": 2.5,
+        "quality_class": "medium"
+      }
+    },
+    "333ccc-6666666662025_page1.png": {
+      "metrics": {
+        "blur_score": 578.8487794495207,
+        "noise_score": 1.4825796886582654,
+        "contrast": 26.78083025771683,
+        "brightness": 236.15115121806298
+      },
+      "recommendations": {
+        "denoise_h": 5,
+        "clahe_clip": 3.0,
+        "quality_class": "low"
+      }
+    },
+    "555CCC-66666662025_page1.png": {
+      "metrics": {
+        "blur_score": 2999.0856977790645,
+        "noise_score": 1.4825796886582654,
+        "contrast": 44.684937144365435,
+        "brightness": 229.79061720142602
+      },
+      "recommendations": {
+        "denoise_h": 5,
+        "clahe_clip": 2.0,
+        "quality_class": "high"
+      }
+    }
+  },
+  "Q2_MediumPoor (Degraded)": {
+    "222AAA-44444444442025_page-0001.jpg": {
+      "metrics": {
+        "blur_score": 1108.0653659321151,
+        "noise_score": 2.965159377316531,
+        "contrast": 22.30006168365955,
+        "brightness": 217.938623885918
+      },
+      "recommendations": {
+        "denoise_h": 5,
+        "clahe_clip": 3.0,
+        "quality_class": "low"
+      }
+    },
+    "333BBB-44444444442025_page1.png": {
+      "metrics": {
+        "blur_score": 1201.6849768175186,
+        "noise_score": 4.447739065974797,
+        "contrast": 21.408853056434722,
+        "brightness": 217.39714795008913
+      },
+      "recommendations": {
+        "denoise_h": 5,
+        "clahe_clip": 3.0,
+        "quality_class": "low"
+      }
+    },
+    "333ccc-6666666662025_page1.png": {
+      "metrics": {
+        "blur_score": 1088.6499379751142,
+        "noise_score": 2.965159377316531,
+        "contrast": 20.227831463882165,
+        "brightness": 219.37952837195485
+      },
+      "recommendations": {
+        "denoise_h": 5,
+        "clahe_clip": 3.0,
+        "quality_class": "low"
+      }
+    },
+    "555CCC-66666662025_page1.png": {
+      "metrics": {
+        "blur_score": 1440.957428122488,
+        "noise_score": 2.965159377316531,
+        "contrast": 29.042665402131952,
+        "brightness": 213.89203357100416
+      },
+      "recommendations": {
+        "denoise_h": 5,
+        "clahe_clip": 3.0,
+        "quality_class": "low"
+      }
+    }
+  },
+  "Q3_Low (Degraded)": {
+    "222AAA-44444444442025_page-0001.jpg": {
+      "metrics": {
+        "blur_score": 1346.0285742581723,
+        "noise_score": 5.930318754633062,
+        "contrast": 19.771496776975425,
+        "brightness": 199.6167210932858
+      },
+      "recommendations": {
+        "denoise_h": 10,
+        "clahe_clip": 3.0,
+        "quality_class": "low"
+      }
+    },
+    "333BBB-44444444442025_page1.png": {
+      "metrics": {
+        "blur_score": 1526.0190288983674,
+        "noise_score": 5.930318754633062,
+        "contrast": 19.663949766204194,
+        "brightness": 199.84655674390967
+      },
+      "recommendations": {
+        "denoise_h": 10,
+        "clahe_clip": 3.0,
+        "quality_class": "low"
+      }
+    },
+    "333ccc-6666666662025_page1.png": {
+      "metrics": {
+        "blur_score": 1348.908502125692,
+        "noise_score": 5.930318754633062,
+        "contrast": 18.942050808223314,
+        "brightness": 201.1940834818776
+      },
+      "recommendations": {
+        "denoise_h": 10,
+        "clahe_clip": 3.0,
+        "quality_class": "low"
+      }
+    },
+    "555CCC-66666662025_page1.png": {
+      "metrics": {
+        "blur_score": 1595.7720916754392,
+        "noise_score": 5.930318754633062,
+        "contrast": 24.09422178830493,
+        "brightness": 196.47373737373738
+      },
+      "recommendations": {
+        "denoise_h": 10,
+        "clahe_clip": 3.0,
+        "quality_class": "low"
+      }
+    }
+  },
+  "Q4_VeryLow (Degraded)": {
+    "222AAA-44444444442025_page-0001.jpg": {
+      "metrics": {
+        "blur_score": 1559.717763235879,
+        "noise_score": 7.412898443291327,
+        "contrast": 20.82089711821554,
+        "brightness": 186.08662721330955
+      },
+      "recommendations": {
+        "denoise_h": 10,
+        "clahe_clip": 3.0,
+        "quality_class": "low"
+      }
+    },
+    "333BBB-44444444442025_page1.png": {
+      "metrics": {
+        "blur_score": 1990.2024459421734,
+        "noise_score": 8.895478131949593,
+        "contrast": 21.56724479274147,
+        "brightness": 186.8349925727867
+      },
+      "recommendations": {
+        "denoise_h": 10,
+        "clahe_clip": 3.0,
+        "quality_class": "low"
+      }
+    },
+    "333ccc-6666666662025_page1.png": {
+      "metrics": {
+        "blur_score": 1650.3301420060588,
+        "noise_score": 7.412898443291327,
+        "contrast": 20.539227304522097,
+        "brightness": 187.2435606060606
+      },
+      "recommendations": {
+        "denoise_h": 10,
+        "clahe_clip": 3.0,
+        "quality_class": "low"
+      }
+    },
+    "555CCC-66666662025_page1.png": {
+      "metrics": {
+        "blur_score": 1956.1216846519067,
+        "noise_score": 7.412898443291327,
+        "contrast": 23.905975372553506,
+        "brightness": 183.65169711824123
+      },
+      "recommendations": {
+        "denoise_h": 10,
+        "clahe_clip": 3.0,
+        "quality_class": "low"
+      }
+    }
+  }
+}

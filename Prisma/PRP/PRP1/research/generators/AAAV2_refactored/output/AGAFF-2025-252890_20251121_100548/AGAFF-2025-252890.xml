@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>AGAFF/2025/252890</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>OF-1969-2025</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2025</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Juzgado Federal</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>AGAFF/2025/252890</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>EXP-3826-2025</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>21/11/2025</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>3</Cnbv_DiasPlazo>
+  <AutoridadNombre>Poder Judicial de la Federación</AutoridadNombre>
+  <NombreSolicitante>Bernardo Pedraza Salcido</NombreSolicitante>
+  <Referencia>REF-4264</Referencia>
+  <Referencia1>REF1-8344</Referencia1>
+  <Referencia2>REF2-3115</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Nayeli Romero Lozano</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Especificar fechas de apertura y cierre de cuentas
+- Detallar operaciones superiores a $100,000.00 MN
+- Incluir números de cuenta, saldos y movimientos
+- Indicar titulares y co-titulares de las cuentas
+- Proporcionar información de todas las cuentas bancarias</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Nayeli Romero Lozano</Nombre>
+    <Rfc>ROLN0310233SY</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Diagonal Tabasco No. 2216, Col. Vieja Jordania, Municipio San Abigail los bajos, Campeche, C.P. 96967</Domicilio>
+    <Complementarios>Tel: 650.402.4385x73784, Email: nicolaslerma@example.com</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

@@ -1,0 +1,32 @@
+[
+  {
+    "id": 0,
+    "contrast_factor": 1.6581223651496215,
+    "median_size": 3,
+    "edit_distance": 144
+  },
+  {
+    "id": 1,
+    "contrast_factor": 1.6581223651496215,
+    "median_size": 3,
+    "edit_distance": 144
+  },
+  {
+    "id": 2,
+    "contrast_factor": 1.6579655947506386,
+    "median_size": 3,
+    "edit_distance": 144
+  },
+  {
+    "id": 3,
+    "contrast_factor": 1.6581223651496215,
+    "median_size": 3,
+    "edit_distance": 144
+  },
+  {
+    "id": 4,
+    "contrast_factor": 1.6581223651496215,
+    "median_size": 3,
+    "edit_distance": 144
+  }
+]

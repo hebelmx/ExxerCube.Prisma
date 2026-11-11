@@ -1,0 +1,50 @@
+{
+  "docId": "AGAFF-2023-027961_20260704_050222",
+  "seed": 1000,
+  "chaosLevel": "none",
+  "requirementType": "judicial",
+  "folioSiara": "AGAFF/2023/027961",
+  "numeroOficio": "AGAFF/2023/027961",
+  "numeroExpediente": "B/JU1-1075-509447-SAT",
+  "autoridadNombre": "Servicio de Administración Tributaria",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Olga Monroy Guajardo",
+  "personaNombre": "Lourdes Rentería Alcántar",
+  "personaRfc": "REAL0405239B6",
+  "solicitudPartes": [
+    {
+      "nombre": "Lourdes Rentería Alcántar",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$4,970,077.52",
+  "fechaDiligencia": "04/07/2026",
+  "juzgadoNombre": "Servicio de Administración Tributaria",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

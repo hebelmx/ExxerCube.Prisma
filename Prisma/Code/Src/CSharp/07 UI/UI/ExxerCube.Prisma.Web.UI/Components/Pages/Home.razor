@@ -1,0 +1,236 @@
+﻿@page "/"
+@attribute [Authorize]
+
+<PageTitle>ExxerCube Prisma - OCR Processing System</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudPaper Class="pa-6" Elevation="3">
+        <h1 class="mud-typography mud-typography-h3 mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Class="mr-2" />
+            ExxerCube Prisma OCR Processing System
+        </h1>
+        
+        <MudText Typo="Typo.body1" Class="mb-6">
+            Welcome to the advanced OCR document processing system. This platform leverages the power of
+            artificial intelligence and machine learning to extract structured information from legal documents
+            with high accuracy and reliability.
+        </MudText>
+
+        <!-- Main Features -->
+        <MudGrid Class="mb-6">
+            <MudItem xs="12" md="6">
+                <MudCard Elevation="3" Class="h-100">
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h5">
+                            <MudIcon Icon="@Icons.Material.Filled.DocumentScanner" Class="mr-2" />
+                            Document Processing
+                        </MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body1" Class="mb-4">
+                            Upload legal documents and watch as our AI-powered OCR system extracts key information 
+                            including expediente numbers, causes, dates, and monetary amounts with high accuracy.
+                        </MudText>
+                        <MudChipSet T="string">
+                            <MudChip T="string" Color="Color.Primary">PDF Support</MudChip>
+                            <MudChip T="string" Color="Color.Secondary">Image Processing</MudChip>
+                            <MudChip T="string" Color="Color.Tertiary">Real-time Results</MudChip>
+                        </MudChipSet>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" 
+                                   Href="document-processing" StartIcon="@Icons.Material.Filled.PlayArrow">
+                            Process Documents
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+            
+            <MudItem xs="12" md="6">
+                <MudCard Elevation="3" Class="h-100">
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h5">
+                            <MudIcon Icon="@Icons.Material.Filled.Analytics" Class="mr-2" />
+                            Performance Analytics
+                        </MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body1" Class="mb-4">
+                            Monitor processing performance with real-time metrics, success rates, 
+                            and confidence scores. Track system health and processing queue status.
+                        </MudText>
+                        <MudChipSet T="string">
+                            <MudChip T="string" Color="Color.Info">Real-time Metrics</MudChip>
+                            <MudChip T="string" Color="Color.Success">Success Tracking</MudChip>
+                            <MudChip T="string" Color="Color.Warning">Performance Monitoring</MudChip>
+                        </MudChipSet>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Large"
+                                   Href="dashboard" StartIcon="@Icons.Material.Filled.Analytics">
+                            View Analytics
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Document Sources -->
+        <MudDivider Class="my-6" />
+        <MudText Typo="Typo.h5" GutterBottom="true" Class="mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.Language" Class="mr-2" />
+            Document Sources
+        </MudText>
+
+        <MudGrid Class="mb-6">
+            <MudItem xs="12" md="4">
+                <MudCard Elevation="3" Class="h-100">
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h6">
+                            <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Class="mr-2" />
+                            SIARA Simulator
+                        </MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2" Class="mb-2">
+                            Sistema de Atención de Requerimientos de Autoridad (CNBV)
+                        </MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Simulated regulatory document source with Poisson arrival distribution
+                        </MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                                   OnClick="@(() => NavigateToSource("siara"))"
+                                   StartIcon="@Icons.Material.Filled.Launch">
+                            Open SIARA
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudCard Elevation="3" Class="h-100">
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h6">
+                            <MudIcon Icon="@Icons.Material.Filled.Archive" Class="mr-2" />
+                            Internet Archive
+                        </MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2" Class="mb-2">
+                            Digital library of free books, movies, music, and more
+                        </MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Demo the IDownloader ingestion pipeline (browser automation)
+                        </MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary"
+                                   OnClick="@(() => NavigateToSource("archive"))"
+                                   StartIcon="@Icons.Material.Filled.Download">
+                            Download Demo
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudCard Elevation="3" Class="h-100">
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h6">
+                            <MudIcon Icon="@Icons.Material.Filled.MenuBook" Class="mr-2" />
+                            Project Gutenberg
+                        </MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2" Class="mb-2">
+                            Free eBooks - Over 70,000 free books available
+                        </MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Demo the IDownloader extraction pipeline (browser automation)
+                        </MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Tertiary"
+                                   OnClick="@(() => NavigateToSource("gutenberg"))"
+                                   StartIcon="@Icons.Material.Filled.Download">
+                            Download Demo
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Technology Stack -->
+        <MudDivider Class="my-6" />
+        <MudText Typo="Typo.h5" GutterBottom="true" Class="mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.Build" Class="mr-2" />
+            Technology Stack
+        </MudText>
+        
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="3">
+                <MudChip T="string" Color="Color.Primary" Size="Size.Large" Icon="@Icons.Material.Filled.Code">
+                    .NET 10
+                </MudChip>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudChip T="string" Color="Color.Secondary" Size="Size.Large" Icon="@Icons.Material.Filled.Code">
+                    Python OCR
+                </MudChip>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudChip T="string" Color="Color.Tertiary" Size="Size.Large" Icon="@Icons.Material.Filled.Web">
+                    MudBlazor
+                </MudChip>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudChip T="string" Color="Color.Info" Size="Size.Large" Icon="@Icons.Material.Filled.SignalCellular4Bar">
+                    SignalR
+                </MudChip>
+            </MudItem>
+        </MudGrid>
+
+
+    </MudPaper>
+</MudContainer>
+
+@using Microsoft.Extensions.Options
+@using ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets
+@inject IOptions<NavigationTargetOptions> NavigationTargetOptions
+
+@code {
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+
+    private void NavigateToSource(string sourceId)
+    {
+        var options = NavigationTargetOptions.Value;
+
+        switch (sourceId.ToLower())
+        {
+            // GH#22: Internet Archive / Project Gutenberg cards demo the IDownloader ingestion
+            // path — route to the internal browser-automation downloader demo with the source
+            // preselected, instead of a raw external redirect.
+            case "archive":
+            case "gutenberg":
+                Snackbar.Add($"Opening the {sourceId} download demo...", Severity.Info);
+                NavigationManager.NavigateTo($"/browser-automation?source={sourceId.ToLower()}");
+                break;
+
+            // GH#21: "Open SIARA" redirects the USER'S browser to the SIARA portal, so it must use
+            // the browser-facing (host-reachable) URL — NOT SiaraUrl, which is the Docker-internal
+            // service name (http://siara-simulator:8080) that does not resolve from the browser.
+            case "siara":
+                var siaraUrl = options.SiaraBrowserUrl ?? options.SiaraUrl ?? "http://localhost:8084";
+                Snackbar.Add("Opening SIARA...", Severity.Info);
+                NavigationManager.NavigateTo(siaraUrl, forceLoad: true);
+                break;
+
+            default:
+                Snackbar.Add($"Navigation target '{sourceId}' not configured", Severity.Error);
+                break;
+        }
+    }
+}

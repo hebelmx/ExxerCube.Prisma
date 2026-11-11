@@ -1,0 +1,50 @@
+{
+  "docId": "FGRMX-2025-876184_20260719_152605",
+  "seed": 5002,
+  "chaosLevel": "none",
+  "requirementType": "informacion",
+  "folioSiara": "FGRMX/2025/876184",
+  "numeroOficio": "FGRMX/2025/876184",
+  "numeroExpediente": "B/IN2—3567—505723—SAT",
+  "autoridadNombre": "Fiscalía General de la República",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Noemí Carrasco Candelaria",
+  "personaNombre": "Antonia Santana Barrera",
+  "personaRfc": "SABA450827X6I",
+  "solicitudPartes": [
+    {
+      "nombre": "Antonia Santana Barrera",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$7,935,456.03",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Fiscalía General de la República",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  }
+}

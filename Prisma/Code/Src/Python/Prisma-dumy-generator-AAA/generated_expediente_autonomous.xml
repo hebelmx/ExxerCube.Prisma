@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Expediente xmlns="http://www.cnbv.gob.mx" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><Cnbv_NumeroOficio>222/BBB/6074066312/2025</Cnbv_NumeroOficio><Cnbv_NumeroExpediente>A/AS1-8165-443402-BBB</Cnbv_NumeroExpediente><Cnbv_SolicitudSiara>AGAFADAFSON2/2025/530211</Cnbv_SolicitudSiara><Cnbv_Folio>8741</Cnbv_Folio><Cnbv_OficioYear>2025</Cnbv_OficioYear><Cnbv_AreaClave>5</Cnbv_AreaClave><Cnbv_AreaDescripcion>INFORMACION</Cnbv_AreaDescripcion><Cnbv_FechaPublicacion>2025-11-20</Cnbv_FechaPublicacion><Cnbv_DiasPlazo>3</Cnbv_DiasPlazo><AutoridadNombre>del Valle y Zamora S.C. S.A. de C.V.</AutoridadNombre><NombreSolicitante xsi:nil="true" /><Referencia>                         </Referencia><Referencia1>                         </Referencia1><Referencia2>IMSSCOB/26/32/820528/2025</Referencia2><TieneAseguramiento>false</TieneAseguramiento><SolicitudPartes><ParteId>1</ParteId><Caracter>Patrón Determinado</Caracter><Persona>Moral</Persona><Paterno /><Materno /><Nombre>Carrión-Quezada</Nombre><Rfc>             </Rfc></SolicitudPartes><SolicitudEspecifica><SolicitudEspecificaId>1</SolicitudEspecificaId><InstruccionesCuentasPorConocer>ASEGURAMIENTO No. 001/2023
+
+To: [Bank Name]
+
+In accordance with Article 160 of the fiscal code and Article 142 of the credit institutions law, this requisition serves to instruct you to freeze all assets belonging to Carrión-Quezada, S.A. de C.V., up to a maximum amount of one million five hundred thousand pesos (1,500,000.00 MXN), in accordance with the records held by the relevant authorities.
+
+In order to comply with this requisition, you are hereby instructed to immediately take all necessary measures to prevent any movement or disposition of said assets, including but not limited to freezing bank accounts, blocking transactions, and prohibiting withdrawals, until further notice from this office. You are also required to notify us of any changes in the account balances or movements of said frozen assets.
+
+Any and all assets subject to this requisition shall be identified as follows: [list of specific accounts, reference numbers, etc.].
+
+You are hereby notified that failure to comply with this requisition may result in severe legal consequences, including but not limited to fines and penalties, as provided for in the aforementioned laws and regulations.
+
+In conclusion, we expect you to verify the accuracy of the information provided and confirm that all necessary measures have been taken to freeze said assets. Please report back to our office with the following details: (i) a list of all accounts frozen, including account numbers and current balances; (ii) any changes in the account balances or movements of said frozen assets; and (iii) confirmation that no transactions have been processed on said frozen accounts.
+
+Please acknowledge receipt of this requisition by signing and returning a copy to our office within three business days from the date hereof. Failure to comply with this requisition may result in further action, as provided for in the laws and regulations cited above.
+
+Date: [current date]
+
+By order of:
+
+[Your Name]
+Junior Lawyer
+Mexican Government Authority</InstruccionesCuentasPorConocer><PersonasSolicitud><PersonaId>1</PersonaId><Caracter>Patrón Determinado</Caracter><Persona>Moral</Persona><Paterno /><Materno /><Nombre>Carrión-Quezada, S.A. DE C.V.</Nombre><Rfc>BGZ411207E0X</Rfc><Relacion /><Domicilio>Diagonal Espino 341 Edif. 904 , Depto. 384 CP 77400-0165 Col. Centro, San Magdalena los altos</Domicilio><Complementarios>Y87 W 78481 20</Complementarios></PersonasSolicitud></SolicitudEspecifica></Expediente>

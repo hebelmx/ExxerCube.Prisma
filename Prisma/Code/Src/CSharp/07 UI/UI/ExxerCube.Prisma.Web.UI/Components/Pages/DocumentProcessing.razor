@@ -1,0 +1,196 @@
+@page "/document-processing"
+@attribute [Authorize]
+@using ExxerCube.Prisma.Web.UI.Components.DocumentProcessing
+@using ExxerCube.Prisma.Web.UI.Models
+@using ExxerCube.Prisma.Web.UI.Services
+@using ExxerCube.Prisma.Domain.Models
+@inject DocumentProcessingStateService StateService
+@inject IJSRuntime JSRuntime
+@inject ILogger<DocumentProcessing> Logger
+@implements IDisposable
+
+<PageTitle>Document Processing & 3-Way Reconciliation New Way</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4">
+    <MudText Typo="Typo.h3" Class="mb-4">
+        <MudIcon Icon="@Icons.Material.Filled.CompareArrows" Class="mr-2" Size="Size.Large" />
+        Document Processing & 3-Way Reconciliation  New Way
+    </MudText>
+
+    <MudText Typo="Typo.body1" Class="mb-4">
+        Load and compare XML and PDF Expediente documents using OCR, then reconcile differences with intelligent 3-way fusion.
+    </MudText>
+
+    <!-- XML Processing Section -->
+    <XmlProcessingSection
+        State="@StateService.State.XmlState"
+        OnLoaded="@HandleXmlLoaded"
+        OnCleared="@HandleXmlCleared"
+        IsProcessing="@StateService.State.SharedState.IsProcessing" />
+
+    <!-- PDF/OCR Processing Section -->
+    <PdfProcessingSection
+        State="@StateService.State.PdfState"
+        OnLoaded="@HandlePdfLoaded"
+        OnCleared="@HandlePdfCleared"
+        OnPdfRenderRequested="@HandlePdfRenderRequested"
+        IsProcessing="@StateService.State.SharedState.IsProcessing" />
+
+    <!-- Comparison Section -->
+    <ComparisonSection
+        State="@StateService.State.ComparisonState"
+        ViewModel="@StateService.State"
+        OnComparisonCompleted="@HandleComparisonCompleted"
+        IsProcessing="@StateService.State.SharedState.IsProcessing" />
+
+    <!-- Bulk Processing Section -->
+    <BulkProcessingSection
+        State="@StateService.State.BulkState"
+        OnSampleLoaded="@HandleBulkSampleLoaded"
+        OnBatchCompleted="@HandleBulkBatchCompleted"
+        IsProcessing="@StateService.State.SharedState.IsProcessing" />
+</MudContainer>
+
+@code {
+    /// <summary>
+    /// Initializes component and subscribes to state changes.
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        StateService.OnStateChanged += StateHasChanged;
+        Logger.LogInformation("DocumentProcessing page initialized");
+    }
+
+    /// <summary>
+    /// Handles XML fixture loaded event.
+    /// </summary>
+    private void HandleXmlLoaded(XmlProcessingResult result)
+    {
+        StateService.UpdateXmlState(state =>
+        {
+            state.Expediente = result.Expediente;
+            state.FixtureName = result.FixtureName;
+            state.SourceXml = result.SourceXml;
+            state.FieldCount = result.FieldCount;
+            state.Metadata = result.Metadata;
+            state.JsonResult = result.JsonResult;
+        });
+
+        Logger.LogInformation("XML loaded: {FixtureName}, {FieldCount} fields", result.FixtureName, result.FieldCount);
+    }
+
+    /// <summary>
+    /// Handles XML cleared event.
+    /// </summary>
+    private void HandleXmlCleared()
+    {
+        StateService.ClearXmlState();
+        Logger.LogInformation("XML state cleared");
+    }
+
+    /// <summary>
+    /// Handles PDF fixture loaded event.
+    /// </summary>
+    private void HandlePdfLoaded(PdfProcessingResult result)
+    {
+        StateService.UpdatePdfState(state =>
+        {
+            state.OcrResult = result.OcrResult;
+            state.Expediente = result.Expediente;
+            state.FixtureName = result.FixtureName;
+            state.PdfBytes = result.PdfBytes;
+            state.Metadata = result.Metadata;
+        });
+
+        Logger.LogInformation("PDF loaded: {FixtureName}, OCR confidence: {Confidence:F1}%",
+            result.FixtureName, result.OcrResult.OCRResult.Confidence.Value * 100);
+    }
+
+    /// <summary>
+    /// Handles PDF cleared event.
+    /// </summary>
+    private void HandlePdfCleared()
+    {
+        StateService.ClearPdfState();
+        Logger.LogInformation("PDF state cleared");
+    }
+
+    /// <summary>
+    /// Handles PDF render requested event (renders PDF on canvas via JavaScript).
+    /// </summary>
+    private async Task HandlePdfRenderRequested((byte[] PdfBytes, string CanvasId) request)
+    {
+        try
+        {
+            var (pdfBytes, canvasId) = request;
+            var base64Pdf = Convert.ToBase64String(pdfBytes);
+            // JS signature is renderPdf(canvasId, base64Data) — pass canvasId FIRST. The args were
+            // previously swapped, so getElementById received the base64 string → canvas never found →
+            // blank preview widget.
+            await JSRuntime.InvokeVoidAsync("renderPdf", canvasId, base64Pdf);
+            Logger.LogDebug("PDF rendered on canvas: {CanvasId}", canvasId);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to render PDF on canvas");
+        }
+    }
+
+    /// <summary>
+    /// Handles comparison completed event.
+    /// </summary>
+    private void HandleComparisonCompleted(ComparisonAndFusionResult result)
+    {
+        StateService.UpdateComparisonState(state =>
+        {
+            state.ComparisonResult = result.Comparison;
+            state.FusionResult = result.Fusion;
+        });
+
+        Logger.LogInformation("Comparison complete: {MatchCount}/{TotalFields} matches ({MatchPercentage:F0}%)",
+            result.Comparison.MatchCount, result.Comparison.TotalFields, result.Comparison.MatchPercentage);
+
+        if (result.Fusion != null)
+        {
+            Logger.LogInformation("Fusion complete: {Confidence:P0} confidence, {NextAction}",
+                result.Fusion.Confidence.Value, result.Fusion.NextAction);
+        }
+    }
+
+    /// <summary>
+    /// Handles bulk sample loaded event.
+    /// </summary>
+    private void HandleBulkSampleLoaded(List<BulkDocument> documents)
+    {
+        StateService.UpdateBulkState(state =>
+        {
+            state.Documents = documents;
+            state.Summary = null;
+        });
+
+        Logger.LogInformation("Bulk sample loaded: {Count} documents", documents.Count);
+    }
+
+    /// <summary>
+    /// Handles bulk batch completed event.
+    /// </summary>
+    private void HandleBulkBatchCompleted(BatchSummary summary)
+    {
+        StateService.UpdateBulkState(state =>
+        {
+            state.Summary = summary;
+        });
+
+        Logger.LogInformation("Bulk batch complete: {SuccessCount}/{TotalCount} successful",
+            summary.SuccessCount, summary.TotalCount);
+    }
+
+    /// <summary>
+    /// Disposes component and unsubscribes from state changes.
+    /// </summary>
+    public void Dispose()
+    {
+        StateService.OnStateChanged -= StateHasChanged;
+        Logger.LogInformation("DocumentProcessing page disposed");
+    }
+}

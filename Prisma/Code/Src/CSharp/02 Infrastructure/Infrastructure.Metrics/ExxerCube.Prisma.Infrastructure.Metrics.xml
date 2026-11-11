@@ -1,0 +1,173 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ExxerCube.Prisma.Infrastructure.Metrics</name>
+    </assembly>
+    <members>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Metrics.DependencyInjection.ServiceCollectionExtensions">
+            <summary>
+            Extension methods for registering metrics services in the dependency injection container.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Metrics.DependencyInjection.ServiceCollectionExtensions.AddMetricsServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Int32)">
+            <summary>
+            Adds metrics services to the service collection.
+            </summary>
+            <param name="services">The service collection.</param>
+            <param name="maxConcurrency">The maximum number of concurrent processing operations. Defaults to 5.</param>
+            <returns>The service collection for chaining.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingContext">
+            <summary>
+            Represents a processing context for tracking individual document processing.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingContext.DocumentId">
+            <summary>
+            Gets the document identifier.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingContext.SourcePath">
+            <summary>
+            Gets the source path of the document.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingContext.Stopwatch">
+            <summary>
+            Gets the stopwatch for timing the processing.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingContext.#ctor(System.String,System.String,System.Diagnostics.Stopwatch,ExxerCube.Prisma.Domain.Interfaces.IProcessingMetricsService)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingContext"/> class.
+            </summary>
+            <param name="documentId">The document identifier.</param>
+            <param name="sourcePath">The source path.</param>
+            <param name="stopwatch">The stopwatch.</param>
+            <param name="metricsService">The metrics service.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingContext.Dispose">
+            <summary>
+            Disposes the processing context.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingContext.Dispose(System.Boolean)">
+            <summary>
+            Disposes the processing context.
+            </summary>
+            <param name="disposing">Whether to dispose managed resources.</param>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService">
+            <summary>
+            Service for collecting and managing performance metrics for OCR processing.
+            Implements metrics collection, performance monitoring, and throughput analysis.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService.CurrentStatistics">
+            <summary>
+            Gets the current processing statistics.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService.MaxConcurrency">
+            <summary>
+            Gets the maximum number of concurrent processing operations.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService.ActiveProcessingCount">
+            <summary>
+            Gets the current number of active processing operations.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService},System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService"/> class.
+            </summary>
+            <param name="logger">The logger.</param>
+            <param name="maxConcurrency">The maximum number of concurrent processing operations.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService.StartProcessingAsync(System.String,System.String)">
+            <summary>
+            Records the start of a document processing operation.
+            </summary>
+            <param name="documentId">The unique identifier for the document.</param>
+            <param name="sourcePath">The source path of the document.</param>
+            <returns>A processing context that should be disposed when processing completes.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService.CompleteProcessingAsync(ExxerCube.Prisma.Domain.Interfaces.IProcessingContext,ExxerCube.Prisma.Domain.ValueObjects.ProcessingResult,System.Boolean)">
+            <summary>
+            Records the completion of a document processing operation.
+            </summary>
+            <param name="context">The processing context.</param>
+            <param name="result">The processing result.</param>
+            <param name="isSuccess">Whether the processing was successful.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService.RecordErrorAsync(ExxerCube.Prisma.Domain.Interfaces.IProcessingContext,System.String)">
+            <summary>
+            Records a processing error.
+            </summary>
+            <param name="context">The processing context.</param>
+            <param name="error">The error message.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService.GetCurrentStatisticsAsync">
+            <summary>
+            Gets the current processing statistics.
+            </summary>
+            <returns>The current processing statistics.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService.GetDocumentMetrics(System.String)">
+            <summary>
+            Gets detailed metrics for a specific document.
+            </summary>
+            <param name="documentId">The document identifier.</param>
+            <returns>The processing metrics for the document, or null if not found.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService.GetAllMetrics">
+            <summary>
+            Gets all processing metrics.
+            </summary>
+            <returns>A list of all processing metrics.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService.GetRecentEvents(System.Int32)">
+            <summary>
+            Gets recent processing events.
+            </summary>
+            <param name="count">The number of recent events to retrieve.</param>
+            <returns>A list of recent processing events.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService.CalculateThroughput(System.TimeSpan)">
+            <summary>
+            Calculates throughput metrics for the specified time period.
+            </summary>
+            <param name="timeSpan">The time period to analyze.</param>
+            <returns>Throughput statistics for the period.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService.ValidatePerformanceAsync">
+            <summary>
+            Checks if the system is meeting performance requirements.
+            </summary>
+            <returns>A result indicating whether performance requirements are met.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService.AggregateMetrics(System.Object)">
+            <summary>
+            Aggregates metrics and updates current statistics.
+            </summary>
+            <param name="state">Timer state (unused).</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService.UpdateCurrentStatistics">
+            <summary>
+            Updates the current statistics based on recent events.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService.Dispose">
+            <summary>
+            Disposes the metrics service and releases resources.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService.Dispose(System.Boolean)">
+            <summary>
+            Disposes the metrics service and releases resources.
+            </summary>
+            <param name="disposing">Whether to dispose managed resources.</param>
+        </member>
+    </members>
+</doc>

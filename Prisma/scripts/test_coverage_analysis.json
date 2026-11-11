@@ -1,0 +1,1386 @@
+{
+  "analysis_date": "2025-11-17T20:17:29.858175",
+  "original_project": {
+    "name": "ExxerCube.Prisma.Tests",
+    "file_count": 54,
+    "method_count": 455,
+    "files": {
+      "Tests/Infrastructure/PythonInteropServiceTests.cs": [
+        "CircuitBreakerPythonInteropService_ShouldCreateSuccessfully",
+        "PythonConfiguration_CreateDefault_ShouldReturnValidConfiguration",
+        "PrismaOcrWrapperAdapter_ShouldCreateSuccessfully",
+        "PrismaOcrWrapperAdapter_ShouldImplementIPythonInteropService",
+        "ExtractExpediente_WithEmptyText_ReturnsNull",
+        "ExtractExpediente_WithNullText_ReturnsNull",
+        "PythonIntegration_ShouldWorkCorrectly",
+        "OcrProcessingAdapter_ShouldCreateSuccessfully",
+        "OcrProcessingAdapter_ShouldImplementDomainInterfaces",
+        "PathConstruction_ShouldWorkCorrectly"
+      ],
+      "Tests/Infrastructure.Classification/FieldMatcherServiceTests.cs": [
+        "MatchFieldsAsync_WithMissingFields_TracksMissingFields",
+        "MatchFieldsAsync_WithMatchingFields_ReturnsMatchedFields",
+        "GenerateUnifiedRecordAsync_WithMatchedFields_ReturnsUnifiedRecord",
+        "ValidateCompletenessAsync_MissingRequiredFields_ReturnsFailure",
+        "MatchFieldsAsync_WithConflictingFields_DetectsConflicts",
+        "ValidateCompletenessAsync_EmptyRequiredFields_ReturnsSuccess",
+        "MatchFieldsAsync_NoSources_ReturnsFailure",
+        "GenerateUnifiedRecordAsync_NullMatchedFields_ReturnsFailure",
+        "ValidateCompletenessAsync_AllRequiredFieldsPresent_ReturnsSuccess",
+        "MatchFieldsAsync_NoFieldDefinitions_ReturnsFailure"
+      ],
+      "Tests/Infrastructure.Classification/FileClassifierServiceTests.cs": [
+        "ClassifyAsync_HacendarioDocument_ReturnsHacendarioLevel2",
+        "ClassifyAsync_JudicialDocument_ReturnsJudicialLevel2",
+        "ClassifyAsync_EspecialDocument_ReturnsEspecialLevel2",
+        "ClassifyAsync_AseguramientoDocument_ReturnsAseguramiento",
+        "ClassifyAsync_StrongClassification_ReturnsHighConfidence",
+        "ClassifyAsync_DesembargoDocument_ReturnsDesembargo",
+        "ClassifyAsync_DocumentacionDocument_ReturnsDocumentacion"
+      ],
+      "Tests/Infrastructure.Classification/LegalDirectiveClassifierServiceEdgeCaseTests.cs": [
+        "DetectLegalInstrumentsAsync_WithNullDocumentText_ReturnsFailure",
+        "ClassifyDirectivesAsync_WithWhitespaceDocumentText_ReturnsFailure",
+        "DetectLegalInstrumentsAsync_WithEmptyDocumentText_ReturnsFailure",
+        "MapToComplianceActionAsync_WithNullDirectiveText_ReturnsFailure",
+        "MapToComplianceActionAsync_WithEmptyDirectiveText_ReturnsFailure",
+        "MapToComplianceActionAsync_WithCancellationRequested_ReturnsCancelled",
+        "ClassifyDirectivesAsync_WithCancellationRequested_ReturnsCancelled",
+        "ClassifyDirectivesAsync_WithNullDocumentText_ReturnsFailure",
+        "ClassifyDirectivesAsync_WithEmptyDocumentText_ReturnsFailure",
+        "DetectLegalInstrumentsAsync_WithCancellationRequested_ReturnsCancelled",
+        "ClassifyDirectivesAsync_WithVeryLongDocumentText_HandlesCorrectly"
+      ],
+      "Tests/Infrastructure.Classification/LegalDirectiveClassifierServiceTests.cs": [
+        "ClassifyDirectivesAsync_WithDocumentDirective_ReturnsDocumentAction",
+        "ClassifyDirectivesAsync_WithTransferDirective_ReturnsTransferAction",
+        "DetectLegalInstrumentsAsync_WithAcuerdo_ReturnsAcuerdo",
+        "MapToComplianceActionAsync_WithAccountNumber_ExtractsAccountNumber",
+        "MapToComplianceActionAsync_WithAmount_ExtractsAmount",
+        "ClassifyDirectivesAsync_WithUnblockDirective_ReturnsUnblockAction",
+        "ClassifyDirectivesAsync_WithBlockDirective_ReturnsBlockAction",
+        "ClassifyDirectivesAsync_WithUnknownDirective_ReturnsIgnoreAction",
+        "ClassifyDirectivesAsync_WithInformationDirective_ReturnsInformationAction",
+        "DetectLegalInstrumentsAsync_WithMultipleInstruments_ReturnsAll",
+        "MapToComplianceActionAsync_WithBlockDirective_ReturnsBlockAction"
+      ],
+      "Tests/Infrastructure.Classification/MatchingPolicyOptionsTests.cs": [
+        "MatchingPolicyOptions_InvalidMinimumConfidence_CanBeSet",
+        "MatchingPolicyOptions_FieldSpecificRules_LoadFromConfiguration",
+        "MatchingPolicyOptions_InvalidConflictThreshold_CanBeSet",
+        "MatchingPolicyService_WithInvalidConflictThreshold_HandlesGracefully",
+        "MatchingPolicyOptions_FieldSpecificRules_OverrideGlobalSettings",
+        "MatchingPolicyOptions_LoadFromConfiguration_LoadsCorrectly",
+        "MatchingPolicyService_WithEmptySourcePriority_HandlesGracefully",
+        "MatchingPolicyOptions_LoadFromConfiguration_MissingValues_UsesDefaults",
+        "MatchingPolicyOptions_InvalidSourcePriority_CanBeSet",
+        "MatchingPolicyOptions_DefaultValues_AreValid"
+      ],
+      "Tests/Infrastructure.Classification/MatchingPolicyServiceTests.cs": [
+        "SelectBestValueAsync_WithSingleValue_ReturnsThatValue",
+        "HasConflictAsync_WithMatchingValues_ReturnsFalse",
+        "SelectBestValueAsync_WithMatchingValues_ReturnsBestValueWithHighAgreement",
+        "CalculateAgreementLevelAsync_WithAllMatching_ReturnsOne",
+        "SelectBestValueAsync_WithNullValues_ReturnsFailure",
+        "SelectBestValueAsync_WithConflictingValues_ReturnsMostCommonValue",
+        "CalculateAgreementLevelAsync_WithPartialMatching_ReturnsPartialAgreement",
+        "SelectBestValueAsync_WithEmptyValues_ReturnsFailure",
+        "HasConflictAsync_WithConflictingValues_ReturnsTrue",
+        "SelectBestValueAsync_WithSourcePriority_PrefersHigherPrioritySource"
+      ],
+      "Tests/Infrastructure.Classification/PersonIdentityResolverServiceEdgeCaseTests.cs": [
+        "GenerateRfcVariants_WithNullRfc_ReturnsEmptyList",
+        "FindByRfcAsync_WithEmptyRfc_ReturnsFailure",
+        "DeduplicatePersonsAsync_WithNullList_ReturnsFailure",
+        "FindByRfcAsync_WithCancellationRequested_ReturnsCancelled",
+        "FindByRfcAsync_WithNullRfc_ReturnsFailure",
+        "ResolveIdentityAsync_WithAllNullNames_HandlesGracefully",
+        "DeduplicatePersonsAsync_WithEmptyList_ReturnsEmptyList",
+        "FindByRfcAsync_WithWhitespaceRfc_ReturnsFailure",
+        "ResolveIdentityAsync_WithNullPerson_ReturnsFailure",
+        "ResolveIdentityAsync_WithCancellationRequested_ReturnsCancelled",
+        "DeduplicatePersonsAsync_WithCancellationRequested_ReturnsCancelled"
+      ],
+      "Tests/Infrastructure.Classification/PersonIdentityResolverServiceTests.cs": [
+        "ResolveIdentityAsync_WithExtraWhitespace_NormalizesNames",
+        "GenerateRfcVariants_WithHyphenatedRfc_GeneratesVariants",
+        "DeduplicatePersonsAsync_WithDuplicateNames_RemovesDuplicates",
+        "GenerateRfcVariants_WithEmptyRfc_ReturnsEmptyList",
+        "GenerateRfcVariants_WithDifferentFormats_ReturnsAllVariants",
+        "FindByRfcAsync_WithValidRfc_ReturnsSuccessWithNullValue",
+        "DeduplicatePersonsAsync_WithDuplicateRfcs_RemovesDuplicates",
+        "ResolveIdentityAsync_WithRfc_GeneratesRfcVariants"
+      ],
+      "Tests/Infrastructure.Export/DigitalPdfSignerTests.cs": [
+        "ExportSignedPdfAsync_CertificateNotAvailable_ReturnsFailure",
+        "ExportSignedPdfAsync_ValidMetadata_GeneratesPdfStructure",
+        "ExportSignedPdfAsync_NullMetadata_ReturnsFailure",
+        "ExportSiroXmlAsync_Always_ReturnsFailure",
+        "ExportSignedPdfAsync_NullOutputStream_ReturnsFailure",
+        "ExportSignedPdfAsync_WithRequirementSummary_IncludesSummary",
+        "ExportSignedPdfAsync_CancellationRequested_ReturnsCancelled"
+      ],
+      "Tests/Infrastructure.Export/ExportIntegrationTests.cs": [
+        "PdfRequirementSummarizerService_UsesOcrExtraction_DoesNotBreakPipeline",
+        "DigitalPdfSigner_CertificateUnavailable_HandlesGracefully",
+        "PdfRequirementSummarizerService_EndToEnd_SummarizesRequirements"
+      ],
+      "Tests/Infrastructure.Export/PdfRequirementSummarizerServiceTests.cs": [
+        "SummarizeRequirementsFromTextAsync_InformacionRequirements_CategorizesCorrectly",
+        "SummarizeRequirementsAsync_CancellationRequested_ReturnsCancelled",
+        "SummarizeRequirementsAsync_EmptyPdfContent_ReturnsFailure",
+        "SummarizeRequirementsFromTextAsync_EmptyText_ReturnsFailure",
+        "SummarizeRequirementsFromTextAsync_DesbloqueoRequirements_CategorizesCorrectly",
+        "SummarizeRequirementsAsync_NullPdfContent_ReturnsFailure",
+        "SummarizeRequirementsFromTextAsync_ValidText_GeneratesSummaryText",
+        "SummarizeRequirementsFromTextAsync_DocumentacionRequirements_CategorizesCorrectly",
+        "SummarizeRequirementsFromTextAsync_ValidText_CalculatesConfidenceScore",
+        "SummarizeRequirementsAsync_ValidPdfContent_ReturnsRequirementSummary",
+        "SummarizeRequirementsFromTextAsync_TransferenciaRequirements_CategorizesCorrectly",
+        "SummarizeRequirementsAsync_MetadataExtractorFails_ReturnsFailure",
+        "SummarizeRequirementsFromTextAsync_BloqueoRequirements_CategorizesCorrectly"
+      ],
+      "Tests/Infrastructure.Extraction/CompositeMetadataExtractorTests.cs": [
+        "ExtractFromDocxAsync_DelegatesToDocxExtractor",
+        "ExtractFromPdfAsync_DelegatesToPdfExtractor",
+        "ExtractFromXmlAsync_RoutesToCorrectExtractor",
+        "ExtractFromXmlAsync_DelegatesToXmlExtractor"
+      ],
+      "Tests/Infrastructure.Extraction/DocxFieldExtractorTests.cs": [
+        "ExtractFieldAsync_FieldNotFound_ReturnsFailure",
+        "ExtractFieldAsync_ValidDocx_ReturnsFieldValue",
+        "ExtractFieldsAsync_WithFilePath_ExtractsFields",
+        "ExtractFieldsAsync_NoFileContentOrPath_ReturnsFailure",
+        "ExtractFieldsAsync_EmptyFieldDefinitions_ReturnsEmptyExtractedFields",
+        "ExtractFieldsAsync_ValidDocx_ReturnsExtractedFields",
+        "ExtractFieldsAsync_InvalidDocx_ReturnsFailure"
+      ],
+      "Tests/Infrastructure.Extraction/DocxMetadataExtractorTests.cs": [
+        "ExtractFromPdfAsync_Always_ReturnsFailure",
+        "ExtractFromDocxAsync_ValidDocx_ReturnsExtractedMetadata",
+        "ExtractFromDocxAsync_InvalidDocx_ReturnsFailure",
+        "ExtractFromXmlAsync_Always_ReturnsFailure"
+      ],
+      "Tests/Infrastructure.Extraction/FileTypeIdentifierServiceTests.cs": [
+        "IdentifyFileTypeAsync_DocxContent_ReturnsDocx",
+        "IdentifyFileTypeAsync_UnknownContentWithExtension_ReturnsFormatFromExtension",
+        "IdentifyFileTypeAsync_PdfContent_ReturnsPdf",
+        "IdentifyFileTypeAsync_NullContent_ReturnsFailure",
+        "IdentifyFileTypeAsync_EmptyContent_ReturnsFailure",
+        "IdentifyFileTypeAsync_XmlContent_ReturnsXml"
+      ],
+      "Tests/Infrastructure.Extraction/PdfMetadataExtractorTests.cs": [
+        "ExtractFromXmlAsync_Always_ReturnsFailure",
+        "ExtractFromPdfAsync_OCRSuccess_ReturnsExtractedMetadata",
+        "ExtractFromDocxAsync_Always_ReturnsFailure",
+        "ExtractFromPdfAsync_OCRFails_ReturnsFailure",
+        "ExtractFromPdfAsync_PreprocessingFails_ReturnsFailure"
+      ],
+      "Tests/Infrastructure.Extraction/PdfOcrFieldExtractorEnhancedTests.cs": [
+        "ExtractFieldsAsync_MultiPagePdf_ProcessesFirstPage",
+        "ExtractFieldsAsync_PartialOCRResults_ExtractsAvailableFields",
+        "ExtractFieldsAsync_PdfWithImagesOnly_ReturnsEmptyFields",
+        "ExtractFieldsAsync_OCRTimesOut_ReturnsFailure",
+        "ExtractFieldsAsync_OCRServiceUnavailable_ReturnsFailure",
+        "ExtractFieldsAsync_EmptyPdfFile_ReturnsFailure",
+        "ExtractFieldsAsync_CorruptedPdfFile_ReturnsFailure"
+      ],
+      "Tests/Infrastructure.Extraction/PdfOcrFieldExtractorTests.cs": [
+        "ExtractFieldAsync_FieldNotFound_ReturnsFailure",
+        "ExtractFieldsAsync_WithFilePath_ExtractsFields",
+        "ExtractFieldsAsync_NoFileContentOrPath_ReturnsFailure",
+        "ExtractFieldsAsync_PreprocessingFails_ReturnsFailure",
+        "ExtractFieldAsync_ValidPdf_ReturnsFieldValue",
+        "ExtractFieldsAsync_ValidPdfWithOCR_ReturnsExtractedFields",
+        "ExtractFieldsAsync_OCRFails_ReturnsFailure"
+      ],
+      "Tests/Infrastructure.Extraction/XmlExpedienteParserTests.cs": [
+        "ParseAsync_XmlWithoutRoot_ReturnsFailure",
+        "ParseAsync_InvalidXml_ReturnsFailure",
+        "ParseAsync_ValidXml_ReturnsExpediente",
+        "ParseAsync_XmlWithPartes_ParsesPartes"
+      ],
+      "Tests/Infrastructure.Extraction/XmlMetadataExtractorTests.cs": [
+        "ExtractFromPdfAsync_Always_ReturnsFailure",
+        "ExtractFromDocxAsync_Always_ReturnsFailure",
+        "ExtractFromXmlAsync_ValidXml_ReturnsExtractedMetadata",
+        "ExtractFromXmlAsync_ParserFails_ReturnsFailure"
+      ],
+      "Tests/Infrastructure.FileStorage/FileMoverServiceTests.cs": [
+        "MoveFileAsync_ValidFile_MovesToClassificationDirectory",
+        "MoveFileAsync_FileNameConflict_AppendsCounter",
+        "MoveFileAsync_NonExistentFile_ReturnsFailure"
+      ],
+      "Tests/Infrastructure.FileStorage/SafeFileNamerServiceTests.cs": [
+        "GenerateSafeFileNameAsync_WithInvalidCharacters_SanitizesFileName",
+        "GenerateSafeFileNameAsync_WithExpediente_IncludesExpediente",
+        "GenerateSafeFileNameAsync_Always_IncludesTimestamp",
+        "GenerateSafeFileNameAsync_WithClassification_ReturnsSafeFileName"
+      ],
+      "Tests/Interfaces/IIManualReviewerPanelTests.cs": [
+        "GetReviewCasesAsync_WithValidFilters_ReturnsSuccessResult",
+        "GetFieldAnnotationsAsync_WithInvalidCaseId_ReturnsFailureResult",
+        "GetFieldAnnotationsAsync_WhenCancelled_ReturnsCancelledResult",
+        "IdentifyReviewCasesAsync_WithLowConfidence_ReturnsReviewCase",
+        "SubmitReviewDecisionAsync_WithValidDecision_ReturnsSuccessResult",
+        "GetFieldAnnotationsAsync_WithValidCaseId_ReturnsSuccessResult",
+        "SubmitReviewDecisionAsync_WithInvalidCaseId_ReturnsFailureResult",
+        "IdentifyReviewCasesAsync_WhenCancelled_ReturnsCancelledResult",
+        "GetReviewCasesAsync_WithNullFilters_ReturnsSuccessResult",
+        "IdentifyReviewCasesAsync_WithHighConfidenceNoIssues_ReturnsEmptyList",
+        "IdentifyReviewCasesAsync_OnIdentificationError_ReturnsFailureResult",
+        "GetReviewCasesAsync_WhenCancelled_ReturnsCancelledResult",
+        "GetReviewCasesAsync_OnQueryError_ReturnsFailureResult",
+        "SubmitReviewDecisionAsync_OnSaveError_ReturnsFailureResult",
+        "IdentifyReviewCasesAsync_WithExtractionErrors_ReturnsReviewCase",
+        "GetFieldAnnotationsAsync_OnQueryError_ReturnsFailureResult",
+        "SubmitReviewDecisionAsync_WhenCancelled_ReturnsCancelledResult",
+        "IdentifyReviewCasesAsync_WithAmbiguousClassification_ReturnsReviewCase"
+      ],
+      "Tests/Infrastructure/Database/AuditLoggerIntegrationTests.cs": [
+        "AuditLogging_FileIdFiltering_RetrievesAllStages",
+        "AuditLogging_ErrorHandling_DoesNotBlockProcessing",
+        "AuditLogging_PerformanceImpact_IsMinimal",
+        "AuditLogging_RecordsAreImmutable_CannotBeModified",
+        "AuditLogging_CorrelationIdTracking_TracksAcrossStages",
+        "AuditLogging_RetentionPolicy_CanBeQueried"
+      ],
+      "Tests/Infrastructure/Database/AuditLoggerServiceTests.cs": [
+        "GetAuditRecordsAsync_DateRangeFilter_ReturnsFilteredRecords",
+        "GetAuditRecordsAsync_InvalidDateRange_ReturnsFailure",
+        "LogAuditAsync_ValidRecord_ReturnsSuccess",
+        "LogAuditAsync_MultipleRecords_CompletesQuickly",
+        "GetAuditRecordsByFileIdAsync_ValidFileId_ReturnsRecords",
+        "LogAuditAsync_CancellationRequested_ReturnsCancelled",
+        "GetAuditRecordsAsync_UserIdFilter_ReturnsFilteredRecords",
+        "LogAuditAsync_EmptyCorrelationId_ReturnsFailure",
+        "GetAuditRecordsByCorrelationIdAsync_ValidCorrelationId_ReturnsRecords",
+        "GetAuditRecordsAsync_ActionTypeFilter_ReturnsFilteredRecords"
+      ],
+      "Tests/Infrastructure/Database/DownloadTrackerServiceTests.cs": [
+        "IsDuplicateAsync_NewChecksum_ReturnsFalse",
+        "GetFileMetadataByChecksumAsync_ExistingChecksum_ReturnsFileMetadata",
+        "IsDuplicateAsync_ExistingChecksum_ReturnsTrue",
+        "GetFileMetadataByChecksumAsync_NonExistentChecksum_ReturnsNull"
+      ],
+      "Tests/Infrastructure/Database/EfCoreRepositoryTests.cs": [
+        "AddAsync_ShouldReturnCancelled_WhenTokenAlreadyCancelled",
+        "SelectAsync_ShouldReturnFailure_WhenSelectorIsNull",
+        "AddRangeAsync_ShouldReturnFailure_WhenEntitiesAreNull",
+        "FindAsync_ShouldReturnFailure_WhenPredicateIsNull",
+        "ListAsync_ShouldReturnCancelled_WhenTokenAlreadyCancelled",
+        "SaveChangesAsync_ShouldReturnFailure_WhenDbContextIsDisposed",
+        "GetByIdAsync_ShouldReturnSuccess_WhenEntityExists"
+      ],
+      "Tests/Infrastructure/Database/FileMetadataLoggerServiceTests.cs": [
+        "LogFileMetadataAsync_ValidMetadata_ReturnsSuccess",
+        "LogFileMetadataAsync_DuplicateFileId_ReturnsFailure"
+      ],
+      "Tests/Infrastructure/Database/ManualReviewerServiceIntegrationTests.cs": [
+        "ReviewDecision_ForeignKeyRelationship_IsMaintained",
+        "EndToEndWorkflow_IdentifyGetAnnotationsSubmit_CompletesSuccessfully",
+        "IdentifyReviewCasesAsync_MultipleReasons_IdentifiesMultipleCases",
+        "ReviewCase_ForeignKeyRelationship_IsMaintained"
+      ],
+      "Tests/Infrastructure/Database/ManualReviewerServiceTests.cs": [
+        "SubmitReviewDecisionAsync_WithExistingDecision_ReturnsFailure",
+        "GetReviewCasesAsync_WhenCancelled_ReturnsCancelledResult",
+        "IdentifyReviewCasesAsync_WithLowConfidence_IdentifiesCase",
+        "GetFieldAnnotationsAsync_WhenCancelled_ReturnsCancelledResult",
+        "GetReviewCasesAsync_WithStatusFilter_ReturnsFilteredCases",
+        "IdentifyReviewCasesAsync_WithExtractionErrors_IdentifiesCase",
+        "GetReviewCasesAsync_WithPagination_ReturnsPaginatedResults",
+        "SubmitReviewDecisionAsync_WithOverridesButNoNotes_ReturnsFailure",
+        "SubmitReviewDecisionAsync_WhenCancelled_ReturnsCancelledResult",
+        "SubmitReviewDecisionAsync_WithRejectDecision_UpdatesStatusToRejected",
+        "GetReviewCasesAsync_WithInvalidPagination_ReturnsFailure",
+        "IdentifyReviewCasesAsync_WithNullClassification_ReturnsFailure",
+        "IdentifyReviewCasesAsync_WithAmbiguousClassification_IdentifiesCase",
+        "GetFieldAnnotationsAsync_WithInvalidCaseId_ReturnsFailure",
+        "GetFieldAnnotationsAsync_WithValidCaseId_ReturnsAnnotations",
+        "SubmitReviewDecisionAsync_WithValidDecision_SubmitsSuccessfully",
+        "GetReviewCasesAsync_WithConfidenceFilter_ReturnsFilteredCases",
+        "SubmitReviewDecisionAsync_WithInvalidCaseId_ReturnsFailure",
+        "GetReviewCasesAsync_WithNoFilters_ReturnsAllCases",
+        "IdentifyReviewCasesAsync_WithNullMetadata_ReturnsFailure",
+        "IdentifyReviewCasesAsync_WhenCancelled_ReturnsCancelledResult",
+        "IdentifyReviewCasesAsync_WithHighConfidenceNoIssues_ReturnsEmptyList"
+      ],
+      "Tests/Infrastructure/Database/SLAEnforcerServiceIntegrationTests.cs": [
+        "BusinessDayCalculation_WeekendExclusion_Verified",
+        "EndToEndWorkflow_CreateUpdateQueryEscalate_Succeeds",
+        "MultipleCases_DifferentDeadlines_HandledCorrectly",
+        "ConfigurationChanges_CustomThresholds_ReflectedCorrectly",
+        "AtRiskDetection_IdentifiesCasesCorrectly",
+        "ConcurrentUpdates_MultipleThreads_HandledCorrectly",
+        "ForeignKeyRelationship_FileMetadata_Maintained",
+        "IndexPerformance_DeadlineQueries_Optimized"
+      ],
+      "Tests/Infrastructure/Database/SLAEnforcerServiceTests.cs": [
+        "CalculateSLAStatusAsync_MoreThan24Hours_ReturnsNoneEscalation",
+        "GetBreachedCasesAsync_WithBreachedCases_ReturnsOnlyBreached",
+        "CalculateSLAStatusAsync_WithWeekends_ExcludesWeekends",
+        "GetActiveCasesAsync_WithMixedCases_ReturnsOnlyActive",
+        "CalculateSLAStatusAsync_EmptyFileId_ReturnsFailure",
+        "CalculateSLAStatusAsync_PassedDeadline_ReturnsBreachedEscalation",
+        "EscalateCaseAsync_NonExistentCase_ReturnsFailure",
+        "CalculateSLAStatusAsync_InvalidDaysPlazo_ReturnsFailure",
+        "CalculateBusinessDaysAsync_WeekdayRange_ExcludesWeekends",
+        "CalculateSLAStatusAsync_NewStatus_CreatesSLAStatus",
+        "CalculateSLAStatusAsync_CancellationRequested_ReturnsCancelled",
+        "CalculateSLAStatusAsync_LessThan24Hours_ReturnsWarningEscalation",
+        "UpdateSLAStatusAsync_ExistingStatus_UpdatesCorrectly",
+        "EscalateCaseAsync_ValidCase_EscalatesCorrectly",
+        "CalculateSLAStatusAsync_LessThan4Hours_ReturnsCriticalEscalation",
+        "GetSLAStatusAsync_NonExistentStatus_ReturnsSuccessWithNullValue",
+        "CalculateBusinessDaysAsync_EndBeforeStart_ReturnsZero",
+        "CalculateSLAStatusAsync_ExistingStatus_UpdatesStatus",
+        "GetAtRiskCasesAsync_WithAtRiskCases_ReturnsOnlyAtRisk",
+        "UpdateSLAStatusAsync_NonExistentStatus_ReturnsFailure",
+        "CalculateSLAStatusAsync_NullFileId_ReturnsFailure",
+        "GetSLAStatusAsync_ExistingStatus_ReturnsStatus"
+      ],
+      "Tests/Infrastructure/FileStorage/FileSystemDownloadStorageAdapterTests.cs": [
+        "GenerateStoragePath_WithChecksum_GeneratesDeterministicPath",
+        "SaveFileAsync_ValidFile_SavesSuccessfully",
+        "SaveFileAsync_ValidFile_CreatesDirectoryStructure"
+      ],
+      "Tests/Infrastructure/FileSystem/FileSystemLoaderTests.cs": [
+        "ValidateFilePathAsync_NonExistentFile_ReturnsFailureResult",
+        "LoadImageAsync_UnsupportedExtension_ReturnsFailureResult",
+        "LoadImagesFromDirectoryAsync_EmptyDirectory_ReturnsEmptyList",
+        "ValidateFilePathAsync_WithCancellationRequested_ReturnsCancelledResult",
+        "LoadImagesFromDirectoryAsync_CancelledDuringProcessing_ReturnsPartialResultsWithWarnings",
+        "LoadImageAsync_ValidImageFile_ReturnsSuccessResult",
+        "ValidateFilePathAsync_NullFilePath_ReturnsFailureResult",
+        "ValidateFilePathAsync_ValidFilePath_ReturnsSuccessResult",
+        "LoadImageAsync_WithCancellationRequested_ReturnsCancelledResult",
+        "LoadImagesFromDirectoryAsync_MultipleImages_ReturnsSuccessfulResults",
+        "GetSupportedExtensions_ReturnsExpectedExtensions",
+        "LoadImageAsync_NonExistentFile_ReturnsFailureResult",
+        "LoadImagesFromDirectoryAsync_WithCancellationRequested_ReturnsCancelledResult"
+      ],
+      "Tests/Infrastructure/FileSystem/FileSystemOutputWriterTests.cs": [
+        "WriteTextAsync_ValidResult_WritesTextFile",
+        "WriteTextAsync_IncludesAllFields_WritesCompleteText",
+        "WriteResultAsync_JsonFormat_WritesFileSuccessfully",
+        "WriteTextAsync_WithCancellationRequested_ReturnsCancelledResult",
+        "WriteResultAsync_WithCancellationRequested_ReturnsCancelledResult",
+        "WriteJsonAsync_ValidResult_WritesJsonFile",
+        "WriteResultsAsync_WithCancellationRequested_ReturnsCancelledResult",
+        "WriteJsonAsync_WithCancellationRequested_ReturnsCancelledResult",
+        "WriteResultAsync_TextFormat_WritesFileSuccessfully",
+        "WriteResultAsync_UnsupportedFormat_ReturnsFailureResult",
+        "WriteResultsAsync_MultipleResults_WritesFilesSuccessfully"
+      ],
+      "Tests/Domain/Common/ResultTests.cs": [
+        "Map_WithFailureResult_ReturnsFailure",
+        "MapAsync_WithFailureResult_ReturnsFailure",
+        "Bind_WithFailureResult_ReturnsFailure",
+        "Tap_WithSuccessfulResult_ExecutesActionAndReturnsSameResult",
+        "Success_WithValue_ReturnsSuccessfulResult",
+        "ImplicitConversion_FromValue_ReturnsSuccessfulResult",
+        "Map_WithSuccessfulResult_TransformsValue",
+        "Tap_WithFailureResult_DoesNotExecuteActionAndReturnsSameResult",
+        "TapAsync_WithSuccessfulResult_ExecutesActionAndReturnsSameResult",
+        "MapAsync_WithSuccessfulResult_TransformsValue",
+        "TapAsync_WithFailureResult_DoesNotExecuteActionAndReturnsSameResult",
+        "Failure_WithError_ReturnsFailureResult"
+      ],
+      "Tests/Domain/Repositories/OrderRepositoryTests.cs": [
+        "FindAsync_Should_Filter_Correctly",
+        "GetById_Should_Return_Failure_When_Not_Found",
+        "GetById_Should_Return_Success_When_Order_Found"
+      ],
+      "Tests/Application/Services/AuditReportingServiceTests.cs": [
+        "GenerateClassificationReportCsvAsync_CancellationRequested_ReturnsCancelled",
+        "GenerateClassificationReportCsvAsync_ValidRecords_ReturnsCsv",
+        "ExportAuditLogCsvAsync_WithFilters_ReturnsFilteredCsv",
+        "GenerateClassificationReportCsvAsync_NoRecords_ReturnsEmptyCsv",
+        "GenerateClassificationReportCsvAsync_InvalidDateRange_ReturnsFailure",
+        "ExportAuditLogCsvAsync_SpecialCharacters_EscapesCorrectly",
+        "ExportAuditLogJsonAsync_WithFilters_ReturnsFilteredJson",
+        "GenerateClassificationReportJsonAsync_ValidRecords_ReturnsJson"
+      ],
+      "Tests/Application/Services/ConfigurationValidationServiceTests.cs": [
+        "ValidateConfiguration_InvalidRetries_ReturnsError",
+        "ValidateConfiguration_MultipleErrors_ReturnsAllErrors",
+        "ValidateConfiguration_InvalidOutputFormat_ReturnsError",
+        "ValidateConfiguration_InvalidOcrLanguage_ReturnsError",
+        "ValidateConfiguration_InvalidPSM_ReturnsError",
+        "ValidateConfiguration_HighConcurrency_ReturnsWarning",
+        "ValidateConfiguration_LargeBatchSize_ReturnsWarning",
+        "CreateConservativeConfiguration_ReturnsValidConfig",
+        "CreateDefaultConfiguration_ReturnsValidConfig",
+        "ValidateConfiguration_HighRetryCount_ReturnsWarning",
+        "ValidateConfiguration_ExcessiveTimeout_ReturnsWarning",
+        "ValidateConfiguration_InvalidMemoryLimit_ReturnsError",
+        "ValidateConfiguration_InvalidTimeout_ReturnsError",
+        "ValidateConfiguration_HighConfidenceThreshold_ReturnsWarning",
+        "ValidateConfiguration_InvalidConcurrency_ReturnsError",
+        "ValidateConfiguration_ValidConfig_ReturnsSuccess",
+        "ValidateConfiguration_InvalidOEM_ReturnsError",
+        "ValidateConfiguration_HighMemoryLimit_ReturnsWarning",
+        "CreateHighPerformanceConfiguration_ReturnsValidConfig",
+        "ValidateConfiguration_InvalidConfidenceThreshold_ReturnsError",
+        "ValidateConfiguration_LargeFileSize_ReturnsWarning",
+        "ValidateConfiguration_InvalidBatchSize_ReturnsError",
+        "ValidateConfiguration_LowConfidenceThreshold_ReturnsWarning",
+        "ValidateConfiguration_InvalidFileSize_ReturnsError"
+      ],
+      "Tests/Application/Services/DecisionLogicIntegrationTests.cs": [
+        "ClassifyLegalDirectivesAsync_WithLegalInstruments_DetectsInstruments",
+        "ResolvePersonIdentitiesAsync_WithRfcVariants_HandlesVariants",
+        "ClassifyLegalDirectivesAsync_UsesExtractedMetadata_IV2",
+        "ProcessDecisionLogicAsync_EndToEndWorkflow_CompletesSuccessfully",
+        "ClassifyLegalDirectivesAsync_MapsToComplianceActions_WithConfidenceScores",
+        "ResolvePersonIdentitiesAsync_DoesNotModifyExistingStructures_IV1",
+        "ProcessDecisionLogicAsync_LogsAllDecisions_AC6"
+      ],
+      "Tests/Application/Services/DecisionLogicServiceEdgeCaseTests.cs": [
+        "ProcessDecisionLogicAsync_WithNullDocumentText_HandlesGracefully",
+        "ClassifyLegalDirectivesAsync_WithClassifierException_ReturnsFailure",
+        "ProcessDecisionLogicAsync_WithNullPersons_HandlesGracefully",
+        "ResolvePersonIdentitiesAsync_WithCancellationRequested_HandlesGracefully",
+        "ClassifyLegalDirectivesAsync_WithCancellationRequested_HandlesGracefully",
+        "ResolvePersonIdentitiesAsync_WithCancellationDuringProcessing_PreservesPartialResults",
+        "ResolvePersonIdentitiesAsync_WithNullPersons_ReturnsEmptyList",
+        "ProcessDecisionLogicAsync_WithCancellationRequested_ReturnsFailure",
+        "ResolvePersonIdentitiesAsync_WithResolverException_HandlesGracefully",
+        "ClassifyLegalDirectivesAsync_WithNullDocumentText_ReturnsEmptyList"
+      ],
+      "Tests/Application/Services/DecisionLogicServiceManualReviewTests.cs": [
+        "IdentifyAndQueueReviewCasesAsync_WithNullMetadata_ReturnsFailure",
+        "ProcessReviewDecisionAsync_WhenSubmissionFails_ReturnsFailure",
+        "ProcessReviewDecisionAsync_WithNullDecision_ReturnsFailure",
+        "IdentifyAndQueueReviewCasesAsync_WithNullClassification_ReturnsFailure",
+        "ProcessReviewDecisionAsync_WithNullCaseId_ReturnsFailure",
+        "ProcessReviewDecisionAsync_WithValidDecision_ProcessesSuccessfully",
+        "IdentifyAndQueueReviewCasesAsync_WhenIdentificationFails_ReturnsFailure",
+        "ProcessReviewDecisionAsync_WhenCancelled_ReturnsCancelledResult",
+        "IdentifyAndQueueReviewCasesAsync_WithLowConfidence_ReturnsReviewCases",
+        "IdentifyAndQueueReviewCasesAsync_WithNullFileId_ReturnsFailure",
+        "IdentifyAndQueueReviewCasesAsync_WhenCancelled_ReturnsCancelledResult"
+      ],
+      "Tests/Application/Services/DecisionLogicServiceTests.cs": [
+        "ProcessDecisionLogicAsync_WithClassificationFailure_ReturnsFailure",
+        "ClassifyLegalDirectivesAsync_WithValidText_ReturnsComplianceActions",
+        "ProcessDecisionLogicAsync_WithIdentityResolutionFailure_ReturnsFailure",
+        "ResolvePersonIdentitiesAsync_WithValidPersons_ReturnsResolvedPersons",
+        "ClassifyLegalDirectivesAsync_WithEmptyText_ReturnsEmptyList",
+        "ProcessDecisionLogicAsync_WithValidInputs_ReturnsCompleteResult",
+        "ResolvePersonIdentitiesAsync_WithEmptyList_ReturnsEmptyList"
+      ],
+      "Tests/Application/Services/DocumentIngestionIntegrationTests.cs": [
+        "IngestDocumentsAsync_DuplicateFile_SkipsFile",
+        "IngestDocumentsAsync_NewDocument_CompletesSuccessfully"
+      ],
+      "Tests/Application/Services/DocumentIngestionServiceTests.cs": [
+        "IngestDocumentsAsync_EmptyWebsiteUrl_ReturnsFailure",
+        "IngestDocumentsAsync_NullFilePatterns_ReturnsFailure",
+        "IngestDocumentsAsync_DuplicateCheckFails_ReturnsFailureForFile",
+        "IngestDocumentsAsync_NavigationFails_ReturnsFailure",
+        "IngestDocumentsAsync_AllStepsSucceed_ReturnsIngestedFiles",
+        "IngestDocumentsAsync_CancellationRequestedAtStart_ReturnsCancelled",
+        "IngestDocumentsAsync_NullWebsiteUrl_ReturnsFailure",
+        "IngestDocumentsAsync_FileDownloadFails_SkipsFileAndContinues",
+        "IngestDocumentsAsync_StorageSaveFails_ReturnsFailureForFile",
+        "IngestDocumentsAsync_FileIdentificationFails_ReturnsFailure",
+        "IngestDocumentsAsync_MultipleFiles_ProcessesAllFiles",
+        "IngestDocumentsAsync_BrowserLaunchFails_ReturnsFailure",
+        "IngestDocumentsAsync_EmptyFilePatterns_ReturnsFailure",
+        "IngestDocumentsAsync_FilePatternsWithNullValues_ReturnsFailure",
+        "IngestDocumentsAsync_DuplicateFile_SkipsFile",
+        "IngestDocumentsAsync_InvalidUrlFormat_ReturnsFailure"
+      ],
+      "Tests/Application/Services/ExportServiceTests.cs": [
+        "ExportSignedPdfWithSummarizationAsync_NoPdfContent_UsesExistingSummary",
+        "ExportSignedPdfWithSummarizationAsync_NullMetadata_ReturnsFailure",
+        "ExportSignedPdfWithSummarizationAsync_NullOutputStream_ReturnsFailure",
+        "ExportSignedPdfWithSummarizationAsync_PdfExportFails_ReturnsFailure",
+        "ExportSignedPdfWithSummarizationAsync_SummarizationFails_ContinuesWithoutSummary",
+        "ExportSignedPdfWithSummarizationAsync_ValidInput_OrchestratesCorrectly",
+        "ExportSignedPdfWithSummarizationAsync_CancellationRequested_ReturnsCancelled"
+      ],
+      "Tests/Application/Services/FieldMatchingServiceTests.cs": [
+        "MatchFieldsAndGenerateUnifiedRecordAsync_WithConflictingFields_DetectsConflicts",
+        "MatchFieldsAndGenerateUnifiedRecordAsync_WithExtractionFailure_ContinuesWithOtherSources",
+        "MatchFieldsAndGenerateUnifiedRecordAsync_WithEmptyFieldDefinitions_ReturnsFailure",
+        "MatchFieldsAndGenerateUnifiedRecordAsync_WithMissingFields_TracksMissingFields",
+        "MatchFieldsAndGenerateUnifiedRecordAsync_WithMatchingFields_ReturnsUnifiedRecord",
+        "MatchFieldsAndGenerateUnifiedRecordAsync_WithRequiredFields_ValidatesCompleteness",
+        "MatchFieldsAndGenerateUnifiedRecordAsync_WithNoSources_ReturnsFailure",
+        "MatchFieldsAndGenerateUnifiedRecordAsync_WithNullFieldDefinitions_ReturnsFailure"
+      ],
+      "Tests/Application/Services/FileMetadataQueryServiceTests.cs": [
+        "GetFileMetadataAsync_ShouldPropagateFailure_WhenRepositoryFails",
+        "GetFileMetadataAsync_ShouldReturnFiles_WhenRepositorySucceeds",
+        "GetFileMetadataByIdAsync_ShouldReturnNull_WhenEntityNotFound",
+        "GetFileMetadataAsync_ShouldReturnCancelled_WhenTokenAlreadyCancelled",
+        "GetDownloadStatisticsAsync_ShouldAggregateValues"
+      ],
+      "Tests/Application/Services/ManualReviewIntegrationTests.cs": [
+        "ProcessDecisionLogicAsync_WithManualReview_DoesNotDisruptExistingWorkflow",
+        "EndToEndWorkflow_IdentifyAndProcessDecision_CompletesSuccessfully",
+        "ProcessReviewDecisionAsync_WithExistingDataModels_IntegratesCorrectly"
+      ],
+      "Tests/Application/Services/MetadataExtractionIntegrationTests.cs": [
+        "ProcessFileAsync_XmlDocument_CompletesWorkflow",
+        "ProcessFileAsync_MultipleFormats_ProcessesCorrectly",
+        "ProcessFileAsync_PdfDocument_OCRInterfacesStillWork",
+        "ClassifyAsync_Performance_Meets500msTarget",
+        "ProcessFileAsync_XmlDocument_OrganizesFilesCorrectly",
+        "MetadataExtractor_WrapsOCRFunctionality_MaintainsCompatibility"
+      ],
+      "Tests/Application/Services/MetadataExtractionServiceTests.cs": [
+        "ProcessFileAsync_FileNotFound_ReturnsFailure",
+        "ProcessFileAsync_FileMoveFails_ReturnsFailure",
+        "ProcessFileAsync_CancellationRequested_ReturnsFailure",
+        "ProcessFileAsync_PdfFile_RoutesToPdfExtractor",
+        "ProcessFileAsync_FileTypeIdentificationFails_ReturnsFailure",
+        "ProcessFileAsync_UnsupportedFileFormat_ReturnsFailure",
+        "ProcessFileAsync_ClassificationFails_ReturnsFailure",
+        "ProcessFileAsync_DocxFile_RoutesToDocxExtractor",
+        "ProcessFileAsync_SafeFileNamingFails_ReturnsFailure",
+        "ProcessFileAsync_MetadataExtractionFails_ReturnsFailure",
+        "ProcessFileAsync_XmlFile_CompletesWorkflow"
+      ],
+      "Tests/Application/Services/OcrProcessingServiceTests.cs": [
+        "ProcessDocument_InvalidImageData_ReturnsFailureResult",
+        "ProcessDocument_PreprocessingFails_ReturnsFailureResult",
+        "ProcessDocuments_MultipleDocuments_ReturnsSuccessfulResults",
+        "ProcessDocument_OcrFails_ReturnsFailureResult",
+        "ProcessDocument_FieldExtractionFails_ReturnsFailureResult",
+        "ProcessDocument_ValidDocument_ReturnsSuccessResult"
+      ],
+      "Tests/Application/Services/SLATrackingServiceTests.cs": [
+        "TrackSLAAsync_CancellationRequested_ReturnsCancelled",
+        "TrackSLAAsync_ValidInput_DelegatesToEnforcer",
+        "TrackSLAAsync_EnforcerFailure_ReturnsFailure",
+        "GetBreachedCasesAsync_ValidInput_DelegatesToEnforcer",
+        "TrackSLAAsync_EnforcerCancelled_ReturnsCancelled",
+        "TrackSLAAsync_NullFileId_ReturnsFailure",
+        "TrackSLAAsync_AtRiskCase_LogsWarning",
+        "EscalateCaseAsync_EnforcerFailure_ReturnsFailure",
+        "UpdateSLAStatusAsync_ValidInput_DelegatesToEnforcer",
+        "GetActiveCasesAsync_ValidInput_DelegatesToEnforcer",
+        "EscalateCaseAsync_ValidInput_DelegatesToEnforcer",
+        "GetAtRiskCasesAsync_ValidInput_DelegatesToEnforcer",
+        "TrackSLAAsync_InvalidDaysPlazo_ReturnsFailure"
+      ]
+    }
+  },
+  "split_projects": {
+    "Tests.Application": {
+      "file_count": 16,
+      "method_count": 144,
+      "files": {
+        "Tests.Application/Services/AuditReportingServiceTests.cs": [
+          "GenerateClassificationReportCsvAsync_CancellationRequested_ReturnsCancelled",
+          "GenerateClassificationReportCsvAsync_ValidRecords_ReturnsCsv",
+          "ExportAuditLogCsvAsync_WithFilters_ReturnsFilteredCsv",
+          "GenerateClassificationReportCsvAsync_NoRecords_ReturnsEmptyCsv",
+          "GenerateClassificationReportCsvAsync_InvalidDateRange_ReturnsFailure",
+          "ExportAuditLogCsvAsync_SpecialCharacters_EscapesCorrectly",
+          "ExportAuditLogJsonAsync_WithFilters_ReturnsFilteredJson",
+          "GenerateClassificationReportJsonAsync_ValidRecords_ReturnsJson"
+        ],
+        "Tests.Application/Services/ConfigurationValidationServiceTests.cs": [
+          "ValidateConfiguration_InvalidRetries_ReturnsError",
+          "ValidateConfiguration_MultipleErrors_ReturnsAllErrors",
+          "ValidateConfiguration_InvalidOutputFormat_ReturnsError",
+          "ValidateConfiguration_InvalidOcrLanguage_ReturnsError",
+          "ValidateConfiguration_InvalidPSM_ReturnsError",
+          "ValidateConfiguration_HighConcurrency_ReturnsWarning",
+          "ValidateConfiguration_LargeBatchSize_ReturnsWarning",
+          "CreateConservativeConfiguration_ReturnsValidConfig",
+          "CreateDefaultConfiguration_ReturnsValidConfig",
+          "ValidateConfiguration_HighRetryCount_ReturnsWarning",
+          "ValidateConfiguration_ExcessiveTimeout_ReturnsWarning",
+          "ValidateConfiguration_InvalidMemoryLimit_ReturnsError",
+          "ValidateConfiguration_InvalidTimeout_ReturnsError",
+          "ValidateConfiguration_HighConfidenceThreshold_ReturnsWarning",
+          "ValidateConfiguration_InvalidConcurrency_ReturnsError",
+          "ValidateConfiguration_ValidConfig_ReturnsSuccess",
+          "ValidateConfiguration_InvalidOEM_ReturnsError",
+          "ValidateConfiguration_HighMemoryLimit_ReturnsWarning",
+          "CreateHighPerformanceConfiguration_ReturnsValidConfig",
+          "ValidateConfiguration_InvalidConfidenceThreshold_ReturnsError",
+          "ValidateConfiguration_LargeFileSize_ReturnsWarning",
+          "ValidateConfiguration_InvalidBatchSize_ReturnsError",
+          "ValidateConfiguration_LowConfidenceThreshold_ReturnsWarning",
+          "ValidateConfiguration_InvalidFileSize_ReturnsError"
+        ],
+        "Tests.Application/Services/DecisionLogicIntegrationTests.cs": [
+          "ClassifyLegalDirectivesAsync_WithLegalInstruments_DetectsInstruments",
+          "ResolvePersonIdentitiesAsync_WithRfcVariants_HandlesVariants",
+          "ClassifyLegalDirectivesAsync_UsesExtractedMetadata_IV2",
+          "ProcessDecisionLogicAsync_EndToEndWorkflow_CompletesSuccessfully",
+          "ClassifyLegalDirectivesAsync_MapsToComplianceActions_WithConfidenceScores",
+          "ResolvePersonIdentitiesAsync_DoesNotModifyExistingStructures_IV1",
+          "ProcessDecisionLogicAsync_LogsAllDecisions_AC6"
+        ],
+        "Tests.Application/Services/DecisionLogicServiceEdgeCaseTests.cs": [
+          "ProcessDecisionLogicAsync_WithNullDocumentText_HandlesGracefully",
+          "ClassifyLegalDirectivesAsync_WithClassifierException_ReturnsFailure",
+          "ProcessDecisionLogicAsync_WithNullPersons_HandlesGracefully",
+          "ResolvePersonIdentitiesAsync_WithCancellationRequested_HandlesGracefully",
+          "ClassifyLegalDirectivesAsync_WithCancellationRequested_HandlesGracefully",
+          "ResolvePersonIdentitiesAsync_WithCancellationDuringProcessing_PreservesPartialResults",
+          "ResolvePersonIdentitiesAsync_WithNullPersons_ReturnsEmptyList",
+          "ProcessDecisionLogicAsync_WithCancellationRequested_ReturnsFailure",
+          "ResolvePersonIdentitiesAsync_WithResolverException_HandlesGracefully",
+          "ClassifyLegalDirectivesAsync_WithNullDocumentText_ReturnsEmptyList"
+        ],
+        "Tests.Application/Services/DecisionLogicServiceManualReviewTests.cs": [
+          "IdentifyAndQueueReviewCasesAsync_WithNullMetadata_ReturnsFailure",
+          "ProcessReviewDecisionAsync_WhenSubmissionFails_ReturnsFailure",
+          "ProcessReviewDecisionAsync_WithNullDecision_ReturnsFailure",
+          "IdentifyAndQueueReviewCasesAsync_WithNullClassification_ReturnsFailure",
+          "ProcessReviewDecisionAsync_WithNullCaseId_ReturnsFailure",
+          "ProcessReviewDecisionAsync_WithValidDecision_ProcessesSuccessfully",
+          "IdentifyAndQueueReviewCasesAsync_WhenIdentificationFails_ReturnsFailure",
+          "ProcessReviewDecisionAsync_WhenCancelled_ReturnsCancelledResult",
+          "IdentifyAndQueueReviewCasesAsync_WithLowConfidence_ReturnsReviewCases",
+          "IdentifyAndQueueReviewCasesAsync_WithNullFileId_ReturnsFailure",
+          "IdentifyAndQueueReviewCasesAsync_WhenCancelled_ReturnsCancelledResult"
+        ],
+        "Tests.Application/Services/DecisionLogicServiceTests.cs": [
+          "ProcessDecisionLogicAsync_WithClassificationFailure_ReturnsFailure",
+          "ClassifyLegalDirectivesAsync_WithValidText_ReturnsComplianceActions",
+          "ProcessDecisionLogicAsync_WithIdentityResolutionFailure_ReturnsFailure",
+          "ResolvePersonIdentitiesAsync_WithValidPersons_ReturnsResolvedPersons",
+          "ClassifyLegalDirectivesAsync_WithEmptyText_ReturnsEmptyList",
+          "ProcessDecisionLogicAsync_WithValidInputs_ReturnsCompleteResult",
+          "ResolvePersonIdentitiesAsync_WithEmptyList_ReturnsEmptyList"
+        ],
+        "Tests.Application/Services/DocumentIngestionIntegrationTests.cs": [
+          "IngestDocumentsAsync_DuplicateFile_SkipsFile",
+          "IngestDocumentsAsync_NewDocument_CompletesSuccessfully"
+        ],
+        "Tests.Application/Services/DocumentIngestionServiceTests.cs": [
+          "IngestDocumentsAsync_EmptyWebsiteUrl_ReturnsFailure",
+          "IngestDocumentsAsync_NullFilePatterns_ReturnsFailure",
+          "IngestDocumentsAsync_DuplicateCheckFails_ReturnsFailureForFile",
+          "IngestDocumentsAsync_NavigationFails_ReturnsFailure",
+          "IngestDocumentsAsync_AllStepsSucceed_ReturnsIngestedFiles",
+          "IngestDocumentsAsync_CancellationRequestedAtStart_ReturnsCancelled",
+          "IngestDocumentsAsync_NullWebsiteUrl_ReturnsFailure",
+          "IngestDocumentsAsync_FileDownloadFails_SkipsFileAndContinues",
+          "IngestDocumentsAsync_StorageSaveFails_ReturnsFailureForFile",
+          "IngestDocumentsAsync_FileIdentificationFails_ReturnsFailure",
+          "IngestDocumentsAsync_MultipleFiles_ProcessesAllFiles",
+          "IngestDocumentsAsync_BrowserLaunchFails_ReturnsFailure",
+          "IngestDocumentsAsync_EmptyFilePatterns_ReturnsFailure",
+          "IngestDocumentsAsync_FilePatternsWithNullValues_ReturnsFailure",
+          "IngestDocumentsAsync_DuplicateFile_SkipsFile",
+          "IngestDocumentsAsync_InvalidUrlFormat_ReturnsFailure"
+        ],
+        "Tests.Application/Services/ExportServiceTests.cs": [
+          "ExportSignedPdfWithSummarizationAsync_NoPdfContent_UsesExistingSummary",
+          "ExportSignedPdfWithSummarizationAsync_NullMetadata_ReturnsFailure",
+          "ExportSignedPdfWithSummarizationAsync_NullOutputStream_ReturnsFailure",
+          "ExportSignedPdfWithSummarizationAsync_PdfExportFails_ReturnsFailure",
+          "ExportSignedPdfWithSummarizationAsync_SummarizationFails_ContinuesWithoutSummary",
+          "ExportSignedPdfWithSummarizationAsync_ValidInput_OrchestratesCorrectly",
+          "ExportSignedPdfWithSummarizationAsync_CancellationRequested_ReturnsCancelled"
+        ],
+        "Tests.Application/Services/FieldMatchingServiceTests.cs": [
+          "MatchFieldsAndGenerateUnifiedRecordAsync_WithConflictingFields_DetectsConflicts",
+          "MatchFieldsAndGenerateUnifiedRecordAsync_WithExtractionFailure_ContinuesWithOtherSources",
+          "MatchFieldsAndGenerateUnifiedRecordAsync_WithEmptyFieldDefinitions_ReturnsFailure",
+          "MatchFieldsAndGenerateUnifiedRecordAsync_WithMissingFields_TracksMissingFields",
+          "MatchFieldsAndGenerateUnifiedRecordAsync_WithMatchingFields_ReturnsUnifiedRecord",
+          "MatchFieldsAndGenerateUnifiedRecordAsync_WithRequiredFields_ValidatesCompleteness",
+          "MatchFieldsAndGenerateUnifiedRecordAsync_WithNoSources_ReturnsFailure",
+          "MatchFieldsAndGenerateUnifiedRecordAsync_WithNullFieldDefinitions_ReturnsFailure"
+        ],
+        "Tests.Application/Services/FileMetadataQueryServiceTests.cs": [
+          "GetFileMetadataAsync_ShouldPropagateFailure_WhenRepositoryFails",
+          "GetFileMetadataAsync_ShouldReturnFiles_WhenRepositorySucceeds",
+          "GetFileMetadataByIdAsync_ShouldReturnNull_WhenEntityNotFound",
+          "GetFileMetadataAsync_ShouldReturnCancelled_WhenTokenAlreadyCancelled",
+          "GetDownloadStatisticsAsync_ShouldAggregateValues"
+        ],
+        "Tests.Application/Services/ManualReviewIntegrationTests.cs": [
+          "ProcessDecisionLogicAsync_WithManualReview_DoesNotDisruptExistingWorkflow",
+          "EndToEndWorkflow_IdentifyAndProcessDecision_CompletesSuccessfully",
+          "ProcessReviewDecisionAsync_WithExistingDataModels_IntegratesCorrectly"
+        ],
+        "Tests.Application/Services/MetadataExtractionIntegrationTests.cs": [
+          "ProcessFileAsync_XmlDocument_CompletesWorkflow",
+          "ProcessFileAsync_MultipleFormats_ProcessesCorrectly",
+          "ProcessFileAsync_PdfDocument_OCRInterfacesStillWork",
+          "ClassifyAsync_Performance_Meets500msTarget",
+          "ProcessFileAsync_XmlDocument_OrganizesFilesCorrectly",
+          "MetadataExtractor_WrapsOCRFunctionality_MaintainsCompatibility"
+        ],
+        "Tests.Application/Services/MetadataExtractionServiceTests.cs": [
+          "ProcessFileAsync_FileNotFound_ReturnsFailure",
+          "ProcessFileAsync_FileMoveFails_ReturnsFailure",
+          "ProcessFileAsync_CancellationRequested_ReturnsFailure",
+          "ProcessFileAsync_PdfFile_RoutesToPdfExtractor",
+          "ProcessFileAsync_FileTypeIdentificationFails_ReturnsFailure",
+          "ProcessFileAsync_UnsupportedFileFormat_ReturnsFailure",
+          "ProcessFileAsync_ClassificationFails_ReturnsFailure",
+          "ProcessFileAsync_DocxFile_RoutesToDocxExtractor",
+          "ProcessFileAsync_SafeFileNamingFails_ReturnsFailure",
+          "ProcessFileAsync_MetadataExtractionFails_ReturnsFailure",
+          "ProcessFileAsync_XmlFile_CompletesWorkflow"
+        ],
+        "Tests.Application/Services/OcrProcessingServiceTests.cs": [
+          "ProcessDocument_InvalidImageData_ReturnsFailureResult",
+          "ProcessDocument_PreprocessingFails_ReturnsFailureResult",
+          "ProcessDocuments_MultipleDocuments_ReturnsSuccessfulResults",
+          "ProcessDocument_OcrFails_ReturnsFailureResult",
+          "ProcessDocument_FieldExtractionFails_ReturnsFailureResult",
+          "ProcessDocument_ValidDocument_ReturnsSuccessResult"
+        ],
+        "Tests.Application/Services/SLATrackingServiceTests.cs": [
+          "TrackSLAAsync_CancellationRequested_ReturnsCancelled",
+          "TrackSLAAsync_ValidInput_DelegatesToEnforcer",
+          "TrackSLAAsync_EnforcerFailure_ReturnsFailure",
+          "GetBreachedCasesAsync_ValidInput_DelegatesToEnforcer",
+          "TrackSLAAsync_EnforcerCancelled_ReturnsCancelled",
+          "TrackSLAAsync_NullFileId_ReturnsFailure",
+          "TrackSLAAsync_AtRiskCase_LogsWarning",
+          "EscalateCaseAsync_EnforcerFailure_ReturnsFailure",
+          "UpdateSLAStatusAsync_ValidInput_DelegatesToEnforcer",
+          "GetActiveCasesAsync_ValidInput_DelegatesToEnforcer",
+          "EscalateCaseAsync_ValidInput_DelegatesToEnforcer",
+          "GetAtRiskCasesAsync_ValidInput_DelegatesToEnforcer",
+          "TrackSLAAsync_InvalidDaysPlazo_ReturnsFailure"
+        ]
+      }
+    },
+    "Tests.Domain": {
+      "file_count": 2,
+      "method_count": 15,
+      "files": {
+        "Tests.Domain/Common/ResultTests.cs": [
+          "Map_WithFailureResult_ReturnsFailure",
+          "MapAsync_WithFailureResult_ReturnsFailure",
+          "Bind_WithFailureResult_ReturnsFailure",
+          "Tap_WithSuccessfulResult_ExecutesActionAndReturnsSameResult",
+          "Success_WithValue_ReturnsSuccessfulResult",
+          "ImplicitConversion_FromValue_ReturnsSuccessfulResult",
+          "Map_WithSuccessfulResult_TransformsValue",
+          "Tap_WithFailureResult_DoesNotExecuteActionAndReturnsSameResult",
+          "TapAsync_WithSuccessfulResult_ExecutesActionAndReturnsSameResult",
+          "MapAsync_WithSuccessfulResult_TransformsValue",
+          "TapAsync_WithFailureResult_DoesNotExecuteActionAndReturnsSameResult",
+          "Failure_WithError_ReturnsFailureResult"
+        ],
+        "Tests.Domain/Repositories/OrderRepositoryTests.cs": [
+          "FindAsync_Should_Filter_Correctly",
+          "GetById_Should_Return_Failure_When_Not_Found",
+          "GetById_Should_Return_Success_When_Order_Found"
+        ]
+      }
+    },
+    "Tests.Domain.Interfaces": {
+      "file_count": 2,
+      "method_count": 19,
+      "files": {
+        "Tests.Domain.Interfaces/IIManualReviewerPanelTests.cs": [
+          "GetReviewCasesAsync_WithValidFilters_ReturnsSuccessResult",
+          "GetFieldAnnotationsAsync_WithInvalidCaseId_ReturnsFailureResult",
+          "GetFieldAnnotationsAsync_WhenCancelled_ReturnsCancelledResult",
+          "IdentifyReviewCasesAsync_WithLowConfidence_ReturnsReviewCase",
+          "SubmitReviewDecisionAsync_WithValidDecision_ReturnsSuccessResult",
+          "GetFieldAnnotationsAsync_WithValidCaseId_ReturnsSuccessResult",
+          "SubmitReviewDecisionAsync_WithInvalidCaseId_ReturnsFailureResult",
+          "IdentifyReviewCasesAsync_WhenCancelled_ReturnsCancelledResult",
+          "GetReviewCasesAsync_WithNullFilters_ReturnsSuccessResult",
+          "IdentifyReviewCasesAsync_WithHighConfidenceNoIssues_ReturnsEmptyList",
+          "IdentifyReviewCasesAsync_OnIdentificationError_ReturnsFailureResult",
+          "GetReviewCasesAsync_WhenCancelled_ReturnsCancelledResult",
+          "GetReviewCasesAsync_OnQueryError_ReturnsFailureResult",
+          "SubmitReviewDecisionAsync_OnSaveError_ReturnsFailureResult",
+          "IdentifyReviewCasesAsync_WithExtractionErrors_ReturnsReviewCase",
+          "GetFieldAnnotationsAsync_OnQueryError_ReturnsFailureResult",
+          "SubmitReviewDecisionAsync_WhenCancelled_ReturnsCancelledResult",
+          "IdentifyReviewCasesAsync_WithAmbiguousClassification_ReturnsReviewCase"
+        ],
+        "Tests.Domain.Interfaces/IPersonIdentityResolverContractExecutionTests.cs": [
+          "IPersonIdentityResolverContract_FindByRfcAsync_WithValidRfc_ReturnsSuccessWithNullValue"
+        ]
+      }
+    },
+    "Tests.Infrastructure.Extraction": {
+      "file_count": 9,
+      "method_count": 48,
+      "files": {
+        "Tests.Infrastructure.Extraction/CompositeMetadataExtractorTests.cs": [
+          "ExtractFromDocxAsync_DelegatesToDocxExtractor",
+          "ExtractFromPdfAsync_DelegatesToPdfExtractor",
+          "ExtractFromXmlAsync_RoutesToCorrectExtractor",
+          "ExtractFromXmlAsync_DelegatesToXmlExtractor"
+        ],
+        "Tests.Infrastructure.Extraction/DocxFieldExtractorTests.cs": [
+          "ExtractFieldAsync_FieldNotFound_ReturnsFailure",
+          "ExtractFieldAsync_ValidDocx_ReturnsFieldValue",
+          "ExtractFieldsAsync_WithFilePath_ExtractsFields",
+          "ExtractFieldsAsync_NoFileContentOrPath_ReturnsFailure",
+          "ExtractFieldsAsync_EmptyFieldDefinitions_ReturnsEmptyExtractedFields",
+          "ExtractFieldsAsync_ValidDocx_ReturnsExtractedFields",
+          "ExtractFieldsAsync_InvalidDocx_ReturnsFailure"
+        ],
+        "Tests.Infrastructure.Extraction/DocxMetadataExtractorTests.cs": [
+          "ExtractFromPdfAsync_Always_ReturnsFailure",
+          "ExtractFromDocxAsync_ValidDocx_ReturnsExtractedMetadata",
+          "ExtractFromDocxAsync_InvalidDocx_ReturnsFailure",
+          "ExtractFromXmlAsync_Always_ReturnsFailure"
+        ],
+        "Tests.Infrastructure.Extraction/FileTypeIdentifierServiceTests.cs": [
+          "IdentifyFileTypeAsync_DocxContent_ReturnsDocx",
+          "IdentifyFileTypeAsync_UnknownContentWithExtension_ReturnsFormatFromExtension",
+          "IdentifyFileTypeAsync_PdfContent_ReturnsPdf",
+          "IdentifyFileTypeAsync_NullContent_ReturnsFailure",
+          "IdentifyFileTypeAsync_EmptyContent_ReturnsFailure",
+          "IdentifyFileTypeAsync_XmlContent_ReturnsXml"
+        ],
+        "Tests.Infrastructure.Extraction/PdfMetadataExtractorTests.cs": [
+          "ExtractFromXmlAsync_Always_ReturnsFailure",
+          "ExtractFromPdfAsync_OCRSuccess_ReturnsExtractedMetadata",
+          "ExtractFromDocxAsync_Always_ReturnsFailure",
+          "ExtractFromPdfAsync_OCRFails_ReturnsFailure",
+          "ExtractFromPdfAsync_PreprocessingFails_ReturnsFailure"
+        ],
+        "Tests.Infrastructure.Extraction/PdfOcrFieldExtractorEnhancedTests.cs": [
+          "ExtractFieldsAsync_MultiPagePdf_ProcessesFirstPage",
+          "ExtractFieldsAsync_PartialOCRResults_ExtractsAvailableFields",
+          "ExtractFieldsAsync_PdfWithImagesOnly_ReturnsEmptyFields",
+          "ExtractFieldsAsync_OCRTimesOut_ReturnsFailure",
+          "ExtractFieldsAsync_OCRServiceUnavailable_ReturnsFailure",
+          "ExtractFieldsAsync_EmptyPdfFile_ReturnsFailure",
+          "ExtractFieldsAsync_CorruptedPdfFile_ReturnsFailure"
+        ],
+        "Tests.Infrastructure.Extraction/PdfOcrFieldExtractorTests.cs": [
+          "ExtractFieldAsync_FieldNotFound_ReturnsFailure",
+          "ExtractFieldsAsync_WithFilePath_ExtractsFields",
+          "ExtractFieldsAsync_NoFileContentOrPath_ReturnsFailure",
+          "ExtractFieldsAsync_PreprocessingFails_ReturnsFailure",
+          "ExtractFieldAsync_ValidPdf_ReturnsFieldValue",
+          "ExtractFieldsAsync_ValidPdfWithOCR_ReturnsExtractedFields",
+          "ExtractFieldsAsync_OCRFails_ReturnsFailure"
+        ],
+        "Tests.Infrastructure.Extraction/XmlExpedienteParserTests.cs": [
+          "ParseAsync_XmlWithoutRoot_ReturnsFailure",
+          "ParseAsync_InvalidXml_ReturnsFailure",
+          "ParseAsync_ValidXml_ReturnsExpediente",
+          "ParseAsync_XmlWithPartes_ParsesPartes"
+        ],
+        "Tests.Infrastructure.Extraction/XmlMetadataExtractorTests.cs": [
+          "ExtractFromPdfAsync_Always_ReturnsFailure",
+          "ExtractFromDocxAsync_Always_ReturnsFailure",
+          "ExtractFromXmlAsync_ValidXml_ReturnsExtractedMetadata",
+          "ExtractFromXmlAsync_ParserFails_ReturnsFailure"
+        ]
+      }
+    },
+    "Tests.Infrastructure.Classification": {
+      "file_count": 8,
+      "method_count": 78,
+      "files": {
+        "Tests.Infrastructure.Classification/FieldMatcherServiceTests.cs": [
+          "MatchFieldsAsync_WithMissingFields_TracksMissingFields",
+          "MatchFieldsAsync_WithMatchingFields_ReturnsMatchedFields",
+          "GenerateUnifiedRecordAsync_WithMatchedFields_ReturnsUnifiedRecord",
+          "ValidateCompletenessAsync_MissingRequiredFields_ReturnsFailure",
+          "MatchFieldsAsync_WithConflictingFields_DetectsConflicts",
+          "ValidateCompletenessAsync_EmptyRequiredFields_ReturnsSuccess",
+          "MatchFieldsAsync_NoSources_ReturnsFailure",
+          "GenerateUnifiedRecordAsync_NullMatchedFields_ReturnsFailure",
+          "ValidateCompletenessAsync_AllRequiredFieldsPresent_ReturnsSuccess",
+          "MatchFieldsAsync_NoFieldDefinitions_ReturnsFailure"
+        ],
+        "Tests.Infrastructure.Classification/FileClassifierServiceTests.cs": [
+          "ClassifyAsync_HacendarioDocument_ReturnsHacendarioLevel2",
+          "ClassifyAsync_JudicialDocument_ReturnsJudicialLevel2",
+          "ClassifyAsync_EspecialDocument_ReturnsEspecialLevel2",
+          "ClassifyAsync_AseguramientoDocument_ReturnsAseguramiento",
+          "ClassifyAsync_StrongClassification_ReturnsHighConfidence",
+          "ClassifyAsync_DesembargoDocument_ReturnsDesembargo",
+          "ClassifyAsync_DocumentacionDocument_ReturnsDocumentacion"
+        ],
+        "Tests.Infrastructure.Classification/LegalDirectiveClassifierServiceEdgeCaseTests.cs": [
+          "DetectLegalInstrumentsAsync_WithNullDocumentText_ReturnsFailure",
+          "ClassifyDirectivesAsync_WithWhitespaceDocumentText_ReturnsFailure",
+          "DetectLegalInstrumentsAsync_WithEmptyDocumentText_ReturnsFailure",
+          "MapToComplianceActionAsync_WithNullDirectiveText_ReturnsFailure",
+          "MapToComplianceActionAsync_WithEmptyDirectiveText_ReturnsFailure",
+          "MapToComplianceActionAsync_WithCancellationRequested_ReturnsCancelled",
+          "ClassifyDirectivesAsync_WithCancellationRequested_ReturnsCancelled",
+          "ClassifyDirectivesAsync_WithNullDocumentText_ReturnsFailure",
+          "ClassifyDirectivesAsync_WithEmptyDocumentText_ReturnsFailure",
+          "DetectLegalInstrumentsAsync_WithCancellationRequested_ReturnsCancelled",
+          "ClassifyDirectivesAsync_WithVeryLongDocumentText_HandlesCorrectly"
+        ],
+        "Tests.Infrastructure.Classification/LegalDirectiveClassifierServiceTests.cs": [
+          "ClassifyDirectivesAsync_WithDocumentDirective_ReturnsDocumentAction",
+          "ClassifyDirectivesAsync_WithTransferDirective_ReturnsTransferAction",
+          "DetectLegalInstrumentsAsync_WithAcuerdo_ReturnsAcuerdo",
+          "MapToComplianceActionAsync_WithAccountNumber_ExtractsAccountNumber",
+          "MapToComplianceActionAsync_WithAmount_ExtractsAmount",
+          "ClassifyDirectivesAsync_WithUnblockDirective_ReturnsUnblockAction",
+          "ClassifyDirectivesAsync_WithBlockDirective_ReturnsBlockAction",
+          "ClassifyDirectivesAsync_WithUnknownDirective_ReturnsIgnoreAction",
+          "ClassifyDirectivesAsync_WithInformationDirective_ReturnsInformationAction",
+          "DetectLegalInstrumentsAsync_WithMultipleInstruments_ReturnsAll",
+          "MapToComplianceActionAsync_WithBlockDirective_ReturnsBlockAction"
+        ],
+        "Tests.Infrastructure.Classification/MatchingPolicyOptionsTests.cs": [
+          "MatchingPolicyOptions_InvalidMinimumConfidence_CanBeSet",
+          "MatchingPolicyOptions_FieldSpecificRules_LoadFromConfiguration",
+          "MatchingPolicyOptions_InvalidConflictThreshold_CanBeSet",
+          "MatchingPolicyService_WithInvalidConflictThreshold_HandlesGracefully",
+          "MatchingPolicyOptions_FieldSpecificRules_OverrideGlobalSettings",
+          "MatchingPolicyOptions_LoadFromConfiguration_LoadsCorrectly",
+          "MatchingPolicyService_WithEmptySourcePriority_HandlesGracefully",
+          "MatchingPolicyOptions_LoadFromConfiguration_MissingValues_UsesDefaults",
+          "MatchingPolicyOptions_InvalidSourcePriority_CanBeSet",
+          "MatchingPolicyOptions_DefaultValues_AreValid"
+        ],
+        "Tests.Infrastructure.Classification/MatchingPolicyServiceTests.cs": [
+          "SelectBestValueAsync_WithSingleValue_ReturnsThatValue",
+          "HasConflictAsync_WithMatchingValues_ReturnsFalse",
+          "SelectBestValueAsync_WithMatchingValues_ReturnsBestValueWithHighAgreement",
+          "CalculateAgreementLevelAsync_WithAllMatching_ReturnsOne",
+          "SelectBestValueAsync_WithNullValues_ReturnsFailure",
+          "SelectBestValueAsync_WithConflictingValues_ReturnsMostCommonValue",
+          "CalculateAgreementLevelAsync_WithPartialMatching_ReturnsPartialAgreement",
+          "SelectBestValueAsync_WithEmptyValues_ReturnsFailure",
+          "HasConflictAsync_WithConflictingValues_ReturnsTrue",
+          "SelectBestValueAsync_WithSourcePriority_PrefersHigherPrioritySource"
+        ],
+        "Tests.Infrastructure.Classification/PersonIdentityResolverServiceEdgeCaseTests.cs": [
+          "GenerateRfcVariants_WithNullRfc_ReturnsEmptyList",
+          "FindByRfcAsync_WithEmptyRfc_ReturnsFailure",
+          "DeduplicatePersonsAsync_WithNullList_ReturnsFailure",
+          "FindByRfcAsync_WithCancellationRequested_ReturnsCancelled",
+          "FindByRfcAsync_WithNullRfc_ReturnsFailure",
+          "ResolveIdentityAsync_WithAllNullNames_HandlesGracefully",
+          "DeduplicatePersonsAsync_WithEmptyList_ReturnsEmptyList",
+          "FindByRfcAsync_WithWhitespaceRfc_ReturnsFailure",
+          "ResolveIdentityAsync_WithNullPerson_ReturnsFailure",
+          "ResolveIdentityAsync_WithCancellationRequested_ReturnsCancelled",
+          "DeduplicatePersonsAsync_WithCancellationRequested_ReturnsCancelled"
+        ],
+        "Tests.Infrastructure.Classification/PersonIdentityResolverServiceTests.cs": [
+          "ResolveIdentityAsync_WithExtraWhitespace_NormalizesNames",
+          "GenerateRfcVariants_WithHyphenatedRfc_GeneratesVariants",
+          "DeduplicatePersonsAsync_WithDuplicateNames_RemovesDuplicates",
+          "GenerateRfcVariants_WithEmptyRfc_ReturnsEmptyList",
+          "GenerateRfcVariants_WithDifferentFormats_ReturnsAllVariants",
+          "FindByRfcAsync_WithValidRfc_ReturnsSuccessWithNullValue",
+          "DeduplicatePersonsAsync_WithDuplicateRfcs_RemovesDuplicates",
+          "ResolveIdentityAsync_WithRfc_GeneratesRfcVariants"
+        ]
+      }
+    },
+    "Tests.Infrastructure.Database": {
+      "file_count": 9,
+      "method_count": 85,
+      "files": {
+        "Tests.Infrastructure.Database/AuditLoggerIntegrationTests.cs": [
+          "AuditLogging_FileIdFiltering_RetrievesAllStages",
+          "AuditLogging_ErrorHandling_DoesNotBlockProcessing",
+          "AuditLogging_PerformanceImpact_IsMinimal",
+          "AuditLogging_RecordsAreImmutable_CannotBeModified",
+          "AuditLogging_CorrelationIdTracking_TracksAcrossStages",
+          "AuditLogging_RetentionPolicy_CanBeQueried"
+        ],
+        "Tests.Infrastructure.Database/AuditLoggerServiceTests.cs": [
+          "GetAuditRecordsAsync_DateRangeFilter_ReturnsFilteredRecords",
+          "GetAuditRecordsAsync_InvalidDateRange_ReturnsFailure",
+          "LogAuditAsync_ValidRecord_ReturnsSuccess",
+          "LogAuditAsync_MultipleRecords_CompletesQuickly",
+          "GetAuditRecordsByFileIdAsync_ValidFileId_ReturnsRecords",
+          "LogAuditAsync_CancellationRequested_ReturnsCancelled",
+          "GetAuditRecordsAsync_UserIdFilter_ReturnsFilteredRecords",
+          "LogAuditAsync_EmptyCorrelationId_ReturnsFailure",
+          "GetAuditRecordsByCorrelationIdAsync_ValidCorrelationId_ReturnsRecords",
+          "GetAuditRecordsAsync_ActionTypeFilter_ReturnsFilteredRecords"
+        ],
+        "Tests.Infrastructure.Database/DownloadTrackerServiceTests.cs": [
+          "IsDuplicateAsync_NewChecksum_ReturnsFalse",
+          "GetFileMetadataByChecksumAsync_ExistingChecksum_ReturnsFileMetadata",
+          "IsDuplicateAsync_ExistingChecksum_ReturnsTrue",
+          "GetFileMetadataByChecksumAsync_NonExistentChecksum_ReturnsNull"
+        ],
+        "Tests.Infrastructure.Database/EfCoreRepositoryTests.cs": [
+          "AddAsync_ShouldReturnCancelled_WhenTokenAlreadyCancelled",
+          "SelectAsync_ShouldReturnFailure_WhenSelectorIsNull",
+          "AddRangeAsync_ShouldReturnFailure_WhenEntitiesAreNull",
+          "FindAsync_ShouldReturnFailure_WhenPredicateIsNull",
+          "ListAsync_ShouldReturnCancelled_WhenTokenAlreadyCancelled",
+          "SaveChangesAsync_ShouldReturnFailure_WhenDbContextIsDisposed",
+          "GetByIdAsync_ShouldReturnSuccess_WhenEntityExists"
+        ],
+        "Tests.Infrastructure.Database/FileMetadataLoggerServiceTests.cs": [
+          "LogFileMetadataAsync_ValidMetadata_ReturnsSuccess",
+          "LogFileMetadataAsync_DuplicateFileId_ReturnsFailure"
+        ],
+        "Tests.Infrastructure.Database/ManualReviewerServiceIntegrationTests.cs": [
+          "ReviewDecision_ForeignKeyRelationship_IsMaintained",
+          "EndToEndWorkflow_IdentifyGetAnnotationsSubmit_CompletesSuccessfully",
+          "IdentifyReviewCasesAsync_MultipleReasons_IdentifiesMultipleCases",
+          "ReviewCase_ForeignKeyRelationship_IsMaintained"
+        ],
+        "Tests.Infrastructure.Database/ManualReviewerServiceTests.cs": [
+          "SubmitReviewDecisionAsync_WithExistingDecision_ReturnsFailure",
+          "GetReviewCasesAsync_WhenCancelled_ReturnsCancelledResult",
+          "IdentifyReviewCasesAsync_WithLowConfidence_IdentifiesCase",
+          "GetFieldAnnotationsAsync_WhenCancelled_ReturnsCancelledResult",
+          "GetReviewCasesAsync_WithStatusFilter_ReturnsFilteredCases",
+          "IdentifyReviewCasesAsync_WithExtractionErrors_IdentifiesCase",
+          "GetReviewCasesAsync_WithPagination_ReturnsPaginatedResults",
+          "SubmitReviewDecisionAsync_WithOverridesButNoNotes_ReturnsFailure",
+          "SubmitReviewDecisionAsync_WhenCancelled_ReturnsCancelledResult",
+          "SubmitReviewDecisionAsync_WithRejectDecision_UpdatesStatusToRejected",
+          "GetReviewCasesAsync_WithInvalidPagination_ReturnsFailure",
+          "IdentifyReviewCasesAsync_WithNullClassification_ReturnsFailure",
+          "IdentifyReviewCasesAsync_WithAmbiguousClassification_IdentifiesCase",
+          "GetFieldAnnotationsAsync_WithInvalidCaseId_ReturnsFailure",
+          "GetFieldAnnotationsAsync_WithValidCaseId_ReturnsAnnotations",
+          "SubmitReviewDecisionAsync_WithValidDecision_SubmitsSuccessfully",
+          "GetReviewCasesAsync_WithConfidenceFilter_ReturnsFilteredCases",
+          "SubmitReviewDecisionAsync_WithInvalidCaseId_ReturnsFailure",
+          "GetReviewCasesAsync_WithNoFilters_ReturnsAllCases",
+          "IdentifyReviewCasesAsync_WithNullMetadata_ReturnsFailure",
+          "IdentifyReviewCasesAsync_WhenCancelled_ReturnsCancelledResult",
+          "IdentifyReviewCasesAsync_WithHighConfidenceNoIssues_ReturnsEmptyList"
+        ],
+        "Tests.Infrastructure.Database/SLAEnforcerServiceIntegrationTests.cs": [
+          "BusinessDayCalculation_WeekendExclusion_Verified",
+          "EndToEndWorkflow_CreateUpdateQueryEscalate_Succeeds",
+          "MultipleCases_DifferentDeadlines_HandledCorrectly",
+          "ConfigurationChanges_CustomThresholds_ReflectedCorrectly",
+          "AtRiskDetection_IdentifiesCasesCorrectly",
+          "ConcurrentUpdates_MultipleThreads_HandledCorrectly",
+          "ForeignKeyRelationship_FileMetadata_Maintained",
+          "IndexPerformance_DeadlineQueries_Optimized"
+        ],
+        "Tests.Infrastructure.Database/SLAEnforcerServiceTests.cs": [
+          "CalculateSLAStatusAsync_MoreThan24Hours_ReturnsNoneEscalation",
+          "GetBreachedCasesAsync_WithBreachedCases_ReturnsOnlyBreached",
+          "CalculateSLAStatusAsync_WithWeekends_ExcludesWeekends",
+          "GetActiveCasesAsync_WithMixedCases_ReturnsOnlyActive",
+          "CalculateSLAStatusAsync_EmptyFileId_ReturnsFailure",
+          "CalculateSLAStatusAsync_PassedDeadline_ReturnsBreachedEscalation",
+          "EscalateCaseAsync_NonExistentCase_ReturnsFailure",
+          "CalculateSLAStatusAsync_InvalidDaysPlazo_ReturnsFailure",
+          "CalculateBusinessDaysAsync_WeekdayRange_ExcludesWeekends",
+          "CalculateSLAStatusAsync_NewStatus_CreatesSLAStatus",
+          "CalculateSLAStatusAsync_CancellationRequested_ReturnsCancelled",
+          "CalculateSLAStatusAsync_LessThan24Hours_ReturnsWarningEscalation",
+          "UpdateSLAStatusAsync_ExistingStatus_UpdatesCorrectly",
+          "EscalateCaseAsync_ValidCase_EscalatesCorrectly",
+          "CalculateSLAStatusAsync_LessThan4Hours_ReturnsCriticalEscalation",
+          "GetSLAStatusAsync_NonExistentStatus_ReturnsSuccessWithNullValue",
+          "CalculateBusinessDaysAsync_EndBeforeStart_ReturnsZero",
+          "CalculateSLAStatusAsync_ExistingStatus_UpdatesStatus",
+          "GetAtRiskCasesAsync_WithAtRiskCases_ReturnsOnlyAtRisk",
+          "UpdateSLAStatusAsync_NonExistentStatus_ReturnsFailure",
+          "CalculateSLAStatusAsync_NullFileId_ReturnsFailure",
+          "GetSLAStatusAsync_ExistingStatus_ReturnsStatus"
+        ]
+      }
+    },
+    "Tests.Infrastructure.Export": {
+      "file_count": 3,
+      "method_count": 23,
+      "files": {
+        "Tests.Infrastructure.Export/DigitalPdfSignerTests.cs": [
+          "ExportSignedPdfAsync_CertificateNotAvailable_ReturnsFailure",
+          "ExportSignedPdfAsync_ValidMetadata_GeneratesPdfStructure",
+          "ExportSignedPdfAsync_NullMetadata_ReturnsFailure",
+          "ExportSiroXmlAsync_Always_ReturnsFailure",
+          "ExportSignedPdfAsync_NullOutputStream_ReturnsFailure",
+          "ExportSignedPdfAsync_WithRequirementSummary_IncludesSummary",
+          "ExportSignedPdfAsync_CancellationRequested_ReturnsCancelled"
+        ],
+        "Tests.Infrastructure.Export/ExportIntegrationTests.cs": [
+          "PdfRequirementSummarizerService_UsesOcrExtraction_DoesNotBreakPipeline",
+          "DigitalPdfSigner_CertificateUnavailable_HandlesGracefully",
+          "PdfRequirementSummarizerService_EndToEnd_SummarizesRequirements"
+        ],
+        "Tests.Infrastructure.Export/PdfRequirementSummarizerServiceTests.cs": [
+          "SummarizeRequirementsFromTextAsync_InformacionRequirements_CategorizesCorrectly",
+          "SummarizeRequirementsAsync_CancellationRequested_ReturnsCancelled",
+          "SummarizeRequirementsAsync_EmptyPdfContent_ReturnsFailure",
+          "SummarizeRequirementsFromTextAsync_EmptyText_ReturnsFailure",
+          "SummarizeRequirementsFromTextAsync_DesbloqueoRequirements_CategorizesCorrectly",
+          "SummarizeRequirementsAsync_NullPdfContent_ReturnsFailure",
+          "SummarizeRequirementsFromTextAsync_ValidText_GeneratesSummaryText",
+          "SummarizeRequirementsFromTextAsync_DocumentacionRequirements_CategorizesCorrectly",
+          "SummarizeRequirementsFromTextAsync_ValidText_CalculatesConfidenceScore",
+          "SummarizeRequirementsAsync_ValidPdfContent_ReturnsRequirementSummary",
+          "SummarizeRequirementsFromTextAsync_TransferenciaRequirements_CategorizesCorrectly",
+          "SummarizeRequirementsAsync_MetadataExtractorFails_ReturnsFailure",
+          "SummarizeRequirementsFromTextAsync_BloqueoRequirements_CategorizesCorrectly"
+        ]
+      }
+    },
+    "Tests.Infrastructure.FileSystem": {
+      "file_count": 3,
+      "method_count": 27,
+      "files": {
+        "Tests.Infrastructure.FileSystem/FileSystemDownloadStorageAdapterTests.cs": [
+          "GenerateStoragePath_WithChecksum_GeneratesDeterministicPath",
+          "SaveFileAsync_ValidFile_SavesSuccessfully",
+          "SaveFileAsync_ValidFile_CreatesDirectoryStructure"
+        ],
+        "Tests.Infrastructure.FileSystem/FileSystemLoaderTests.cs": [
+          "ValidateFilePathAsync_NonExistentFile_ReturnsFailureResult",
+          "LoadImageAsync_UnsupportedExtension_ReturnsFailureResult",
+          "LoadImagesFromDirectoryAsync_EmptyDirectory_ReturnsEmptyList",
+          "ValidateFilePathAsync_WithCancellationRequested_ReturnsCancelledResult",
+          "LoadImagesFromDirectoryAsync_CancelledDuringProcessing_ReturnsPartialResultsWithWarnings",
+          "LoadImageAsync_ValidImageFile_ReturnsSuccessResult",
+          "ValidateFilePathAsync_NullFilePath_ReturnsFailureResult",
+          "ValidateFilePathAsync_ValidFilePath_ReturnsSuccessResult",
+          "LoadImageAsync_WithCancellationRequested_ReturnsCancelledResult",
+          "LoadImagesFromDirectoryAsync_MultipleImages_ReturnsSuccessfulResults",
+          "GetSupportedExtensions_ReturnsExpectedExtensions",
+          "LoadImageAsync_NonExistentFile_ReturnsFailureResult",
+          "LoadImagesFromDirectoryAsync_WithCancellationRequested_ReturnsCancelledResult"
+        ],
+        "Tests.Infrastructure.FileSystem/FileSystemOutputWriterTests.cs": [
+          "WriteTextAsync_ValidResult_WritesTextFile",
+          "WriteTextAsync_IncludesAllFields_WritesCompleteText",
+          "WriteResultAsync_JsonFormat_WritesFileSuccessfully",
+          "WriteTextAsync_WithCancellationRequested_ReturnsCancelledResult",
+          "WriteResultAsync_WithCancellationRequested_ReturnsCancelledResult",
+          "WriteJsonAsync_ValidResult_WritesJsonFile",
+          "WriteResultsAsync_WithCancellationRequested_ReturnsCancelledResult",
+          "WriteJsonAsync_WithCancellationRequested_ReturnsCancelledResult",
+          "WriteResultAsync_TextFormat_WritesFileSuccessfully",
+          "WriteResultAsync_UnsupportedFormat_ReturnsFailureResult",
+          "WriteResultsAsync_MultipleResults_WritesFilesSuccessfully"
+        ]
+      }
+    },
+    "Tests.Infrastructure.Python": {
+      "file_count": 0,
+      "method_count": 0,
+      "files": {}
+    },
+    "Tests.System": {
+      "file_count": 0,
+      "method_count": 0,
+      "files": {}
+    },
+    "Tests.EndToEnd": {
+      "file_count": 0,
+      "method_count": 0,
+      "files": {}
+    },
+    "Tests.Architecture": {
+      "file_count": 0,
+      "method_count": 0,
+      "files": {}
+    },
+    "Tests.UI": {
+      "file_count": 0,
+      "method_count": 0,
+      "files": {}
+    }
+  },
+  "total_split_methods": 439,
+  "missing_tests": {
+    "Tests/Infrastructure/PythonInteropServiceTests.cs": [
+      "CircuitBreakerPythonInteropService_ShouldCreateSuccessfully",
+      "PythonConfiguration_CreateDefault_ShouldReturnValidConfiguration",
+      "PrismaOcrWrapperAdapter_ShouldCreateSuccessfully",
+      "PrismaOcrWrapperAdapter_ShouldImplementIPythonInteropService",
+      "ExtractExpediente_WithEmptyText_ReturnsNull",
+      "ExtractExpediente_WithNullText_ReturnsNull",
+      "PythonIntegration_ShouldWorkCorrectly",
+      "OcrProcessingAdapter_ShouldCreateSuccessfully",
+      "OcrProcessingAdapter_ShouldImplementDomainInterfaces",
+      "PathConstruction_ShouldWorkCorrectly"
+    ],
+    "Tests/Infrastructure.FileStorage/FileMoverServiceTests.cs": [
+      "MoveFileAsync_ValidFile_MovesToClassificationDirectory",
+      "MoveFileAsync_FileNameConflict_AppendsCounter",
+      "MoveFileAsync_NonExistentFile_ReturnsFailure"
+    ],
+    "Tests/Infrastructure.FileStorage/SafeFileNamerServiceTests.cs": [
+      "GenerateSafeFileNameAsync_WithInvalidCharacters_SanitizesFileName",
+      "GenerateSafeFileNameAsync_WithExpediente_IncludesExpediente",
+      "GenerateSafeFileNameAsync_Always_IncludesTimestamp",
+      "GenerateSafeFileNameAsync_WithClassification_ReturnsSafeFileName"
+    ]
+  },
+  "missing_by_filename": {
+    "pythoninteropservicetests.cs": {
+      "original_path": "Tests/Infrastructure/PythonInteropServiceTests.cs",
+      "methods": [
+        "CircuitBreakerPythonInteropService_ShouldCreateSuccessfully",
+        "PythonConfiguration_CreateDefault_ShouldReturnValidConfiguration",
+        "PrismaOcrWrapperAdapter_ShouldCreateSuccessfully",
+        "PrismaOcrWrapperAdapter_ShouldImplementIPythonInteropService",
+        "ExtractExpediente_WithEmptyText_ReturnsNull",
+        "ExtractExpediente_WithNullText_ReturnsNull",
+        "PythonIntegration_ShouldWorkCorrectly",
+        "OcrProcessingAdapter_ShouldCreateSuccessfully",
+        "OcrProcessingAdapter_ShouldImplementDomainInterfaces",
+        "PathConstruction_ShouldWorkCorrectly"
+      ],
+      "method_count": 10
+    },
+    "filemoverservicetests.cs": {
+      "original_path": "Tests/Infrastructure.FileStorage/FileMoverServiceTests.cs",
+      "methods": [
+        "MoveFileAsync_ValidFile_MovesToClassificationDirectory",
+        "MoveFileAsync_FileNameConflict_AppendsCounter",
+        "MoveFileAsync_NonExistentFile_ReturnsFailure"
+      ],
+      "method_count": 3
+    },
+    "safefilenamerservicetests.cs": {
+      "original_path": "Tests/Infrastructure.FileStorage/SafeFileNamerServiceTests.cs",
+      "methods": [
+        "GenerateSafeFileNameAsync_WithInvalidCharacters_SanitizesFileName",
+        "GenerateSafeFileNameAsync_WithExpediente_IncludesExpediente",
+        "GenerateSafeFileNameAsync_Always_IncludesTimestamp",
+        "GenerateSafeFileNameAsync_WithClassification_ReturnsSafeFileName"
+      ],
+      "method_count": 4
+    }
+  },
+  "missing_summary": {
+    "file_count": 3,
+    "method_count": 17
+  },
+  "new_tests": {
+    "Tests.Domain.Interfaces/IPersonIdentityResolverContractExecutionTests.cs": [
+      "IPersonIdentityResolverContract_FindByRfcAsync_WithValidRfc_ReturnsSuccessWithNullValue"
+    ]
+  },
+  "new_by_filename": {
+    "ipersonidentityresolvercontractexecutiontests.cs": {
+      "split_paths": [
+        "Tests.Domain.Interfaces/IPersonIdentityResolverContractExecutionTests.cs"
+      ],
+      "methods": [
+        "IPersonIdentityResolverContract_FindByRfcAsync_WithValidRfc_ReturnsSuccessWithNullValue"
+      ],
+      "method_count": 1
+    }
+  },
+  "new_summary": {
+    "file_count": 1,
+    "method_count": 1
+  },
+  "file_paths": {
+    "Tests/Infrastructure/PythonInteropServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure\\PythonInteropServiceTests.cs",
+    "Tests/Infrastructure.Classification/FieldMatcherServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Classification\\FieldMatcherServiceTests.cs",
+    "Tests/Infrastructure.Classification/FileClassifierServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Classification\\FileClassifierServiceTests.cs",
+    "Tests/Infrastructure.Classification/LegalDirectiveClassifierServiceEdgeCaseTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Classification\\LegalDirectiveClassifierServiceEdgeCaseTests.cs",
+    "Tests/Infrastructure.Classification/LegalDirectiveClassifierServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Classification\\LegalDirectiveClassifierServiceTests.cs",
+    "Tests/Infrastructure.Classification/MatchingPolicyOptionsTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Classification\\MatchingPolicyOptionsTests.cs",
+    "Tests/Infrastructure.Classification/MatchingPolicyServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Classification\\MatchingPolicyServiceTests.cs",
+    "Tests/Infrastructure.Classification/PersonIdentityResolverServiceEdgeCaseTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Classification\\PersonIdentityResolverServiceEdgeCaseTests.cs",
+    "Tests/Infrastructure.Classification/PersonIdentityResolverServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Classification\\PersonIdentityResolverServiceTests.cs",
+    "Tests/Infrastructure.Export/DigitalPdfSignerTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Export\\DigitalPdfSignerTests.cs",
+    "Tests/Infrastructure.Export/ExportIntegrationTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Export\\ExportIntegrationTests.cs",
+    "Tests/Infrastructure.Export/PdfRequirementSummarizerServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Export\\PdfRequirementSummarizerServiceTests.cs",
+    "Tests/Infrastructure.Extraction/CompositeMetadataExtractorTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Extraction\\CompositeMetadataExtractorTests.cs",
+    "Tests/Infrastructure.Extraction/DocxFieldExtractorTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Extraction\\DocxFieldExtractorTests.cs",
+    "Tests/Infrastructure.Extraction/DocxMetadataExtractorTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Extraction\\DocxMetadataExtractorTests.cs",
+    "Tests/Infrastructure.Extraction/FileTypeIdentifierServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Extraction\\FileTypeIdentifierServiceTests.cs",
+    "Tests/Infrastructure.Extraction/PdfMetadataExtractorTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Extraction\\PdfMetadataExtractorTests.cs",
+    "Tests/Infrastructure.Extraction/PdfOcrFieldExtractorEnhancedTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Extraction\\PdfOcrFieldExtractorEnhancedTests.cs",
+    "Tests/Infrastructure.Extraction/PdfOcrFieldExtractorTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Extraction\\PdfOcrFieldExtractorTests.cs",
+    "Tests/Infrastructure.Extraction/XmlExpedienteParserTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Extraction\\XmlExpedienteParserTests.cs",
+    "Tests/Infrastructure.Extraction/XmlMetadataExtractorTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.Extraction\\XmlMetadataExtractorTests.cs",
+    "Tests/Infrastructure.FileStorage/FileMoverServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.FileStorage\\FileMoverServiceTests.cs",
+    "Tests/Infrastructure.FileStorage/SafeFileNamerServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure.FileStorage\\SafeFileNamerServiceTests.cs",
+    "Tests/Interfaces/IIManualReviewerPanelTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Interfaces\\IIManualReviewerPanelTests.cs",
+    "Tests/Infrastructure/Database/AuditLoggerIntegrationTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure\\Database\\AuditLoggerIntegrationTests.cs",
+    "Tests/Infrastructure/Database/AuditLoggerServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure\\Database\\AuditLoggerServiceTests.cs",
+    "Tests/Infrastructure/Database/DownloadTrackerServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure\\Database\\DownloadTrackerServiceTests.cs",
+    "Tests/Infrastructure/Database/EfCoreRepositoryTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure\\Database\\EfCoreRepositoryTests.cs",
+    "Tests/Infrastructure/Database/FileMetadataLoggerServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure\\Database\\FileMetadataLoggerServiceTests.cs",
+    "Tests/Infrastructure/Database/ManualReviewerServiceIntegrationTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure\\Database\\ManualReviewerServiceIntegrationTests.cs",
+    "Tests/Infrastructure/Database/ManualReviewerServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure\\Database\\ManualReviewerServiceTests.cs",
+    "Tests/Infrastructure/Database/SLAEnforcerServiceIntegrationTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure\\Database\\SLAEnforcerServiceIntegrationTests.cs",
+    "Tests/Infrastructure/Database/SLAEnforcerServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure\\Database\\SLAEnforcerServiceTests.cs",
+    "Tests/Infrastructure/FileStorage/FileSystemDownloadStorageAdapterTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure\\FileStorage\\FileSystemDownloadStorageAdapterTests.cs",
+    "Tests/Infrastructure/FileSystem/FileSystemLoaderTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure\\FileSystem\\FileSystemLoaderTests.cs",
+    "Tests/Infrastructure/FileSystem/FileSystemOutputWriterTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Infrastructure\\FileSystem\\FileSystemOutputWriterTests.cs",
+    "Tests/Domain/Common/ResultTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Domain\\Common\\ResultTests.cs",
+    "Tests/Domain/Repositories/OrderRepositoryTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Domain\\Repositories\\OrderRepositoryTests.cs",
+    "Tests/Application/Services/AuditReportingServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Application\\Services\\AuditReportingServiceTests.cs",
+    "Tests/Application/Services/ConfigurationValidationServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Application\\Services\\ConfigurationValidationServiceTests.cs",
+    "Tests/Application/Services/DecisionLogicIntegrationTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Application\\Services\\DecisionLogicIntegrationTests.cs",
+    "Tests/Application/Services/DecisionLogicServiceEdgeCaseTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Application\\Services\\DecisionLogicServiceEdgeCaseTests.cs",
+    "Tests/Application/Services/DecisionLogicServiceManualReviewTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Application\\Services\\DecisionLogicServiceManualReviewTests.cs",
+    "Tests/Application/Services/DecisionLogicServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Application\\Services\\DecisionLogicServiceTests.cs",
+    "Tests/Application/Services/DocumentIngestionIntegrationTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Application\\Services\\DocumentIngestionIntegrationTests.cs",
+    "Tests/Application/Services/DocumentIngestionServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Application\\Services\\DocumentIngestionServiceTests.cs",
+    "Tests/Application/Services/ExportServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Application\\Services\\ExportServiceTests.cs",
+    "Tests/Application/Services/FieldMatchingServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Application\\Services\\FieldMatchingServiceTests.cs",
+    "Tests/Application/Services/FileMetadataQueryServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Application\\Services\\FileMetadataQueryServiceTests.cs",
+    "Tests/Application/Services/ManualReviewIntegrationTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Application\\Services\\ManualReviewIntegrationTests.cs",
+    "Tests/Application/Services/MetadataExtractionIntegrationTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Application\\Services\\MetadataExtractionIntegrationTests.cs",
+    "Tests/Application/Services/MetadataExtractionServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Application\\Services\\MetadataExtractionServiceTests.cs",
+    "Tests/Application/Services/OcrProcessingServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Application\\Services\\OcrProcessingServiceTests.cs",
+    "Tests/Application/Services/SLATrackingServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests\\Application\\Services\\SLATrackingServiceTests.cs",
+    "Tests.Application/Services/AuditReportingServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Application\\Services\\AuditReportingServiceTests.cs",
+    "Tests.Application/Services/ConfigurationValidationServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Application\\Services\\ConfigurationValidationServiceTests.cs",
+    "Tests.Application/Services/DecisionLogicIntegrationTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Application\\Services\\DecisionLogicIntegrationTests.cs",
+    "Tests.Application/Services/DecisionLogicServiceEdgeCaseTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Application\\Services\\DecisionLogicServiceEdgeCaseTests.cs",
+    "Tests.Application/Services/DecisionLogicServiceManualReviewTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Application\\Services\\DecisionLogicServiceManualReviewTests.cs",
+    "Tests.Application/Services/DecisionLogicServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Application\\Services\\DecisionLogicServiceTests.cs",
+    "Tests.Application/Services/DocumentIngestionIntegrationTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Application\\Services\\DocumentIngestionIntegrationTests.cs",
+    "Tests.Application/Services/DocumentIngestionServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Application\\Services\\DocumentIngestionServiceTests.cs",
+    "Tests.Application/Services/ExportServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Application\\Services\\ExportServiceTests.cs",
+    "Tests.Application/Services/FieldMatchingServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Application\\Services\\FieldMatchingServiceTests.cs",
+    "Tests.Application/Services/FileMetadataQueryServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Application\\Services\\FileMetadataQueryServiceTests.cs",
+    "Tests.Application/Services/ManualReviewIntegrationTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Application\\Services\\ManualReviewIntegrationTests.cs",
+    "Tests.Application/Services/MetadataExtractionIntegrationTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Application\\Services\\MetadataExtractionIntegrationTests.cs",
+    "Tests.Application/Services/MetadataExtractionServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Application\\Services\\MetadataExtractionServiceTests.cs",
+    "Tests.Application/Services/OcrProcessingServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Application\\Services\\OcrProcessingServiceTests.cs",
+    "Tests.Application/Services/SLATrackingServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Application\\Services\\SLATrackingServiceTests.cs",
+    "Tests.Domain/Common/ResultTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Domain\\Common\\ResultTests.cs",
+    "Tests.Domain/Repositories/OrderRepositoryTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Domain\\Repositories\\OrderRepositoryTests.cs",
+    "Tests.Domain.Interfaces/IIManualReviewerPanelTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Domain.Interfaces\\IIManualReviewerPanelTests.cs",
+    "Tests.Domain.Interfaces/IPersonIdentityResolverContractExecutionTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Domain.Interfaces\\IPersonIdentityResolverContractExecutionTests.cs",
+    "Tests.Infrastructure.Extraction/CompositeMetadataExtractorTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Extraction\\CompositeMetadataExtractorTests.cs",
+    "Tests.Infrastructure.Extraction/DocxFieldExtractorTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Extraction\\DocxFieldExtractorTests.cs",
+    "Tests.Infrastructure.Extraction/DocxMetadataExtractorTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Extraction\\DocxMetadataExtractorTests.cs",
+    "Tests.Infrastructure.Extraction/FileTypeIdentifierServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Extraction\\FileTypeIdentifierServiceTests.cs",
+    "Tests.Infrastructure.Extraction/PdfMetadataExtractorTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Extraction\\PdfMetadataExtractorTests.cs",
+    "Tests.Infrastructure.Extraction/PdfOcrFieldExtractorEnhancedTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Extraction\\PdfOcrFieldExtractorEnhancedTests.cs",
+    "Tests.Infrastructure.Extraction/PdfOcrFieldExtractorTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Extraction\\PdfOcrFieldExtractorTests.cs",
+    "Tests.Infrastructure.Extraction/XmlExpedienteParserTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Extraction\\XmlExpedienteParserTests.cs",
+    "Tests.Infrastructure.Extraction/XmlMetadataExtractorTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Extraction\\XmlMetadataExtractorTests.cs",
+    "Tests.Infrastructure.Classification/FieldMatcherServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Classification\\FieldMatcherServiceTests.cs",
+    "Tests.Infrastructure.Classification/FileClassifierServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Classification\\FileClassifierServiceTests.cs",
+    "Tests.Infrastructure.Classification/LegalDirectiveClassifierServiceEdgeCaseTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Classification\\LegalDirectiveClassifierServiceEdgeCaseTests.cs",
+    "Tests.Infrastructure.Classification/LegalDirectiveClassifierServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Classification\\LegalDirectiveClassifierServiceTests.cs",
+    "Tests.Infrastructure.Classification/MatchingPolicyOptionsTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Classification\\MatchingPolicyOptionsTests.cs",
+    "Tests.Infrastructure.Classification/MatchingPolicyServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Classification\\MatchingPolicyServiceTests.cs",
+    "Tests.Infrastructure.Classification/PersonIdentityResolverServiceEdgeCaseTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Classification\\PersonIdentityResolverServiceEdgeCaseTests.cs",
+    "Tests.Infrastructure.Classification/PersonIdentityResolverServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Classification\\PersonIdentityResolverServiceTests.cs",
+    "Tests.Infrastructure.Database/AuditLoggerIntegrationTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Database\\AuditLoggerIntegrationTests.cs",
+    "Tests.Infrastructure.Database/AuditLoggerServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Database\\AuditLoggerServiceTests.cs",
+    "Tests.Infrastructure.Database/DownloadTrackerServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Database\\DownloadTrackerServiceTests.cs",
+    "Tests.Infrastructure.Database/EfCoreRepositoryTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Database\\EfCoreRepositoryTests.cs",
+    "Tests.Infrastructure.Database/FileMetadataLoggerServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Database\\FileMetadataLoggerServiceTests.cs",
+    "Tests.Infrastructure.Database/ManualReviewerServiceIntegrationTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Database\\ManualReviewerServiceIntegrationTests.cs",
+    "Tests.Infrastructure.Database/ManualReviewerServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Database\\ManualReviewerServiceTests.cs",
+    "Tests.Infrastructure.Database/SLAEnforcerServiceIntegrationTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Database\\SLAEnforcerServiceIntegrationTests.cs",
+    "Tests.Infrastructure.Database/SLAEnforcerServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Database\\SLAEnforcerServiceTests.cs",
+    "Tests.Infrastructure.Export/DigitalPdfSignerTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Export\\DigitalPdfSignerTests.cs",
+    "Tests.Infrastructure.Export/ExportIntegrationTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Export\\ExportIntegrationTests.cs",
+    "Tests.Infrastructure.Export/PdfRequirementSummarizerServiceTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.Export\\PdfRequirementSummarizerServiceTests.cs",
+    "Tests.Infrastructure.FileSystem/FileSystemDownloadStorageAdapterTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.FileSystem\\FileSystemDownloadStorageAdapterTests.cs",
+    "Tests.Infrastructure.FileSystem/FileSystemLoaderTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.FileSystem\\FileSystemLoaderTests.cs",
+    "Tests.Infrastructure.FileSystem/FileSystemOutputWriterTests.cs": "Prisma\\Code\\Src\\CSharp\\Tests.Infrastructure.FileSystem\\FileSystemOutputWriterTests.cs"
+  }
+}

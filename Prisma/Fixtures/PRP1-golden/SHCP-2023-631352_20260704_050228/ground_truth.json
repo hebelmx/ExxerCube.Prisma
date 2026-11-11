@@ -1,0 +1,50 @@
+{
+  "docId": "SHCP-2023-631352_20260704_050228",
+  "seed": 2000,
+  "chaosLevel": "none",
+  "requirementType": "informacion",
+  "folioSiara": "SHCP/2023/631352",
+  "numeroOficio": "SHCP/2023/631352",
+  "numeroExpediente": "A/JU1-6129-778206-FGR",
+  "autoridadNombre": "Secretaría de Hacienda y Crédito Público",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Abril Bravo Oquendo",
+  "personaNombre": "Diana Pelayo Valencia",
+  "personaRfc": "PEVD821209Q95",
+  "solicitudPartes": [
+    {
+      "nombre": "Diana Pelayo Valencia",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$4,012,553.69",
+  "fechaDiligencia": "04/07/2026",
+  "juzgadoNombre": "Secretaría de Hacienda y Crédito Público",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  }
+}

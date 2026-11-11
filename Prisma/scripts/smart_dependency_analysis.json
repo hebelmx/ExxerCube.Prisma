@@ -1,0 +1,328 @@
+{
+  "analysis_date": "2024-10-30",
+  "total_errors": 871,
+  "unique_types": 233,
+  "errors_by_project": {
+    "ExxerAI.Application.Data.Test": 45,
+    "ExxerAI.Domain.CubeExplorer.Test": 4,
+    "ExxerAI.Application.KpiServices.Test": 11,
+    "ExxerAI.Application.LLMServices.Test": 19,
+    "ExxerAI.Application.Patterns.Test": 94,
+    "ExxerAI.Infrastructure.Test": 285,
+    "ExxerAI.Nexus": 190,
+    "ExxerAI.Application.Core.Test": 14,
+    "ExxerAI.Application.CubeXplorer.Test": 24,
+    "ExxerAI.Application.DocumentServices.Test": 31,
+    "ExxerAI.Application.Ports.Test": 13,
+    "ExxerAI.Application.Versioning.Test": 1,
+    "ExxerAI.Application.WorkflowServices.Test": 7,
+    "ExxerAI.UI.Test": 8,
+    "ExxerAI.CLI.Test": 7,
+    "ExxerAI.BusinessIntelligence.Test": 6,
+    "ExxerAI.EnhancedRag.System.Test": 3,
+    "ExxerAI.GoogleDriveM2M.Integration.Test": 6,
+    "ExxerAI.Infrastructure.GoogleDriveM2M.Integration.Test": 6,
+    "ExxerAI.Conduit": 74,
+    "ExxerAI.Domain.Cortex.Test": 21,
+    "ExxerAI.EnhancedRag.Integration.Test": 2
+  },
+  "actions_needed": {
+    "project_references": {
+      "ExxerAI.Application.Patterns.Test": [
+        "ExxerAI.Domain"
+      ],
+      "ExxerAI.Infrastructure.Test": [
+        "ExxerAI.Infrastructure",
+        "ExxerAI.Domain"
+      ],
+      "ExxerAI.Nexus": [
+        "ExxerAI.Infrastructure",
+        "ExxerAI.Domain",
+        "ExxerAI.Application"
+      ],
+      "ExxerAI.Application.Core.Test": [
+        "ExxerAI.Domain"
+      ],
+      "ExxerAI.Application.CubeXplorer.Test": [
+        "ExxerAI.Domain"
+      ],
+      "ExxerAI.Application.DocumentServices.Test": [
+        "ExxerAI.Domain"
+      ],
+      "ExxerAI.Application.Ports.Test": [
+        "ExxerAI.Domain"
+      ],
+      "ExxerAI.Application.Versioning.Test": [
+        "ExxerAI.Domain"
+      ],
+      "ExxerAI.UI.Test": [
+        "ExxerAI.Domain"
+      ],
+      "ExxerAI.CLI.Test": [
+        "ExxerAI.Infrastructure"
+      ],
+      "ExxerAI.Conduit": [
+        "ExxerAI.Infrastructure",
+        "ExxerAI.Domain",
+        "ExxerAI.Application"
+      ],
+      "ExxerAI.Domain.Cortex.Test": [
+        "ExxerAI.Domain",
+        "ExxerAI.Application"
+      ]
+    },
+    "package_references": {
+      "ExxerAI.Domain.CubeExplorer.Test": [
+        "Microsoft.Extensions.Logging.Abstractions"
+      ],
+      "ExxerAI.Infrastructure.Test": [
+        "SixLabors.ImageSharp",
+        "DocumentFormat.OpenXml"
+      ],
+      "ExxerAI.Nexus": [
+        "System.Collections.Concurrent"
+      ]
+    },
+    "investigate": {
+      "ExxerAI.Application.Data.Test": [
+        "PatternSeedStatistics",
+        "KpiExxerproPatternSeed"
+      ],
+      "ExxerAI.Domain.CubeExplorer.Test": [
+        "BalanceValidator"
+      ],
+      "ExxerAI.Application.KpiServices.Test": [
+        "KpiExxerproPatternSeed"
+      ],
+      "ExxerAI.Application.LLMServices.Test": [
+        "TokenUsage",
+        "LLMResponseChunk",
+        "AIProvider",
+        "ModelConfiguration",
+        "EAIFinishReason",
+        "LLMResponse",
+        "ModelCapabilities",
+        "RateLimitInfo"
+      ],
+      "ExxerAI.Application.Patterns.Test": [
+        "LLMPattern",
+        "SearchStrategy"
+      ],
+      "ExxerAI.Infrastructure.Test": [
+        "MicrosoftAIAdapter",
+        "PdfPigAdapter",
+        "TaskRedistributionConfiguration",
+        "ExxerAIDbContext",
+        "ServiceMonitoringService",
+        "LocalAIStackConfiguration",
+        "ImageProcessingService",
+        "TimbradoApiClient",
+        "HierarchicalFormationStrategy",
+        "AdaptiveLearningConfiguration",
+        "LiveDataConnectorService",
+        "DashboardHealthMonitorService",
+        "InfrastructureStatisticsService",
+        "DashboardService",
+        "LoadBalancingStrategy",
+        "NPOIAdapter",
+        "ConversationCoordinator",
+        "ArtifactSet",
+        "RuleParserEngine",
+        "AuditTrailRepository",
+        "DriveService",
+        "GoogleDriveWatchOptions",
+        "ValidatedStatement",
+        "OpenXmlAdapter",
+        "TaskRedistributionEngine",
+        "InMemoryVectorSearchService",
+        "RemoteDockerManager",
+        "HealthMonitor",
+        "RemoteDockerConfiguration",
+        "PatternRecognitionEngine",
+        "LearningEvent",
+        "PostgreSqlContainer",
+        "OptimizationEngine",
+        "GoogleDriveM2MService",
+        "MonitoringConfiguration",
+        "HeterogeneousFormationStrategy",
+        "DashboardHub",
+        "NPOI",
+        "SQLServerVectorSearchService",
+        "OpenCvSharp",
+        "HomogeneousFormationStrategy",
+        "ArtifactLoader",
+        "ServiceOrchestrationEngine",
+        "ImageProcessingOptions",
+        "InMemoryWorkflowExecutionRepository",
+        "AdaptiveLearningEngine",
+        "ImageSharpAdapter",
+        "PostgreSQLVectorSearchService",
+        "LocalAIKeyManager",
+        "KpiDashboard"
+      ],
+      "ExxerAI.Nexus": [
+        "CFDIResponse",
+        "AccessLogEntry",
+        "PromotionImage",
+        "DateTimeRange",
+        "TimbradoServiceStatus",
+        "SATServiceType",
+        "HashAlgorithm",
+        "AuthorizationResult",
+        "EncryptionOptions",
+        "BalanceInformation",
+        "AlertSeverity",
+        "ArtifactSet",
+        "PdfSharp",
+        "SATDataFilters",
+        "AccessDetails",
+        "SignatureVerificationResult",
+        "ValidatedStatement",
+        "DigitalSignature",
+        "TimbradoSubmissionOptions",
+        "TrendDirection",
+        "PromotionTemplate",
+        "SecurityOperation",
+        "SATVerificationOptions",
+        "YamlDotNet",
+        "TimbradoStatusResponse",
+        "CFDIStatus",
+        "StringBuilder",
+        "CFDIPdfOptions",
+        "ConcurrentQueue<>",
+        "PdfPig",
+        "DomainSATServiceStatus",
+        "SATHistoricalData",
+        "ParsedStatement",
+        "TimbradoCancellationResult",
+        "EIADescriptiveStatistics",
+        "SecurityAuditReport",
+        "SATCredentials",
+        "SecurityAuditScopeType",
+        "RatesAndChargesInfo",
+        "SATCFDIDetails"
+      ],
+      "ExxerAI.Application.Core.Test": [
+        "DriveWebhookPayload",
+        "WebhookBatchConfiguration"
+      ],
+      "ExxerAI.Application.CubeXplorer.Test": [
+        "TemplateVersionInfo",
+        "PromotionTemplate",
+        "PromotionTemplateManager",
+        "ParsedStatement",
+        "ProcessingResult",
+        "ProcessingProgress",
+        "ProcessingOptions",
+        "TemplateMatch",
+        "ReprocessingResult",
+        "ReferencePoint",
+        "MatchedRegion"
+      ],
+      "ExxerAI.Application.WorkflowServices.Test": [
+        "WorkflowConfiguration"
+      ],
+      "ExxerAI.UI.Test": [
+        "Program",
+        "WebApplicationFactory<>",
+        "GraphSearchResults",
+        "VectorSearchResults"
+      ],
+      "ExxerAI.CLI.Test": [
+        "CommandRouter",
+        "WorkflowCommands",
+        "TaskCommands"
+      ],
+      "ExxerAI.BusinessIntelligence.Test": [
+        "EconomicMonitoringService",
+        "QuestionParserService",
+        "DataConciliationEngine",
+        "ProviderIntelligenceService",
+        "KpiCalculationEngine",
+        "DashboardService"
+      ],
+      "ExxerAI.EnhancedRag.System.Test": [
+        "InMemoryBm25SearchService",
+        "CrossEncoderRerankingService",
+        "ReciprocalRankFusionService"
+      ],
+      "ExxerAI.GoogleDriveM2M.Integration.Test": [
+        "GoogleDriveM2MService",
+        "GoogleDriveWatchOptions"
+      ],
+      "ExxerAI.Infrastructure.GoogleDriveM2M.Integration.Test": [
+        "GoogleDriveM2MService",
+        "GoogleDriveWatchOptions"
+      ],
+      "ExxerAI.Conduit": [
+        "OrchestrationStatusChangedEventArgs",
+        "OrchestrationServicesMetrics",
+        "EIAContainerStatus",
+        "TaskRedistributionResult",
+        "CommandExecutionResult",
+        "CollaborativeTaskEventArgs",
+        "ServiceHealthChangedEventArgs",
+        "UglyToad",
+        "GoogleDriveM2MOptions",
+        "LearningEvent",
+        "InfrastructureStatisticsService",
+        "RedistributionAnalysisEventArgs"
+      ],
+      "ExxerAI.Domain.Cortex.Test": [
+        "AdaptationFeedback",
+        "ProcessedResponse",
+        "EmbeddingRequest",
+        "ResponseProcessingOptions",
+        "ModelOptimizationRequest",
+        "EmbeddingResponse",
+        "CompletionResponse",
+        "InferenceRequest",
+        "MemoryConsolidationRequest",
+        "CompletionRequest",
+        "TokenUsageStatistics",
+        "SemanticAnalysisResult",
+        "KnowledgeDistillationRequest",
+        "TextGenerationOptions",
+        "OptimizedInferenceResult",
+        "InferenceResult"
+      ],
+      "ExxerAI.EnhancedRag.Integration.Test": [
+        "InMemoryBm25SearchService",
+        "ReciprocalRankFusionService"
+      ]
+    }
+  },
+  "directory_build_props_namespaces": [],
+  "top_missing_types": {
+    "KpiExxerproPatternSeed": 54,
+    "SixLabors": 54,
+    "DocumentType": 39,
+    "LearningEvent": 38,
+    "SearchStrategy": 29,
+    "OCRRegionPattern": 29,
+    "ExtractionContext": 28,
+    "ValidationRules": 26,
+    "DocumentMetadata": 21,
+    "ConcurrentDictionary<,>": 17,
+    "DocumentProcessingResult": 16,
+    "ArtifactSet": 16,
+    "IDateTimeMachine": 15,
+    "Regex": 14,
+    "ExxerAIDbContext": 13,
+    "GoogleDriveM2MService": 12,
+    "OCRProcessingService": 12,
+    "AccessLogEntry": 12,
+    "ValidatedStatement": 10,
+    "DocumentFormat": 9,
+    "EIAA2AAgentLifecycleManager": 8,
+    "LLMPattern": 7,
+    "QRCodeValidationResult": 7,
+    "AgentWorkload": 7,
+    "LoadBalancingStrategy": 6,
+    "LLMResponseChunk": 6,
+    "GoogleDriveWatchOptions": 6,
+    "AgentSwarmManager": 6,
+    "IEIACentralAgentRegistry": 6,
+    "SwarmPerformanceMetrics": 6
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "accent_errors": {
+    "á": "a",
+    "é": "e",
+    "í": "i",
+    "ó": "o",
+    "ú": "u",
+    "ñ": "n",
+    "ü": "u"
+  },
+  "word_typos": {
+    "número": ["numero", "númer0", "no."],
+    "México": ["Mexico", "Méxic0", "MEXICO"],
+    "artículo": ["articulo", "art.", "Art.", "ART."],
+    "crédito": ["credito"],
+    "información": ["informacion", "infor mación"],
+    "administración": ["administracion", "admon", "admin"],
+    "federación": ["federacion", "fed."],
+    "código": ["codigo", "cödigo"],
+    "público": ["publico"],
+    "auditoría": ["auditoria", "aud."],
+    "comisión": ["comision"],
+    "nacional": ["nac.", "nal."],
+    "bancaria": ["banc."],
+    "valores": ["vals."],
+    "autoridad": ["autorld.", "aut."],
+    "requerimiento": ["requerim."],
+    "solicitud": ["solic."],
+    "expediente": ["exp."],
+    "referencia": ["ref."],
+    "oficio": ["of."],
+    "fiscal": ["fisc."],
+    "sección": ["seccion", "secc."],
+    "fracción": ["fraccion", "fracc."]
+  },
+  "formatting_variations": {
+    "C.P.": ["CP", "C.P", "cp"],
+    "RFC:": ["RFC", "R.F.C.", "rfc"],
+    "No.": ["No", "NUM.", "núm."],
+    "Art.": ["art.", "Artículo", "articulo"],
+    "Tel.": ["Tel", "Teléfono", "telefono"]
+  }
+}

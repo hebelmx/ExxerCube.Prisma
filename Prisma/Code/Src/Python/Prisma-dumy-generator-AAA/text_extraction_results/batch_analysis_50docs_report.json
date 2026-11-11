@@ -1,0 +1,25 @@
+{
+  "benchmark_info": {
+    "total_images": 50,
+    "timestamp": "2025-08-23T10:54:45.655085",
+    "phase": "Text Extraction Quality (Phase 1)"
+  },
+  "extractor_performance": {
+    "DocTR": {
+      "success_rate": 100.0,
+      "avg_processing_time": 3.65,
+      "avg_confidence": 0.748,
+      "successful_extractions": 50,
+      "total_tests": 50
+    }
+  },
+  "text_quality_metrics": {
+    "DocTR": {
+      "avg_characters_per_doc": 1736,
+      "avg_words_per_doc": 262,
+      "avg_lines_per_doc": 62,
+      "total_characters_extracted": 86819,
+      "total_words_extracted": 13125
+    }
+  }
+}

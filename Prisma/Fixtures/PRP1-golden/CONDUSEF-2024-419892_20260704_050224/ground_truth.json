@@ -1,0 +1,50 @@
+{
+  "docId": "CONDUSEF-2024-419892_20260704_050224",
+  "seed": 1000,
+  "chaosLevel": "none",
+  "requirementType": "judicial",
+  "folioSiara": "CONDUSEF/2024/419892",
+  "numeroOficio": "CONDUSEF/2024/419892",
+  "numeroExpediente": "A/IN2-2882-986327-BBB",
+  "autoridadNombre": "Comisión Nacional para la Protección y Defensa de los Usuarios de Servicios Financieros",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Arturo Limón Hinojosa",
+  "personaNombre": "María Jáquez Orellana",
+  "personaRfc": "JÁOM930206R09",
+  "solicitudPartes": [
+    {
+      "nombre": "María Jáquez Orellana",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$4,526,265.05",
+  "fechaDiligencia": "04/07/2026",
+  "juzgadoNombre": "Comisión Nacional para la Protección y Defensa de los Usuarios de Servicios Financieros",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

@@ -1,0 +1,566 @@
+# Metrics and Telemetry Standards
+
+## Meta
+**Title**: Metrics and Telemetry Standards
+**Description**: Comprehensive metrics and telemetry standards for performance monitoring and health checks
+**Applies-to**: All C# code in ExxerAI project
+
+## Requirements
+
+<requirement priority="critical">
+**Description**: Use OpenTelemetry for metrics collection and telemetry
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: OpenTelemetry metrics and telemetry
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+    private readonly Meter _meter;
+    private readonly Counter<long> _agentCreationCounter;
+    private readonly Histogram<double> _agentCreationDuration;
+    private readonly UpDownCounter<long> _activeAgentsCounter;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository, Meter meter)
+    {
+        _logger = logger;
+        _repository = repository;
+        _meter = meter;
+
+        _agentCreationCounter = _meter.CreateCounter<long>("agent_creation_total", "Total number of agent creations");
+        _agentCreationDuration = _meter.CreateHistogram<double>("agent_creation_duration_ms", "Agent creation duration in milliseconds");
+        _activeAgentsCounter = _meter.CreateUpDownCounter<long>("active_agents", "Number of active agents");
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var tags = new KeyValuePair<string, object?>[]
+        {
+            new("agent_name", name),
+            new("capabilities", capabilities.ToString())
+        };
+
+        try
+        {
+            _logger.LogInformation("Creating agent: {AgentName}", name);
+
+            var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+            stopwatch.Stop();
+
+            if (result.IsSuccess)
+            {
+                _agentCreationCounter.Add(1, tags);
+                _agentCreationDuration.Record(stopwatch.ElapsedMilliseconds, tags);
+                _activeAgentsCounter.Add(1, tags);
+
+                _logger.LogInformation("Agent created successfully: {AgentId}, Duration: {DurationMs}ms",
+                    result.Value.Id, stopwatch.ElapsedMilliseconds);
+            }
+            else
+            {
+                _logger.LogError("Agent creation failed: {AgentName}, Duration: {DurationMs}ms, Errors: {Errors}",
+                    name, stopwatch.ElapsedMilliseconds, string.Join(", ", result.Errors));
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "Agent creation threw exception: {AgentName}, Duration: {DurationMs}ms",
+                name, stopwatch.ElapsedMilliseconds);
+            throw;
+        }
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No metrics or telemetry
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository)
+    {
+        _logger = logger;
+        _repository = repository;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", name);
+
+        var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Implement health checks for all services and dependencies
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Comprehensive health checks
+public class AgentHealthCheck : IHealthCheck
+{
+    private readonly IAgentRepository _repository;
+    private readonly ILogger<AgentHealthCheck> _logger;
+
+    public AgentHealthCheck(IAgentRepository repository, ILogger<AgentHealthCheck> logger)
+    {
+        _repository = repository;
+        _logger = logger;
+    }
+
+    public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogDebug("Starting agent health check");
+
+            // Check repository connectivity
+            var testResult = await _repository.GetByIdAsync(Guid.Empty, cancellationToken);
+
+            // Even if the specific agent doesn't exist, the repository should respond
+            if (testResult.IsSuccess || testResult.Errors.Any(e => e.Contains("not found")))
+            {
+                _logger.LogDebug("Agent health check passed");
+                return HealthCheckResult.Healthy("Agent service is healthy");
+            }
+            else
+            {
+                _logger.LogWarning("Agent health check failed: {Errors}", string.Join(", ", testResult.Errors));
+                return HealthCheckResult.Unhealthy("Agent service is unhealthy",
+                    new Exception(string.Join(", ", testResult.Errors)));
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Agent health check threw exception");
+            return HealthCheckResult.Unhealthy("Agent service health check failed", ex);
+        }
+    }
+}
+
+// Health check registration
+public static class HealthCheckExtensions
+{
+    public static IServiceCollection AddAgentHealthChecks(this IServiceCollection services)
+    {
+        services.AddHealthChecks()
+            .AddCheck<AgentHealthCheck>("agent_service", tags: new[] { "agent", "service" })
+            .AddCheck<DatabaseHealthCheck>("database", tags: new[] { "database" })
+            .AddCheck<ExternalServiceHealthCheck>("external_service", tags: new[] { "external" });
+
+        return services;
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No health checks
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository)
+    {
+        _logger = logger;
+        _repository = repository;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        // No health check or monitoring
+        var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use distributed tracing for request correlation
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Distributed tracing with OpenTelemetry
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+    private readonly ActivitySource _activitySource;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository, ActivitySource activitySource)
+    {
+        _logger = logger;
+        _repository = repository;
+        _activitySource = activitySource;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        using var activity = _activitySource.StartActivity("CreateAgent");
+        activity?.SetTag("agent.name", name);
+        activity?.SetTag("agent.capabilities", capabilities.ToString());
+
+        try
+        {
+            _logger.LogInformation("Creating agent: {AgentName}", name);
+
+            var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                activity?.SetTag("agent.id", result.Value.Id.ToString());
+                activity?.SetStatus(ActivityStatusCode.Ok);
+
+                _logger.LogInformation("Agent created successfully: {AgentId}", result.Value.Id);
+            }
+            else
+            {
+                activity?.SetStatus(ActivityStatusCode.Error, string.Join(", ", result.Errors));
+                _logger.LogError("Agent creation failed: {AgentName}, Errors: {Errors}",
+                    name, string.Join(", ", result.Errors));
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            activity?.RecordException(ex);
+            _logger.LogError(ex, "Agent creation threw exception: {AgentName}", name);
+            throw;
+        }
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No distributed tracing
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository)
+    {
+        _logger = logger;
+        _repository = repository;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", name);
+
+        var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Implement performance counters and custom metrics
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Custom performance counters and metrics
+public class AgentMetrics
+{
+    private readonly Meter _meter;
+    private readonly Counter<long> _totalRequests;
+    private readonly Counter<long> _successfulRequests;
+    private readonly Counter<long> _failedRequests;
+    private readonly Histogram<double> _requestDuration;
+    private readonly UpDownCounter<long> _concurrentRequests;
+
+    public AgentMetrics(Meter meter)
+    {
+        _meter = meter;
+        _totalRequests = _meter.CreateCounter<long>("agent_requests_total", "Total agent requests");
+        _successfulRequests = _meter.CreateCounter<long>("agent_requests_successful", "Successful agent requests");
+        _failedRequests = _meter.CreateCounter<long>("agent_requests_failed", "Failed agent requests");
+        _requestDuration = _meter.CreateHistogram<double>("agent_request_duration_ms", "Agent request duration");
+        _concurrentRequests = _meter.CreateUpDownCounter<long>("agent_concurrent_requests", "Concurrent agent requests");
+    }
+
+    public void RecordRequest(string operation, bool success, double durationMs)
+    {
+        var tags = new KeyValuePair<string, object?>[] { new("operation", operation) };
+
+        _totalRequests.Add(1, tags);
+        _requestDuration.Record(durationMs, tags);
+
+        if (success)
+        {
+            _successfulRequests.Add(1, tags);
+        }
+        else
+        {
+            _failedRequests.Add(1, tags);
+        }
+    }
+
+    public IDisposable TrackConcurrentRequest(string operation)
+    {
+        var tags = new KeyValuePair<string, object?>[] { new("operation", operation) };
+        _concurrentRequests.Add(1, tags);
+
+        return new DisposableAction(() => _concurrentRequests.Add(-1, tags));
+    }
+}
+
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+    private readonly AgentMetrics _metrics;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository, AgentMetrics metrics)
+    {
+        _logger = logger;
+        _repository = repository;
+        _metrics = metrics;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        var stopwatch = Stopwatch.StartNew();
+
+        using (_metrics.TrackConcurrentRequest("CreateAgent"))
+        {
+            try
+            {
+                _logger.LogInformation("Creating agent: {AgentName}", name);
+
+                var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+                stopwatch.Stop();
+                _metrics.RecordRequest("CreateAgent", result.IsSuccess, stopwatch.ElapsedMilliseconds);
+
+                if (result.IsSuccess)
+                {
+                    _logger.LogInformation("Agent created successfully: {AgentId}", result.Value.Id);
+                }
+                else
+                {
+                    _logger.LogError("Agent creation failed: {AgentName}, Errors: {Errors}",
+                        name, string.Join(", ", result.Errors));
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                _metrics.RecordRequest("CreateAgent", false, stopwatch.ElapsedMilliseconds);
+                _logger.LogError(ex, "Agent creation threw exception: {AgentName}", name);
+                throw;
+            }
+        }
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No performance metrics
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository)
+    {
+        _logger = logger;
+        _repository = repository;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", name);
+
+        var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Use custom dimensions and labels for metrics
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Custom dimensions and labels for metrics
+public class AgentMetrics
+{
+    private readonly Meter _meter;
+    private readonly Counter<long> _agentOperations;
+    private readonly Histogram<double> _operationDuration;
+
+    public AgentMetrics(Meter meter)
+    {
+        _meter = meter;
+        _agentOperations = _meter.CreateCounter<long>("agent_operations_total", "Total agent operations");
+        _operationDuration = _meter.CreateHistogram<double>("agent_operation_duration_ms", "Agent operation duration");
+    }
+
+    public void RecordOperation(string operation, string agentType, string environment, bool success, double durationMs)
+    {
+        var tags = new KeyValuePair<string, object?>[]
+        {
+            new("operation", operation),
+            new("agent_type", agentType),
+            new("environment", environment),
+            new("success", success)
+        };
+
+        _agentOperations.Add(1, tags);
+        _operationDuration.Record(durationMs, tags);
+    }
+}
+
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+    private readonly AgentMetrics _metrics;
+    private readonly string _environment;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository, AgentMetrics metrics, IConfiguration configuration)
+    {
+        _logger = logger;
+        _repository = repository;
+        _metrics = metrics;
+        _environment = configuration["Environment"] ?? "Unknown";
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        var stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            _logger.LogInformation("Creating agent: {AgentName}, Type: {AgentType}", name, capabilities.Type);
+
+            var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+            stopwatch.Stop();
+            _metrics.RecordOperation("CreateAgent", capabilities.Type, _environment, result.IsSuccess, stopwatch.ElapsedMilliseconds);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation("Agent created successfully: {AgentId}", result.Value.Id);
+            }
+            else
+            {
+                _logger.LogError("Agent creation failed: {AgentName}, Errors: {Errors}",
+                    name, string.Join(", ", result.Errors));
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            _metrics.RecordOperation("CreateAgent", capabilities.Type, _environment, false, stopwatch.ElapsedMilliseconds);
+            _logger.LogError(ex, "Agent creation threw exception: {AgentName}", name);
+            throw;
+        }
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No custom dimensions or labels
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository)
+    {
+        _logger = logger;
+        _repository = repository;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", name);
+
+        var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>

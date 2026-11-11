@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+	<ItemGroup>
+		<!-- Azure SDK packages -->
+		<PackageVersion Include="AngleSharp" Version="1.5.0" />
+		<PackageVersion Include="Azure.Identity" Version="1.21.0" />
+		<PackageVersion Include="Azure.Security.KeyVault.Certificates" Version="4.9.0" />
+		<!-- BouncyCastle for cryptographic operations (stable 2.7.0; also required by SSH.NET 2026.0.0) -->
+		<PackageVersion Include="BouncyCastle.Cryptography" Version="2.7.0" />
+		<!-- Direct pin to override vulnerable transitive 9.0.0 (NU1903: GHSA-37gx-xxp4-5rgx, GHSA-w3x6-4m5h-cxqf) -->
+		<PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.8" />
+		<!-- ClosedXML for Excel file manipulation -->
+		<PackageVersion Include="ClosedXML" Version="0.105.0" />
+		<!-- CSnakes for Python interop -->
+		<PackageVersion Include="CSnakes.Runtime" Version="1.2.1" />
+		<!-- Open XML SDK for working with Word, Excel, PowerPoint files -->
+		<PackageVersion Include="DocumentFormat.OpenXml" Version="3.5.1" />
+		<!-- Fuzzy string matching library -->
+		<PackageVersion Include="FluentAssertions" Version="8.8.0" />
+		<PackageVersion Include="FuzzySharp" Version="2.0.2" />
+		<!-- IndQuest Results processing library -->
+		<PackageVersion Include="IndFusion.Ember" Version="0.1.0" />
+		<PackageVersion Include="IndQuestResults" Version="1.3.0" />
+		<!-- MudBlazor held at 8.x: 9.x is a major UI migration (ChartSeries<T> generic, ActivatorContent renamed, runtime/visual changes) needing dedicated work + visual testing. StaticInput 4.x requires MudBlazor 9. -->
+		<PackageVersion Include="MudBlazor" Version="8.11" />
+		<PackageVersion Include="Extensions.MudBlazor.StaticInput" Version="3.2.1" />
+		<!-- Serializacion Pacakges -->
+		<PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
+		<!-- Reactive Extensions for event-driven architecture -->
+		<PackageVersion Include="System.Reactive" Version="6.1.0" />
+		<!-- PDF generation and processing packages -->
+		<PackageVersion Include="PdfSharp" Version="6.2.4" />
+		<PackageVersion Include="PdfPig" Version="0.1.14" />
+		<!-- Held at 3.1.12: ImageSharp 4.x requires a PAID commercial license (enforced at build via SixLaborsLicenseKey). Upgrading is a licensing/business decision. -->
+		<PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
+		<!-- Tesseract OCR engine -->
+		<PackageVersion Include="Tesseract" Version="5.2.0" />
+		<!-- PDFtoImage for PDF rendering (cross-platform, high-level API) -->
+		<PackageVersion Include="PDFtoImage" Version="5.2.1" />
+		<!-- ZXing.Net for QR-code / barcode encode-decode (Veriqan Story 1.4) -->
+		<PackageVersion Include="ZXing.Net" Version="0.16.11" />
+		<!-- CoenM.ImageSharp.ImageHash for perceptual image hashing over SixLabors.ImageSharp (Veriqan Story 1.4) -->
+		<PackageVersion Include="CoenM.ImageSharp.ImageHash" Version="1.3.6" />
+		<!-- PublicHoliday for holiday-aware business-day calendar (Mexico federal holidays) -->
+		<PackageVersion Include="PublicHoliday" Version="3.13.0" />
+		<!-- Polly for resilience and transient-fault-handling -->
+		<PackageVersion Include="Polly" Version="8.6.6" />
+		<!-- Drawing elements  -->
+		<PackageVersion Include="System.Drawing.Common" Version="10.0.8" />
+		<!-- OllamaSharp for Ollama LLM integration -->
+		<PackageVersion Include="OllamaSharp" Version="5.4.11" />
+		<!-- Microsoft Extensions packages -->
+		<!-- Microsoft ASP.NET Core packages -->
+		<PackageVersion Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.8" />
+		<PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.8" />
+		<!-- ASP.NET Core MVC and SignalR -->
+		<PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.8" />
+		<PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
+		<!-- Transitive pin: Microsoft.AspNetCore.OpenApi 10.0.8 pulls Microsoft.OpenApi 2.0.0,
+		     which has high-severity advisory GHSA-v5pm-xwqc-g5wc (circular-schema parse hang,
+		     vulnerable <= 2.7.4). Pin to the first patched 2.x. Requires CentralPackageTransitivePinningEnabled. -->
+		<PackageVersion Include="Microsoft.OpenApi" Version="2.7.5" />
+		<PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.8" />
+		<PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.8" />
+		<!-- ASP.NET Core Authentication and JWT -->
+		<PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
+		<PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
+		<!-- Microsoft Entity Framework Core packages -->
+		<PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.8" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.8" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.8" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.8" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.8" />
+		<!--Microsoft driver for SQL Server-->
+		<PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.1" />
+		<!-- Microsoft Extensions AI packages -->
+		<PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="10.6.0" />
+		<PackageVersion Include="Microsoft.ML.Tokenizers" Version="2.0.0" />
+		<!-- Microsoft configuration packages -->
+		<PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.8" />
+		<!-- Microsoft.Extensions.Configuration: ConfigurationBuilder/AddInMemoryCollection concrete
+		     implementation (VLD-S1 proof test builds an in-memory IConfiguration for AddVeriqan). -->
+		<PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.8" />
+		<PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.8" />
+		<PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.8" />
+		<!-- Microsoft Dependency Injection packages -->
+		<PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
+		<PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
+		<!-- Microsoft Diagnostics packages -->
+		<PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" Version="10.0.8" />
+		<!--Microsoft Hosting packages -->
+		<PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.8" />
+		<PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.8" />
+		<!-- Microsoft HTTP Client Factory -->
+		<PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.8" />
+		<!-- Microsoft Logging packages -->
+		<PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.8" />
+		<PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.8" />
+		<PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.8" />
+		<!-- Microsof Testing packages -->
+		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+		<PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.6.0" />
+		<PackageVersion Include="Microsoft.Playwright" Version="1.60.0" />
+		<!-- Microsoft Testing Platform — MTP v2 (2.0.2), aligned with xunit.v3.mtp-v2 3.2.2.
+		     ABI lockstep: MTP packages MUST match the version xunit's mtp-v2 was compiled against (2.0.2). -->
+		<PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.5.2" />
+		<PackageVersion Include="Microsoft.Testing.Extensions.HangDump" Version="2.1.0" />
+		<PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="2.1.0" />
+		<PackageVersion Include="Microsoft.Testing.Extensions.VSTestBridge" Version="2.1.0" />
+		<PackageVersion Include="Microsoft.Testing.Platform.MSBuild" Version="2.1.0" />
+		<PackageVersion Include="Microsoft.Testing.Platform" Version="2.1.0" />
+		<!-- Serilog logging packages -->
+		<PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
+		<PackageVersion Include="Serilog.Settings.Configuration" Version="10.0.0" />
+		<PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
+		<PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
+		<PackageVersion Include="Serilog" Version="4.3.1" />
+		<PackageVersion Include="Serilog.Extensions.Hosting" Version="10.0.0" />
+		<PackageVersion Include="Serilog.Sinks.Seq" Version="9.1.0" />
+		<!-- Serilog SQL Server sink — G-S2 audit durability (structured log rows alongside the ledger audit table) -->
+		<PackageVersion Include="Serilog.Sinks.MSSqlServer" Version="8.0.0" />
+		<!-- Testing and test related packages -->
+		<!-- Meziantou.Extensions.Logging.Xunit for logging in xUnit tests -->
+		<PackageVersion Include="Meziantou.Extensions.Logging.Xunit.v3" Version="2.0.1" />
+		<!-- Moq for mocking in unit tests -->
+		<PackageVersion Include="NSubstitute" Version="5.3.0" />
+		<PackageVersion Include="NSubstitute.Analyzers.CSharp" Version="1.0.17" />
+		<!-- NetArchTest for architecture testing -->
+		<PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
+		<!-- Shouldly for assertions in unit tests -->
+		<PackageVersion Include="Shouldly" Version="4.3.0" />
+		<!-- bUnit for Blazor component render tests (VLD-S4b). 2.7.2 targets net10.0 explicitly
+		     (verified via nuspec) and is a self-contained TestContext, so it does not need to hook
+		     into xunit's MTP runner discovery — only instantiated as a plain object inside a normal
+		     xunit.v3.mtp-v2 [Fact]. -->
+		<PackageVersion Include="bunit" Version="2.7.2" />
+		<!-- Stryker.NET for mutation testing -->
+		<PackageVersion Include="StrykerMutator.Core" Version="0.9.0" />
+		<!-- Coverlet for code coverage -->
+		<PackageVersion Include="coverlet.collector" Version="6.0.4" />
+		<!-- Testcontainers held at 4.9.0: 4.12 obsoletes the parameterless builder ctors (CS0618-as-error); image is already set via .WithImage() -->
+		<PackageVersion Include="Testcontainers" Version="4.9.0" />
+		<!-- Transitive pin (via Testcontainers): SSH.NET <= 2025.1.0 has GHSA-q939-rpr3-3284 / GHSA-mggc-4xg6-vcxf (ScpClient). -->
+		<PackageVersion Include="SSH.NET" Version="2026.0.0" />
+		<PackageVersion Include="Testcontainers.MsSql" Version="4.9.0" />
+		<PackageVersion Include="Testcontainers.Ollama" Version="4.9.0" />
+		<!-- EmguCV 4.13.0.5924: required for the Emgu.CV.runtime.ubuntu-26.04-x64 native package
+		     (natives built against Ubuntu 26.04 soversions — the generic ubuntu-x64 build needs
+		     FFmpeg.58/VTK-9.1/HDF5-103 which 26.04 doesn't ship). 4.13 added a bitShift arg to
+		     CvInvoke.CLAHE (default 0 = classic 8-bit behavior); the one call site passes 0. -->
+		<PackageVersion Include="Emgu.CV" Version="4.13.0.5924" />
+		<PackageVersion Include="Emgu.CV.Contrib" Version="4.13.0.5924" />
+		<PackageVersion Include="Emgu.CV.runtime.windows" Version="4.13.0.5924" />
+		<PackageVersion Include="Emgu.CV.runtime.ubuntu-26.04-x64" Version="4.13.0.5924" />
+		<!-- O1 (+ Web.UI follow-up): the production container images run on aspnet:10.0 (Ubuntu 24.04
+		     noble), not the 26.04 dev box, so they need the 24.04-built native instead of the 26.04 one
+		     above. Verified on NuGet to exist at the exact same pinned Emgu version. Selected via the
+		     EmguLinuxRuntimePackage MSBuild property (Infrastructure.Imaging.csproj), passed as
+		     -p:EmguLinuxRuntimePackage=Emgu.CV.runtime.ubuntu-24.04-x64 by BOTH the Athena Worker and
+		     Web.UI Dockerfiles (any image shipping Infrastructure.Imaging on a noble base needs it). -->
+		<PackageVersion Include="Emgu.CV.runtime.ubuntu-24.04-x64" Version="4.13.0.5924" />
+		<!-- xUnit testing framework packages -->
+		<!-- xUnit v3 3.2.2 with the Microsoft.Testing.Platform v2 variant (xunit.v3.mtp-v2).
+		     Test projects reference xunit.v3.mtp-v2 instead of the default xunit.v3 (which is mtp-v1). -->
+		<PackageVersion Include="xunit.v3" Version="3.2.2" />
+		<PackageVersion Include="xunit.v3.mtp-v2" Version="3.2.2" />
+		<PackageVersion Include="xunit.v3.core" Version="3.2.2" />
+		<PackageVersion Include="xunit.v3.extensibility.core" Version="3.2.2" />
+		<PackageVersion Include="xunit.v3.runner.inproc.console" Version="3.2.2" />
+		<PackageVersion Include="xunit.v3.runner.msbuild" Version="3.2.2" />
+		<PackageVersion Include="xunit.analyzers" Version="1.27.0" />
+		<PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+		<!-- OpenTelemetry packages for telemetry and distributed tracing -->
+		<PackageVersion Include="OpenTelemetry" Version="1.15.3" />
+		<PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />
+		<PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
+		<PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.2" />
+		<PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.15.1" />
+		<PackageVersion Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.14.0-beta.2" />
+		<!-- Note: SignalR instrumentation is included in ASP.NET Core instrumentation, no separate package needed -->
+		<PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
+		<PackageVersion Include="OpenTelemetry.Instrumentation.Process" Version="1.14.0-beta.2" />
+		<PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.15.3" />
+		<PackageVersion Include="OpenTelemetry.Instrumentation.EventCounters" Version="1.0.0-beta.1" />
+		<!-- Scrutor for assembly scanning and decoration -->
+		<PackageVersion Include="Scrutor" Version="7.0.0" />
+		<!-- JSON Schema validation (json-everything; System.Text.Json-native; draft 2020-12) — Veriqan Story 2.2 -->
+		<PackageVersion Include="JsonSchema.Net" Version="7.3.3" />
+		<!-- CSV parsing — Veriqan Story 2.2 -->
+		<PackageVersion Include="CsvHelper" Version="33.0.1" />
+		<!-- MinVer: git-tag-driven SemVer, referenced solution-wide from Directory.Build.props (O7).
+		     Stamps AssemblyInformationalVersionAttribute with full SemVer + build metadata so
+		     provenance fields (e.g. Veriqan JobVerdict/Finding.EngineVersion) discriminate builds
+		     instead of the constant 4-part AssemblyVersion. -->
+		<PackageVersion Include="MinVer" Version="7.0.0" />
+	</ItemGroup>
+</Project>

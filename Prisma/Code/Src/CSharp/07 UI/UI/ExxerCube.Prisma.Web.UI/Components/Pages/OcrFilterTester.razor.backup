@@ -1,0 +1,591 @@
+
+@page "/ocr-filter-tester"
+@using ExxerCube.Prisma.Domain.Interfaces
+@using ExxerCube.Prisma.Domain.Enum
+@using ExxerCube.Prisma.Domain.Models
+@using ExxerCube.Prisma.Domain.ValueObjects
+@using ExxerCube.Prisma.Infrastructure.Imaging.Filters
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Logging
+@using System.Diagnostics
+@inject IOcrExecutor OcrExecutor
+@inject IImageQualityAnalyzer QualityAnalyzer
+@inject IImageEnhancementFilter EnhancementFilter
+@inject ITextComparer TextComparer
+@inject ISnackbar Snackbar
+@inject ILogger<OcrFilterTester> Logger
+@inject IServiceProvider ServiceProvider
+
+<PageTitle>OCR Filter Tester - Analytical Enhancement</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudPaper Class="pa-6" Elevation="3">
+        <MudText Typo="Typo.h3" GutterBottom="true">
+            <MudIcon Icon="@Icons.Material.Filled.ImageSearch" Class="mr-2" />
+            OCR Filter Tester
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            Upload a degraded document image to test OCR improvement with analytical filter selection.
+            The system will automatically select the optimal filter based on NSGA-II optimization data.
+        </MudText>
+
+        <MudDivider Class="my-4" />
+
+        <!-- Upload Section -->
+        <MudPaper Class="pa-4 mb-4" Outlined="true">
+            <MudText Typo="Typo.h6" GutterBottom="true">
+                <MudIcon Icon="@Icons.Material.Filled.Upload" Class="mr-2" />
+                Step 1: Upload Degraded Image
+            </MudText>
+            <MudFileUpload T="IBrowserFile" FilesChanged="HandleFileUpload" Accept=".png,.jpg,.jpeg">
+                <ActivatorContent>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.CloudUpload"
+                               Disabled="@_isProcessing">
+                        Select Image
+                    </MudButton>
+                </ActivatorContent>
+            </MudFileUpload>
+            @if (_uploadedFileName != null)
+            {
+                <MudChip T="string" Size="Size.Small" Color="Color.Success" Class="mt-2">
+                    @_uploadedFileName
+                </MudChip>
+            }
+        </MudPaper>
+
+        @if (_uploadedImageBytes != null)
+        {
+            <!-- Original Image Display -->
+            <MudPaper Class="pa-4 mb-4" Outlined="true">
+                <MudText Typo="Typo.h6" GutterBottom="true">
+                    <MudIcon Icon="@Icons.Material.Filled.Image" Class="mr-2" />
+                    Original Degraded Image
+                </MudText>
+                <div class="d-flex justify-center">
+                    <img src="@GetImageDataUrl(_uploadedImageBytes)" alt="Original Image"
+                         style="max-width: 100%; max-height: 500px; border: 1px solid #ddd;" />
+                </div>
+            </MudPaper>
+
+            <!-- Filter Selection and Configuration -->
+            <MudPaper Class="pa-4 mb-4" Outlined="true" Style="background-color: #e7f3ff;">
+                <MudText Typo="Typo.h6" GutterBottom="true" Color="Color.Primary">
+                    <MudIcon Icon="@Icons.Material.Filled.Settings" Class="mr-2" />
+                    Filter Selection & Configuration
+                </MudText>
+
+                <MudRadioGroup T="FilterSelectionMode" @bind-Value="_filterSelectionMode">
+                    <MudRadio T="FilterSelectionMode" Value="FilterSelectionMode.Analytical" Color="Color.Info">
+                        <MudText><strong>Analytical (Auto)</strong> - NSGA-II optimized selection</MudText>
+                    </MudRadio>
+                    <MudRadio T="FilterSelectionMode" Value="FilterSelectionMode.Manual" Color="Color.Primary">
+                        <MudText><strong>Manual</strong> - Choose filter and adjust parameters</MudText>
+                    </MudRadio>
+                </MudRadioGroup>
+
+                @if (_filterSelectionMode == FilterSelectionMode.Manual)
+                {
+                    <MudDivider Class="my-3" />
+
+                    <MudSelect T="ImageFilterType" @bind-Value="_manualFilterType" Label="Filter Type" Variant="Variant.Outlined" Class="mb-3">
+                        <MudSelectItem T="ImageFilterType" Value="@ImageFilterType.None">None (No Filter)</MudSelectItem>
+                        <MudSelectItem T="ImageFilterType" Value="@ImageFilterType.PilSimple">PIL Simple Enhancement</MudSelectItem>
+                        <MudSelectItem T="ImageFilterType" Value="@ImageFilterType.OpenCvAdvanced">OpenCV Advanced Enhancement</MudSelectItem>
+                        <MudSelectItem T="ImageFilterType" Value="@ImageFilterType.Adaptive">Adaptive (Auto-selects based on quality)</MudSelectItem>
+                    </MudSelect>
+
+                    @if (_manualFilterType == ImageFilterType.PilSimple)
+                    {
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">PIL Simple Filter Parameters:</MudText>
+                        <MudSlider T="double" @bind-Value="_pilContrastFactor" Min="0.5" Max="3.0" Step="0.1"
+                                   ValueLabel="true" Color="Color.Primary">
+                            Contrast Factor: @_pilContrastFactor.ToString("F2")
+                        </MudSlider>
+                        <MudSlider T="int" @bind-Value="_pilMedianSize" Min="1" Max="9" Step="2"
+                                   ValueLabel="true" Color="Color.Primary">
+                            Median Filter Size: @_pilMedianSize
+                        </MudSlider>
+                    }
+                    else if (_manualFilterType == ImageFilterType.OpenCvAdvanced)
+                    {
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">OpenCV Advanced Filter Parameters:</MudText>
+                        <MudSlider T="int" @bind-Value="_opencvDenoiseH" Min="1" Max="20" Step="1"
+                                   ValueLabel="true" Color="Color.Primary">
+                            Denoise H: @_opencvDenoiseH
+                        </MudSlider>
+                        <MudSlider T="double" @bind-Value="_opencvClaheClip" Min="1.0" Max="5.0" Step="0.5"
+                                   ValueLabel="true" Color="Color.Primary">
+                            CLAHE Clip Limit: @_opencvClaheClip.ToString("F1")
+                        </MudSlider>
+                        <MudSlider T="int" @bind-Value="_opencvBilateralD" Min="5" Max="15" Step="2"
+                                   ValueLabel="true" Color="Color.Primary">
+                            Bilateral D: @_opencvBilateralD
+                        </MudSlider>
+                    }
+                }
+            </MudPaper>
+
+            <!-- Process Button -->
+            <div class="d-flex justify-center mb-4">
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary"
+                           Size="Size.Large"
+                           StartIcon="@Icons.Material.Filled.PlayArrow"
+                           OnClick="ProcessImage"
+                           Disabled="@_isProcessing">
+                    @if (_isProcessing)
+                    {
+                        <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                        <span>Processing...</span>
+                    }
+                    else
+                    {
+                        <span>Run OCR Analysis</span>
+                    }
+                </MudButton>
+            </div>
+        }
+
+        @if (_baselineOcrText != null)
+        {
+            <!-- Baseline OCR Results -->
+            <MudPaper Class="pa-4 mb-4" Outlined="true" Style="background-color: #fff3cd;">
+                <MudText Typo="Typo.h6" GutterBottom="true" Color="Color.Warning">
+                    <MudIcon Icon="@Icons.Material.Filled.Warning" Class="mr-2" />
+                    Step 2: Baseline OCR Results (No Filter)
+                </MudText>
+                <MudText Typo="Typo.body2" Class="mb-2">
+                    <strong>Elapsed Time:</strong> @_baselineElapsedMs ms
+                </MudText>
+                <MudPaper Class="pa-3" Elevation="0" Style="background-color: white; color: #333; font-family: monospace; max-height: 200px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;">
+                    @_baselineOcrText
+                </MudPaper>
+            </MudPaper>
+
+            <!-- Quality Assessment -->
+            <MudPaper Class="pa-4 mb-4" Outlined="true">
+                <MudText Typo="Typo.h6" GutterBottom="true">
+                    <MudIcon Icon="@Icons.Material.Filled.Analytics" Class="mr-2" />
+                    Step 3: Image Quality Analysis
+                </MudText>
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudText><strong>Quality Level:</strong> @(_qualityAssessment?.QualityLevel?.DisplayName ?? "N/A")</MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudText><strong>Confidence:</strong> @_qualityAssessment?.Confidence.ToString("P1")</MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudText><strong>Blur Score:</strong> @_qualityAssessment?.BlurScore.ToString("F2")</MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudText><strong>Noise Level:</strong> @_qualityAssessment?.NoiseLevel.ToString("F2")</MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudText><strong>Contrast:</strong> @_qualityAssessment?.ContrastLevel.ToString("F2")</MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudText><strong>Sharpness:</strong> @_qualityAssessment?.SharpnessLevel.ToString("F2")</MudText>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+
+            <!-- Selected Filter Info -->
+            <MudPaper Class="pa-4 mb-4" Outlined="true" Style="background-color: #d1ecf1;">
+                <MudText Typo="Typo.h6" GutterBottom="true" Color="Color.Info">
+                    <MudIcon Icon="@Icons.Material.Filled.FilterAlt" Class="mr-2" />
+                    Step 4: Applied Filter Configuration
+                </MudText>
+                <MudText Class="mb-2">
+                    <strong>Selection Mode:</strong> @(_filterSelectionMode == FilterSelectionMode.Analytical ? "Analytical (Auto)" : "Manual")
+                </MudText>
+                <MudText Class="mb-2">
+                    <strong>Filter Type:</strong> @(_selectedFilterConfig?.FilterType?.DisplayName ?? "N/A")
+                </MudText>
+                @if (_selectedFilterConfig?.FilterType == ImageFilterType.PilSimple)
+                {
+                    <MudText><strong>PIL Contrast Factor:</strong> @_selectedFilterConfig.PilParams.ContrastFactor.ToString("F4")</MudText>
+                    <MudText><strong>PIL Median Size:</strong> @_selectedFilterConfig.PilParams.MedianSize</MudText>
+                }
+                else if (_selectedFilterConfig?.FilterType == ImageFilterType.OpenCvAdvanced)
+                {
+                    <MudText><strong>Denoise H:</strong> @_selectedFilterConfig.OpenCvParams.DenoiseH</MudText>
+                    <MudText><strong>CLAHE Clip:</strong> @_selectedFilterConfig.OpenCvParams.ClaheClip.ToString("F1")</MudText>
+                    <MudText><strong>Bilateral D:</strong> @_selectedFilterConfig.OpenCvParams.BilateralD</MudText>
+                }
+                <MudAlert Severity="@(_filterSelectionMode == FilterSelectionMode.Analytical ? Severity.Info : Severity.Success)" Class="mt-2">
+                    @if (_filterSelectionMode == FilterSelectionMode.Analytical)
+                    {
+                        <text>Filter automatically selected based on NSGA-II baseline testing data (820 OCR runs)</text>
+                    }
+                    else
+                    {
+                        <text>Manual filter configuration applied with user-specified parameters</text>
+                    }
+                </MudAlert>
+            </MudPaper>
+        }
+
+        @if (_enhancedImageBytes != null)
+        {
+            <!-- Enhanced Image Display -->
+            <MudPaper Class="pa-4 mb-4" Outlined="true">
+                <MudText Typo="Typo.h6" GutterBottom="true">
+                    <MudIcon Icon="@Icons.Material.Filled.AutoFixHigh" Class="mr-2" />
+                    Step 5: Enhanced Image (After Filter)
+                </MudText>
+                <div class="d-flex justify-center">
+                    <img src="@GetImageDataUrl(_enhancedImageBytes)" alt="Enhanced Image"
+                         style="max-width: 100%; max-height: 500px; border: 1px solid #ddd;" />
+                </div>
+            </MudPaper>
+
+            <!-- Enhanced OCR Results -->
+            <MudPaper Class="pa-4 mb-4" Outlined="true" Style="background-color: #d4edda;">
+                <MudText Typo="Typo.h6" GutterBottom="true" Color="Color.Success">
+                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Class="mr-2" />
+                    Step 6: Enhanced OCR Results (After Filter)
+                </MudText>
+                <MudText Typo="Typo.body2" Class="mb-2">
+                    <strong>Elapsed Time:</strong> @_enhancedElapsedMs ms
+                </MudText>
+                <MudPaper Class="pa-3" Elevation="0" Style="background-color: white; color: #333; font-family: monospace; max-height: 200px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;">
+                    @_enhancedOcrText
+                </MudPaper>
+            </MudPaper>
+
+            <!-- Improvement Summary -->
+            <MudPaper Class="pa-4 mb-4" Outlined="true" Style="@GetSummaryBackgroundColor()">
+                <MudText Typo="Typo.h5" GutterBottom="true" Color="@(_improvementPercent > 0 ? Color.Success : Color.Error)">
+                    <MudIcon Icon="@(_improvementPercent > 0 ? Icons.Material.Filled.TrendingUp : Icons.Material.Filled.TrendingDown)" Class="mr-2" />
+                    Results Summary
+                </MudText>
+                <MudGrid>
+                    <MudItem xs="12" md="4">
+                        <MudText Typo="Typo.h6">Baseline Quality Score</MudText>
+                        <MudText Typo="Typo.h4" Color="Color.Warning">@_baselineQualityScore.ToString("F2")</MudText>
+                        <MudText Typo="Typo.caption" Class="mt-1">Max: 100</MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudText Typo="Typo.h6">Enhanced Quality Score</MudText>
+                        <MudText Typo="Typo.h4" Color="Color.Success">@_enhancedQualityScore.ToString("F2")</MudText>
+                        <MudText Typo="Typo.caption" Class="mt-1">Max: 100</MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudText Typo="Typo.h6">Quality Improvement</MudText>
+                        <MudText Typo="Typo.h4" Color="@(_improvementPercent > 0 ? Color.Success : Color.Error)">
+                            @(_improvementPercent > 0 ? "+" : "")@_improvementPercent.ToString("F2")%
+                        </MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudText Typo="Typo.h6">Text Difference</MudText>
+                        <MudText Typo="Typo.body1">@_baselineEditDistance characters changed</MudText>
+                        <MudText Typo="Typo.caption" Class="mt-1">Levenshtein distance between baseline and enhanced text</MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudText Typo="Typo.h6">Quality Score Metrics</MudText>
+                        <MudText Typo="Typo.body2">• 40% Alphanumeric ratio</MudText>
+                        <MudText Typo="Typo.body2">• 20% Whitespace balance</MudText>
+                        <MudText Typo="Typo.body2">• 20% Special char penalty</MudText>
+                        <MudText Typo="Typo.body2">• 20% Word validity</MudText>
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudAlert Severity="@(_improvementPercent > 0 ? Severity.Success : Severity.Error)" Class="mt-2">
+                            @if (_improvementPercent > 0)
+                            {
+                                <text><strong>Success!</strong> The analytical filter improved OCR text quality from @_baselineQualityScore.ToString("F2") to @_enhancedQualityScore.ToString("F2") (@_improvementPercent.ToString("F2")% improvement). The text changed by @_baselineEditDistance characters.</text>
+                            }
+                            else if (_improvementPercent < 0)
+                            {
+                                <text><strong>Quality Decreased:</strong> The filter reduced quality from @_baselineQualityScore.ToString("F2") to @_enhancedQualityScore.ToString("F2") (@_improvementPercent.ToString("F2")% change). This may indicate the image was already high quality.</text>
+                            }
+                            else
+                            {
+                                <text><strong>No Change:</strong> The filter did not affect text quality. Both baseline and enhanced scored @_baselineQualityScore.ToString("F2").</text>
+                            }
+                        </MudAlert>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+
+            <!-- Detailed Log -->
+            @if (_processingLog.Count > 0)
+            {
+                <MudExpansionPanels Class="mt-4">
+                    <MudExpansionPanel Text="Detailed Processing Log">
+                        <MudList T="string" Dense="true">
+                            @foreach (var logEntry in _processingLog)
+                            {
+                                <MudListItem T="string">
+                                    <MudText Typo="Typo.body2" Style="font-family: monospace;">@logEntry</MudText>
+                                </MudListItem>
+                            }
+                        </MudList>
+                    </MudExpansionPanel>
+                </MudExpansionPanels>
+            }
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private enum FilterSelectionMode
+    {
+        Analytical,
+        Manual
+    }
+
+    private byte[]? _uploadedImageBytes;
+    private string? _uploadedFileName;
+    private bool _isProcessing;
+
+    // Filter selection
+    private FilterSelectionMode _filterSelectionMode = FilterSelectionMode.Analytical;
+    private ImageFilterType _manualFilterType = ImageFilterType.PilSimple;
+
+    // PIL Simple parameters (defaults from NSGA-II)
+    private double _pilContrastFactor = 1.5;
+    private int _pilMedianSize = 3;
+
+    // OpenCV Advanced parameters (defaults from NSGA-II)
+    private int _opencvDenoiseH = 10;
+    private double _opencvClaheClip = 2.0;
+    private int _opencvBilateralD = 9;
+
+    private string? _baselineOcrText;
+    private long _baselineElapsedMs;
+    private int _baselineEditDistance;
+    private double _baselineQualityScore;
+
+    private ImageQualityAssessment? _qualityAssessment;
+    private ImageFilterConfig? _selectedFilterConfig;
+
+    private byte[]? _enhancedImageBytes;
+    private string? _enhancedOcrText;
+    private long _enhancedElapsedMs;
+    private int _enhancedEditDistance;
+    private double _enhancedQualityScore;
+
+    private double _improvementPercent;
+    private List<string> _processingLog = new();
+
+    private async Task HandleFileUpload(IBrowserFile file)
+    {
+        try
+        {
+            _uploadedFileName = file.Name;
+
+            using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB max
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            _uploadedImageBytes = ms.ToArray();
+
+            // Reset results
+            _baselineOcrText = null;
+            _enhancedOcrText = null;
+            _enhancedImageBytes = null;
+            _processingLog.Clear();
+
+            Snackbar.Add($"Image uploaded: {file.Name} ({file.Size / 1024} KB)", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error uploading file");
+            Snackbar.Add($"Error uploading file: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ProcessImage()
+    {
+        if (_uploadedImageBytes == null) return;
+
+        _isProcessing = true;
+        _processingLog.Clear();
+
+        try
+        {
+            AddLog("=== Starting OCR Filter Analysis ===");
+
+            // Step 1: Baseline OCR
+            AddLog("Step 1: Running baseline OCR (no filter)...");
+            var baselineStopwatch = Stopwatch.StartNew();
+
+            var imageData = new ImageData(_uploadedImageBytes, _uploadedFileName ?? "uploaded.png");
+            var baselineConfig = new OCRConfig { PSM = 6 }; // PSM 6 = Automatic page segmentation
+            var baselineResult = await OcrExecutor.ExecuteOcrAsync(imageData, baselineConfig);
+
+            baselineStopwatch.Stop();
+            _baselineElapsedMs = baselineStopwatch.ElapsedMilliseconds;
+
+            if (!baselineResult.IsSuccess || baselineResult.Value == null)
+            {
+                throw new InvalidOperationException("Baseline OCR failed");
+            }
+
+            _baselineOcrText = baselineResult.Value.Text;
+            AddLog($"✓ Baseline OCR completed in {_baselineElapsedMs}ms");
+            AddLog($"  Text length: {_baselineOcrText.Length} characters");
+
+            // Step 2: Analyze Quality
+            AddLog("Step 2: Analyzing image quality...");
+            var qualityResult = await QualityAnalyzer.AnalyzeAsync(imageData);
+
+            if (!qualityResult.IsSuccess || qualityResult.Value == null)
+            {
+                throw new InvalidOperationException("Quality analysis failed");
+            }
+
+            _qualityAssessment = qualityResult.Value;
+            AddLog($"✓ Quality Level: {_qualityAssessment.QualityLevel}");
+            AddLog($"  Blur Score: {_qualityAssessment.BlurScore:F2}");
+            AddLog($"  Noise Level: {_qualityAssessment.NoiseLevel:F2}");
+            AddLog($"  Contrast: {_qualityAssessment.ContrastLevel:F2}");
+
+            // Step 3: Select Filter (Analytical or Manual)
+            AddLog("Step 3: Selecting filter configuration...");
+
+            if (_filterSelectionMode == FilterSelectionMode.Analytical)
+            {
+                // Use NSGA-II analytical strategy
+                var strategy = new AnalyticalFilterSelectionStrategy();
+                _selectedFilterConfig = strategy.SelectFilter(_qualityAssessment);
+                AddLog($"✓ Analytical Strategy Selected: {_selectedFilterConfig.FilterType}");
+            }
+            else
+            {
+                // Use manual configuration
+                _selectedFilterConfig = CreateManualFilterConfig();
+                AddLog($"✓ Manual Filter Selected: {_selectedFilterConfig.FilterType}");
+            }
+
+            // Step 4: Apply Filter using the correct keyed service
+            AddLog("Step 4: Applying filter to image...");
+
+            // Get the appropriate filter implementation from DI using keyed services
+            var filterToUse = ServiceProvider.GetKeyedService<IImageEnhancementFilter>(_selectedFilterConfig.FilterType);
+            if (filterToUse == null)
+            {
+                throw new InvalidOperationException($"Filter implementation not found for {_selectedFilterConfig.FilterType}");
+            }
+
+            var enhancementResult = await filterToUse.EnhanceAsync(imageData, _selectedFilterConfig);
+
+            if (!enhancementResult.IsSuccess || enhancementResult.Value == null)
+            {
+                throw new InvalidOperationException("Image enhancement failed");
+            }
+
+            _enhancedImageBytes = enhancementResult.Value.Data;
+            AddLog($"✓ Filter applied successfully");
+
+            // Step 5: Enhanced OCR
+            AddLog("Step 5: Running OCR on enhanced image...");
+            var enhancedStopwatch = Stopwatch.StartNew();
+
+            var enhancedImageData = new ImageData(_enhancedImageBytes, "enhanced.png");
+            var enhancedConfig = new OCRConfig { PSM = 6 }; // PSM 6 = Automatic page segmentation
+            var enhancedResult = await OcrExecutor.ExecuteOcrAsync(enhancedImageData, enhancedConfig);
+
+            enhancedStopwatch.Stop();
+            _enhancedElapsedMs = enhancedStopwatch.ElapsedMilliseconds;
+
+            if (!enhancedResult.IsSuccess || enhancedResult.Value == null)
+            {
+                throw new InvalidOperationException("Enhanced OCR failed");
+            }
+
+            _enhancedOcrText = enhancedResult.Value.Text;
+            AddLog($"✓ Enhanced OCR completed in {_enhancedElapsedMs}ms");
+            AddLog($"  Text length: {_enhancedOcrText.Length} characters");
+
+            // Step 6: Calculate Real Text Quality Metrics
+            // Calculate quality scores for both baseline and enhanced
+            _baselineQualityScore = TextComparer.CalculateQualityScore(_baselineOcrText);
+            _enhancedQualityScore = TextComparer.CalculateQualityScore(_enhancedOcrText);
+
+            // Calculate text difference
+            _baselineEditDistance = TextComparer.CalculateEditDistance(_baselineOcrText, _enhancedOcrText);
+            _enhancedEditDistance = _baselineEditDistance; // Actual difference between the two texts
+
+            // Calculate real improvement based on quality scores
+            if (_baselineQualityScore > 0)
+            {
+                _improvementPercent = ((_enhancedQualityScore - _baselineQualityScore) / _baselineQualityScore) * 100;
+            }
+            else
+            {
+                _improvementPercent = _enhancedQualityScore > 0 ? 100 : 0;
+            }
+
+            AddLog($"✓ Baseline quality score: {_baselineQualityScore:F2}");
+            AddLog($"✓ Enhanced quality score: {_enhancedQualityScore:F2}");
+            AddLog($"✓ Text difference: {_baselineEditDistance} characters");
+            AddLog($"✓ Quality improvement: {_improvementPercent:F2}%");
+            AddLog("=== Analysis Complete ===");
+
+            Snackbar.Add("OCR analysis completed successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error processing image");
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            AddLog($"ERROR: {ex.Message}");
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+    private void AddLog(string message)
+    {
+        _processingLog.Add($"[{DateTime.Now:HH:mm:ss}] {message}");
+    }
+
+    private string GetImageDataUrl(byte[] imageBytes)
+    {
+        return $"data:image/png;base64,{Convert.ToBase64String(imageBytes)}";
+    }
+
+
+    private string GetSummaryBackgroundColor()
+    {
+        return _improvementPercent > 0 ? "background-color: #d4edda;" : "background-color: #f8d7da;";
+    }
+
+    private ImageFilterConfig CreateManualFilterConfig()
+    {
+        return _manualFilterType.Value switch
+        {
+            0 => new ImageFilterConfig
+            {
+                FilterType = ImageFilterType.None
+            },
+            1 => new ImageFilterConfig
+            {
+                FilterType = ImageFilterType.PilSimple,
+                PilParams = new PilFilterParams
+                {
+                    ContrastFactor = (float)_pilContrastFactor,
+                    MedianSize = _pilMedianSize
+                }
+            },
+            2 => new ImageFilterConfig
+            {
+                FilterType = ImageFilterType.OpenCvAdvanced,
+                OpenCvParams = new OpenCvFilterParams
+                {
+                    DenoiseH = _opencvDenoiseH,
+                    ClaheClip = (float)_opencvClaheClip,
+                    BilateralD = _opencvBilateralD
+                }
+            },
+            3 => new ImageFilterConfig
+            {
+                FilterType = ImageFilterType.Adaptive
+            },
+            _ => throw new InvalidOperationException($"Unsupported filter type: {_manualFilterType}")
+        };
+    }
+}

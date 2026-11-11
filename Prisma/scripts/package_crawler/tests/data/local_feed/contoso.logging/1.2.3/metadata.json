@@ -1,0 +1,16 @@
+{
+  "packageId": "Contoso.Logging",
+  "version": "1.2.3",
+  "description": "Structured logging helpers for Contoso apps.",
+  "projectUrl": "https://contoso.dev/logging",
+  "licenseUrl": "https://contoso.dev/licensing",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/contoso/logging",
+    "branch": "main"
+  },
+  "tags": [
+    "logging",
+    "telemetry"
+  ]
+}

@@ -1,0 +1,21 @@
+"""
+SmolVLM Modular Extractor - Uses composition for clean separation of concerns.
+"""
+
+from typing import Dict, Any, Optional
+from PIL import Image
+import torch
+
+from .base_extractor_v2 import ModularExtractor
+from ..utils.device_utils import get_optimal_device_config
+
+
+class SmolVLMModularExtractor(ModularExtractor):
+    """
+    SmolVLM extractor using modular architecture.
+    Single Responsibility: Coordinate SmolVLM-specific extraction.
+    """
+    
+    DEFAULT_MODEL_ID = "HuggingFaceTB/SmolVLM2-2.2B-Instruct"
+    
+    SYSTEM_INSTRUCTIONS = (\n        \"You are an information extraction assistant for Spanish legal documents. \"\n        \"Extract structured fields. If a field is missing or ambiguous, set it to 'unknown'. \"\n        \"Only output a single valid JSON object and nothing else.\"\n    )\n    \n    USER_PROMPT = (\n        \"Read this Spanish legal document and extract: fecha (date), autoridad emisora (issuing authority), \"\n        \"expediente (case number), and tipo de requerimiento (type of requirement). \"\n        \"Output as valid JSON only. Example: {'fecha': '2024-01-15', 'autoridadEmisora': 'CONDUSEF'}\"\n    )\n    \n    def _initialize_extractor(self):\n        \"\"\"Initialize SmolVLM-specific components.\"\"\"\n        # Get configuration\n        extractor_config = self.config_manager.get_extractor_config('smolvlm')\n        \n        self.model_id = extractor_config.get('model_id', self.DEFAULT_MODEL_ID)\n        self.max_new_tokens = extractor_config.get('max_new_tokens', 512)\n        \n        # Setup device configuration\n        device_config = get_optimal_device_config()\n        self.device = extractor_config.get('device', device_config['device'])\n        self.dtype = extractor_config.get('dtype', device_config['dtype'])\n        self.attn_impl = device_config.get('attn_impl')\n        \n        # Configure text extractor\n        self.text_extractor.set_generation_config(\n            max_new_tokens=self.max_new_tokens,\n            do_sample=False,\n            temperature=0.1\n        )\n        \n        # Load model and processor (using ModelLoader)\n        self._load_components()\n    \n    def _load_components(self):\n        \"\"\"Load model and processor using ModelLoader.\"\"\"\n        with self.performance_monitor.track_operation(\"model_loading\"):\n            # Load processor\n            self.processor = self.model_loader.load_processor(self.model_id)\n            \n            # Load model with specific configuration\n            model_kwargs = {}\n            if self.attn_impl:\n                model_kwargs['_attn_implementation'] = self.attn_impl\n            \n            self.model = self.model_loader.load_model(\n                model_id=self.model_id,\n                model_class='AutoModelForImageTextToText',\n                device=self.device,\n                dtype=self.dtype,\n                **model_kwargs\n            )\n    \n    def _extract_text(self, image: Image.Image) -> str:\n        \"\"\"\n        Extract text using SmolVLM through TextExtractor.\n        \n        Args:\n            image: PIL Image\n            \n        Returns:\n            Generated text\n        \"\"\"\n        with self.performance_monitor.track_operation(\n            \"text_extraction\",\n            model_id=self.model_id\n        ):\n            # Use TextExtractor module for inference\n            return self.text_extractor.extract_with_vision_model(\n                model=self.model,\n                processor=self.processor,\n                image=image,\n                prompt=self.USER_PROMPT,\n                system_prompt=self.SYSTEM_INSTRUCTIONS,\n                device=self.device,\n                dtype=self.dtype\n            )\n    \n    @property\n    def device_info(self) -> Dict[str, Any]:\n        \"\"\"Get SmolVLM-specific device information.\"\"\"\n        base_info = super().device_info\n        base_info.update({\n            \"model_id\": self.model_id,\n            \"device\": str(self.device),\n            \"dtype\": str(self.dtype),\n            \"attention_implementation\": self.attn_impl,\n            \"max_new_tokens\": self.max_new_tokens\n        })\n        return base_info

@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ExxerCube.Prisma.Infrastructure.FileStorage</name>
+    </assembly>
+    <members>
+        <member name="T:ExxerCube.Prisma.Infrastructure.FileStorage.DependencyInjection.ServiceCollectionExtensions">
+            <summary>
+            Extension methods for configuring file storage dependency injection.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileStorage.DependencyInjection.ServiceCollectionExtensions.AddFileStorageServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{ExxerCube.Prisma.Infrastructure.FileStorage.FileStorageOptions})">
+            <summary>
+            Adds file storage services to the service collection.
+            </summary>
+            <param name="services">The service collection.</param>
+            <param name="configureOptions">Action to configure file storage options.</param>
+            <returns>The service collection for chaining.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.FileStorage.FileMoverService">
+            <summary>
+            Service for organizing files based on classification by moving them to appropriate directories.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileStorage.FileMoverService.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.FileStorage.FileMoverService},Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.FileStorage.FileStorageOptions})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.FileStorage.FileMoverService"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+            <param name="options">The file storage options.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileStorage.FileMoverService.MoveFileAsync(System.String,ExxerCube.Prisma.Domain.ValueObjects.ClassificationResult,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.FileStorage.FileStorageOptions">
+            <summary>
+            Configuration options for file storage.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.FileStorage.FileStorageOptions.StorageBasePath">
+            <summary>
+            Gets or sets the base path for file storage.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.FileStorage.FileStorageOptions.BaseStoragePath">
+            <summary>
+            Gets or sets the base storage path for classified/organized files.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.FileStorage.FileSystemDownloadStorageAdapter">
+            <summary>
+            File system-based implementation of download storage adapter.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileStorage.FileSystemDownloadStorageAdapter.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.FileStorage.FileSystemDownloadStorageAdapter},Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.FileStorage.FileStorageOptions})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.FileStorage.FileSystemDownloadStorageAdapter"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+            <param name="options">The file storage options.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileStorage.FileSystemDownloadStorageAdapter.SaveFileAsync(System.Byte[],System.String,ExxerCube.Prisma.Domain.Enum.FileFormat,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileStorage.FileSystemDownloadStorageAdapter.GenerateStoragePath(System.String,ExxerCube.Prisma.Domain.Enum.FileFormat,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.FileStorage.SafeFileNamerService">
+            <summary>
+            Service for generating safe, normalized file names based on classification and metadata.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileStorage.SafeFileNamerService.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.FileStorage.SafeFileNamerService})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.FileStorage.SafeFileNamerService"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.FileStorage.SafeFileNamerService.GenerateSafeFileNameAsync(System.String,ExxerCube.Prisma.Domain.ValueObjects.ClassificationResult,ExxerCube.Prisma.Domain.ValueObjects.ExtractedMetadata,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+    </members>
+</doc>

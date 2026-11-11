@@ -1,0 +1,50 @@
+{
+  "docId": "AGAFADAFSON2-2025-763109_20260704_050226",
+  "seed": 1000,
+  "chaosLevel": "none",
+  "requirementType": "judicial",
+  "folioSiara": "AGAFADAFSON2/2025/763109",
+  "numeroOficio": "AGAFADAFSON2/2025/763109",
+  "numeroExpediente": "H/IN2-4034-376793-AAA",
+  "autoridadNombre": "Servicio de Administración Tributaria",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Frida Negrete Barrios",
+  "personaNombre": "Evelio Segura Cordero",
+  "personaRfc": "SECE491111Y81",
+  "solicitudPartes": [
+    {
+      "nombre": "Evelio Segura Cordero",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$7,462,119.26",
+  "fechaDiligencia": "04/07/2026",
+  "juzgadoNombre": "Servicio de Administración Tributaria",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

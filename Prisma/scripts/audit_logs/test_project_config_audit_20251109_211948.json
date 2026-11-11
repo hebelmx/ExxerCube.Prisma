@@ -1,0 +1,553 @@
+[
+  {
+    "path": "code/src/tests/05IntegrationTests/ExxerAI.Conduit.Integration.Tests/ExxerAI.Conduit.Integration.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.core reference",
+        "line": 102
+      },
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 102
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 102
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 104
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.VSTestBridge reference",
+        "line": 153
+      },
+      {
+        "name": "Restore System.* global usings block",
+        "line": 164
+      }
+    ]
+  },
+  {
+    "path": "code/src/tests/05IntegrationTests/ExxerAI.Cortex.Integration.Tests/ExxerAI.Cortex.Integration.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.core reference",
+        "line": 104
+      },
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 104
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 104
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 106
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.VSTestBridge reference",
+        "line": 154
+      },
+      {
+        "name": "Restore System.* global usings block",
+        "line": 165
+      }
+    ]
+  },
+  {
+    "path": "code/src/tests/05IntegrationTests/ExxerAI.Datastream.Integration.Tests/ExxerAI.Datastream.Integration.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.core reference",
+        "line": 85
+      },
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 85
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 85
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 87
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.VSTestBridge reference",
+        "line": 135
+      },
+      {
+        "name": "Restore System.* global usings block",
+        "line": 146
+      }
+    ]
+  },
+  {
+    "path": "code/src/tests/05IntegrationTests/ExxerAI.Gatekeeper.Integration.Tests/ExxerAI.Gatekeeper.Integration.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.core reference",
+        "line": 94
+      },
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 94
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 94
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 96
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.VSTestBridge reference",
+        "line": 144
+      },
+      {
+        "name": "Restore System.* global usings block",
+        "line": 155
+      }
+    ]
+  },
+  {
+    "path": "code/src/tests/05IntegrationTests/ExxerAI.Sentinel.Integration.Tests/ExxerAI.Sentinel.Integration.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.core reference",
+        "line": 84
+      },
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 84
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 84
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 86
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.VSTestBridge reference",
+        "line": 134
+      },
+      {
+        "name": "Restore System.* global usings block",
+        "line": 145
+      }
+    ]
+  },
+  {
+    "path": "code/src/tests/05IntegrationTests/ExxerAI.Signal.Integration.Tests/ExxerAI.Signal.Integration.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.core reference",
+        "line": 94
+      },
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 94
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 94
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 96
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.VSTestBridge reference",
+        "line": 144
+      },
+      {
+        "name": "Restore System.* global usings block",
+        "line": 157
+      }
+    ]
+  },
+  {
+    "path": "code/src/tests/05IntegrationTests/ExxerAI.Vault.Integration.Tests/ExxerAI.Vault.Integration.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.core reference",
+        "line": 86
+      },
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 86
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 86
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 88
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.VSTestBridge reference",
+        "line": 140
+      },
+      {
+        "name": "Restore System.* global usings block",
+        "line": 151
+      }
+    ]
+  },
+  {
+    "path": "code/src/tests/06SystemTests/ExxerAI.EnhancedRag.System.Tests/ExxerAI.EnhancedRag.System.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.core reference",
+        "line": 96
+      },
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 96
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 96
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 98
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.VSTestBridge reference",
+        "line": 146
+      },
+      {
+        "name": "Restore System.* global usings block",
+        "line": 157
+      }
+    ]
+  },
+  {
+    "path": "code/src/tests/06SystemTests/ExxerAI.Performance.System.Tests/ExxerAI.Performance.System.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.core reference",
+        "line": 96
+      },
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 96
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 96
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 98
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.VSTestBridge reference",
+        "line": 146
+      },
+      {
+        "name": "Restore System.* global usings block",
+        "line": 157
+      }
+    ]
+  },
+  {
+    "path": "code/src/tests/07E2ETests/ExxerAI.E2E.Tests/ExxerAI.E2E.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 91
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 91
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 94
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.VSTestBridge reference",
+        "line": 160
+      },
+      {
+        "name": "Restore System.* global usings block",
+        "line": 171
+      }
+    ]
+  },
+  {
+    "path": "code/src/tests/07E2ETests/ExxerAI.KPI.Dashboard.Tests/ExxerAI.KPI.Dashboard.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 97
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 97
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 100
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.VSTestBridge reference",
+        "line": 157
+      },
+      {
+        "name": "Restore System.* global usings block",
+        "line": 168
+      }
+    ]
+  },
+  {
+    "path": "code/src/tests/08UITests/ExxerAI.UI.Tests/ExxerAI.UI.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.core reference",
+        "line": 81
+      },
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 81
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 81
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 83
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.VSTestBridge reference",
+        "line": 141
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.HangDump reference",
+        "line": 141
+      },
+      {
+        "name": "Restore System.* global usings block",
+        "line": 151
+      }
+    ]
+  },
+  {
+    "path": "code/src/tests/08UITests/ExxerAI.UI.Web.Tests/ExxerAI.UI.Web.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.core reference",
+        "line": 81
+      },
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 81
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 81
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 83
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.VSTestBridge reference",
+        "line": 138
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.HangDump reference",
+        "line": 138
+      },
+      {
+        "name": "Restore System.* global usings block",
+        "line": 148
+      }
+    ]
+  },
+  {
+    "path": "code/src/tests/09Standalone/ExxerAI.Benchmark.Tests/ExxerAI.Benchmark.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.core reference",
+        "line": 81
+      },
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 81
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 81
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 83
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.VSTestBridge reference",
+        "line": 133
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.HangDump reference",
+        "line": 133
+      },
+      {
+        "name": "Restore System.* global usings block",
+        "line": 141
+      }
+    ]
+  },
+  {
+    "path": "code/src/tests/09Standalone/ExxerAI.BusinessIntelligence.Tests/ExxerAI.BusinessIntelligence.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.core reference",
+        "line": 81
+      },
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 81
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 81
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 83
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.VSTestBridge reference",
+        "line": 133
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.HangDump reference",
+        "line": 133
+      },
+      {
+        "name": "Restore System.* global usings block",
+        "line": 141
+      }
+    ]
+  },
+  {
+    "path": "code/src/tests/09Standalone/ExxerAI.Contract.Tests/ExxerAI.Contract.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.core reference",
+        "line": 81
+      },
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 81
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 81
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 83
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.VSTestBridge reference",
+        "line": 133
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.HangDump reference",
+        "line": 133
+      },
+      {
+        "name": "Restore System.* global usings block",
+        "line": 141
+      }
+    ]
+  },
+  {
+    "path": "code/src/tests/09Standalone/ExxerAI.Mutation.Tests/ExxerAI.Mutation.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.core reference",
+        "line": 81
+      },
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 81
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 81
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 83
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.VSTestBridge reference",
+        "line": 131
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.HangDump reference",
+        "line": 131
+      },
+      {
+        "name": "Restore System.* global usings block",
+        "line": 141
+      }
+    ]
+  },
+  {
+    "path": "code/src/tests/09Standalone/ExxerAI.RealTimeCommunication.Tests/ExxerAI.RealTimeCommunication.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add xunit.v3.core reference",
+        "line": 70
+      },
+      {
+        "name": "Add xunit.v3.runner.inproc.console reference",
+        "line": 70
+      },
+      {
+        "name": "Add xunit.v3.runner.msbuild reference",
+        "line": 70
+      },
+      {
+        "name": "Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets",
+        "line": 72
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.VSTestBridge reference",
+        "line": 115
+      },
+      {
+        "name": "Add Microsoft.Testing.Extensions.HangDump reference",
+        "line": 115
+      },
+      {
+        "name": "Restore System.* global usings block",
+        "line": 125
+      }
+    ]
+  },
+  {
+    "path": "code/src/tests/10Architecture/ExxerAI.Architecture.Tests/ExxerAI.Architecture.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add Microsoft.Testing.Extensions.HangDump reference",
+        "line": 177
+      }
+    ]
+  }
+]

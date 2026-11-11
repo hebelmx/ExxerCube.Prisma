@@ -1,0 +1,40 @@
+================================================================================
+PIL vs OpenCV Pareto Solutions Comparison
+================================================================================
+
+BEST PERFORMANCE PER DEGRADATION LEVEL:
+--------------------------------------------------------------------------------
+
+Q0_Pristine:
+  Best PIL: PIL_14 - 491 edits
+  Best OpenCV: OpenCV_14 - 339 edits
+  ✓ WINNER: OpenCV (31.0% better)
+
+Q05_VeryGood:
+  Best PIL: PIL_3 - 497 edits
+  Best OpenCV: OpenCV_3 - 382 edits
+  ✓ WINNER: OpenCV (23.1% better)
+
+Q1_Poor:
+  Best PIL: PIL_14 - 506 edits
+  Best OpenCV: OpenCV_3 - 404 edits
+  ✓ WINNER: OpenCV (20.2% better)
+
+Q15_Medium:
+  Best PIL: PIL_16 - 965 edits
+  Best OpenCV: OpenCV_10 - 1326 edits
+  ✓ WINNER: PIL (27.2% better)
+
+Q2_MediumPoor:
+  Best PIL: PIL_0 - 1444 edits
+  Best OpenCV: OpenCV_10 - 2454 edits
+  ✓ WINNER: PIL (41.2% better)
+
+================================================================================
+OVERALL WINNER ACROSS ALL DEGRADATION LEVELS:
+================================================================================
+
+PIL Average: 842.0 edits
+OpenCV Average: 1311.3 edits
+
+✓ OVERALL WINNER: PIL (35.8% better on average)

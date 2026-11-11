@@ -1,0 +1,185 @@
+# ExxerAI Result<T> Pattern
+
+## Meta
+**Title**: ExxerAI Result<T> Pattern
+**Description**: Functional error handling pattern using Result<T> instead of exceptions
+**Applies-to**: All C# code in ExxerAI project
+
+## Requirements
+
+<requirement priority="critical">
+**Description**: Use Result<T> pattern for all error handling instead of exceptions
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Return Result<T> for all operations
+public async Task<Result<Agent>> GetAgentAsync(Guid agentId, CancellationToken cancellationToken = default)
+{
+    if (cancellationToken.IsCancellationRequested)
+        return ResultExtensions.Cancelled<Agent>();
+
+    if (agentId == Guid.Empty)
+        return Result<Agent>.WithFailure("Agent ID cannot be empty");
+
+    var agent = await _repository.GetByIdAsync(agentId, cancellationToken);
+    return agent != null
+        ? Result<Agent>.Success(agent)
+        : Result<Agent>.WithFailure($"Agent not found with ID: {agentId}");
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Throwing exceptions in normal control flow
+public async Task<Agent> GetAgentAsync(Guid agentId)
+{
+    if (agentId == Guid.Empty)
+        throw new ArgumentException("Agent ID cannot be empty");
+
+    var agent = await _repository.GetByIdAsync(agentId);
+    if (agent == null)
+        throw new AgentNotFoundException($"Agent not found with ID: {agentId}");
+
+    return agent;
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Always check IsSuccess before accessing Value
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Safe value access
+var result = await GetAgentAsync(agentId);
+if (result.IsSuccess)
+{
+    var agent = result.Value; // Safe access
+    ProcessAgent(agent);
+}
+else
+{
+    LogErrors(result.Errors);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Unsafe value access
+var result = await GetAgentAsync(agentId);
+var agent = result.Value; // Dangerous - may be null
+ProcessAgent(agent);
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use functional operations (Map, Bind, Match) for cleaner code
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Functional composition
+var result = await GetAgentAsync(agentId)
+    .Map(agent => agent.Name)
+    .Bind(name => ValidateAgentName(name))
+    .Match(
+        onSuccess: name => $"Agent {name} is valid",
+        onFailure: errors => $"Validation failed: {string.Join(", ", errors)}"
+    );
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Imperative style
+var agentResult = await GetAgentAsync(agentId);
+if (agentResult.IsFailure)
+    return agentResult;
+
+var agent = agentResult.Value;
+var name = agent.Name;
+var validationResult = ValidateAgentName(name);
+if (validationResult.IsFailure)
+    return validationResult;
+
+return $"Agent {name} is valid";
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use early returns for validation and cancellation
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Early returns for validation
+public async Task<Result<Agent>> CreateAgentAsync(string name, CancellationToken cancellationToken = default)
+{
+    // Early cancellation check
+    if (cancellationToken.IsCancellationRequested)
+        return ResultExtensions.Cancelled<Agent>();
+
+    // Early validation
+    if (string.IsNullOrWhiteSpace(name))
+        return Result<Agent>.WithFailure("Agent name cannot be empty");
+
+    // Business logic
+    var agent = new Agent { Name = name };
+    return await _repository.AddAsync(agent, cancellationToken);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Nested validation
+public async Task<Result<Agent>> CreateAgentAsync(string name, CancellationToken cancellationToken = default)
+{
+    if (!cancellationToken.IsCancellationRequested)
+    {
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            var agent = new Agent { Name = name };
+            return await _repository.AddAsync(agent, cancellationToken);
+        }
+        else
+        {
+            return Result<Agent>.WithFailure("Agent name cannot be empty");
+        }
+    }
+    else
+    {
+        return ResultExtensions.Cancelled<Agent>();
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Use ConfigureAwait(false) for background operations
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: ConfigureAwait for background operations
+var result = await _repository.GetAllAsync(cancellationToken).ConfigureAwait(false);
+if (result.IsFailure)
+{
+    return Result<IEnumerable<Agent>>.WithFailure(result.Error ?? "Failed to retrieve agents");
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Missing ConfigureAwait
+var result = await _repository.GetAllAsync(cancellationToken);
+if (result.IsFailure)
+{
+    return Result<IEnumerable<Agent>>.WithFailure(result.Error ?? "Failed to retrieve agents");
+}
+```
+</incorrect-example>
+</requirement>
+
+## References
+<reference as="dependency" href=".cursor/rules/0000_RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/1001_CSharpCodingStandards.mdc" reason="Related C# standards">C# Coding Standards</reference>

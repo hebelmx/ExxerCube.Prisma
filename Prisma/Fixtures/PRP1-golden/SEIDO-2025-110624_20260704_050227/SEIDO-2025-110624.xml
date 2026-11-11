@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>SEIDO/2025/110624</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>SEIDO/2025/110624</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Unidad Especializada en Investigación de Terrorismo, Acopio y Tráfico de Armas</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>SEIDO/2025/110624</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>B/AS1-5134-143257-IMX</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>8</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>Germán Báez Loya</NombreSolicitante>
+  <Referencia>REF-3851</Referencia>
+  <Referencia1>REF1-6638</Referencia1>
+  <Referencia2>REF2-9954</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Nadia Armas Carrera</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Detallar operaciones superiores a $100,000.00 MN
+- Proporcionar información de todas las cuentas bancarias
+- Especificar fechas de apertura y cierre de cuentas
+- Incluir números de cuenta, saldos y movimientos
+- Indicar titulares y co-titulares de las cuentas</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Nadia Armas Carrera</Nombre>
+    <Rfc>ARCN471207C0H</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Andador Norte Padrón No. 4138, Col. San Patricio de la Montaña, Municipio Vieja Jamaica, Tabasco, C.P. 27124</Domicilio>
+    <Complementarios>Tel: 07165511254, Email: yolandadelgadillo@example.org</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

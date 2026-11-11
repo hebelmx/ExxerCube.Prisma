@@ -1,0 +1,50 @@
+{
+  "docId": "CONDUSEF-2023-961813_20260719_152608",
+  "seed": 5002,
+  "chaosLevel": "none",
+  "requirementType": "fiscal",
+  "folioSiara": "CONDUSEF/2023/961813",
+  "numeroOficio": "CONDUSEF/2023/961813",
+  "numeroExpediente": "A/AS2—6714—670574—FGR",
+  "autoridadNombre": "Comisión Nacional para la Protección y Defensa de los Usuarios de Servicios Financieros",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Eduardo Regalado Solís",
+  "personaNombre": "Irma Palacios Amaya",
+  "personaRfc": "PAAI030327B4U",
+  "solicitudPartes": [
+    {
+      "nombre": "Irma Palacios Amaya",
+      "caracter": "Contribuyente"
+    }
+  ],
+  "monto": "$5,868,280.24",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Comisión Nacional para la Protección y Defensa de los Usuarios de Servicios Financieros",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

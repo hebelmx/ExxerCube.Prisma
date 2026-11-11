@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>CONDUSEF/2023/386930</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>CONDUSEF/2023/386930</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Dirección de Orientación Legal</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>CONDUSEF/2023/386930</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>H/JU1-2541-741274-BBB</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>9</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>Antonia Jaime Jaimes</NombreSolicitante>
+  <Referencia>REF-3023</Referencia>
+  <Referencia1>REF1-9908</Referencia1>
+  <Referencia2>REF2-6121</Referencia2>
+  <TieneAseguramiento>true</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>José Carlos Ávalos Duarte</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Impedir cualquier disposición de los recursos
+- Incluir números de cuenta, saldos y movimientos
+- Especificar fechas de apertura y cierre de cuentas
+- Detallar operaciones superiores a $100,000.00 MN
+- Proceder al aseguramiento inmediato de las cuentas identificadas</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>José Carlos Ávalos Duarte</Nombre>
+    <Rfc>ÁVDJ710918LAW</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Andador Namibia No. 4425, Col. Nueva Andorra, Municipio Nueva Túnez, Durango, C.P. 79696</Domicilio>
+    <Complementarios>Tel: 263.844.4633x067, Email: ivanlopez@example.com</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

@@ -1,0 +1,87 @@
+{
+  "benchmark_info": {
+    "total_images": 2,
+    "timestamp": "2025-08-23T10:40:02.604865",
+    "models_tested": [
+      "SmolVLM",
+      "DocTR"
+    ]
+  },
+  "model_performance": {
+    "SmolVLM": {
+      "total_tests": 2,
+      "successful_extractions": 0,
+      "success_rate": 0.0
+    },
+    "DocTR": {
+      "total_tests": 2,
+      "successful_extractions": 2,
+      "success_rate": 100.0
+    }
+  },
+  "extraction_success": {},
+  "average_processing_time": {
+    "SmolVLM": {
+      "avg_time": 156.36,
+      "min_time": 74.06,
+      "max_time": 238.66
+    },
+    "DocTR": {
+      "avg_time": 5.67,
+      "min_time": 3.79,
+      "max_time": 7.56
+    }
+  },
+  "confidence_stats": {
+    "SmolVLM": {
+      "avg_confidence": 0,
+      "min_confidence": 0,
+      "max_confidence": 0,
+      "samples_with_confidence": 0
+    },
+    "DocTR": {
+      "avg_confidence": 0.76,
+      "min_confidence": 0.684,
+      "max_confidence": 0.835,
+      "samples_with_confidence": 2
+    }
+  },
+  "field_extraction_success": {
+    "SmolVLM": {
+      "fecha": {
+        "extracted": 0,
+        "success_rate": 0
+      },
+      "autoridadEmisora": {
+        "extracted": 0,
+        "success_rate": 0
+      },
+      "expediente": {
+        "extracted": 0,
+        "success_rate": 0
+      },
+      "tipoRequerimiento": {
+        "extracted": 0,
+        "success_rate": 0
+      }
+    },
+    "DocTR": {
+      "fecha": {
+        "extracted": 2,
+        "success_rate": 100.0
+      },
+      "autoridadEmisora": {
+        "extracted": 0,
+        "success_rate": 0.0
+      },
+      "expediente": {
+        "extracted": 2,
+        "success_rate": 100.0
+      },
+      "tipoRequerimiento": {
+        "extracted": 2,
+        "success_rate": 100.0
+      }
+    }
+  }
+}

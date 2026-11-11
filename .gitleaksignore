@@ -1,0 +1,3 @@
+# Reviewed false positives: an intentional bad-practice example and a file content hash.
+.cursor/rules/1008_CleanArchitecturePatterns.mdc:generic-api-key:751
+_bmad/_config/files-manifest.csv:generic-api-key:164

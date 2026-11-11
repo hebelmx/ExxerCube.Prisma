@@ -1,0 +1,325 @@
+# Refactor Agent Usage Standards
+
+## Meta
+**Title**: Refactor Agent Usage Standards
+**Description**: Use Serena server and refactor agent for all C# code refactoring operations
+**Applies-to**: All C# code refactoring in ExxerAI project
+
+## Requirements
+
+<requirement priority="critical">
+**Description**: Use Serena server and refactor agent for all C# code refactoring
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Use Serena server and refactor agent for C# refactoring
+
+// For large C# file refactoring, use refactor agent tools
+// Use mcp_refactorMcp_* tools for C# refactoring operations
+
+// Example: Moving methods to separate class
+await mcp_refactorMcp_move_instance_method(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/source.cs",
+    sourceClass: "SourceClass",
+    methodNames: ["Method1", "Method2"],
+    targetClass: "TargetClass"
+);
+
+// Example: Converting to extension method
+await mcp_refactorMcp_convert_to_extension_method(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/file.cs",
+    methodName: "InstanceMethod"
+);
+
+// Example: Extracting interface
+await mcp_refactorMcp_extract_interface(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/file.cs",
+    className: "ClassName",
+    memberList: "Method1,Method2,Property1",
+    interfaceFilePath: "path/to/interface.cs"
+);
+
+// Example: Renaming symbols
+await mcp_refactorMcp_rename_symbol(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/file.cs",
+    oldName: "OldMethodName",
+    newName: "NewMethodName"
+);
+
+// Example: Safe deletion of unused parameters
+await mcp_refactorMcp_safe_delete_parameter(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/file.cs",
+    methodName: "MethodName",
+    parameterName: "UnusedParameter"
+);
+
+// Example: Making fields readonly
+await mcp_refactorMcp_make_field_readonly(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/file.cs",
+    fieldName: "FieldName"
+);
+
+// Example: Converting to constructor injection
+await mcp_refactorMcp_convert_to_constructor_injection(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/file.cs",
+    methodParameters: [
+        { methodName: "Method1", parameterName: "Param1" },
+        { methodName: "Method2", parameterName: "Param2" }
+    ]
+);
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Manual refactoring without Serena server and refactor agent
+
+// Don't manually edit files for refactoring
+edit_file("file.cs", newContent); // Wrong
+
+// Don't use search_replace for refactoring
+search_replace("file.cs", oldPattern, newPattern); // Wrong
+
+// Don't manually move methods
+// Manually copying and pasting methods is wrong
+
+// Don't manually rename symbols
+// Manually finding and replacing symbol names is wrong
+
+// Don't manually extract interfaces
+// Manually creating interface files is wrong
+
+// Don't manually delete parameters
+// Manually removing parameters is error-prone
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Use Serena server for all file operations during refactoring
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Use Serena server for file operations during refactoring
+
+// Read files with Serena
+var fileContent = await mcp_serena_read_file("path/to/file.cs");
+
+// Create new files with Serena
+await mcp_serena_create_text_file("path/to/newfile.cs", content);
+
+// Replace text with Serena
+await mcp_serena_replace_regex("file.cs", @"old_pattern", "new_pattern");
+
+// List directories with Serena
+var files = await mcp_serena_list_dir(".", recursive: true);
+
+// Find files with Serena
+var foundFiles = await mcp_serena_find_file("*.cs", ".");
+
+// Execute shell commands with Serena
+await mcp_serena_execute_shell_command("dotnet build", cwd: "project/path");
+
+// Get symbols overview with Serena
+await mcp_serena_get_symbols_overview("path/to/file.cs");
+
+// Find symbols with Serena
+await mcp_serena_find_symbol("methodName", "path/to/file.cs");
+
+// Find referencing symbols with Serena
+await mcp_serena_find_referencing_symbols("methodName", "path/to/file.cs");
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Using non-Serena tools for file operations during refactoring
+
+// Don't use read_file
+read_file("file.cs"); // Wrong
+
+// Don't use edit_file
+edit_file("file.cs", content); // Wrong
+
+// Don't use search_replace
+search_replace("file.cs", old, new); // Wrong
+
+// Don't use list_dir
+list_dir("."); // Wrong
+
+// Don't use file_search
+file_search("*.cs"); // Wrong
+
+// Don't use run_terminal_cmd
+run_terminal_cmd("dotnet build"); // Wrong
+
+// Don't use codebase_search
+codebase_search("method"); // Wrong
+
+// Don't use grep_search
+grep_search("pattern"); // Wrong
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Use refactor agent for all C# code transformations
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Use refactor agent for C# code transformations
+
+// Move static methods
+await mcp_refactorMcp_move_static_method(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/source.cs",
+    methodName: "StaticMethod",
+    targetClass: "TargetClass"
+);
+
+// Convert to static with instance parameter
+await mcp_refactorMcp_convert_to_static_with_instance(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/file.cs",
+    methodName: "InstanceMethod"
+);
+
+// Convert to static with parameters
+await mcp_refactorMcp_convert_to_static_with_parameters(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/file.cs",
+    methodName: "InstanceMethod"
+);
+
+// Extract method
+await mcp_refactorMcp_extract_method(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/file.cs",
+    selectionRange: "10:5-15:10",
+    methodName: "NewMethod"
+);
+
+// Introduce parameter
+await mcp_refactorMcp_introduce_parameter(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/file.cs",
+    methodName: "MethodName",
+    selectionRange: "10:5-15:10",
+    parameterName: "NewParameter"
+);
+
+// Introduce field
+await mcp_refactorMcp_introduce_field(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/file.cs",
+    selectionRange: "10:5-15:10",
+    fieldName: "NewField"
+);
+
+// Introduce variable
+await mcp_refactorMcp_introduce_variable(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/file.cs",
+    selectionRange: "10:5-15:10",
+    variableName: "NewVariable"
+);
+
+// Safe delete variable
+await mcp_refactorMcp_safe_delete_variable(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/file.cs",
+    selectionRange: "10:5-15:10"
+);
+
+// Safe delete field
+await mcp_refactorMcp_safe_delete_field(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/file.cs",
+    fieldName: "UnusedField"
+);
+
+// Safe delete method
+await mcp_refactorMcp_safe_delete_method(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/file.cs",
+    methodName: "UnusedMethod"
+);
+
+// Safe delete parameter
+await mcp_refactorMcp_safe_delete_parameter(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/file.cs",
+    methodName: "MethodName",
+    parameterName: "UnusedParameter"
+);
+
+// Transform setter to init
+await mcp_refactorMcp_transform_setter_to_init(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/file.cs",
+    propertyName: "PropertyName"
+);
+
+// Use interface
+await mcp_refactorMcp_use_interface(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/file.cs",
+    methodName: "MethodName",
+    parameterName: "ParameterName",
+    interfaceName: "IInterface"
+);
+
+// Cleanup usings
+await mcp_refactorMcp_cleanup_usings(
+    solutionPath: "path/to/solution.sln",
+    filePath: "path/to/file.cs"
+);
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Manual C# code transformations
+
+// Don't manually move methods
+// Manually copying and pasting methods is error-prone
+
+// Don't manually convert methods
+// Manually changing method signatures is error-prone
+
+// Don't manually extract methods
+// Manually extracting code blocks is error-prone
+
+// Don't manually introduce parameters
+// Manually adding parameters is error-prone
+
+// Don't manually introduce fields
+// Manually adding fields is error-prone
+
+// Don't manually delete variables
+// Manually removing variables can break code
+
+// Don't manually delete fields
+// Manually removing fields can break code
+
+// Don't manually delete methods
+// Manually removing methods can break code
+
+// Don't manually delete parameters
+// Manually removing parameters can break code
+
+// Don't manually transform properties
+// Manually changing property setters is error-prone
+
+// Don't manually change parameter types
+// Manually changing parameter types is error-prone
+
+// Don't manually cleanup usings
+// Manually removing usings can break code
+```
+</incorrect-example>
+</requirement>

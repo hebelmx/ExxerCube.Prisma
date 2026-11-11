@@ -1,0 +1,34 @@
+{
+  "stryker-config": {
+    "project": "ExxerCube.Prisma.Application.csproj",
+    "test-projects": [
+      "ExxerCube.Prisma.Tests.Application.csproj"
+    ],
+    "test-runner": "mtp",
+    "mutate": [
+      "**/Services/ConfigurationValidationService.cs",
+      "**/Services/SLATrackingService.cs",
+      "**/Services/AuditReportingService.cs",
+      "**/Services/FieldMatchingService.cs",
+      "**/Services/DecisionLogicService.cs",
+      "**/Services/ExportService.cs",
+      "**/Parsing/MeasureParser.cs",
+      "**/Parsing/IdentityParser.cs",
+      "**/Parsing/AccountParser.cs",
+      "**/Mapping/LegalSubdivisionMapper.cs"
+    ],
+    "additional-timeout": 30000,
+    "coverage-analysis": "perTest",
+    "reporters": [
+      "html",
+      "progress",
+      "cleartext"
+    ],
+    "thresholds": {
+      "high": 80,
+      "low": 60,
+      "break": 0
+    },
+    "concurrency": 4
+  }
+}

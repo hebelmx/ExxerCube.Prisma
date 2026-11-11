@@ -1,0 +1,884 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ExxerCube.Prisma.Infrastructure.Extraction.Ocr</name>
+    </assembly>
+    <members>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.AdditionalFieldsReconciler">
+            <summary>
+            Reconciles additional fields coming from XML and OCR sources.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.AdditionalFieldsReconciler.Merge(System.Collections.Generic.IReadOnlyDictionary{System.String,System.String},System.Collections.Generic.IReadOnlyDictionary{System.String,System.String})">
+            <summary>
+            Merges additional fields giving preference to XML values when present, otherwise falling back to OCR.
+            Conflicts (same key, different normalized value) are recorded.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Analysis.DocxStructureAnalyzer">
+            <summary>
+            Analyzes DOCX documents to infer structure and recommend an extraction strategy.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Analysis.DocxStructureAnalyzer.AnalyzeStructure(System.Byte[])">
+            <summary>
+            Analyzes the structure of a DOCX document.
+            </summary>
+            <param name="docxBytes">The DOCX document bytes.</param>
+            <returns>Structural analysis of the document.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when docxBytes is null or empty.</exception>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.BulkProcessingService">
+            <summary>
+            Service for batch processing documents with XML, OCR, and comparison.
+            Optimized for stakeholder demos with small batches (max 4) and Tesseract-only OCR.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.BulkProcessingService.#ctor(ExxerCube.Prisma.Domain.Interfaces.IXmlNullableParser{ExxerCube.Prisma.Domain.Entities.Expediente},ExxerCube.Prisma.Domain.Interfaces.IOcrProcessingService,ExxerCube.Prisma.Domain.Interfaces.IDocumentComparisonService,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Ocr.BulkProcessingService},ExxerCube.Prisma.Infrastructure.Extraction.Ocr.OcrSanitizationService)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.BulkProcessingService"/> class.
+            </summary>
+            <param name="xmlParser">The XML parser for extracting expediente data.</param>
+            <param name="ocrService">The OCR processing service.</param>
+            <param name="comparisonService">The document comparison service.</param>
+            <param name="logger">The logger instance.</param>
+            <param name="sanitization">Helper for best-effort OCR sanitization.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.BulkProcessingService.GetRandomSampleAsync(System.Int32,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.BulkProcessingService.ProcessDocumentAsync(ExxerCube.Prisma.Domain.Models.BulkDocument,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.DependencyInjection.ServiceCollectionExtensions">
+            <summary>
+            Extension methods for registering extraction services in the dependency injection container.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.DependencyInjection.ServiceCollectionExtensions.AddExtractionServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Adds extraction services to the service collection.
+            </summary>
+            <param name="services">The service collection.</param>
+            <returns>The service collection for chaining.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.DocumentComparisonService">
+            <summary>
+            Service for comparing extracted data from different sources (XML vs OCR).
+            Implements exact match with fuzzy fallback strategy using FuzzySharp.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.DocumentComparisonService.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Ocr.DocumentComparisonService})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.DocumentComparisonService"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.DocumentComparisonService.CompareExpedientesAsync(ExxerCube.Prisma.Domain.Entities.Expediente,ExxerCube.Prisma.Domain.Entities.Expediente,System.Threading.CancellationToken)">
+            <summary>
+            Compares two Expediente objects and returns detailed field-level comparison results.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.DocumentComparisonService.CompareField(System.String,System.String,System.String,System.Nullable{System.Single})">
+            <summary>
+            Compares a single field value from XML and OCR sources.
+            Uses exact match first, then falls back to fuzzy matching.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Execution.OcrProcessingService">
+            <summary>
+            Main OCR processing service that orchestrates the entire pipeline.
+            Implements Railway Oriented Programming for error handling and performance monitoring.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Execution.OcrProcessingService.#ctor(ExxerCube.Prisma.Domain.Interfaces.IImagePreprocessor,ExxerCube.Prisma.Domain.Interfaces.IOcrExecutor,ExxerCube.Prisma.Domain.Interfaces.IFieldExtractor,ExxerCube.Prisma.Domain.Interfaces.IEventPublisher,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Domain.Interfaces.IOcrProcessingService},ExxerCube.Prisma.Domain.Interfaces.IProcessingMetricsService)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Execution.OcrProcessingService"/> class.
+            </summary>
+            <param name="imagePreprocessor">The image preprocessor service.</param>
+            <param name="ocrExecutor">The OCR executor service.</param>
+            <param name="fieldExtractor">The field extractor service.</param>
+            <param name="eventPublisher">The event publisher for domain events.</param>
+            <param name="logger">The logger.</param>
+            <param name="metricsService">The metrics service for performance monitoring.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Execution.OcrProcessingService.ProcessDocumentAsync(ExxerCube.Prisma.Domain.ValueObjects.ImageData,ExxerCube.Prisma.Domain.Models.ProcessingConfig,System.Threading.CancellationToken)">
+            <summary>
+            Processes a document image and extracts structured data using Railway Oriented Programming.
+            </summary>
+            <param name="imageData">The image data to process.</param>
+            <param name="config">The processing configuration.</param>
+            <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+            <returns>A result containing the processing result or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Execution.OcrProcessingService.ProcessDocumentsAsync(System.Collections.Generic.IEnumerable{ExxerCube.Prisma.Domain.ValueObjects.ImageData},ExxerCube.Prisma.Domain.Models.ProcessingConfig,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Processes multiple documents concurrently with proper error handling.
+            </summary>
+            <param name="imageDataList">The list of image data to process.</param>
+            <param name="config">The processing configuration.</param>
+            <param name="maxConcurrency">Maximum number of concurrent operations.</param>
+            <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+            <returns>A result containing the list of processing results or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Execution.OcrProcessingService.ValidateImageData(ExxerCube.Prisma.Domain.ValueObjects.ImageData)">
+            <summary>
+            Validates the image data for processing.
+            </summary>
+            <param name="imageData">The image data to validate.</param>
+            <returns>A result indicating validation success or failure.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Execution.OcrProcessingService.CreateProcessingResult(ExxerCube.Prisma.Domain.ValueObjects.ImageData,ExxerCube.Prisma.Domain.ValueObjects.OCRResult,ExxerCube.Prisma.Domain.ValueObjects.ExtractedFields)">
+            <summary>
+            Creates a processing result from the extracted data.
+            </summary>
+            <param name="imageData">The original image data.</param>
+            <param name="ocrResult">The OCR result.</param>
+            <param name="extractedFields">The extracted fields.</param>
+            <returns>A processing result.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Execution.OcrProcessingService.LogProcessingResult(ExxerCube.Prisma.Domain.ValueObjects.ProcessingResult)">
+            <summary>
+            Logs the processing result.
+            </summary>
+            <param name="result">The processing result to log.</param>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.GotOcr2.GotOcr2OcrExecutor">
+            <summary>
+            GOT-OCR2 implementation of IOcrExecutor using CSnakes Python interop.
+            Provides high-accuracy OCR using the GOT-OCR2 transformer model for complex documents.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.GotOcr2.GotOcr2OcrExecutor.#ctor(CSnakes.Runtime.IPythonEnvironment,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Ocr.GotOcr2.GotOcr2OcrExecutor})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.GotOcr2.GotOcr2OcrExecutor"/> class.
+            </summary>
+            <param name="pythonEnvironment">The Python environment for executing Python code.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.GotOcr2.GotOcr2OcrExecutor.ExecuteOcrAsync(ExxerCube.Prisma.Domain.ValueObjects.ImageData,ExxerCube.Prisma.Domain.Models.OCRConfig)">
+            <summary>
+            Executes OCR on an image using GOT-OCR2 model via Python.
+            </summary>
+            <param name="imageData">The image data to process.</param>
+            <param name="config">The OCR configuration.</param>
+            <returns>A result containing the OCR result or an error.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Matching.MexicanNameFuzzyMatcher">
+             <summary>
+             Fuzzy matcher specifically for Mexican names with common variations.
+             CRITICAL: Use ONLY for name fields, NOT for:
+             - RFCs (must be exact)
+             - CURPs (must be exact)
+             - Account numbers (must be exact)
+             - Expedientes (must be exact)
+             - Amounts (must be exact)
+             - Dates (must be exact)
+            
+             Handles common Mexican name variations:
+             - Accent variations: Pérez/Perez, González/Gonzales, José/Jose
+             - Spelling variations: González/Gonzales/Gonzalez, Christian/Cristian
+             - Case variations: PÉREZ/pérez/Pérez
+            
+             Uses Levenshtein distance with 85% similarity threshold (best-effort OCR).
+             </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Matching.MexicanNameFuzzyMatcher.MatchThreshold">
+            <summary>
+            Gets the similarity threshold percentage for fuzzy matching (85%).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Matching.MexicanNameFuzzyMatcher.IsMatch(System.String,System.String)">
+            <summary>
+            Determines if two values match using fuzzy logic for names, exact matching for non-names.
+            </summary>
+            <param name="value1">First value to compare.</param>
+            <param name="value2">Second value to compare.</param>
+            <returns>True if values match (fuzzy for names, exact for others); otherwise, false.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Matching.MexicanNameFuzzyMatcher.GetSimilarityScore(System.String,System.String)">
+            <summary>
+            Calculates the similarity score between two values (0-100).
+            </summary>
+            <param name="value1">First value to compare.</param>
+            <param name="value2">Second value to compare.</param>
+            <returns>Similarity score from 0 to 100.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Matching.MexicanNameFuzzyMatcher.IsNameField(System.String)">
+            <summary>
+            Determines if a value represents a name field (suitable for fuzzy matching).
+            </summary>
+            <param name="value">The value to check.</param>
+            <returns>True if the value appears to be a name; otherwise, false.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Matching.MexicanNameFuzzyMatcher.NormalizeForComparison(System.String)">
+            <summary>
+            Normalizes a string for comparison by removing accents and converting to lowercase.
+            </summary>
+            <param name="value">The value to normalize.</param>
+            <returns>Normalized string.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Matching.MexicanNameFuzzyMatcher.RemoveDiacritics(System.String)">
+            <summary>
+            Removes diacritics (accents) from a string.
+            Example: "Pérez" → "Perez", "González" → "Gonzalez"
+            </summary>
+            <param name="text">The text to process.</param>
+            <returns>Text without diacritics.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.OcrSanitizationService">
+            <summary>
+            Helper to sanitize common OCR-extracted financial identifiers (account/SWIFT) while preserving raw text.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.OcrSanitizationService.#ctor(ExxerCube.Prisma.Domain.Interfaces.ITextSanitizer)">
+            <summary>
+            Initializes the service with a text sanitizer for normalization.
+            </summary>
+            <param name="sanitizer">Injected text sanitizer.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.OcrSanitizationService.SanitizeAccountAndSwift(System.String)">
+            <summary>
+            Attempts to sanitize account and SWIFT-like lines from OCR text; best effort and non-blocking.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Repositories.OcrSessionRepository">
+            <summary>
+            In-memory repository for storing and querying OCR processing sessions.
+            Used for data collection, analysis, and model retraining.
+            Thread-safe implementation using ConcurrentDictionary.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Repositories.OcrSessionRepository.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Repositories.OcrSessionRepository})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Repositories.OcrSessionRepository"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Repositories.OcrSessionRepository.StoreSessionAsync(ExxerCube.Prisma.Domain.Models.OcrSession,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Repositories.OcrSessionRepository.GetSessionByIdAsync(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Repositories.OcrSessionRepository.GetUnreviewedSessionsAsync(System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Repositories.OcrSessionRepository.GetTrainingDataAsync(System.Int32,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Repositories.OcrSessionRepository.UpdateReviewAsync(System.Guid,System.String,System.Int32,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Repositories.OcrSessionRepository.UpdateOptimalParametersAsync(System.Guid,ExxerCube.Prisma.Domain.Models.PolynomialFilterParams,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Repositories.OcrSessionRepository.GetStatisticsAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Repositories.OcrSessionRepository.ExportTrainingDataAsync(System.String,System.String,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Repositories.OcrSessionRepository.CalculateLevenshteinDistance(System.String,System.String)">
+            <summary>
+            Calculates the Levenshtein distance between two strings.
+            </summary>
+            <param name="source">Source string.</param>
+            <param name="target">Target string.</param>
+            <returns>Levenshtein distance (minimum number of edits required).</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Repositories.OcrSessionRepository.ConvertToCsv(System.Collections.Generic.List{ExxerCube.Prisma.Domain.Models.OcrSession})">
+            <summary>
+            Converts OCR sessions to CSV format.
+            </summary>
+            <param name="sessions">Sessions to convert.</param>
+            <returns>CSV string.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Repositories.OcrSessionRepository.EscapeCsv(System.String)">
+            <summary>
+            Escapes CSV field values.
+            </summary>
+            <param name="value">Value to escape.</param>
+            <returns>Escaped value.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.SanitizedOcrValues">
+            <summary>
+            Captures raw OCR text plus sanitized account and SWIFT values.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.SanitizedOcrValues.#ctor(System.String,ExxerCube.Prisma.Domain.Models.TextCleaningResult,ExxerCube.Prisma.Domain.Models.TextCleaningResult)">
+            <summary>
+            Initializes a new instance capturing raw OCR plus cleaned account/SWIFT values.
+            </summary>
+            <param name="rawText">Full OCR text as captured.</param>
+            <param name="account">Sanitized account result.</param>
+            <param name="swift">Sanitized SWIFT result.</param>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.SanitizedOcrValues.RawText">
+            <summary>Full raw OCR text.</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.SanitizedOcrValues.Account">
+            <summary>Sanitized account number result (raw + cleaned + warnings).</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.SanitizedOcrValues.Swift">
+            <summary>Sanitized SWIFT/BIC result (raw + cleaned + warnings).</summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.ComplementExtractionStrategy">
+            <summary>
+            Complement extraction strategy for filling gaps when XML/OCR are missing data.
+            CRITICAL: This is EXPECTED behavior, not a failure mode.
+            Example: "transferir fondos de la cuenta xyz a la cuenta xysx por la cantidad arriba mencionada"
+            - XML has: account numbers ✅
+            - PDF has: account numbers ✅
+            - Neither has: cantidad (amount) ❌
+            - DOCX has: amount somewhere in document ✅
+            This strategy extracts ONLY the missing fields from DOCX to complement XML/OCR data.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.ComplementExtractionStrategy.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.ComplementExtractionStrategy})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.ComplementExtractionStrategy"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.ComplementExtractionStrategy.StrategyType">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.ComplementExtractionStrategy.CalculateConfidence(ExxerCube.Prisma.Domain.Models.DocxStructure)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.ComplementExtractionStrategy.CanHandle(ExxerCube.Prisma.Domain.Models.DocxStructure)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.ComplementExtractionStrategy.ExtractAsync(ExxerCube.Prisma.Domain.Sources.DocxSource,ExxerCube.Prisma.Domain.ValueObjects.FieldDefinition[])">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.ComplementExtractionStrategy.ExtractComplementAsync(ExxerCube.Prisma.Domain.Sources.DocxSource,ExxerCube.Prisma.Domain.ValueObjects.FieldDefinition[],ExxerCube.Prisma.Domain.ValueObjects.ExtractedFields,ExxerCube.Prisma.Domain.ValueObjects.ExtractedFields)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.SearchExtractionStrategy">
+            <summary>
+            Search extraction strategy for resolving cross-references in DOCX documents.
+            Examples:
+            - "transferir por la cantidad arriba mencionada" → searches backward for amount
+            - "el RFC anteriormente indicado" → searches backward for RFC
+            - "según anexo" → searches for referenced data
+            This is EXPECTED behavior when documents reference data instead of repeating it.
+            Implements intelligent backward/forward search to resolve cross-references.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.SearchExtractionStrategy.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.SearchExtractionStrategy})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.SearchExtractionStrategy"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.SearchExtractionStrategy.StrategyType">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.SearchExtractionStrategy.CalculateConfidence(ExxerCube.Prisma.Domain.Models.DocxStructure)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.SearchExtractionStrategy.CanHandle(ExxerCube.Prisma.Domain.Models.DocxStructure)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.SearchExtractionStrategy.ExtractAsync(ExxerCube.Prisma.Domain.Sources.DocxSource,ExxerCube.Prisma.Domain.ValueObjects.FieldDefinition[])">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.StructuredDocxStrategy">
+            <summary>
+            Structured extraction strategy for CNBV-standard formatted DOCX documents.
+            Uses regex patterns to extract fields from well-formatted documents with predictable structure.
+            High confidence for documents matching CNBV template patterns.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.StructuredDocxStrategy.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.StructuredDocxStrategy})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.StructuredDocxStrategy"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.StructuredDocxStrategy.StrategyType">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.StructuredDocxStrategy.CalculateConfidence(ExxerCube.Prisma.Domain.Models.DocxStructure)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.StructuredDocxStrategy.CanHandle(ExxerCube.Prisma.Domain.Models.DocxStructure)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.StructuredDocxStrategy.ExtractAsync(ExxerCube.Prisma.Domain.Sources.DocxSource,ExxerCube.Prisma.Domain.ValueObjects.FieldDefinition[])">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.CompositeMetadataExtractor">
+            <summary>
+            Composite metadata extractor that delegates to the appropriate format-specific extractor.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.CompositeMetadataExtractor.#ctor(ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlMetadataExtractor,ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxMetadataExtractor,ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfMetadataExtractor,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.CompositeMetadataExtractor})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.CompositeMetadataExtractor"/> class.
+            </summary>
+            <param name="xmlExtractor">The XML metadata extractor.</param>
+            <param name="docxExtractor">The DOCX metadata extractor.</param>
+            <param name="pdfExtractor">The PDF metadata extractor.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.CompositeMetadataExtractor.ExtractFromXmlAsync(System.Byte[],System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.CompositeMetadataExtractor.ExtractFromDocxAsync(System.Byte[],System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.CompositeMetadataExtractor.ExtractFromPdfAsync(System.Byte[],System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.CompositeMetadataExtractor.ExtractTextAsync(System.Byte[],System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxFieldExtractor">
+            <summary>
+            DOCX field extractor implementation for extracting structured fields from DOCX documents.
+            Implements <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IFieldExtractor`1"/> for <see cref="T:ExxerCube.Prisma.Domain.Sources.DocxSource"/>.
+            </summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxFieldExtractor.MinimumRemitenteConfidence">
+            <summary>
+            Minimum OCR confidence (0–100) required to accept a remitente name from an image.
+            Below this threshold the result is treated as unreliable and discarded (fail-open).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxFieldExtractor.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxFieldExtractor},ExxerCube.Prisma.Domain.Interfaces.IOcrExecutor)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxFieldExtractor"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+            <param name="ocrExecutor">
+            Optional OCR executor used to read the signing-functionary name from embedded images (D2).
+            When <see langword="null"/> the image-OCR path is skipped entirely; existing text extraction
+            is unaffected. The injected instance MUST be the already-registered <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.TesseractOcrExecutor"/>
+            — do NOT new-up a second engine (Tesseract same-process second-init DEADLOCK).
+            </param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxFieldExtractor.ExtractFieldsAsync(ExxerCube.Prisma.Domain.Sources.DocxSource,ExxerCube.Prisma.Domain.ValueObjects.FieldDefinition[])">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxFieldExtractor.ExtractFieldAsync(ExxerCube.Prisma.Domain.Sources.DocxSource,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxFieldExtractor.ExtractRemitenteFromImagesAsync(System.Byte[])">
+            <summary>
+            Enumerates all embedded image parts in the DOCX, runs OCR on each via the injected executor,
+            and returns the best-effort remitente (signing functionary) name. The method is fail-open:
+            any exception is caught and logged at Warning; an empty/null return means no name was found.
+            </summary>
+            <remarks>
+            Name-heuristic: for each OCR text result, we look for a non-empty line near an
+            "Atentamente" keyword (common Spanish closing). The first plausible name found wins.
+            A "plausible name" is a line of 2–5 words, each capitalised, with no digits and a
+            minimum length of 4 characters per word.
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxFieldExtractor.ParseRemitenteFromOcrText(System.String)">
+            <summary>
+            Parses the remitente (signing-functionary) name from raw OCR text.
+            Strategy: prefer a capitalised name line appearing AFTER "Atentamente" (Spanish formal sign-off).
+            Falls back to scanning all lines for a plausible name if no Atentamente context is found.
+            </summary>
+            <returns>The best-effort name string, or <see langword="null"/> if none found.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxFieldExtractor.IsPlausibleName(System.String)">
+            <summary>
+            Returns <see langword="true"/> when <paramref name="line"/> looks like a Spanish full name:
+            2–5 words, each at least 3 characters long, starts with an uppercase letter,
+            contains no digits, and does not look like a label (ends in colon / is all-caps).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxFieldExtractor.NormalizeExpediente(System.String)">
+            <summary>
+            Collapses internal whitespace in an expediente/folio token so a value printed as
+            <c>A/AS1- 1111-222222-AAA</c> normalises to <c>A/AS1-1111-222222-AAA</c>, matching the
+            canonical form the XML extractor surfaces (so the two sources agree under fusion).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxFieldExtractor.ExtractNumeroOficio(System.String)">
+            <summary>
+            Extracts the authoritative CNBV oficio number from the DOCX text, preferring the
+            label-anchored value (<c>Oficio Núm.: 222/AAA/-4444444444/2025</c>) over the bare
+            requerimiento/solicitud id pattern (a remitted source oficio such as
+            <c>AGAFADAFSON2/2025/000084</c>), so the DOCX agrees with the XML on NumeroOficio.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxFieldExtractor.ExtractRequerimiento(System.String)">
+            <summary>
+            Extracts the requerimiento / SIARA solicitud id from the DOCX text.
+            Pattern reused from <c>AdaptiveTxtFieldExtractor.ExtractNumeroOficio</c>:
+            matches values like <c>AGAFADAFSON2/2025/000084</c>.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxMetadataExtractor">
+            <summary>
+            DOCX metadata extractor implementation for extracting metadata from DOCX documents using DocumentFormat.OpenXml.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxMetadataExtractor.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxMetadataExtractor})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxMetadataExtractor"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxMetadataExtractor.ExtractFromDocxAsync(System.Byte[],System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxMetadataExtractor.ExtractFromXmlAsync(System.Byte[],System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxMetadataExtractor.ExtractFromPdfAsync(System.Byte[],System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxMetadataExtractor.ExtractLawMandatedFieldsFromText(System.String,System.String)">
+            <summary>
+            Best-effort extraction of law-mandated fields from DOCX text.
+            Populates what we can from unstructured text; bank systems will enrich missing fields later.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxMetadataExtractor.ExtractTextAsync(System.Byte[],System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.DocxMetadataExtractor.BuildExtractionMetadata(ExxerCube.Prisma.Domain.Entities.Expediente,System.String,System.String[])">
+            <summary>
+            Builds extraction metadata for multi-source data fusion quality scoring.
+            Applies DRY principle: cleaning, validation, and confidence calculation happen ONCE here.
+            </summary>
+            <param name="expediente">The extracted Expediente entity (partial from DOCX).</param>
+            <param name="extractedText">The full text extracted from DOCX.</param>
+            <param name="rfcValues">RFC values extracted from text.</param>
+            <returns>Extraction metadata with quality metrics.</returns>
+            <remarks>
+            For DOCX extraction (authority OCR):
+            - OCR confidence estimates (DOCX from authorities may have varying quality)
+            - Image quality metrics (estimated based on text quality)
+            - Pattern validation and catalog validation
+            - Base reliability: 0.70 (authority scans may have inconsistent quality)
+            </remarks>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.FileTypeIdentifierService">
+            <summary>
+            Service for identifying file types based on content analysis (not just extension).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.FileTypeIdentifierService.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.FileTypeIdentifierService})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.FileTypeIdentifierService"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.FileTypeIdentifierService.IdentifyFileTypeAsync(System.Byte[],System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfMetadataExtractor">
+            <summary>
+            PDF metadata extractor implementation with OCR fallback using existing OCR pipeline.
+            Detects scanned PDFs and applies image preprocessing before OCR.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfMetadataExtractor.#ctor(ExxerCube.Prisma.Domain.Interfaces.IOcrExecutor,ExxerCube.Prisma.Domain.Interfaces.IImagePreprocessor,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfMetadataExtractor})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfMetadataExtractor"/> class.
+            </summary>
+            <param name="ocrExecutor">The OCR executor for text extraction.</param>
+            <param name="imagePreprocessor">The image preprocessor for scanned PDF preprocessing.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfMetadataExtractor.ExtractFromPdfAsync(System.Byte[],System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfMetadataExtractor.ExtractFromXmlAsync(System.Byte[],System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfMetadataExtractor.ExtractFromDocxAsync(System.Byte[],System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfMetadataExtractor.ExtractTextAsync(System.Byte[],System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfMetadataExtractor.ExtractLawMandatedFieldsFromText(System.String,System.String)">
+            <summary>
+            Best-effort extraction of law-mandated fields from PDF text.
+            Populates what we can from unstructured text; bank systems will enrich missing fields later.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfMetadataExtractor.BuildExtractionMetadata(ExxerCube.Prisma.Domain.Entities.Expediente,System.String,System.String[],System.Boolean)">
+            <summary>
+            Builds extraction metadata for multi-source data fusion quality scoring.
+            Applies DRY principle: cleaning, validation, and confidence calculation happen ONCE here.
+            </summary>
+            <param name="expediente">The extracted Expediente entity (partial from PDF).</param>
+            <param name="extractedText">The full text extracted from PDF.</param>
+            <param name="rfcValues">RFC values extracted from text.</param>
+            <param name="usedDirectExtraction">Whether direct text extraction worked (not OCR).</param>
+            <returns>Extraction metadata with quality metrics.</returns>
+            <remarks>
+            For PDF extraction (CNBV OCR):
+            - OCR confidence from Tesseract (when OCR was used)
+            - Image quality metrics from preprocessing (when OCR was used)
+            - Pattern validation and catalog validation
+            - Base reliability: 0.85 (high quality CNBV scans)
+            </remarks>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfOcrFieldExtractor">
+            <summary>
+            PDF field extractor implementation with OCR pipeline for image-only PDFs.
+            Implements <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IFieldExtractor`1"/> for <see cref="T:ExxerCube.Prisma.Domain.Sources.PdfSource"/>.
+            </summary>
+            <remarks>
+            <para>
+            This extractor handles image-only (scanned) PDFs by:
+            </para>
+            <list type="number">
+              <item><description>Converting PDF pages to images using PDFtoImage</description></item>
+              <item><description>Preprocessing images for OCR quality</description></item>
+              <item><description>Running OCR on each page using Tesseract</description></item>
+              <item><description>Combining text from all pages</description></item>
+              <item><description>Delegating to AdaptiveTxtFieldExtractor for field extraction</description></item>
+            </list>
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfOcrFieldExtractor.#ctor(ExxerCube.Prisma.Domain.Interfaces.IOcrExecutor,ExxerCube.Prisma.Domain.Interfaces.IImagePreprocessor,ExxerCube.Prisma.Domain.Interfaces.IPdfToImageConverter,ExxerCube.Prisma.Domain.Interfaces.IFieldExtractor{ExxerCube.Prisma.Domain.Sources.TxtSource},Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfOcrFieldExtractor})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfOcrFieldExtractor"/> class.
+            </summary>
+            <param name="ocrExecutor">The OCR executor for text extraction.</param>
+            <param name="imagePreprocessor">The image preprocessor for scanned PDF preprocessing.</param>
+            <param name="pdfToImageConverter">The PDF-to-image converter (rasterizes PDF pages for OCR).</param>
+            <param name="txtFieldExtractor">The text field extractor for extracting fields from OCR output.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfOcrFieldExtractor.ExtractFieldsAsync(ExxerCube.Prisma.Domain.Sources.PdfSource,ExxerCube.Prisma.Domain.ValueObjects.FieldDefinition[])">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfOcrFieldExtractor.ExtractFieldAsync(ExxerCube.Prisma.Domain.Sources.PdfSource,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfOcrFieldExtractor.ExtractTextFromPdfAsync(System.Byte[])">
+            <summary>
+            Extracts text from PDF by converting pages to images and running OCR on each page.
+            </summary>
+            <param name="pdfBytes">The PDF file bytes.</param>
+            <returns>Result containing OCR text and confidence score.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfToImageConverter">
+            <summary>
+            Converts PDF pages to PNG images using the PDFtoImage library (SkiaSharp under the hood).
+            </summary>
+            <remarks>
+            This is the production adapter for <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IPdfToImageConverter"/>. It was extracted from
+            <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfOcrFieldExtractor"/> so the extractor can be unit-tested against a mocked
+            converter rather than driving real PDF rasterization.
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfToImageConverter.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfToImageConverter})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfToImageConverter"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.PdfToImageConverter.ConvertToImagesAsync(System.Byte[],System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.TesseractOcrExecutor">
+            <summary>
+            Tesseract OCR implementation of IOcrExecutor.
+            Provides traditional OCR processing using Tesseract engine for fast, reliable text extraction.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.TesseractOcrExecutor.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.TesseractOcrExecutor})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.TesseractOcrExecutor"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.TesseractOcrExecutor.ExecuteOcrAsync(ExxerCube.Prisma.Domain.ValueObjects.ImageData,ExxerCube.Prisma.Domain.Models.OCRConfig)">
+            <summary>
+            Executes OCR on an image using Tesseract engine.
+            </summary>
+            <param name="imageData">The image data to process.</param>
+            <param name="config">The OCR configuration.</param>
+            <returns>A result containing the OCR result or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.TesseractOcrExecutor.ProcessWithTesseract(System.Byte[],System.String,System.String,ExxerCube.Prisma.Domain.Models.OCRConfig)">
+            <summary>
+            Processes image bytes with Tesseract OCR engine.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.TesseractOcrExecutor.ConvertPdfToImage(System.Byte[])">
+            <summary>
+            Converts PDF bytes to image bytes using PDFtoImage for proper rasterization.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.TesseractOcrExecutor.MapToTesseractLanguage(System.String)">
+            <summary>
+            Maps language code to Tesseract format.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.TesseractOcrExecutor.GetTessdataPathAsync">
+            <summary>
+            Gets the tessdata path for Tesseract language data files.
+            Uses cross-platform detection with caching.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.TesseractOcrExecutor.CalculateMedian(System.Collections.Generic.List{System.Single})">
+            <summary>
+            Calculates the median value from a list of floats.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlExpedienteParser">
+            <summary>
+            XML parser implementation for extracting Expediente entities from XML documents.
+            </summary>
+            <remarks>
+            ╔════════════════════════════════════════════════════════════════════════════════╗
+            ║                            🗺️ ROADMAP / FUTURE ENHANCEMENTS                    ║
+            ╠════════════════════════════════════════════════════════════════════════════════╣
+            ║ TODO: FUZZY SEARCH FOR MISSING FIELDS                                          ║
+            ║ ─────────────────────────────────────────────────────────────────────────────  ║
+            ║ After all exact field matching is exhausted (including Cnbv_ prefixes),       ║
+            ║ implement fuzzy search to match XML elements to domain properties when:        ║
+            ║   • Element name doesn't match exactly                                         ║
+            ║   • Typos or variations in XML field names                                     ║
+            ║   • Different naming conventions (camelCase vs PascalCase vs snake_case)       ║
+            ║                                                                                 ║
+            ║ Implementation approach:                                                        ║
+            ║   1. Track all XML elements found vs domain properties required                ║
+            ║   2. For unmatched domain properties, use fuzzy matching (Levenshtein)         ║
+            ║   3. Log warnings for fuzzy-matched fields (compliance audit trail)            ║
+            ║   4. Require minimum confidence threshold for fuzzy matches                    ║
+            ║                                                                                 ║
+            ║ See: MinimumFieldsProvidedBySamples for baseline field expectations            ║
+            ╚════════════════════════════════════════════════════════════════════════════════╝
+            </remarks>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlExpedienteParser.MinimumFieldsProvidedBySamples">
+            <summary>
+            Minimum number of fields that should be extractable based on real PRP1 sample fixtures.
+            Used as baseline for validation and future fuzzy matching implementation.
+            </summary>
+            <remarks>
+            Based on 4 PRP1 fixtures (222AAA, 333BBB, 333ccc, 555CCC):
+            - Root fields: ~15 (NumeroExpediente, NumeroOficio, FechaPublicacion, etc.)
+            - SolicitudPartes: 1+ with 10 fields each
+            - SolicitudEspecifica: 1+ (currently 3 fields, should be 11+ when domain fixed)
+            Total expected: ~30+ fields per document minimum.
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlExpedienteParser.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlExpedienteParser})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlExpedienteParser"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlExpedienteParser.ParseAsync(System.Byte[],System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlExpedienteParser.ExtractLawMandatedFields(System.String,System.String,System.Int32,System.Boolean)">
+            <summary>
+            Best-effort extraction of law-mandated fields from XML data.
+            Populates what we can from current XML schema; bank systems will enrich missing fields later.
+            </summary>
+            <param name="autoridadNombre">Authority name from XML.</param>
+            <param name="areaDescripcion">Area description (ASEGURAMIENTO, HACENDARIO, etc.).</param>
+            <param name="areaClave">Area code from XML.</param>
+            <param name="tieneAseguramiento">Whether case involves asset seizure.</param>
+            <returns>LawMandatedFields with best-effort population, or null if no fields can be extracted.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlExpedienteParser.CaptureUnknownFields(System.Xml.Linq.XElement,System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            Captures unknown XML fields for future-proofing (defensive intelligence pattern).
+            Ensures zero data loss when CNBV adds new fields to their XML schema.
+            </summary>
+            <param name="root">The root XML element to scan.</param>
+            <param name="additionalFields">Dictionary to store unknown fields.</param>
+            <remarks>
+            Best-effort approach: populates what it can, never throws exceptions.
+            Unknown fields are logged as warnings for compliance audit trail.
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlExpedienteParser.BuildExtractionMetadata(ExxerCube.Prisma.Domain.Entities.Expediente,System.Xml.Linq.XElement)">
+            <summary>
+            Builds extraction metadata for multi-source data fusion quality scoring.
+            Applies DRY principle: cleaning, validation, and confidence calculation happen ONCE here.
+            </summary>
+            <param name="expediente">The extracted Expediente entity.</param>
+            <param name="root">The XML root element for field counting.</param>
+            <returns>Extraction metadata with quality metrics.</returns>
+            <remarks>
+            For XML extraction (hand-filled forms):
+            - No OCR confidence (null)
+            - No image quality metrics (null)
+            - Focus on pattern validation and catalog validation
+            </remarks>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlFieldExtractor">
+            <summary>
+            XML field extractor implementation for CNBV/PRP1 fixtures.
+            Extracts canonical fields and maps subdivision, measure hints, identity, SLA hints, and accounts.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlFieldExtractor.ExtractFieldsAsync(ExxerCube.Prisma.Domain.Sources.XmlSource,ExxerCube.Prisma.Domain.ValueObjects.FieldDefinition[])">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlFieldExtractor.ExtractFieldAsync(ExxerCube.Prisma.Domain.Sources.XmlSource,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlMetadataExtractor">
+            <summary>
+            XML metadata extractor implementation for extracting metadata from XML documents.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlMetadataExtractor.#ctor(ExxerCube.Prisma.Domain.Interfaces.IXmlNullableParser{ExxerCube.Prisma.Domain.Entities.Expediente},Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlMetadataExtractor})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlMetadataExtractor"/> class.
+            </summary>
+            <param name="xmlParser">The XML parser for Expediente entities.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlMetadataExtractor.ExtractFromXmlAsync(System.Byte[],System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlMetadataExtractor.ExtractFromDocxAsync(System.Byte[],System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlMetadataExtractor.ExtractFromPdfAsync(System.Byte[],System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.XmlMetadataExtractor.ExtractTextAsync(System.Byte[],System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.TextSanitizer">
+            <summary>
+            Default OCR text cleaner that normalizes noisy captures while keeping the raw text and warnings.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.TextSanitizer.CleanAccount(System.String)">
+            <summary>
+            Cleans account-number-like text by stripping non-digits and returning raw + cleaned + warnings.
+            </summary>
+            <param name="raw">Raw OCR or source text.</param>
+            <returns>Cleaning result with normalization warnings only (non-blocking).</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.TextSanitizer.CleanSwift(System.String)">
+            <summary>
+            Cleans SWIFT/BIC-like text by keeping alphanumerics, uppercasing, and flagging suspect length.
+            </summary>
+            <param name="raw">Raw OCR or source text.</param>
+            <returns>Cleaning result with normalization warnings only (non-blocking).</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Ocr.TextSanitizer.CleanGeneric(System.String)">
+            <summary>
+            Performs a generic cleanup (trim + collapse whitespace) when no specific schema is known.
+            </summary>
+            <param name="raw">Raw OCR or source text.</param>
+            <returns>Cleaning result with normalization warnings only (non-blocking).</returns>
+        </member>
+    </members>
+</doc>

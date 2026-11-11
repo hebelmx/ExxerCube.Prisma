@@ -1,0 +1,572 @@
+[
+  {
+    "id": 0,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.0194370058925168,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 99,
+      "PRP1_Pristine_333BBB": 120,
+      "PRP1_Pristine_333ccc": 121,
+      "PRP1_Pristine_555CCC": 25,
+      "Q1_Poor_222AAA": 131,
+      "Q1_Poor_333BBB": 118,
+      "Q1_Poor_333ccc": 139,
+      "Q1_Poor_555CCC": 26
+    },
+    "total_edits": 779
+  },
+  {
+    "id": 1,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.159244095455163,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 93,
+      "PRP1_Pristine_333BBB": 120,
+      "PRP1_Pristine_333ccc": 129,
+      "PRP1_Pristine_555CCC": 36,
+      "Q1_Poor_222AAA": 134,
+      "Q1_Poor_333BBB": 123,
+      "Q1_Poor_333ccc": 127,
+      "Q1_Poor_555CCC": 23
+    },
+    "total_edits": 785
+  },
+  {
+    "id": 2,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.0579180943291342,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 96,
+      "PRP1_Pristine_333BBB": 121,
+      "PRP1_Pristine_333ccc": 130,
+      "PRP1_Pristine_555CCC": 27,
+      "Q1_Poor_222AAA": 130,
+      "Q1_Poor_333BBB": 120,
+      "Q1_Poor_333ccc": 129,
+      "Q1_Poor_555CCC": 30
+    },
+    "total_edits": 783
+  },
+  {
+    "id": 3,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.0055665203923803,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 107,
+      "PRP1_Pristine_333BBB": 114,
+      "PRP1_Pristine_333ccc": 134,
+      "PRP1_Pristine_555CCC": 22,
+      "Q1_Poor_222AAA": 138,
+      "Q1_Poor_333BBB": 130,
+      "Q1_Poor_333ccc": 128,
+      "Q1_Poor_555CCC": 21
+    },
+    "total_edits": 794
+  },
+  {
+    "id": 4,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.6763635021016683,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 92,
+      "PRP1_Pristine_333BBB": 99,
+      "PRP1_Pristine_333ccc": 143,
+      "PRP1_Pristine_555CCC": 27,
+      "Q1_Poor_222AAA": 147,
+      "Q1_Poor_333BBB": 133,
+      "Q1_Poor_333ccc": 133,
+      "Q1_Poor_555CCC": 19
+    },
+    "total_edits": 793
+  },
+  {
+    "id": 5,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.2558900461859819,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 92,
+      "PRP1_Pristine_333BBB": 98,
+      "PRP1_Pristine_333ccc": 127,
+      "PRP1_Pristine_555CCC": 30,
+      "Q1_Poor_222AAA": 99,
+      "Q1_Poor_333BBB": 122,
+      "Q1_Poor_333ccc": 141,
+      "Q1_Poor_555CCC": 24
+    },
+    "total_edits": 733
+  },
+  {
+    "id": 6,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.2627304278654496,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 86,
+      "PRP1_Pristine_333BBB": 99,
+      "PRP1_Pristine_333ccc": 134,
+      "PRP1_Pristine_555CCC": 36,
+      "Q1_Poor_222AAA": 130,
+      "Q1_Poor_333BBB": 121,
+      "Q1_Poor_333ccc": 125,
+      "Q1_Poor_555CCC": 23
+    },
+    "total_edits": 754
+  },
+  {
+    "id": 7,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.3169080076907127,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 92,
+      "PRP1_Pristine_333BBB": 98,
+      "PRP1_Pristine_333ccc": 136,
+      "PRP1_Pristine_555CCC": 34,
+      "Q1_Poor_222AAA": 135,
+      "Q1_Poor_333BBB": 121,
+      "Q1_Poor_333ccc": 121,
+      "Q1_Poor_555CCC": 22
+    },
+    "total_edits": 759
+  },
+  {
+    "id": 8,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 2.173369389388423,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 139,
+      "PRP1_Pristine_333BBB": 135,
+      "PRP1_Pristine_333ccc": 153,
+      "PRP1_Pristine_555CCC": 31,
+      "Q1_Poor_222AAA": 142,
+      "Q1_Poor_333BBB": 138,
+      "Q1_Poor_333ccc": 159,
+      "Q1_Poor_555CCC": 14
+    },
+    "total_edits": 911
+  },
+  {
+    "id": 9,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 2.0654694091142733,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 108,
+      "PRP1_Pristine_333BBB": 124,
+      "PRP1_Pristine_333ccc": 169,
+      "PRP1_Pristine_555CCC": 32,
+      "Q1_Poor_222AAA": 130,
+      "Q1_Poor_333BBB": 139,
+      "Q1_Poor_333ccc": 146,
+      "Q1_Poor_555CCC": 17
+    },
+    "total_edits": 865
+  },
+  {
+    "id": 10,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 2.0400754159412484,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 109,
+      "PRP1_Pristine_333BBB": 132,
+      "PRP1_Pristine_333ccc": 164,
+      "PRP1_Pristine_555CCC": 29,
+      "Q1_Poor_222AAA": 131,
+      "Q1_Poor_333BBB": 140,
+      "Q1_Poor_333ccc": 140,
+      "Q1_Poor_555CCC": 20
+    },
+    "total_edits": 865
+  },
+  {
+    "id": 11,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 2.160897840316356,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 142,
+      "PRP1_Pristine_333BBB": 135,
+      "PRP1_Pristine_333ccc": 160,
+      "PRP1_Pristine_555CCC": 31,
+      "Q1_Poor_222AAA": 128,
+      "Q1_Poor_333BBB": 139,
+      "Q1_Poor_333ccc": 159,
+      "Q1_Poor_555CCC": 17
+    },
+    "total_edits": 911
+  },
+  {
+    "id": 12,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.0233225057087103,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 107,
+      "PRP1_Pristine_333BBB": 120,
+      "PRP1_Pristine_333ccc": 134,
+      "PRP1_Pristine_555CCC": 24,
+      "Q1_Poor_222AAA": 107,
+      "Q1_Poor_333BBB": 114,
+      "Q1_Poor_333ccc": 144,
+      "Q1_Poor_555CCC": 23
+    },
+    "total_edits": 773
+  },
+  {
+    "id": 13,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.8229058997749115,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 99,
+      "PRP1_Pristine_333BBB": 93,
+      "PRP1_Pristine_333ccc": 151,
+      "PRP1_Pristine_555CCC": 31,
+      "Q1_Poor_222AAA": 138,
+      "Q1_Poor_333BBB": 134,
+      "Q1_Poor_333ccc": 128,
+      "Q1_Poor_555CCC": 16
+    },
+    "total_edits": 790
+  },
+  {
+    "id": 14,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 2.160555826572947,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 138,
+      "PRP1_Pristine_333BBB": 129,
+      "PRP1_Pristine_333ccc": 159,
+      "PRP1_Pristine_555CCC": 29,
+      "Q1_Poor_222AAA": 129,
+      "Q1_Poor_333BBB": 139,
+      "Q1_Poor_333ccc": 155,
+      "Q1_Poor_555CCC": 16
+    },
+    "total_edits": 894
+  },
+  {
+    "id": 15,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.009380710936204,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 110,
+      "PRP1_Pristine_333BBB": 120,
+      "PRP1_Pristine_333ccc": 125,
+      "PRP1_Pristine_555CCC": 26,
+      "Q1_Poor_222AAA": 135,
+      "Q1_Poor_333BBB": 125,
+      "Q1_Poor_333ccc": 127,
+      "Q1_Poor_555CCC": 21
+    },
+    "total_edits": 789
+  },
+  {
+    "id": 16,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.1016802469157014,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 90,
+      "PRP1_Pristine_333BBB": 118,
+      "PRP1_Pristine_333ccc": 123,
+      "PRP1_Pristine_555CCC": 28,
+      "Q1_Poor_222AAA": 105,
+      "Q1_Poor_333BBB": 127,
+      "Q1_Poor_333ccc": 147,
+      "Q1_Poor_555CCC": 28
+    },
+    "total_edits": 766
+  },
+  {
+    "id": 17,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.3329930339768163,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 91,
+      "PRP1_Pristine_333BBB": 104,
+      "PRP1_Pristine_333ccc": 134,
+      "PRP1_Pristine_555CCC": 34,
+      "Q1_Poor_222AAA": 109,
+      "Q1_Poor_333BBB": 123,
+      "Q1_Poor_333ccc": 145,
+      "Q1_Poor_555CCC": 22
+    },
+    "total_edits": 762
+  },
+  {
+    "id": 18,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.1016802469157014,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 90,
+      "PRP1_Pristine_333BBB": 118,
+      "PRP1_Pristine_333ccc": 123,
+      "PRP1_Pristine_555CCC": 28,
+      "Q1_Poor_222AAA": 105,
+      "Q1_Poor_333BBB": 127,
+      "Q1_Poor_333ccc": 147,
+      "Q1_Poor_555CCC": 28
+    },
+    "total_edits": 766
+  },
+  {
+    "id": 19,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.4651858960305766,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 94,
+      "PRP1_Pristine_333BBB": 118,
+      "PRP1_Pristine_333ccc": 129,
+      "PRP1_Pristine_555CCC": 30,
+      "Q1_Poor_222AAA": 125,
+      "Q1_Poor_333BBB": 126,
+      "Q1_Poor_333ccc": 128,
+      "Q1_Poor_555CCC": 19
+    },
+    "total_edits": 769
+  },
+  {
+    "id": 20,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.8760428698698357,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 105,
+      "PRP1_Pristine_333BBB": 121,
+      "PRP1_Pristine_333ccc": 147,
+      "PRP1_Pristine_555CCC": 30,
+      "Q1_Poor_222AAA": 143,
+      "Q1_Poor_333BBB": 131,
+      "Q1_Poor_333ccc": 138,
+      "Q1_Poor_555CCC": 15
+    },
+    "total_edits": 830
+  },
+  {
+    "id": 21,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.3367816486631006,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 89,
+      "PRP1_Pristine_333BBB": 99,
+      "PRP1_Pristine_333ccc": 138,
+      "PRP1_Pristine_555CCC": 35,
+      "Q1_Poor_222AAA": 128,
+      "Q1_Poor_333BBB": 124,
+      "Q1_Poor_333ccc": 124,
+      "Q1_Poor_555CCC": 22
+    },
+    "total_edits": 759
+  },
+  {
+    "id": 22,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 2.0400754159412484,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 109,
+      "PRP1_Pristine_333BBB": 132,
+      "PRP1_Pristine_333ccc": 164,
+      "PRP1_Pristine_555CCC": 29,
+      "Q1_Poor_222AAA": 131,
+      "Q1_Poor_333BBB": 140,
+      "Q1_Poor_333ccc": 140,
+      "Q1_Poor_555CCC": 20
+    },
+    "total_edits": 865
+  },
+  {
+    "id": 23,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 2.0654694091142733,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 108,
+      "PRP1_Pristine_333BBB": 124,
+      "PRP1_Pristine_333ccc": 169,
+      "PRP1_Pristine_555CCC": 32,
+      "Q1_Poor_222AAA": 130,
+      "Q1_Poor_333BBB": 139,
+      "Q1_Poor_333ccc": 146,
+      "Q1_Poor_555CCC": 17
+    },
+    "total_edits": 865
+  },
+  {
+    "id": 24,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.6692103118402848,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 96,
+      "PRP1_Pristine_333BBB": 99,
+      "PRP1_Pristine_333ccc": 144,
+      "PRP1_Pristine_555CCC": 26,
+      "Q1_Poor_222AAA": 134,
+      "Q1_Poor_333BBB": 135,
+      "Q1_Poor_333ccc": 126,
+      "Q1_Poor_555CCC": 18
+    },
+    "total_edits": 778
+  },
+  {
+    "id": 25,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.0055665203923803,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 107,
+      "PRP1_Pristine_333BBB": 114,
+      "PRP1_Pristine_333ccc": 134,
+      "PRP1_Pristine_555CCC": 22,
+      "Q1_Poor_222AAA": 138,
+      "Q1_Poor_333BBB": 130,
+      "Q1_Poor_333ccc": 128,
+      "Q1_Poor_555CCC": 21
+    },
+    "total_edits": 794
+  },
+  {
+    "id": 26,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.4769737200266877,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 95,
+      "PRP1_Pristine_333BBB": 101,
+      "PRP1_Pristine_333ccc": 130,
+      "PRP1_Pristine_555CCC": 30,
+      "Q1_Poor_222AAA": 139,
+      "Q1_Poor_333BBB": 119,
+      "Q1_Poor_333ccc": 131,
+      "Q1_Poor_555CCC": 19
+    },
+    "total_edits": 764
+  },
+  {
+    "id": 27,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.0287948800813282,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 100,
+      "PRP1_Pristine_333BBB": 122,
+      "PRP1_Pristine_333ccc": 130,
+      "PRP1_Pristine_555CCC": 27,
+      "Q1_Poor_222AAA": 138,
+      "Q1_Poor_333BBB": 120,
+      "Q1_Poor_333ccc": 123,
+      "Q1_Poor_555CCC": 23
+    },
+    "total_edits": 783
+  },
+  {
+    "id": 28,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.2558900461859819,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 92,
+      "PRP1_Pristine_333BBB": 98,
+      "PRP1_Pristine_333ccc": 127,
+      "PRP1_Pristine_555CCC": 30,
+      "Q1_Poor_222AAA": 99,
+      "Q1_Poor_333BBB": 122,
+      "Q1_Poor_333ccc": 141,
+      "Q1_Poor_555CCC": 24
+    },
+    "total_edits": 733
+  },
+  {
+    "id": 29,
+    "cluster": 0,
+    "genome": {
+      "contrast_factor": 1.6973095508858342,
+      "median_size": 3
+    },
+    "objectives": {
+      "PRP1_Pristine_222AAA": 95,
+      "PRP1_Pristine_333BBB": 103,
+      "PRP1_Pristine_333ccc": 143,
+      "PRP1_Pristine_555CCC": 28,
+      "Q1_Poor_222AAA": 141,
+      "Q1_Poor_333BBB": 138,
+      "Q1_Poor_333ccc": 128,
+      "Q1_Poor_555CCC": 17
+    },
+    "total_edits": 793
+  }
+]

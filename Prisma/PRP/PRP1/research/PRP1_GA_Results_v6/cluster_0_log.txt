@@ -1,0 +1,10 @@
+Loading ground truths...
+[Cluster 0] Starting GA with 18 images
+[Cluster 0] Initial best: 693.8
+[Cluster 0] Gen 5: best=476.4
+[Cluster 0] Gen 10: best=421.0
+[Cluster 0] Gen 15: best=397.7
+[Cluster 0] Gen 20: best=389.3
+[Cluster 0] Gen 25: best=388.4
+[Cluster 0] DONE - Best edit distance: 388.39
+[Cluster 0] Params: {'contrast': 1.379, 'brightness': 1.073, 'sharpness': 1.378, 'median_size': 0, 'unsharp_radius': 3.837, 'unsharp_percent': 204, 'unsharp_threshold': 2, 'scan_removal': 0, 'morph_kernel_w': -16, 'morph_kernel_h': 2, 'bilateral': 0}

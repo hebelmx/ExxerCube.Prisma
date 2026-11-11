@@ -1,0 +1,26 @@
+{
+  "stryker-config": {
+    "project": "ExxerCube.Prisma.Infrastructure.FileStorage.csproj",
+    "test-projects": [
+      "ExxerCube.Prisma.Tests.Infrastructure.FileStorage.csproj"
+    ],
+    "test-runner": "mtp",
+    "mutate": [
+      "**/SafeFileNamerService.cs",
+      "**/FileMoverService.cs"
+    ],
+    "additional-timeout": 30000,
+    "coverage-analysis": "perTest",
+    "reporters": [
+      "html",
+      "progress",
+      "cleartext"
+    ],
+    "thresholds": {
+      "high": 80,
+      "low": 60,
+      "break": 0
+    },
+    "concurrency": 4
+  }
+}

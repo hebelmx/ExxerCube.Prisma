@@ -1,0 +1,16 @@
+{
+  "packageId": "Contoso.Logging.Analyzers",
+  "version": "0.9.0",
+  "description": "Roslyn analyzers for Contoso logging patterns.",
+  "projectUrl": "https://contoso.dev/logging-analyzers",
+  "licenseUrl": "https://contoso.dev/license",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/contoso/logging.analyzers",
+    "branch": "main"
+  },
+  "tags": [
+    "roslyn",
+    "logging"
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "docId": "SHCP-2023-549529_20260719_152618",
+  "seed": 5003,
+  "chaosLevel": "none",
+  "requirementType": "judicial",
+  "folioSiara": "SHCP/2023/549529",
+  "numeroOficio": "SHCP/2023/549529",
+  "numeroExpediente": "H/AS2 - 5707 - 325253 - FGR",
+  "autoridadNombre": "Secretaría de Hacienda y Crédito Público",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Flavio Galván Leal",
+  "personaNombre": "Guadalupe Lira Muñiz",
+  "personaRfc": "LIMG9608298M3",
+  "solicitudPartes": [
+    {
+      "nombre": "Guadalupe Lira Muñiz",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$3,301,779.95",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Secretaría de Hacienda y Crédito Público",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

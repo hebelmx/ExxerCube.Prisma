@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Settings.Configuration" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+    <PackageReference Include="Serilog.Sinks.Seq" />
+    <PackageReference Include="Serilog.Sinks.MSSqlServer" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
+    <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.BrowserAutomation\ExxerCube.Prisma.Infrastructure.BrowserAutomation.csproj" />
+    <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Calendar\ExxerCube.Prisma.Infrastructure.Calendar.csproj" />
+    <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Database\ExxerCube.Prisma.Infrastructure.Database.csproj" />
+    <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure\ExxerCube.Prisma.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
+    <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Export\ExxerCube.Prisma.Infrastructure.Export.csproj" />
+    <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Export.Adaptive\ExxerCube.Prisma.Infrastructure.Export.Adaptive.csproj" />
+    <ProjectReference Include="..\..\Athena\Prisma.Athena.Processing\ExxerCube.Prisma.Athena.Processing.csproj" />
+    <ProjectReference Include="..\Prisma.Reconciliator.HealthChecks\ExxerCube.Prisma.Reconciliator.HealthChecks.csproj" />
+  </ItemGroup>
+</Project>

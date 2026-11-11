@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prp1-document-generator"
+version = "2.0.0"
+description = "Enhanced PRP1-style requerimiento document generator with automated Ollama orchestration"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    {name = "ExxerCube Team"}
+]
+keywords = ["document-generator", "legal", "mexico", "prp1", "cnbv"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "requests>=2.31.0",
+    "tqdm>=4.66.0",
+    "Faker>=20.0.0",
+    "python-docx>=1.1.0",
+    "reportlab>=4.0.0",
+    "Pillow>=10.0.0",
+    "pdf2image>=1.16.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "black>=23.0.0",
+    "flake8>=6.1.0",
+    "mypy>=1.7.0",
+]
+
+[project.scripts]
+prp1-generate = "generate_documents:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --cov=prp1_generator --cov-report=html --cov-report=term"
+
+[tool.black]
+line-length = 100
+target-version = ['py39', 'py310', 'py311', 'py312']
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false

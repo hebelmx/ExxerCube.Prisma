@@ -1,0 +1,26 @@
+<Project>
+
+	<PropertyGroup>
+		<!-- Target Framework -->
+		<!-- Using .NET 9.0 until CSnakes has stable .NET 10 support -->
+		<TargetFramework>net10.0</TargetFramework>
+
+		<!-- Language Features -->
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+
+		<!-- Project Metadata -->
+		<Authors>Abel Briones</Authors>
+		<Company>ExxerCube</Company>
+		<Product>GOT-OCR2 Sample</Product>
+		<Description>GOT-OCR2 integration sample using CSnakes for Python interop</Description>
+
+		<!-- Build Configuration -->
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+		<GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+		<!-- Package Management -->
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+	</PropertyGroup>
+</Project>

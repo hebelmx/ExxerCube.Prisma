@@ -1,0 +1,15 @@
+{
+  "scan_date": "2025-11-17T19:21:33.579500",
+  "base_path": "Prisma",
+  "mode": "advanced",
+  "statistics": {
+    "total_test_projects": 0,
+    "total_test_files": 0,
+    "total_test_classes": 0,
+    "total_suts_referenced": 0
+  },
+  "test_projects": {},
+  "project_analysis": {},
+  "sut_to_tests_mapping": {},
+  "namespace_to_tests": {}
+}

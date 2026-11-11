@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>PJF/2025/085616</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>OF-3945-2025</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2025</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Dirección General de Análisis de Operaciones</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>PJF/2025/085616</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>EXP-1024-2020</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>21/11/2025</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>10</Cnbv_DiasPlazo>
+  <AutoridadNombre>Unidad de Inteligencia Financiera</AutoridadNombre>
+  <NombreSolicitante>Perla Muñiz Quezada</NombreSolicitante>
+  <Referencia>REF-3293</Referencia>
+  <Referencia1>REF1-7629</Referencia1>
+  <Referencia2>REF2-2161</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Laura Arevalo Hernádez</Nombre>
+    <Caracter>Contribuyente</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Incluir números de cuenta, saldos y movimientos
+- Proporcionar información de todas las cuentas bancarias
+- Detallar operaciones superiores a $100,000.00 MN
+- Indicar titulares y co-titulares de las cuentas
+- Especificar fechas de apertura y cierre de cuentas</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Laura Arevalo Hernádez</Nombre>
+    <Rfc>ARHL7305104KL</Rfc>
+    <Caracter>Contribuyente</Caracter>
+    <Domicilio>Retorno Almanza No. 9732, Col. Vieja Túnez, Municipio Nueva Etiopia, Baja California Sur, C.P. 64452</Domicilio>
+    <Complementarios>Tel: 01566249999, Email: esparta97@example.net</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

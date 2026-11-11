@@ -1,0 +1,10 @@
+code/src/tests/08UITests/ExxerAI.UI.Tests/ExxerAI.UI.Tests.csproj
+  - Add xunit.v3.core reference (line 81)
+  - Add xunit.v3.runner.inproc.console reference (line 81)
+  - Add xunit.v3.runner.msbuild reference (line 81)
+  - Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets (line 83)
+code/src/tests/08UITests/ExxerAI.UI.Web.Tests/ExxerAI.UI.Web.Tests.csproj
+  - Add xunit.v3.core reference (line 81)
+  - Add xunit.v3.runner.inproc.console reference (line 81)
+  - Add xunit.v3.runner.msbuild reference (line 81)
+  - Expand xunit.runner.visualstudio node with PrivateAssets/IncludeAssets (line 83)

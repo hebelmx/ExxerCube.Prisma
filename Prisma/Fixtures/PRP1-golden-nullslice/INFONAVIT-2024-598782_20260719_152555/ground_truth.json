@@ -1,0 +1,50 @@
+{
+  "docId": "INFONAVIT-2024-598782_20260719_152555",
+  "seed": 5001,
+  "chaosLevel": "none",
+  "requirementType": "informacion",
+  "folioSiara": "INFONAVIT/2024/598782",
+  "numeroOficio": "INFONAVIT/2024/598782",
+  "numeroExpediente": "H/FI1-4371-516104-HAC",
+  "autoridadNombre": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Alma Valle Escobar",
+  "personaNombre": "Marisol Valdés Colunga",
+  "personaRfc": "VACM65033056M",
+  "solicitudPartes": [
+    {
+      "nombre": "Marisol Valdés Colunga",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$6,027,588.09",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": true,
+    "solicitudPartes": null
+  }
+}

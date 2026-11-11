@@ -1,0 +1,50 @@
+{
+  "docId": "IMSS-2025-566392_20260719_152602",
+  "seed": 5002,
+  "chaosLevel": "none",
+  "requirementType": "pld",
+  "folioSiara": "IMSS/2025/566392",
+  "numeroOficio": "IMSS/2025/566392",
+  "numeroExpediente": "H/PL1—5606—595652—SAT",
+  "autoridadNombre": "Procuraduría General de la República - Visitaduría General",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Zeferino Merino Nevárez",
+  "personaNombre": "Iván Haro Ledesma",
+  "personaRfc": "HALI920616LKK",
+  "solicitudPartes": [
+    {
+      "nombre": "Iván Haro Ledesma",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$6,316,976.63",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Procuraduría General de la República - Visitaduría General",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": null,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

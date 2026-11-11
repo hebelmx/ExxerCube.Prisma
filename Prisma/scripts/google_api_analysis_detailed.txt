@@ -1,0 +1,244 @@
+================================================================================
+GOOGLE API USAGE ANALYSIS REPORT
+Generated: 2025-09-27 22:32:44
+================================================================================
+
+📊 SUMMARY:
+  Total Files Analyzed: 3
+  Credential Files Found: 33
+  Unique API Types: 1
+  Average Complexity: 5.0/5
+
+🎯 RECOMMENDED ACTIONS:
+----------------------------------------
+  Migrate to M2M: 1 files
+  Deprecate - Test Only: 2 files
+
+📁 MIGRATE TO M2M (1 files):
+--------------------------------------------------
+  📄 GoogleDriveService
+      Path: code\src\Infraestructure\ExxerAI.Infrastructure\External\GoogleDriveService.cs
+      API: Google.Apis.Drive.v3
+      Pattern: OAuth,DirectAPI
+      Complexity: 5/5
+      Deprecated: Yes
+      Dependencies: Google.Apis.Drive.v3, Google.Apis.Auth.OAuth2
+
+📁 DEPRECATE - TEST ONLY (2 files):
+--------------------------------------------------
+  📄 GoogleDriveService
+      Path: code\src\Infraestructure\ExxerAi.MCPServer\Application\Services\GoogleDriveService.cs
+      API: Google.Apis.Drive.v3
+      Pattern: OAuth,DirectAPI,MCP,Testing
+      Complexity: 5/5
+      Deprecated: Yes
+      Dependencies: Google.Apis.Drive.v3.Data, Google.Apis.Drive.v3, Google.Apis.Auth.OAuth2...
+
+  📄 ModernGoogleDriveCredentialResolver
+      Path: code\src\Infraestructure\ExxerAi.MCPServer\Application\Services\ModernGoogleDriveCredentialResolver.cs
+      API: Google.Apis.Drive.v3
+      Pattern: OAuth,ServiceAccount,ADC,DirectAPI,MCP,Testing
+      Complexity: 5/5
+      Deprecated: Yes
+      Dependencies: Google.Apis.Drive.v3, Google.Apis.Auth.OAuth2
+
+🔐 CREDENTIAL ANALYSIS:
+----------------------------------------
+  🔑 OAuth
+      Location: code\google-credentials.json
+      Modern: No
+      Security: Low
+      Deprecation Risk: High
+
+  🔑 OAuth
+      Location: code\google-credentialsV2.json
+      Modern: No
+      Security: Low
+      Deprecation Risk: High
+
+  🔑 Unknown
+      Location: code\SampleCode\local-ai-packaged\flowise\create_google_doc-CustomTool.json
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\SampleCode\local-ai-packaged\n8n-tool-workflows\Create_Google_Doc.json
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 OAuth
+      Location: code\SampleCode\SideProjects\ExxerProAIExplorer\src\App\google.json
+      Modern: No
+      Security: Low
+      Deprecation Risk: High
+
+  🔑 Unknown
+      Location: code\src\.venv\Lib\site-packages\googleapiclient\discovery_cache\documents\iamcredentials.v1.json
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\.venv\Lib\site-packages\googleapiclient\discovery_cache\documents\oauth2.v2.json
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\Core\ExxerAI.Application\Interfaces\IGoogleDriveIngestionClient.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\Core\ExxerAI.Application\Interfaces\IMCPGoogleDriveService.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\Core\ExxerAI.Application\Services\GoogleDriveEngine.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\Infraestructure\ExxerAI.Infrastructure\External\GoogleDriveService.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\Infraestructure\ExxerAI.Infrastructure\Services\Neo4jCredentialService.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\Infraestructure\ExxerAI.Infrastructure\Services\QdrantCredentialService.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\Infraestructure\ExxerAi.MCPServer\Application\Interfaces\IGoogleDriveCredentialResolver.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\Infraestructure\ExxerAi.MCPServer\Application\Interfaces\IGoogleDriveService.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\Infraestructure\ExxerAi.MCPServer\Application\Interfaces\IGoogleDriveTools.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 OAuth
+      Location: code\src\Infraestructure\ExxerAi.MCPServer\Application\Services\GoogleDriveCredentialResolver.cs
+      Modern: No
+      Security: Low
+      Deprecation Risk: High
+
+  🔑 Unknown
+      Location: code\src\Infraestructure\ExxerAi.MCPServer\Application\Services\GoogleDriveFileMetadata.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\Infraestructure\ExxerAi.MCPServer\Application\Services\GoogleDriveService.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\Infraestructure\ExxerAi.MCPServer\Application\Services\ModernGoogleDriveCredentialResolver.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\Infraestructure\ExxerAi.MCPServer\Application\Tools\GoogleDriveTools.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 OAuth
+      Location: code\src\tests\ExxerAI.IntegrationTests\google-credentials.json
+      Modern: No
+      Security: Low
+      Deprecation Risk: High
+
+  🔑 Unknown
+      Location: code\src\tests\ExxerAI.IntegrationTests\Core\Authentication\BasicCredentialTests.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\tests\ExxerAI.IntegrationTests\Core\Authentication\CredentialVerificationTest.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\tests\ExxerAI.IntegrationTests\Core\Authentication\DebugCredentialResolver.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\tests\ExxerAI.IntegrationTests\Core\Authentication\ModernCredentialTest.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\tests\ExxerAI.IntegrationTests\Core\Authentication\TestApiKeyCredentials.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\tests\ExxerAI.IntegrationTests\Core\Authentication\TestCredentialQuick.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\tests\ExxerAI.IntegrationTests\Core\Authentication\TestModernCredentials.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\tests\ExxerAI.IntegrationTests\Core\Authentication\VerifyCredentials.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\tests\ExxerAI.IntegrationTests\Services\Neo4jCredentialServiceTests.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\tests\ExxerAI.IntegrationTests\Services\QdrantCredentialServiceTests.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+
+  🔑 Unknown
+      Location: code\src\tests\ExxerAI.IntegrationTests\Support\FixtureGoogleDriveIngestionClient.cs
+      Modern: No
+      Security: Unknown
+      Deprecation Risk: Unknown
+

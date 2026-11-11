@@ -1,0 +1,24 @@
+---
+description: Flag Best Practices while revieweng code
+globs:
+alwaysApply: false
+---
+
+Task:
+--scan base code for improvement opportunities
+--dont change the code base just add a comment
+--for each oportuniy add a comment
+--the comment must have the next format
+
+//TODO [TAG] [CURSOR] [DD/MMMM/YYYY] - Short, precise, expressive explanation.
+// - [TAG] can be: [URGENT], [IMPORTANT], [BEST PRACTICE], [DRY], [PERFORMANCE], [SOLID], [RESOURCE LEAK], [LINQ]
+//   [UNREACHABLE]
+// - [CURSOR] is always included to indicate it was flagged by the AI/code review process.
+// - [DD/MMMM/YYYY] is the date in day/month/year format (e.g., 20/JUN/2025).
+// - The explanation should be concise but clear: what is the problem, what is the proposal, how can it help?
+// - If a code fix is obvious, include it as a commented-out proposal.
+// - If there is a reference (MSDN, docs, blog, etc.), include it.
+// - If a best practice is mentioned, cite it (e.g., "see .NET best practices for IDisposable").
+// - DO NOT change code or behavior—just flag with comments.
+// - DO NOT flag planned/intentional code (e.g., future properties, domain-driven placeholders).
+// - Only flag unreachable code as dead code, not future features or domain-preventive code.

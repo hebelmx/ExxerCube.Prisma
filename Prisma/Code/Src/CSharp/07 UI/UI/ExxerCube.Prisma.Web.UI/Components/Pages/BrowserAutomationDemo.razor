@@ -1,0 +1,675 @@
+@page "/browser-automation"
+@attribute [Authorize(Roles = "Admin")]
+@using ExxerCube.Prisma.Domain.Interfaces
+@using ExxerCube.Prisma.Domain
+@using ExxerCube.Prisma.Domain.Enum
+@using ExxerCube.Prisma.Infrastructure.BrowserAutomation
+@using Microsoft.Extensions.Options
+@using Microsoft.JSInterop
+@using Microsoft.Extensions.Logging
+@inject IBrowserAutomationAgent BrowserAgent
+@inject IOptions<BrowserAutomationOptions> BrowserOptions
+@inject ISnackbar Snackbar
+@inject ILogger<BrowserAutomationDemo> Logger
+@inject ISiaraLoginService SiaraLogin
+@inject ISiaraCredentialSource SiaraCredentials
+@implements IDisposable
+
+<PageTitle>Browser Automation - Document Download</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudPaper Class="pa-6" Elevation="3">
+        <MudText Typo="Typo.h3" GutterBottom="true">
+            <MudIcon Icon="@Icons.Material.Filled.Language" Class="mr-2" />
+            Browser Automation - Document Download
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            Automated browser navigation and document download from public sources using Playwright.
+            This demonstrates the browser automation infrastructure for regulatory document collection.
+        </MudText>
+
+        <MudDivider Class="my-4" />
+
+        <!-- Configuration Panel (Expandable) -->
+        <MudExpansionPanels Class="mb-4">
+            <MudExpansionPanel Text="Advanced Configuration (Edit for MVP Demo)">
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_siaraUrl" Label="SIARA Simulator URL" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_gutenbergUrl" Label="Gutenberg Base URL" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_archiveUrl" Label="Internet Archive Base URL" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudNumericField @bind-Value="_browserTimeoutMs" Label="Browser Timeout (ms)" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudNumericField @bind-Value="_pageTimeoutMs" Label="Page Timeout (ms)" Variant="Variant.Outlined" />
+                    </MudItem>
+                </MudGrid>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+
+        <!-- Controls -->
+        <MudGrid Class="mb-4">
+            <MudItem xs="12" md="4">
+                <MudSelect T="string" @bind-Value="_selectedSource" Label="Document Source" Variant="Variant.Outlined">
+                    <MudSelectItem Value="@("gutenberg")">Project Gutenberg (Economics Books)</MudSelectItem>
+                    <MudSelectItem Value="@("archive")">Internet Archive (Financial Markets)</MudSelectItem>
+                    <MudSelectItem Value="@("siara")">SIARA Simulator (CNBV Dummies)</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudNumericField @bind-Value="_downloadCount" Label="Number of Files" Variant="Variant.Outlined"
+                                 Min="1" Max="10" />
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudSwitch @bind-Value="_showBrowser" Label="Show Browser (Headed Mode)" Color="Color.Primary" />
+            </MudItem>
+            <MudItem xs="12" md="2" Class="d-flex align-center">
+                <MudChip T="string" Size="Size.Small" Color="@(_showBrowser ? Color.Success : Color.Default)">
+                    @(_showBrowser ? "Visible" : "Headless")
+                </MudChip>
+            </MudItem>
+        </MudGrid>
+
+        <!-- SIARA Simulator Controls (only shown when SIARA is selected) -->
+        @if (_selectedSource == "siara")
+        {
+            <MudPaper Class="pa-4 mb-4" Outlined="true">
+                <MudText Typo="Typo.h6" GutterBottom="true">
+                    <MudIcon Icon="@Icons.Material.Filled.Settings" Class="mr-2" />
+                    SIARA Simulator Service
+                </MudText>
+                <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                    <MudButton Variant="Variant.Filled" Color="Color.Success"
+                               OnClick="StartSimulator" Disabled="@(_isSimulatorStarting)"
+                               StartIcon="@Icons.Material.Filled.NetworkCheck">
+                        Check Availability
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                               Href="@_siaraBrowserUrl" Target="_blank"
+                               StartIcon="@Icons.Material.Filled.OpenInNew">
+                        Open SIARA
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Default"
+                               OnClick="StopSimulator" Disabled="@(_isSimulatorStopping)"
+                               StartIcon="@Icons.Material.Filled.Refresh">
+                        Refresh Status
+                    </MudButton>
+                    <MudChip T="string" Size="Size.Medium" Color="@(_isSimulatorRunning ? Color.Success : Color.Default)">
+                        @(_isSimulatorRunning ? "Available" : "Unreachable")
+                    </MudChip>
+                    @if (_isSimulatorStarting || _isSimulatorStopping)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                        <MudText Typo="Typo.body2">Checking...</MudText>
+                    }
+                </MudStack>
+                <MudText Typo="Typo.caption" Class="mt-2" Color="Color.Secondary">
+                    Service URL (agent): @_siaraUrl &nbsp;•&nbsp; Open in browser: @_siaraBrowserUrl
+                </MudText>
+            </MudPaper>
+        }
+
+        <MudStack Row="true" Spacing="2" Class="mb-6">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       OnClick="StartDownload" Disabled="@_isDownloading"
+                       StartIcon="@Icons.Material.Filled.Download">
+                Start Download
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary"
+                       OnClick="ClearDownloads" Disabled="@_isDownloading"
+                       StartIcon="@Icons.Material.Filled.Clear">
+                Clear Downloads
+            </MudButton>
+        </MudStack>
+
+        <!-- Progress Section -->
+        @if (_isDownloading)
+        {
+            <MudPaper Class="pa-4 mb-4" Outlined="true">
+                <MudText Typo="Typo.h6" GutterBottom="true">
+                    <MudIcon Icon="@Icons.Material.Filled.CloudDownload" Class="mr-2" />
+                    Download Progress
+                </MudText>
+                <MudProgressLinear Color="Color.Primary" Value="@_progressPercent" Class="my-4" />
+                <MudText Typo="Typo.body2">
+                    @_statusMessage
+                </MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    Downloaded: @_downloadedFiles.Count / @_downloadCount files
+                </MudText>
+            </MudPaper>
+        }
+
+        <!-- Downloaded Files List -->
+        @if (_downloadedFiles.Any())
+        {
+            <MudDivider Class="my-4" />
+            <MudText Typo="Typo.h5" GutterBottom="true" Class="mb-4">
+                <MudIcon Icon="@Icons.Material.Filled.FolderOpen" Class="mr-2" />
+                Downloaded Files (@_downloadedFiles.Count)
+            </MudText>
+
+            <MudDataGrid T="DownloadedFile" Items="@_downloadedFiles" Hover="true" Dense="true">
+                <Columns>
+                    <PropertyColumn Property="x => x.FileName" Title="File Name" />
+                    <PropertyColumn Property="x => x.Format" Title="Format" />
+                    <TemplateColumn Title="Size">
+                        <CellTemplate>
+                            @FormatFileSize(context.Item.Content?.Length ?? 0)
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Source">
+                        <CellTemplate>
+                            <MudChip T="string" Size="Size.Small" Color="@GetSourceColor(context.Item.Url)">
+                                @GetSourceName(context.Item.Url)
+                            </MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Actions">
+                        <CellTemplate>
+                            <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small"
+                                           OnClick="@(() => ShowFileDetails(context.Item))" />
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+            </MudDataGrid>
+        }
+        else if (!_isDownloading)
+        {
+            <MudAlert Severity="Severity.Info" Class="mt-4">
+                No files downloaded yet. Select a source and click "Start Download" to begin.
+            </MudAlert>
+        }
+    </MudPaper>
+</MudContainer>
+
+@using ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets
+@inject IOptions<NavigationTargetOptions> NavigationTargetOptions
+
+@code {
+    // GH#22: allow deep-linking with a preselected source, e.g. /browser-automation?source=archive.
+    // The Home "Internet Archive" / "Project Gutenberg" cards route here (the real IDownloader/
+    // browser-automation demo) with the source preselected, instead of a raw external link.
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "source")]
+    public string? SourceQuery { get; set; }
+
+    private string _selectedSource = "gutenberg";
+    private int _downloadCount = 3;
+    private bool _isDownloading = false;
+    private bool _showBrowser = true; // Default to headed mode for demo visibility
+    private int _progressPercent = 0;
+    private string _statusMessage = "";
+    private List<DownloadedFile> _downloadedFiles = new();
+
+    // Editable configuration (initialized from appsettings.json)
+    private string _siaraUrl = "";           // server-facing (siara-simulator:8080) — used by the container-hosted agent + polling
+    private string _siaraBrowserUrl = "";    // browser-facing (localhost:8084) — used to open SIARA in the user's browser (GH#21)
+    private string _gutenbergUrl = "";
+    private string _archiveUrl = "";
+    private int _browserTimeoutMs = 30000;
+    private int _pageTimeoutMs = 30000;
+
+    // GH#25: the SIARA simulator runs as a container service (prisma-siara-simulator); the Web.UI
+    // no longer launches a Windows .exe. These flags drive the availability check + button state only.
+    private bool _isSimulatorRunning = false;
+    private bool _isSimulatorStarting = false;
+    private bool _isSimulatorStopping = false;
+
+    // Gutenberg book IDs (from E2E tests)
+    private readonly string[] _gutenbergBookIds = new[] { "3300", "30107", "1232" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load configuration from appsettings.json
+        _siaraUrl = NavigationTargetOptions.Value.SiaraUrl ?? "http://localhost:5001";
+        _siaraBrowserUrl = NavigationTargetOptions.Value.SiaraBrowserUrl
+            ?? NavigationTargetOptions.Value.SiaraUrl ?? "http://localhost:8084";
+        _gutenbergUrl = NavigationTargetOptions.Value.GutenbergUrl ?? "https://www.gutenberg.org";
+        _archiveUrl = NavigationTargetOptions.Value.ArchiveUrl ?? "https://archive.org";
+        _browserTimeoutMs = BrowserOptions.Value.BrowserLaunchTimeoutMs;
+        _pageTimeoutMs = BrowserOptions.Value.PageTimeoutMs;
+
+        // GH#22: honor ?source=gutenberg|archive|siara deep-links from the Home cards.
+        var requested = SourceQuery?.Trim().ToLowerInvariant();
+        if (requested is "gutenberg" or "archive" or "siara")
+        {
+            _selectedSource = requested;
+        }
+
+        // Check if SIARA simulator is already running
+        _isSimulatorRunning = await IsSimulatorRunningAsync();
+    }
+
+    private async Task StartDownload()
+    {
+        _isDownloading = true;
+        _progressPercent = 0;
+        _statusMessage = _showBrowser ? "Launching browser in headed mode (visible)..." : "Launching browser in headless mode...";
+        StateHasChanged();
+
+        // Declare customAgent before try block so it's accessible in finally
+        IBrowserAutomationAgent? customAgent = null;
+
+        try
+        {
+            // Create custom browser agent with headed/headless mode based on toggle and editable config
+            var customOptions = new BrowserAutomationOptions
+            {
+                Headless = !_showBrowser, // Invert: showBrowser=true means Headless=false
+                BrowserLaunchTimeoutMs = _browserTimeoutMs,
+                PageTimeoutMs = _pageTimeoutMs
+            };
+            var customOptionsWrapper = Microsoft.Extensions.Options.Options.Create(customOptions);
+            customAgent = new PlaywrightBrowserAutomationAdapter(
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<PlaywrightBrowserAutomationAdapter>.Instance,
+                customOptionsWrapper);
+
+            // Launch browser with custom options
+            var launchResult = await customAgent.LaunchBrowserAsync();
+            if (!launchResult.IsSuccess)
+            {
+                Snackbar.Add($"Failed to launch browser: {launchResult.Error}", Severity.Error);
+                return;
+            }
+
+            _statusMessage = _showBrowser ? "Browser launched in headed mode (you should see it!)" : "Browser launched in headless mode";
+            StateHasChanged();
+
+            _statusMessage = "Browser launched successfully";
+            StateHasChanged();
+
+            if (_selectedSource == "gutenberg")
+            {
+                await DownloadFromGutenberg(customAgent);
+            }
+            else if (_selectedSource == "archive")
+            {
+                await NavigateToArchive(customAgent);
+            }
+            else if (_selectedSource == "siara")
+            {
+                await NavigateToSiara(customAgent);
+            }
+
+            Snackbar.Add($"Downloaded {_downloadedFiles.Count} files successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            // Close browser if it was created
+            if (customAgent != null)
+            {
+                await customAgent.CloseBrowserAsync();
+            }
+            _isDownloading = false;
+            _progressPercent = 100;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DownloadFromGutenberg(IBrowserAutomationAgent agent)
+    {
+        var booksToDownload = _gutenbergBookIds.Take(_downloadCount);
+        var totalBooks = booksToDownload.Count();
+        var currentBook = 0;
+
+        foreach (var bookId in booksToDownload)
+        {
+            currentBook++;
+            _statusMessage = $"Processing book {currentBook}/{totalBooks} (ID: {bookId})...";
+            _progressPercent = (currentBook - 1) * 100 / totalBooks;
+            StateHasChanged();
+
+            // Navigate to book page (use editable URL)
+            var bookUrl = $"{_gutenbergUrl}/ebooks/{bookId}";
+            var navResult = await agent.NavigateToAsync(bookUrl);
+
+            if (!navResult.IsSuccess)
+            {
+                Snackbar.Add($"Failed to navigate to book {bookId}", Severity.Warning);
+                continue;
+            }
+
+            await Task.Delay(1000); // Small delay for visibility
+
+            // Download plain text format (most reliable) - use editable URL
+            var txtUrl = $"{_gutenbergUrl}/cache/epub/{bookId}/pg{bookId}.txt";
+            _statusMessage = $"Downloading plain text for book {bookId}...";
+            StateHasChanged();
+
+            var downloadResult = await agent.DownloadFileAsync(txtUrl);
+            if (downloadResult.IsSuccess && downloadResult.Value != null)
+            {
+                _downloadedFiles.Add(downloadResult.Value);
+                Snackbar.Add($"Downloaded: {downloadResult.Value.FileName}", Severity.Success);
+            }
+
+            await Task.Delay(500);
+        }
+
+        _progressPercent = 100;
+    }
+
+    private async Task NavigateToArchive(IBrowserAutomationAgent agent)
+    {
+        _statusMessage = "Navigating to Internet Archive (demo only - downloads restricted)...";
+        StateHasChanged();
+
+        var archiveUrl = $"{_archiveUrl}/search.php?query=financial%20markets";
+        var navResult = await agent.NavigateToAsync(archiveUrl);
+
+        if (navResult.IsSuccess)
+        {
+            _statusMessage = "Successfully navigated to Internet Archive search results";
+            Snackbar.Add("Internet Archive has restricted downloads. Use Gutenberg for demo.", Severity.Info);
+        }
+
+        await Task.Delay(3000); // Show page for 3 seconds
+        _progressPercent = 100;
+    }
+
+    /// <summary>
+    /// Signs in to SIARA the way the Orion downloader does (configured credentials, allowed-host check, shared
+    /// login selectors), waits on the dashboard until it lists enough documents, and downloads them through the
+    /// signed-in browser session. The simulator gates both its dashboard and its document store on that session,
+    /// so an anonymous HTTP client finds nothing.
+    /// </summary>
+    private async Task NavigateToSiara(IBrowserAutomationAgent agent)
+    {
+        var loginUrl = $"{_siaraUrl.TrimEnd('/')}/login";
+        _statusMessage = $"Connecting to SIARA at {_siaraUrl}...";
+        SafeStateHasChanged();
+
+        var navResult = await agent.NavigateToAsync(loginUrl);
+        if (!navResult.IsSuccess)
+        {
+            _statusMessage = $"Failed to connect to SIARA: {navResult.Error}";
+            Logger.LogWarning("SIARA connection failed at {Url}: {Error}", loginUrl, navResult.Error);
+            SafeSnackbarAdd($"SIARA connection failed. Make sure SIARA Simulator is running at {_siaraUrl}", Severity.Warning);
+            return;
+        }
+
+        _statusMessage = "Connected to SIARA - signing in...";
+        SafeStateHasChanged();
+
+        var credentialResult = await SiaraCredentials.GetCredentialsAsync();
+        if (!credentialResult.IsSuccess || credentialResult.Value is null)
+        {
+            _statusMessage = "SIARA credentials are not configured (Siara:Credentials:Username / Password).";
+            SafeSnackbarAdd("SIARA credentials are not configured", Severity.Error);
+            return;
+        }
+
+        Result loginResult;
+        using (var credential = credentialResult.Value)
+        {
+            loginResult = await credential.UseAsync((username, password) => SiaraLogin.LoginAsync(agent, username, password));
+        }
+
+        if (!loginResult.IsSuccess)
+        {
+            _statusMessage = $"SIARA sign-in failed: {loginResult.Error}";
+            Logger.LogWarning("SIARA sign-in failed: {Error}", loginResult.Error);
+            SafeSnackbarAdd("SIARA sign-in failed", Severity.Error);
+            return;
+        }
+
+        _statusMessage = "Signed in - watching the SIARA dashboard for new cases...";
+        _progressPercent = 20;
+        SafeSnackbarAdd("Signed in to SIARA", Severity.Success);
+        SafeStateHasChanged();
+
+        // Cases arrive on the dashboard over time; poll it until it lists enough documents.
+        var patterns = new[] { "*.pdf", "*.xml", "*.docx" };
+        var deadline = DateTime.UtcNow + SiaraWatchTimeout;
+        List<DownloadableFile> available = new();
+        while (DateTime.UtcNow < deadline)
+        {
+            var listed = await agent.IdentifyDownloadableFilesAsync(patterns);
+            if (listed.IsSuccess && listed.Value is not null)
+            {
+                available = listed.Value;
+                if (available.Count >= _downloadCount)
+                {
+                    break;
+                }
+            }
+
+            _statusMessage = $"Watching the SIARA dashboard: {available.Count} document(s) listed so far...";
+            SafeStateHasChanged();
+            await Task.Delay(SiaraPollInterval);
+        }
+
+        if (available.Count == 0)
+        {
+            _statusMessage = "No documents appeared on the SIARA dashboard.";
+            Logger.LogWarning("No SIARA documents were listed within {Timeout}", SiaraWatchTimeout);
+            SafeSnackbarAdd("No SIARA documents found. The simulator may not have released any cases yet.", Severity.Warning);
+            return;
+        }
+
+        var toDownload = available.Take(_downloadCount).ToList();
+        for (var i = 0; i < toDownload.Count; i++)
+        {
+            var file = toDownload[i];
+            _statusMessage = $"Downloading {file.FileName}...";
+            _progressPercent = 20 + (i * 80 / toDownload.Count);
+            SafeStateHasChanged();
+
+            var download = await agent.DownloadFileAsync(file.Url);
+            if (download.IsSuccess && download.Value is not null)
+            {
+                _downloadedFiles.Add(download.Value);
+                SafeStateHasChanged();
+            }
+            else
+            {
+                Logger.LogWarning("SIARA download failed for {FileName}: {Error}", file.FileName, download.Error);
+                SafeSnackbarAdd($"Download failed: {file.FileName}", Severity.Warning);
+            }
+        }
+
+        _statusMessage = $"Downloaded {_downloadedFiles.Count} SIARA documents";
+        _progressPercent = 100;
+    }
+
+    /// <summary>How long to wait for the dashboard to list enough documents.</summary>
+    private static readonly TimeSpan SiaraWatchTimeout = TimeSpan.FromSeconds(90);
+
+    /// <summary>How often the dashboard is re-read while waiting for cases.</summary>
+    private static readonly TimeSpan SiaraPollInterval = TimeSpan.FromSeconds(2);
+
+    private FileFormat DetermineFileFormat(string fileName)
+    {
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        return extension switch
+        {
+            ".pdf" => FileFormat.Pdf,
+            ".xml" => FileFormat.Xml,
+            ".docx" => FileFormat.Docx,
+            ".zip" => FileFormat.Zip,
+            _ => FileFormat.Pdf
+        };
+    }
+
+    private void ClearDownloads()
+    {
+        _downloadedFiles.Clear();
+        _progressPercent = 0;
+        _statusMessage = "";
+        Snackbar.Add("Download list cleared", Severity.Info);
+    }
+
+    private void ShowFileDetails(DownloadedFile file)
+    {
+        Snackbar.Add($"File: {file.FileName}, Size: {FormatFileSize(file.Content?.Length ?? 0)}, Format: {file.Format}",
+                     Severity.Info);
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024:F1} KB";
+        return $"{bytes / (1024 * 1024):F2} MB";
+    }
+
+    private Color GetSourceColor(string url)
+    {
+        if (url.Contains("gutenberg")) return Color.Primary;
+        if (url.Contains("archive.org")) return Color.Secondary;
+        if (url.Contains("localhost:5001") || url.Contains("localhost:5002") || url.Contains("siara")) return Color.Success;
+        return Color.Default;
+    }
+
+    private string GetSourceName(string url)
+    {
+        if (url.Contains("gutenberg")) return "Gutenberg";
+        if (url.Contains("archive.org")) return "Archive";
+        if (url.Contains("localhost:5001") || url.Contains("localhost:5002") || url.Contains("siara")) return "SIARA";
+        return "Unknown";
+    }
+
+    // ========== SIARA Simulator availability (container service) ==========
+
+    /// <summary>
+    /// Checks if the SIARA Simulator is running.
+    /// </summary>
+    private async Task<bool> IsSimulatorRunningAsync()
+    {
+        try
+        {
+            using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+            var response = await httpClient.GetAsync(_siaraUrl);
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Verifies SIARA Simulator availability. GH#25: the simulator is a container service
+    /// (prisma-siara-simulator) managed by the compose stack — there is no Windows .exe to launch —
+    /// so "Start" polls the server-facing URL and reports whether the service is reachable.
+    /// </summary>
+    private async Task StartSimulator()
+    {
+        _isSimulatorStarting = true;
+        StateHasChanged();
+
+        try
+        {
+            Snackbar.Add("Checking SIARA simulator availability...", Severity.Info);
+
+            _isSimulatorRunning = await IsSimulatorRunningAsync();
+            if (_isSimulatorRunning)
+            {
+                Snackbar.Add($"SIARA simulator is available (managed by the container stack) at {_siaraUrl}", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(
+                    $"SIARA simulator is not reachable at {_siaraUrl}. Ensure the 'siara-simulator' container is running (docker compose up).",
+                    Severity.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error checking simulator availability: {ex.Message}", Severity.Error);
+            _isSimulatorRunning = false;
+        }
+        finally
+        {
+            _isSimulatorStarting = false;
+            StateHasChanged();
+        }
+    }
+
+    /// <summary>
+    /// Re-checks SIARA Simulator status. GH#25: the simulator is container-managed, so the UI does
+    /// not stop it (that would be the compose stack's job); this simply refreshes the status.
+    /// </summary>
+    private async Task StopSimulator()
+    {
+        _isSimulatorStopping = true;
+        StateHasChanged();
+
+        try
+        {
+            Snackbar.Add(
+                "The SIARA simulator runs as a container service and is managed by the compose stack — it is not stopped from this page.",
+                Severity.Info);
+
+            _isSimulatorRunning = await IsSimulatorRunningAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error checking simulator status: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isSimulatorStopping = false;
+            StateHasChanged();
+        }
+    }
+
+    /// <summary>
+    /// Safely calls StateHasChanged, catching JSDisconnectedException when circuit is disconnected.
+    /// </summary>
+    private void SafeStateHasChanged()
+    {
+        try
+        {
+            StateHasChanged();
+        }
+        catch (JSDisconnectedException ex)
+        {
+            // Circuit disconnected (user closed browser, network issue, etc.)
+            // This is expected behavior - log and continue
+            Logger.LogDebug(ex, "SignalR circuit disconnected - user likely navigated away");
+        }
+        catch (ObjectDisposedException ex)
+        {
+            // Component already disposed
+            Logger.LogDebug(ex, "Component disposed during StateHasChanged");
+        }
+    }
+
+    /// <summary>
+    /// Safely shows a snackbar message, catching JSDisconnectedException.
+    /// </summary>
+    private void SafeSnackbarAdd(string message, Severity severity)
+    {
+        try
+        {
+            Snackbar.Add(message, severity);
+        }
+        catch (JSDisconnectedException ex)
+        {
+            Logger.LogDebug(ex, "Cannot show snackbar - circuit disconnected: {Message}", message);
+        }
+        catch (ObjectDisposedException ex)
+        {
+            Logger.LogDebug(ex, "Cannot show snackbar - component disposed: {Message}", message);
+        }
+    }
+
+    /// <summary>
+    /// Cleanup when the page is disposed. GH#25: the SIARA simulator is a container-managed
+    /// service — the UI never owns a simulator process — so there is nothing to tear down here.
+    /// </summary>
+    public void Dispose()
+    {
+    }
+}

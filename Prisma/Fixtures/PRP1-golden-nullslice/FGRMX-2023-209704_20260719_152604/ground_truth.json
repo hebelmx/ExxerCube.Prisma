@@ -1,0 +1,50 @@
+{
+  "docId": "FGRMX-2023-209704_20260719_152604",
+  "seed": 5002,
+  "chaosLevel": "none",
+  "requirementType": "fiscal",
+  "folioSiara": "FGRMX/2023/209704",
+  "numeroOficio": "FGRMX/2023/209704",
+  "numeroExpediente": "H/IN1—7998—950143—SAT",
+  "autoridadNombre": "Fiscalía General de la República",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Itzel Granados Segovia",
+  "personaNombre": "Judith Escobedo Apodaca",
+  "personaRfc": "ESAJ630131X4M",
+  "solicitudPartes": [
+    {
+      "nombre": "Judith Escobedo Apodaca",
+      "caracter": "Contribuyente"
+    }
+  ],
+  "monto": "$3,198,275.50",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Fiscalía General de la República",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

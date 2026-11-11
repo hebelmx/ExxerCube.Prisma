@@ -1,0 +1,446 @@
+---
+globs: *.csproj
+description: XUnit v3 universal configuration pattern for creating test projects with guaranteed compatibility
+---
+
+# XUnit v3 Universal Project Creation Rule
+
+## Meta
+
+**Title**: XUnit v3 Universal Project Creation Rule
+**Description**: Establishes proven configuration pattern for XUnit v3 test projects ensuring universal compatibility across all execution environments
+**Created-at**: 2025-01-15T00:00:00Z
+**Last-updated-at**: 2025-01-15T00:00:00Z
+**Applies-to**: Test project creation, XUnit v3 configuration, .NET 10 testing setup
+**File-matcher**: *.csproj files for test projects
+
+## Requirements
+
+### <requirement priority="critical">
+**Description**: Test projects MUST use OutputType Exe and IsTestProject true for XUnit v3 compatibility
+**Examples**:
+<correct-example>
+```xml
+<PropertyGroup>
+  <IsTestProject>true</IsTestProject>
+  <OutputType>Exe</OutputType>
+  <TargetFramework>net10.0</TargetFramework>
+
+   <ImplicitUsings>enable</ImplicitUsings> 
+</PropertyGroup>
+```
+</correct-example>
+<incorrect-example>
+```xml
+<PropertyGroup>
+  <IsTestProject>true</IsTestProject>
+  <TargetFramework>net10.0</TargetFramework>
+  <!-- Missing OutputType Exe -->
+</PropertyGroup>
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: MUST include complete XUnit v3 package stack for universal compatibility
+**Examples**:
+<correct-example>
+```xml
+<ItemGroup Label="xUnit v3">
+  <PackageReference Include="xunit.v3" />
+  <PackageReference Include="xunit.v3.core" />
+  <PackageReference Include="xunit.runner.visualstudio">
+    <PrivateAssets>all</PrivateAssets>
+    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+  </PackageReference>
+  <PackageReference Include="xunit.v3.runner.inproc.console" />
+  <PackageReference Include="xunit.v3.runner.msbuild">
+    <PrivateAssets>all</PrivateAssets>
+    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+  </PackageReference>
+</ItemGroup>
+```
+</correct-example>
+<incorrect-example>
+```xml
+<ItemGroup>
+  <PackageReference Include="xunit.v3" />
+  <!-- Missing core, runners, and console packages -->
+</ItemGroup>
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: MUST include Microsoft Testing Platform packages for enterprise features
+**Examples**:
+<correct-example>
+```xml
+<ItemGroup Label="Microsoft Testing Platform">
+  <PackageReference Include="Microsoft.Testing.Platform" />
+  <PackageReference Include="Microsoft.Testing.Platform.MSBuild" />
+  <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+  <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+  <PackageReference Include="Microsoft.Testing.Extensions.VSTestBridge" />
+</ItemGroup>
+```
+</correct-example>
+<incorrect-example>
+```xml
+<ItemGroup>
+  <PackageReference Include="Microsoft.Testing.Platform" />
+  <!-- Missing essential MTP extensions -->
+</ItemGroup>
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: MUST include testing utilities: NSubstitute, Shouldly, and analyzers
+**Examples**:
+<correct-example>
+```xml
+<ItemGroup Label="Testing Utilities">
+  <PackageReference Include="NSubstitute" />
+  <PackageReference Include="Shouldly" />
+  <PackageReference Include="IndQuestResults" />
+  <PackageReference Include="NSubstitute.Analyzers.CSharp">
+    <PrivateAssets>all</PrivateAssets>
+    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+  </PackageReference>
+</ItemGroup>
+```
+</correct-example>
+<incorrect-example>
+```xml
+<ItemGroup>
+  <PackageReference Include="NSubstitute" />
+  <!-- Missing Shouldly, IndQuestResults, and analyzers -->
+</ItemGroup>
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: MUST include Microsoft Testing Platform properties for proper integration
+**Examples**:
+<correct-example>
+```xml
+<PropertyGroup>
+  <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+  <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+  <TestingPlatformServer>true</TestingPlatformServer>
+  <ImplicitUsings>enable</ImplicitUsings>
+</PropertyGroup>
+```
+</correct-example>
+<incorrect-example>
+```xml
+<PropertyGroup>
+  <IsTestProject>true</IsTestProject>
+  <!-- Missing MTP properties -->
+</PropertyGroup>
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: MUST include project capabilities for Testing Platform integration
+**Examples**:
+<correct-example>
+```xml
+<ItemGroup Label="Testing Platform Capabilities">
+  <ProjectCapability Include="DiagnoseCapabilities" />
+  <ProjectCapability Include="TestingPlatformServer" />
+  <ProjectCapability Include="TestContainer" />
+</ItemGroup>
+```
+</correct-example>
+<incorrect-example>
+```xml
+<ItemGroup>
+  <!-- Missing project capabilities -->
+</ItemGroup>
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="low">
+**Description**: SHOULD include global usings for productivity and reduced boilerplate
+**Examples**:
+<correct-example>
+```xml
+<ItemGroup Label="Global Usings">
+  <Using Include="Xunit" />
+  <Using Include="NSubstitute" />
+  <Using Include="Shouldly" />
+  <Using Include="Microsoft.Extensions.Logging" />
+  <Using Include="System" />
+  <Using Include="System.Collections.Generic" />
+  <Using Include="System.Linq" />
+  <Using Include="System.Threading" />
+  <Using Include="System.Threading.Tasks" />
+  <Using Include="Meziantou.Extensions.Logging.Xunit.v3"/>
+</ItemGroup>
+```
+</correct-example>
+<incorrect-example>
+```xml
+<ItemGroup>
+  <!-- Missing global usings for common namespaces -->
+</ItemGroup>
+```
+</incorrect-example>
+</requirement>
+
+## Complete Template
+
+### <requirement priority="critical">
+**Description**: Use this complete template for all new XUnit v3 test projects
+**Examples**:
+<correct-example>
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- CORE PROPERTIES -->
+  <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings> 
+    <RootNamespace>YourProject.Tests</RootNamespace>
+    <AssemblyName>YourProject.Tests</AssemblyName>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IsPackable>false</IsPackable> 
+  </PropertyGroup>
+  
+
+  <!-- TESTING PLATFORM PROPERTIES -->
+  <PropertyGroup>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <TestingPlatformServer>true</TestingPlatformServer>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+
+  <!-- CORE TESTING -->
+  <ItemGroup Label="Core Testing">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+  </ItemGroup>
+  
+  <!-- TESTING UTILITIES -->
+  <ItemGroup Label="Testing Utilities">
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="IndQuestResults" />
+    <PackageReference Include="NSubstitute.Analyzers.CSharp">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  
+  <!-- LOGGING -->
+  <ItemGroup Label="Logging">
+    <PackageReference Include="Meziantou.Extensions.Logging.Xunit.v3" />
+  </ItemGroup>
+  
+  <!-- TIME TESTING -->
+  <ItemGroup Label="Time Testing">
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+  </ItemGroup>
+
+  <!-- CODE ANALYSIS -->
+  <ItemGroup Label="Code Analysis">
+    <PackageReference Include="coverlet.collector">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  
+  <!-- MICROSOFT TESTING PLATFORM -->
+  <ItemGroup Label="Microsoft Testing Platform">
+    <PackageReference Include="Microsoft.Testing.Platform" />
+    <PackageReference Include="Microsoft.Testing.Platform.MSBuild" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+    <<PackageReference Include="Microsoft.Testing.Extensions.HangDump" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+    <PackageReference Include="Microsoft.Testing.Extensions.VSTestBridge" />
+  </ItemGroup>
+  
+  <!-- XUNIT V3 FRAMEWORK -->
+  <ItemGroup Label="xUnit v3">
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.v3.core" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.v3.runner.inproc.console" />
+    <PackageReference Include="xunit.v3.runner.msbuild">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- PROJECT CAPABILITIES -->
+  <ItemGroup Label="Testing Platform Capabilities">
+    <ProjectCapability Include="DiagnoseCapabilities" />
+    <ProjectCapability Include="TestingPlatformServer" />
+    <ProjectCapability Include="TestContainer" />
+  </ItemGroup>
+  
+  <!-- GLOBAL USINGS -->
+  <ItemGroup Label="Global Usings">
+    <Using Include="Xunit" />
+    <Using Include="NSubstitute" />
+    <Using Include="Shouldly" />
+    <Using Include="Microsoft.Extensions.Logging" />
+    <Using Include="System" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Linq" />
+    <Using Include="System.Threading" />
+    <Using Include="System.Threading.Tasks" />
+    <Using Include="System.Text" />
+    <Using Include="System.IO" />
+  </ItemGroup>
+</Project>
+```
+</correct-example>
+<incorrect-example>
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+</Project>
+```
+</incorrect-example>
+</requirement>
+
+## Verification Commands
+
+### <requirement priority="medium">
+**Description**: MUST verify configuration works across all execution environments
+**Examples**:
+<correct-example>
+```bash
+# Console execution
+dotnet test
+
+# Terminal execution with detailed output
+dotnet test --logger:"console;verbosity=detailed"
+
+# PowerShell execution with TRX reporting
+dotnet test --logger:"trx;LogFileName=TestResults.trx"
+
+# Coverage collection
+dotnet test --collect:"XPlat Code Coverage"
+```
+</correct-example>
+<incorrect-example>
+```bash
+# Only testing in one environment
+dotnet test
+```
+</incorrect-example>
+</requirement>
+
+## Context
+
+This rule is based on extensive research and testing across 56 test projects in a .NET 10 enterprise solution. The configuration pattern ensures:
+
+1. **Universal Compatibility**: Works across console, terminal, PowerShell, Visual Studio, Python, ReSharper, and MTP
+2. **Enterprise Features**: TRX reporting, code coverage, logging integration, parallel execution
+3. **Future-Proofing**: Compatible with .NET 11+ and XUnit v3 RTM
+4. **Developer Experience**: Global usings, type safety, IntelliSense support
+
+
+Update 1, Oct 2025 MTP2.0 RC1, has a bug non imlemented method making test non discovered, Keep version 1.8.4 and versiones XunitV3 2.0.1  and SDK compatible
+Update 2, Oct 2025 MTP2.0 Released, has a bug non imlemented method making test non discovered, Keep version 1.8.4 and versiones XunitV3 2.0.1, can be updated to 2.10  and SDK compatible
+Update 3, 2 Nov 2025 XunitV3.2 Relsease requir update to MTP2.0Udate 3, MTP2.0 Still has a non imlemented method making test non discovered Keep version 1.8.4 nd versiones XunitV2 2.0.1, can be updated to 2.10 SDK compatible
+Update 4 3 Mov 2025l MTP2.0.1 Release yet to probe if bug was fixed, git research before testing nad release notes
+
+Latest know well set of well behave configuration version is these one:
+recommende to use CPM
+
+ <!-- =========================
+			 "Microsoft Testing Platform
+			 ========================= -->
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
+    <PackageVersion Include="Microsoft.Testing.Platform" Version="1.8.4" />
+    <PackageVersion Include="Microsoft.Testing.Platform.MSBuild" Version="1.8.4" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.Telemetry" Version="1.8.4" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.HangDump" Version="1.8.4" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.VSTestBridge" Version="1.8.4" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="1.8.4" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.TrxReport.Abstractions" Version="1.8.4" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
+    
+ 
+    <!-- =========================
+			 X Unit V3
+			 ========================= -->
+    <PackageVersion Include="xunit.v3" Version="3.1.0" />
+    <PackageVersion Include="xunit.v3.core" Version="3.1.0" />
+    <PackageVersion Include="xunit.v3.common" Version="3.0.1" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <PackageVersion Include="xunit.v3.runner.msbuild" Version="3.1.0" />
+    <PackageVersion Include="xunit.v3.runner.inproc.console" Version="3.1.0" />
+    <PackageVersion Include="xunit.v3.runner.console" Version="3.1.0" />
+    <PackageVersion Include="xunit.v3.runner.common" Version="3.0.1" />
+    <PackageVersion Include="xunit.v3.runner.utility" Version="3.0.1" />
+    <PackageVersion Include="xunit.analyzers" Version="1.24.0" />
+
+    <!-- =========================
+			 TESTING & TEST UTILITIES
+			 ========================= -->
+    <PackageVersion Include="Microsoft.Playwright" Version="1.55.0" />
+    <PackageVersion Include="Meziantou.Extensions.Logging.Xunit.v3" Version="1.1.16" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.0-rc.2.25502.107" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Testing" Version="9.10.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0-rc.2.25502.107" />
+    <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageVersion Include="coverlet.msbuild" Version="6.0.2" />
+    <PackageVersion Include="Shouldly" Version="4.3.0" />
+    <PackageVersion Include="NSubstitute" Version="5.3.0" />
+    <PackageVersion Include="NSubstitute.Analyzers.CSharp" Version="1.0.17" />
+    <PackageVersion Include="Respawn" Version="6.0.0" />
+    <PackageVersion Include="Selenium.Support" Version="4.26.0" />
+    <PackageVersion Include="Selenium.WebDriver" Version="4.26.0" />
+    <!--<PackageVersion Include="Moq" Version="4.20.72" />-->
+    <PackageVersion Include="FakeClock" Version="1.1.1" />
+    <PackageVersion Include="EmptyFiles" Version="8.14.0" />
+    <!-- =========================
+			 RESULTS FUNCTIONAL FLUENT API
+		========================= -->
+    <PackageVersion Include="IndQuestResults" Version="1.0.9" />
+    <PackageVersion Include="IndQuestResults.Analyzers" Version="1.0.9" />
+    <!-- =========================
+			TEST CONTAINERS
+		 ========================= -->
+    <PackageVersion Include="Testcontainers" Version="4.8.0" />
+    <PackageVersion Include="Testcontainers.XunitV3" Version="4.8.1" /> 
+    <PackageVersion Include="Testcontainers.Neo4j" Version="4.8.0" />
+    <PackageVersion Include="Testcontainers.MsSql" Version="4.8.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.8.0" />
+    <PackageVersion Include="Testcontainers.Qdrant" Version="4.8.0" />
+    <PackageVersion Include="Testcontainers.Ollama" Version="4.8.0" />
+    <!-- =========================
+			DOCKER
+		 =========================  -->
+    <PackageVersion Include="Docker.DotNet" Version="3.125.15" />
+
+
+The pattern eliminates common XUnit v3 configuration issues and provides a proven foundation for modern .NET testing.
+
+## References
+
+<reference as="dependency" href=".cursor/rules/0000_RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/0306_RuleForMigrationXUnitV3.mdc" reason="XUnit v3 migration guidance">XUnit v3 Migration</reference>
+<reference as="context" href=".cursor/rules/1029_ExxerAITestingStandards.mdc" reason="Testing standards and practices">Testing Standards</reference>

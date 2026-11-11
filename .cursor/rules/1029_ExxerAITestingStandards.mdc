@@ -1,0 +1,436 @@
+---
+globs: *.cs
+description: Comprehensive testing standards using xUnit v3, Shouldly, and NSubstitute
+---
+
+# ExxerAI Testing Standards
+
+## Meta
+**Title**: ExxerAI Testing Standards
+**Description**: Comprehensive testing standards using xUnit v3, Shouldly, and NSubstitute
+**Applies-to**: All test files in ExxerAI project
+
+## Requirements
+
+<requirement priority="critical">
+**Description**: Use xUnit v3, Shouldly, and NSubstitute for all testing
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: xUnit v3 with Shouldly and NSubstitute
+using Shouldly;
+using Xunit;
+using NSubstitute;
+
+public class AgentServiceTests
+{
+    [Fact]
+    public async Task GetAgentAsync_WithValidId_ShouldReturnAgent()
+    {
+        // Arrange
+        var agentId = Guid.NewGuid();
+        var expectedAgent = new Agent { Id = agentId, Name = "Test Agent" };
+        var repository = Substitute.For<IAgentRepository>();
+        repository.GetByIdAsync(agentId, Arg.Any<CancellationToken>())
+            .Returns(Result<Agent>.Success(expectedAgent));
+
+        var service = new AgentService(repository);
+
+        // Act
+        var result = await service.GetAgentAsync(agentId);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value.Name.ShouldBe("Test Agent");
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Using Moq and FluentAssertions
+using Moq;
+using FluentAssertions;
+
+public class AgentServiceTests
+{
+    [Fact]
+    public async Task GetAgentAsync_WithValidId_ShouldReturnAgent()
+    {
+        // Arrange
+        var mock = new Mock<IAgentRepository>();
+        mock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<Agent>.Success(new Agent()));
+
+        var service = new AgentService(mock.Object);
+
+        // Act
+        var result = await service.GetAgentAsync(Guid.NewGuid());
+
+        // Assert
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Follow AAA pattern (Arrange, Act, Assert) with descriptive test names
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: AAA pattern with descriptive names
+[Fact]
+public async Task CreateAgentAsync_WithValidParameters_ShouldReturnSuccess()
+{
+    // Arrange
+    var name = "Test Agent";
+    var capabilities = new AgentCapabilities();
+    var repository = Substitute.For<IAgentRepository>();
+    repository.AddAsync(Arg.Any<Agent>(), Arg.Any<CancellationToken>())
+        .Returns(Result<Agent>.Success(new Agent { Name = name }));
+
+    var service = new AgentService(repository);
+
+    // Act
+    var result = await service.CreateAgentAsync(name, capabilities);
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue();
+    result.Value.ShouldNotBeNull();
+    result.Value.Name.ShouldBe(name);
+}
+
+[Fact]
+public async Task CreateAgentAsync_WithEmptyName_ShouldReturnFailure()
+{
+    // Arrange
+    var repository = Substitute.For<IAgentRepository>();
+    var service = new AgentService(repository);
+
+    // Act
+    var result = await service.CreateAgentAsync("", new AgentCapabilities());
+
+    // Assert
+    result.IsFailure.ShouldBeTrue();
+    result.Errors.ShouldContain("Agent name cannot be empty");
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Poor structure and naming
+[Fact]
+public async Task Test1()
+{
+    var repo = Substitute.For<IAgentRepository>();
+    var service = new AgentService(repo);
+    var result = await service.CreateAgentAsync("test", new AgentCapabilities());
+    Assert.True(result.IsSuccess);
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use Theory tests with good data sets for parameterized testing
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Theory with comprehensive test data
+[Theory]
+[InlineData("", "Agent name cannot be empty")]
+[InlineData("   ", "Agent name cannot be empty")]
+[InlineData(null, "Agent name cannot be empty")]
+public async Task CreateAgentAsync_WithInvalidNames_ShouldReturnFailure(string name, string expectedError)
+{
+    // Arrange
+    var repository = Substitute.For<IAgentRepository>();
+    var service = new AgentService(repository);
+
+    // Act
+    var result = await service.CreateAgentAsync(name, new AgentCapabilities());
+
+    // Assert
+    result.IsFailure.ShouldBeTrue();
+    result.Errors.ShouldContain(expectedError);
+}
+
+[Theory]
+[InlineData("Agent1", AgentStatus.Active)]
+[InlineData("Agent2", AgentStatus.Inactive)]
+[InlineData("Agent3", AgentStatus.Pending)]
+public async Task UpdateAgentStatusAsync_WithValidStatus_ShouldSucceed(string name, AgentStatus status)
+{
+    // Arrange
+    var agent = new Agent { Name = name, Status = AgentStatus.Active };
+    var repository = Substitute.For<IAgentRepository>();
+    repository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        .Returns(Result<Agent>.Success(agent));
+    repository.UpdateAsync(Arg.Any<Agent>(), Arg.Any<CancellationToken>())
+        .Returns(Result<Agent>.Success(agent));
+
+    var service = new AgentService(repository);
+
+    // Act
+    var result = await service.UpdateAgentStatusAsync(agent.Id, status);
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue();
+    result.Value.ShouldBeTrue();
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Multiple separate tests instead of Theory
+[Fact]
+public async Task TestEmptyName() { /* ... */ }
+[Fact]
+public async Task TestWhitespaceName() { /* ... */ }
+[Fact]
+public async Task TestNullName() { /* ... */ }
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Test Result<T> patterns comprehensively
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Comprehensive Result<T> testing
+[Fact]
+public void Result_Success_ShouldHaveCorrectProperties()
+{
+    // Arrange & Act
+    var result = Result<Agent>.Success(new Agent { Name = "Test" });
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue();
+    result.IsFailure.ShouldBeFalse();
+    result.Value.ShouldNotBeNull();
+    result.Value.Name.ShouldBe("Test");
+    result.Errors.ShouldBeEmpty();
+}
+
+[Fact]
+public void Result_Failure_ShouldHaveCorrectProperties()
+{
+    // Arrange & Act
+    var result = Result<Agent>.WithFailure("Test error");
+
+    // Assert
+    result.IsSuccess.ShouldBeFalse();
+    result.IsFailure.ShouldBeTrue();
+    result.Errors.ShouldContain("Test error");
+}
+
+[Fact]
+public void Result_Map_ShouldTransformSuccessValue()
+{
+    // Arrange
+    var result = Result<Agent>.Success(new Agent { Name = "Test" });
+
+    // Act
+    var mappedResult = result.Map(agent => agent.Name);
+
+    // Assert
+    mappedResult.IsSuccess.ShouldBeTrue();
+    mappedResult.Value.ShouldBe("Test");
+}
+
+[Fact]
+public void Result_Bind_ShouldChainOperations()
+{
+    // Arrange
+    var result = Result<string>.Success("test");
+
+    // Act
+    var boundResult = result.Bind(str => Result<int>.Success(str.Length));
+
+    // Assert
+    boundResult.IsSuccess.ShouldBeTrue();
+    boundResult.Value.ShouldBe(4);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Incomplete Result<T> testing
+[Fact]
+public void TestResult()
+{
+    var result = Result<Agent>.Success(new Agent());
+    Assert.True(result.IsSuccess);
+    // Missing comprehensive property testing
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Use test fixtures for complex test data
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Test fixture for complex data
+public class AgentTestData
+{
+    public static IEnumerable<object[]> ValidAgents => new[]
+    {
+        new object[] { new Agent { Name = "Agent1", Status = AgentStatus.Active } },
+        new object[] { new Agent { Name = "Agent2", Status = AgentStatus.Inactive } },
+        new object[] { new Agent { Name = "Agent3", Status = AgentStatus.Pending } }
+    };
+
+    public static IEnumerable<object[]> InvalidNames => new[]
+    {
+        new object[] { "", "Agent name cannot be empty" },
+        new object[] { "   ", "Agent name cannot be empty" },
+        new object[] { null, "Agent name cannot be empty" }
+    };
+}
+
+[Theory]
+[MemberData(nameof(AgentTestData.ValidAgents))]
+public async Task CreateAgentAsync_WithValidAgent_ShouldSucceed(Agent expectedAgent)
+{
+    // Arrange
+    var repository = Substitute.For<IAgentRepository>();
+    repository.AddAsync(Arg.Any<Agent>(), Arg.Any<CancellationToken>())
+        .Returns(Result<Agent>.Success(expectedAgent));
+
+    var service = new AgentService(repository);
+
+    // Act
+    var result = await service.CreateAgentAsync(expectedAgent.Name, expectedAgent.Capabilities);
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue();
+    result.Value.Name.ShouldBe(expectedAgent.Name);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Hardcoded test data
+[Fact]
+public async Task TestCreateAgent()
+{
+    var agent = new Agent { Name = "Test" };
+    // Hardcoded test data without reusability
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Test cancellation token handling
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Cancellation token testing
+[Fact]
+public async Task GetAgentAsync_WithCancelledToken_ShouldReturnCancelled()
+{
+    // Arrange
+    var repository = Substitute.For<IAgentRepository>();
+    var service = new AgentService(repository);
+    var cancellationToken = new CancellationToken(true); // Already cancelled
+
+    // Act
+    var result = await service.GetAgentAsync(Guid.NewGuid(), cancellationToken);
+
+    // Assert
+    result.IsFailure.ShouldBeTrue();
+    result.Errors.ShouldContain("Operation was cancelled");
+}
+
+[Fact]
+public async Task GetAgentAsync_WithValidToken_ShouldNotBeCancelled()
+{
+    // Arrange
+    var agentId = Guid.NewGuid();
+    var expectedAgent = new Agent { Id = agentId, Name = "Test" };
+    var repository = Substitute.For<IAgentRepository>();
+    repository.GetByIdAsync(agentId, Arg.Any<CancellationToken>())
+        .Returns(Result<Agent>.Success(expectedAgent));
+
+    var service = new AgentService(repository);
+    var cancellationToken = new CancellationToken(false);
+
+    // Act
+    var result = await service.GetAgentAsync(agentId, cancellationToken);
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue();
+    result.Value.ShouldNotBeNull();
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Missing cancellation testing
+[Fact]
+public async Task TestGetAgent()
+{
+    var result = await service.GetAgentAsync(Guid.NewGuid());
+    // Missing cancellation token testing
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Use Meziantou.Extensions.Logging.Xunit.v3 for real logging in tests
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Real logging in tests
+using Meziantou.Extensions.Logging.Xunit;
+
+public class AgentServiceTests
+{
+    [Fact]
+    public async Task CreateAgentAsync_ShouldLogOperations()
+    {
+        // Arrange
+        var logger = new XunitLogger<AgentService>();
+        var repository = Substitute.For<IAgentRepository>();
+        var service = new AgentService(repository, logger);
+
+        // Act
+        var result = await service.CreateAgentAsync("Test Agent", new AgentCapabilities());
+
+        // Assert
+        // Logger will capture real log messages for verification
+        result.IsSuccess.ShouldBeTrue();
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Mocking logger unnecessarily
+[Fact]
+public async Task TestCreateAgent()
+{
+    var mockLogger = Substitute.For<ILogger<AgentService>>();
+    var service = new AgentService(repository, mockLogger);
+    // Mocking logger when real logging would be better
+}
+```
+</incorrect-example>
+</requirement>
+
+## References
+<reference as="dependency" href=".cursor/rules/0000_RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/2001_ExxerAIResultPattern.mdc" reason="Related Result<T> pattern">Result<T> Pattern</reference>
+description:
+globs:
+alwaysApply: false
+---

@@ -1,0 +1,68 @@
+{
+  "metadata": {
+    "description": "Fitted polynomial models for OCR image enhancement",
+    "pil_degree": 2,
+    "opencv_degree": 3
+  },
+  "pil_model": {
+    "contrast_factor": {
+      "coefficients": {
+        "1": 0.0,
+        "x0": -3.9442124424350407e-13,
+        "x1": 3.8943076115526103e-17,
+        "x2": -1.3774310255676826e-15,
+        "x0^2": -3.290498672218798e-09,
+        "x0 x1": -1.2942846733887292e-13,
+        "x0 x2": -2.2449417730627045e-11,
+        "x1^2": 5.763575265097863e-17,
+        "x1 x2": 6.299403145724457e-16,
+        "x2^2": -1.166684078655827e-13,
+        "intercept": 1.6457263349054796
+      },
+      "r2_train": 0.03709179424772202,
+      "r2_cv": -0.06443006757318408,
+      "rmse": 0.38249934443508843
+    },
+    "median_size": {
+      "coefficients": {
+        "1": 0.0,
+        "x0": 0.0,
+        "x1": 0.0,
+        "x2": 0.0,
+        "x0^2": 0.0,
+        "x0 x1": 0.0,
+        "x0 x2": 0.0,
+        "x1^2": 0.0,
+        "x1 x2": 0.0,
+        "x2^2": 0.0,
+        "intercept": 3.0
+      },
+      "r2_train": 1.0,
+      "r2_cv": 1.0,
+      "rmse": 0.0
+    }
+  },
+  "opencv_model": {},
+  "model_comparison": {
+    "cluster_0": {
+      "pil_best": "733",
+      "opencv_best": null,
+      "pil_mean": 800.1666666666666,
+      "opencv_mean": null,
+      "best_model": "PIL (only data available)",
+      "improvement_pct": 0
+    },
+    "cluster_1": {
+      "pil_best": "1559",
+      "opencv_best": null,
+      "pil_mean": 1630.9333333333334,
+      "opencv_mean": null,
+      "best_model": "PIL (only data available)",
+      "improvement_pct": 0
+    }
+  },
+  "decision_logic": {
+    "threshold_skip_filter": "If max predicted improvement < 5%, skip filtering",
+    "model_selection": "Use PIL if within 10% of OpenCV improvement, else use best"
+  }
+}

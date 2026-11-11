@@ -1,0 +1,126 @@
+---
+attachmentType: always
+globs: *.ps1,*.cmd,*.bat
+description: PowerShell command execution standards for Cursor AI agents
+notes: always use when trying to execute PowerShell command
+alwaysApply: true
+---
+
+# PowerShell Command Execution Standards
+
+## Meta
+
+**Title**: PowerShell Command Execution Standards
+**Description**: Establishes mandatory standards for executing PowerShell commands in Cursor to avoid hanging and communication failures
+**Created-at**: 2025-01-15T00:00:00Z
+**Last-updated-at**: 2025-01-15T00:00:00Z
+**Applies-to**: All PowerShell command execution, shell operations, terminal interactions
+**File-matcher**: *.ps1, *.cmd, *.bat files and any shell command execution
+
+## Requirements
+
+### <requirement priority="critical">
+**Description**: ALWAYS use Serena server for PowerShell command execution instead of direct terminal commands
+**Examples**:
+<correct-example>
+```bash
+# Use Serena server for reliable command execution
+mcp_serena_execute_shell_command
+command: dir *.csproj
+```
+</correct-example>
+<incorrect-example>
+```bash
+# WRONG - will hang without returning results
+run_terminal_cmd
+command: dir *.csproj
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: NEVER use run_terminal_cmd for PowerShell operations due to Cursor communication bugs
+**Examples**:
+<correct-example>
+```bash
+# Serena server handles timeouts and errors properly
+mcp_serena_execute_shell_command
+command: dotnet build
+```
+</correct-example>
+<incorrect-example>
+```bash
+# WRONG - prone to hanging and communication failures
+run_terminal_cmd
+command: dotnet build
+is_background: false
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Use Serena server for all shell operations including file operations, build commands, and package management
+**Examples**:
+<correct-example>
+```bash
+# File operations
+mcp_serena_execute_shell_command
+command: dir
+
+# Build operations
+mcp_serena_execute_shell_command
+command: dotnet pack
+
+# Package operations
+mcp_serena_execute_shell_command
+command: nuget pack
+```
+</correct-example>
+<incorrect-example>
+```bash
+# WRONG - all of these can hang
+run_terminal_cmd
+command: dir
+is_background: false
+
+run_terminal_cmd
+command: dotnet pack
+is_background: false
+
+run_terminal_cmd
+command: nuget pack
+is_background: false
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: When Serena server is unavailable, implement timeout wrappers for any fallback command execution
+**Examples**:
+<correct-example>
+```bash
+# Timeout wrapper for emergency fallback
+timeout 30s dotnet build || echo "Command timed out"
+```
+</correct-example>
+<incorrect-example>
+```bash
+# WRONG - no timeout protection
+dotnet build
+```
+</incorrect-example>
+</requirement>
+
+## Context
+
+This rule addresses a critical bug in Cursor's PowerShell communication where:
+- Commands hang without returning results
+- Failed commands don't return error messages
+- Communication between Cursor and PowerShell is unreliable
+
+The Serena server provides proper timeout handling, error reporting, and reliable command execution that bypasses these Cursor-specific issues.
+
+## References
+
+<reference as="dependency" href=".cursor/rules/0000_RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/1001_CSharpCodingStandards.mdc" reason="Related to .NET development commands">C# Coding Standards</reference>

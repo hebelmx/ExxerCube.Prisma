@@ -1,0 +1,406 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ExxerCube.Prisma.Infrastructure.Export.Adaptive</name>
+    </assembly>
+    <members>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.AdaptiveExporter">
+            <summary>
+            Orchestrator for adaptive export operations using template-based configuration.
+            Coordinates ITemplateRepository and ITemplateFieldMapper to produce exports without code changes.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.AdaptiveExporter.#ctor(ExxerCube.Prisma.Domain.Interfaces.ITemplateRepository,ExxerCube.Prisma.Domain.Interfaces.ITemplateFieldMapper,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Export.Adaptive.AdaptiveExporter})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.AdaptiveExporter"/> class.
+            </summary>
+            <param name="templateRepository">The template repository.</param>
+            <param name="fieldMapper">The field mapper.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.AdaptiveExporter.ExportAsync(System.Object,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.AdaptiveExporter.ExportWithVersionAsync(System.Object,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.AdaptiveExporter.GetActiveTemplateAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.AdaptiveExporter.ValidateExportAsync(System.Object,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.AdaptiveExporter.PreviewMappingAsync(System.Object,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.AdaptiveExporter.ClearTemplateCache">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.AdaptiveExporter.IsTemplateAvailableAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.AdaptiveResponseExporterAdapter">
+             <summary>
+             Adapter that implements IResponseExporter using the adaptive template system.
+             Enables zero-downtime migration from hardcoded SiroXmlExporter to AdaptiveExporter.
+             </summary>
+             <remarks>
+             Adapter Pattern for Backward Compatibility:
+            
+             OLD (Hardcoded):
+             services.AddScoped&lt;IResponseExporter, SiroXmlExporter&gt;();
+            
+             NEW (Adaptive):
+             services.AddScoped&lt;IResponseExporter, AdaptiveResponseExporterAdapter&gt;();
+            
+             This one-line DI change enables adaptive templates WITHOUT breaking existing consumers.
+             </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.AdaptiveResponseExporterAdapter.#ctor(ExxerCube.Prisma.Domain.Interfaces.IAdaptiveExporter,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Export.Adaptive.AdaptiveResponseExporterAdapter})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.AdaptiveResponseExporterAdapter"/> class.
+            </summary>
+            <param name="adaptiveExporter">The adaptive exporter.</param>
+            <param name="logger">The logger.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.AdaptiveResponseExporterAdapter.ExportSiroXmlAsync(ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord,System.IO.Stream,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.AdaptiveResponseExporterAdapter.ExportSignedPdfAsync(ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord,System.IO.Stream,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.Data.Migrations.InitialCreate">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.Data.Migrations.InitialCreate.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.Data.Migrations.InitialCreate.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.Data.Migrations.InitialCreate.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.Data.TemplateDbContext">
+            <summary>
+            Database context for adaptive template storage.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.Adaptive.Data.TemplateDbContext.Templates">
+            <summary>
+            Gets or sets the templates DbSet.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.Data.TemplateDbContext.#ctor(Microsoft.EntityFrameworkCore.DbContextOptions{ExxerCube.Prisma.Infrastructure.Export.Adaptive.Data.TemplateDbContext})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.Data.TemplateDbContext"/> class.
+            </summary>
+            <param name="options">The database context options.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.Data.TemplateDbContext.OnModelCreating(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioLayoutGenerator">
+            <summary>
+            Generates the "Datos Carga de Oficio" Excel workbook (24 columns, FR-A requirement)
+            from a <see cref="T:ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord"/> using the template-field-mapper pipeline.
+            </summary>
+            <remarks>
+            <para>
+            Template resolution order:
+            <list type="number">
+              <item><description>
+                If <c>ITemplateRepository</c> is wired and returns a non-null <c>TemplateDefinition</c>
+                for type <c>"DatosCargaOficio"</c>, that definition is used (DB-override).
+              </description></item>
+              <item><description>
+                Otherwise falls back to <see cref="P:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioTemplate.Default"/> (built-in code default,
+                demo-safe without DB seeding).
+              </description></item>
+            </list>
+            </para>
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioLayoutGenerator.#ctor(ExxerCube.Prisma.Domain.Interfaces.ITemplateFieldMapper,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioLayoutGenerator},ExxerCube.Prisma.Domain.Interfaces.ITemplateRepository)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioLayoutGenerator"/> class.
+            </summary>
+            <param name="fieldMapper">Required field mapper (reflection-based).</param>
+            <param name="logger">Logger.</param>
+            <param name="templateRepository">
+            Optional template repository. When <see langword="null"/> the built-in
+            <see cref="P:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioTemplate.Default"/> is always used.
+            </param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioLayoutGenerator.GenerateAsync(ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord,System.IO.Stream,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioProjection">
+            <summary>
+            Flat projection computed from a <see cref="T:ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord"/> containing the
+            extracted, calculated, and derived columns for the "Datos Carga de Oficio" layout.
+            </summary>
+            <remarks>
+            <para>
+            Fixed columns (Procedencia, Estatus, Grupo, etc.) are carried entirely in the
+            <see cref="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioTemplate"/> <see cref="P:ExxerCube.Prisma.Domain.ValueObjects.FieldMapping.DefaultValue"/>
+            and are NOT represented here — they never need to be extracted by reflection.
+            </para>
+            <para>
+            Property names must match the <see cref="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioTemplate"/> <c>SourceFieldPath</c>
+            entries exactly (case-sensitive, dot-notation used by <c>TemplateFieldMapper</c>).
+            </para>
+            </remarks>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioProjection.NumeroExpediente">
+            <summary>Gets or sets the case number (col 2).</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioProjection.NumeroOficio">
+            <summary>Gets or sets the oficio number (col 3).</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioProjection.FechaRegistro">
+            <summary>Gets or sets the registration date in ISO format (col 4).</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioProjection.FechaRecepcion">
+            <summary>Gets or sets the reception date in ISO format (col 5).</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioProjection.Dias">
+            <summary>Gets or sets the compliance days (col 6).</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioProjection.FechaEstimadaConclusion">
+            <summary>Gets or sets the estimated conclusion date in ISO format (col 7).</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioProjection.TipoAsunto">
+            <summary>Gets or sets the derived tipo-de-asunto value (col 9).</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioProjection.Subdivision">
+            <summary>
+            Gets or sets the subdivision code (col 12) in the client layout's slash form
+            (e.g., "A/AS", "J/IN"), derived from the <see cref="T:ExxerCube.Prisma.Domain.Enum.LegalSubdivisionKind"/> Name
+            so TemplateFieldMapper can extract it via plain string reflection.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioProjection.Descripcion">
+            <summary>
+            Gets or sets the composed description "Paterno Materno Nombre" from the first
+            <see cref="T:ExxerCube.Prisma.Domain.Entities.SolicitudParte"/> (col 14).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioProjection.Remitente">
+            <summary>Gets or sets the authority name used as the signing functionary (col 15).</summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioProjection.From(ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord,System.Collections.Generic.IReadOnlyList{ExxerCube.Prisma.Domain.Entities.ComplianceAction})">
+            <summary>
+            Creates a <see cref="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioProjection"/> from the given unified metadata record.
+            </summary>
+            <param name="record">The unified metadata record (must have a non-null Expediente).</param>
+            <param name="complianceActions">
+            The compliance actions from the classification result (may be null or empty).
+            </param>
+            <returns>A populated projection ready to be fed to <c>ITemplateFieldMapper</c>.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioProjection.DeriveTipoAsunto(ExxerCube.Prisma.Domain.Entities.Expediente,System.Collections.Generic.IReadOnlyList{ExxerCube.Prisma.Domain.Entities.ComplianceAction})">
+            <summary>
+            Maps the compliance signal to one of the 5 "Tipo de asunto" values used in the Excel layout.
+            Priority order: explicit action kind → TieneAseguramiento/AreaDescripcion → INFORMACIÓN fallback.
+            </summary>
+            <param name="expediente">The fused expediente.</param>
+            <param name="actions">Compliance actions from classification (may be null/empty).</param>
+            <returns>One of: EMBARGO, DESEMBARGO, DOCUMENTACIÓN, TRANSFERENCIAS, INFORMACIÓN.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioProjection.BuildDescripcion(System.Collections.Generic.IReadOnlyList{ExxerCube.Prisma.Domain.Entities.SolicitudParte})">
+            <summary>
+            Builds the "Descripción" column value as "Paterno Materno Nombre" from the first party.
+            Returns an empty string when no parties are present.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioTemplate">
+            <summary>
+            Static factory that produces the built-in <see cref="T:ExxerCube.Prisma.Domain.Entities.TemplateDefinition"/> for the
+            "Datos Carga de Oficio" Excel layout (24 columns, FR-A demo requirement).
+            </summary>
+            <remarks>
+            <para>
+            This built-in definition is used by <see cref="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioLayoutGenerator"/> when
+            <c>ITemplateRepository</c> returns <see langword="null"/> (no DB-seeded override).
+            </para>
+            <para>
+            Fixed-value columns carry their value in <see cref="P:ExxerCube.Prisma.Domain.ValueObjects.FieldMapping.DefaultValue"/> with an
+            empty <see cref="P:ExxerCube.Prisma.Domain.ValueObjects.FieldMapping.SourceFieldPath"/> so <c>TemplateFieldMapper</c> falls back
+            to the default without reflection. Extracted columns point into
+            <see cref="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioProjection"/> via dot-notation paths.
+            </para>
+            </remarks>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioTemplate.TemplateType">
+            <summary>The template-type key used with <c>ITemplateRepository.GetLatestTemplateAsync</c>.</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioTemplate.Default">
+            <summary>Gets the built-in default 24-column template definition.</summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DependencyInjection.ServiceCollectionExtensions">
+            <summary>
+            Extension methods for configuring adaptive export services dependency injection.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DependencyInjection.ServiceCollectionExtensions.AddAdaptiveExportServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String)">
+            <summary>
+            Adds adaptive export services to the service collection.
+            </summary>
+            <param name="services">The service collection.</param>
+            <param name="connectionString">The database connection string for template storage.</param>
+            <returns>The service collection for chaining.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DependencyInjection.ServiceCollectionExtensions.AddDatosCargaOficioExportServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.DependencyInjection.ServiceLifetime)">
+            <summary>
+            Adds the "Datos Carga de Oficio" Excel layout generator services.
+            </summary>
+            <remarks>
+            Registers:
+            <list type="bullet">
+              <item><see cref="T:ExxerCube.Prisma.Domain.Interfaces.ITemplateFieldMapper"/> → <see cref="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateFieldMapper"/></item>
+              <item><see cref="T:ExxerCube.Prisma.Domain.Interfaces.IDatosCargaOficioLayoutGenerator"/> → <see cref="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioLayoutGenerator"/></item>
+            </list>
+            Does NOT force a <c>TemplateDbContext</c>. The generator falls back to the built-in
+            <see cref="P:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DatosCargaOficioTemplate.Default"/> when <c>ITemplateRepository</c> is absent or
+            returns <see langword="null"/>.
+            </remarks>
+            <param name="services">The service collection.</param>
+            <param name="lifetime">
+            Service lifetime for the registrations. Defaults to <see cref="F:Microsoft.Extensions.DependencyInjection.ServiceLifetime.Singleton"/>
+            because worker host orchestrators are singletons.
+            </param>
+            <returns>The service collection for chaining.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.DependencyInjection.ServiceCollectionExtensions.SeedTemplatesAsync(System.IServiceProvider,System.Threading.CancellationToken)">
+            <summary>
+            Seeds initial templates (Excel, XML) if they don't already exist.
+            Call this during application startup to ensure templates are available.
+            </summary>
+            <param name="serviceProvider">The service provider.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.SchemaEvolutionDetector">
+            <summary>
+            Detects schema evolution and drift between source data and template definitions.
+            Uses reflection to analyze source object structure and compare against templates.
+            </summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Export.Adaptive.SchemaEvolutionDetector.SimilarityThreshold">
+            <summary>
+            Similarity threshold for fuzzy matching (0.7 = 70% similar).
+            Fields with similarity >= 0.7 are considered potential renames.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.SchemaEvolutionDetector.#ctor(ExxerCube.Prisma.Domain.Interfaces.ITemplateRepository,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Export.Adaptive.SchemaEvolutionDetector})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.SchemaEvolutionDetector"/> class.
+            </summary>
+            <param name="templateRepository">The template repository.</param>
+            <param name="logger">The logger.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.SchemaEvolutionDetector.DetectDriftAsync(System.Object,ExxerCube.Prisma.Domain.Entities.TemplateDefinition,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.SchemaEvolutionDetector.DetectDriftForActiveTemplateAsync(System.Object,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.SchemaEvolutionDetector.SuggestFieldMappingsAsync(System.Object,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.SchemaEvolutionDetector.CalculateSimilarity(System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.SchemaEvolutionDetector.ValidateTemplateCompatibilityAsync(System.Object,ExxerCube.Prisma.Domain.Entities.TemplateDefinition,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateFieldMapper">
+            <summary>
+            Implementation of dynamic field mapping using reflection and transformation expressions.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateFieldMapper.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateFieldMapper})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateFieldMapper"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateFieldMapper.MapFieldAsync(System.Object,ExxerCube.Prisma.Domain.ValueObjects.FieldMapping,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateFieldMapper.MapAllFieldsAsync(System.Object,ExxerCube.Prisma.Domain.Entities.TemplateDefinition,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateFieldMapper.ValidateMappingAsync(System.Type,ExxerCube.Prisma.Domain.ValueObjects.FieldMapping,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateFieldMapper.ApplyTransformationAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateFieldMapper.ValidateFieldValueAsync(System.String,ExxerCube.Prisma.Domain.ValueObjects.FieldMapping,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateRepository">
+            <summary>
+            Repository implementation for loading and managing bank export template definitions from database.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateRepository.#ctor(ExxerCube.Prisma.Infrastructure.Export.Adaptive.Data.TemplateDbContext,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateRepository})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateRepository"/> class.
+            </summary>
+            <param name="dbContext">The template database context.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateRepository.GetTemplateAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateRepository.GetLatestTemplateAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateRepository.GetAllTemplateVersionsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateRepository.SaveTemplateAsync(ExxerCube.Prisma.Domain.Entities.TemplateDefinition,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateRepository.DeleteTemplateAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateRepository.ActivateTemplateAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateSeeder">
+            <summary>
+            Seeds initial template definitions from hardcoded exporters (SiroXmlExporter, ExcelLayoutGenerator).
+            This enables zero-downtime migration from hardcoded to adaptive templates.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateSeeder.#ctor(ExxerCube.Prisma.Infrastructure.Export.Adaptive.Data.TemplateDbContext,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateSeeder})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateSeeder"/> class.
+            </summary>
+            <param name="dbContext">The template database context.</param>
+            <param name="logger">The logger.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateSeeder.SeedAllTemplatesAsync(System.Threading.CancellationToken)">
+            <summary>
+            Seeds all initial templates (Excel, XML, DOCX) if they don't already exist.
+            </summary>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateSeeder.SeedExcelTemplateAsync(System.Threading.CancellationToken)">
+            <summary>
+            Seeds the Excel template definition extracted from ExcelLayoutGenerator.
+            </summary>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.Adaptive.TemplateSeeder.SeedXmlTemplateAsync(System.Threading.CancellationToken)">
+            <summary>
+            Seeds the XML template definition extracted from SiroXmlExporter.
+            </summary>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,194 @@
+@using ExxerCube.Prisma.Domain.Entities
+@using ExxerCube.Prisma.Domain.Enum
+@using MudBlazor
+@using System.Linq
+
+<!-- Legal Instrument Detection -->
+@if (LegalInstruments != null && LegalInstruments.Any())
+{
+    <MudCard Class="mb-4">
+        <MudCardHeader>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.Gavel" Class="mr-2" />
+                Legal Directive Classification
+            </MudText>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudList T="string">
+                @foreach (var instrument in LegalInstruments)
+                {
+                    <MudListItem T="string">
+                        <MudGrid>
+                            <MudItem xs="12" sm="8">
+                                <MudText Typo="Typo.body1" Class="font-weight-bold">
+                                    @instrument.InstrumentName
+                                </MudText>
+                                @if (!string.IsNullOrEmpty(instrument.SourceText))
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        Detected in: @TruncateText(instrument.SourceText, 100)
+                                    </MudText>
+                                }
+                            </MudItem>
+                            <MudItem xs="12" sm="4">
+                                <div class="d-flex align-center">
+                                    <MudProgressCircular Value="@instrument.Confidence" 
+                                                       Size="Size.Small"
+                                                       Color="@GetConfidenceColor(instrument.Confidence)" />
+                                    <MudText Typo="Typo.caption" Class="ml-2">@instrument.Confidence% confidence</MudText>
+                                </div>
+                            </MudItem>
+                        </MudGrid>
+                    </MudListItem>
+                }
+            </MudList>
+        </MudCardContent>
+    </MudCard>
+}
+
+<!-- Compliance Actions -->
+<MudCard>
+    <MudCardHeader>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Checklist" Class="mr-2" />
+            Compliance Actions
+        </MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        @if (ComplianceActions == null || !ComplianceActions.Any())
+        {
+            <MudAlert Severity="Severity.Info">No compliance actions identified</MudAlert>
+        }
+        else
+        {
+            @foreach (var action in ComplianceActions)
+            {
+                <MudCard Class="mb-3" Elevation="2">
+                    <MudCardContent>
+                        <MudGrid>
+                            <MudItem xs="12">
+                                <div class="d-flex align-center">
+                                    <MudChip T="string" Size="Size.Large" 
+                                            Color="@GetActionColor(action.ActionType)"
+                                            Icon="@GetActionIcon(action.ActionType)">
+                                        @action.ActionType
+                                    </MudChip>
+                                    <MudProgressCircular Value="@action.Confidence" 
+                                                        Size="Size.Small"
+                                                        Class="ml-2" />
+                                    <MudText Typo="Typo.caption" Class="ml-2">
+                                        @action.Confidence% confidence
+                                    </MudText>
+                                    <MudSpacer />
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Warning">
+                                        Pending
+                                    </MudChip>
+                                </div>
+                            </MudItem>
+                            
+                            @if (!string.IsNullOrEmpty(action.AccountNumber))
+                            {
+                                <MudItem xs="12" sm="6" md="4">
+                                    <MudText Typo="Typo.subtitle2">Account Number</MudText>
+                                    <MudText Typo="Typo.body1">@action.AccountNumber</MudText>
+                                </MudItem>
+                            }
+                            
+                            @if (!string.IsNullOrEmpty(action.ProductType))
+                            {
+                                <MudItem xs="12" sm="6" md="4">
+                                    <MudText Typo="Typo.subtitle2">Product Type</MudText>
+                                    <MudText Typo="Typo.body1">@action.ProductType</MudText>
+                                </MudItem>
+                            }
+                            
+                            @if (action.Amount.HasValue)
+                            {
+                                <MudItem xs="12" sm="6" md="4">
+                                    <MudText Typo="Typo.subtitle2">Amount</MudText>
+                                    <MudText Typo="Typo.body1">@action.Amount.Value.ToString("C")</MudText>
+                                </MudItem>
+                            }
+                            
+                            @if (!string.IsNullOrEmpty(action.LegalBasis))
+                            {
+                                <MudItem xs="12">
+                                    <MudText Typo="Typo.subtitle2">Legal Basis</MudText>
+                                    <MudText Typo="Typo.body2">@action.LegalBasis</MudText>
+                                </MudItem>
+                            }
+                            
+                            @if (action.DueDate != default)
+                            {
+                                <MudItem xs="12" sm="6">
+                                    <MudText Typo="Typo.subtitle2">Due Date</MudText>
+                                    <MudText Typo="Typo.body1">@action.DueDate.ToString("g")</MudText>
+                                </MudItem>
+                            }
+                            
+                            <MudItem xs="12">
+                                <MudDivider Class="my-2" />
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    Origin: @(action.ExpedienteOrigen ?? "N/A") / @(action.OficioOrigen ?? "N/A")
+                                    @if (!string.IsNullOrEmpty(action.RequerimientoOrigen))
+                                    {
+                                        <span> / @action.RequerimientoOrigen</span>
+                                    }
+                                </MudText>
+                            </MudItem>
+                        </MudGrid>
+                    </MudCardContent>
+                </MudCard>
+            }
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter] public List<LegalInstrument>? LegalInstruments { get; set; }
+    [Parameter] public List<ComplianceAction>? ComplianceActions { get; set; }
+    
+    private Color GetActionColor(ComplianceActionKind actionType) => actionType.Value switch
+    {
+        0 => Color.Error,      // Block
+        1 => Color.Success,    // Unblock
+        2 => Color.Info,       // Document
+        3 => Color.Warning,    // Transfer
+        4 => Color.Primary,    // Information
+        5 => Color.Default,    // Ignore
+        _ => Color.Default
+    };
+
+    private string GetActionIcon(ComplianceActionKind actionType) => actionType.Name switch
+    {
+        "Block" => Icons.Material.Filled.Block,
+        "Unblock" => Icons.Material.Filled.LockOpen,
+        "Document" => Icons.Material.Filled.Description,
+        "Transfer" => Icons.Material.Filled.SwapHoriz,
+        "Information" => Icons.Material.Filled.Info,
+        "Ignore" => Icons.Material.Filled.SkipNext,
+        _ => Icons.Material.Filled.Help
+    };
+    
+    private Color GetConfidenceColor(int confidence) => confidence switch
+    {
+        >= 90 => Color.Success,
+        >= 70 => Color.Warning,
+        _ => Color.Error
+    };
+    
+    private string TruncateText(string text, int maxLength)
+    {
+        if (string.IsNullOrEmpty(text) || text.Length <= maxLength)
+            return text;
+        return text.Substring(0, maxLength) + "...";
+    }
+    
+    public class LegalInstrument
+    {
+        public string InstrumentName { get; set; } = string.Empty;
+        public int Confidence { get; set; }
+        public string? SourceText { get; set; }
+    }
+}
+

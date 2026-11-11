@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>CONDUSEF/2024/419892</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>CONDUSEF/2024/419892</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Dirección General de Atención a Usuarios</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>CONDUSEF/2024/419892</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>A/IN2-2882-986327-BBB</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>3</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>Arturo Limón Hinojosa</NombreSolicitante>
+  <Referencia>REF-6465</Referencia>
+  <Referencia1>REF1-2908</Referencia1>
+  <Referencia2>REF2-5472</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>María Jáquez Orellana</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Incluir números de cuenta, saldos y movimientos
+- Detallar operaciones superiores a $100,000.00 MN
+- Indicar titulares y co-titulares de las cuentas
+- Proporcionar información de todas las cuentas bancarias
+- Especificar fechas de apertura y cierre de cuentas</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>María Jáquez Orellana</Nombre>
+    <Rfc>JÁOM930206R09</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Prolongación Sur Menchaca No. 2880, Col. San Eric los bajos, Municipio Vieja Etiopía, Aguascalientes, C.P. 60034</Domicilio>
+    <Complementarios>Tel: +97(3)1782654959, Email: jponce@example.com</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

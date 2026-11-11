@@ -1,0 +1,130 @@
+@using ExxerCube.Prisma.Domain.Entities
+@using ExxerCube.Prisma.Domain.Enum
+@using ExxerCube.Prisma.Domain.Interfaces
+@using MudBlazor
+
+<MudDialog>
+    <DialogContent>
+        @if (FileMetadata != null)
+        {
+            <MudContainer>
+                <MudText Typo="Typo.h6" Class="mb-4">
+                    <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" />
+                    File Metadata Details
+                </MudText>
+
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudTextField Label="File ID" Value="@FileMetadata.FileId" ReadOnly="true" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField Label="File Name" Value="@FileMetadata.FileName" ReadOnly="true" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField Label="File Path" Value="@FileMetadata.FilePath" ReadOnly="true" Variant="Variant.Outlined" />
+                    </MudItem>
+                    @if (!string.IsNullOrEmpty(FileMetadata.Url))
+                    {
+                        <MudItem xs="12">
+                            <MudTextField Label="Source URL" Value="@FileMetadata.Url" ReadOnly="true" Variant="Variant.Outlined" />
+                            <MudLink Href="@FileMetadata.Url" Target="_blank" Class="mt-2">
+                                <MudIcon Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Class="mr-1" />
+                                Open in new tab
+                            </MudLink>
+                        </MudItem>
+                    }
+                    <MudItem xs="12" md="6">
+                        <MudTextField Label="Download Timestamp" 
+                                    Value="@FileMetadata.DownloadTimestamp.ToString("g")" 
+                                    ReadOnly="true" 
+                                    Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField Label="File Size" 
+                                    Value="@FormatFileSize(FileMetadata.FileSize)" 
+                                    ReadOnly="true" 
+                                    Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField Label="File Format" 
+                                    Value="@FileMetadata.Format.ToString()" 
+                                    ReadOnly="true" 
+                                    Variant="Variant.Outlined" />
+                        <MudChip T="string" Size="Size.Small" Color="@GetFormatColor(FileMetadata.Format)" Class="mt-2">
+                            @FileMetadata.Format
+                        </MudChip>
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField Label="Checksum (SHA-256)" 
+                                    Value="@FileMetadata.Checksum" 
+                                    ReadOnly="true" 
+                                    Variant="Variant.Outlined" 
+                                    Lines="2" />
+                    </MudItem>
+                </MudGrid>
+
+                <MudDivider Class="my-4" />
+
+                <MudText Typo="Typo.subtitle2" Class="mb-2">File Information</MudText>
+                <MudList T="string">
+                    <MudListItem T="string">
+                        <MudText Typo="Typo.body2">
+                            <strong>File ID:</strong> @FileMetadata.FileId
+                        </MudText>
+                    </MudListItem>
+                    <MudListItem T="string">
+                        <MudText Typo="Typo.body2">
+                            <strong>Downloaded:</strong> @FileMetadata.DownloadTimestamp.ToString("F")
+                        </MudText>
+                    </MudListItem>
+                    <MudListItem T="string">
+                        <MudText Typo="Typo.body2">
+                            <strong>Size:</strong> @FormatFileSize(FileMetadata.FileSize) (@FileMetadata.FileSize bytes)
+                        </MudText>
+                    </MudListItem>
+                    <MudListItem T="string">
+                        <MudText Typo="Typo.body2">
+                            <strong>Format:</strong> @FileMetadata.Format
+                        </MudText>
+                    </MudListItem>
+                </MudList>
+            </MudContainer>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Warning">
+                File metadata not available.
+            </MudAlert>
+        }
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [Parameter]
+    public FileMetadata? FileMetadata { get; set; }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+
+    private Color GetFormatColor(FileFormat format) => format.Value switch
+    {
+        0 => Color.Error,
+        1 => Color.Warning,
+        2 => Color.Info,
+        3 => Color.Secondary,
+        _ => Color.Default
+    };
+}
+
+
+

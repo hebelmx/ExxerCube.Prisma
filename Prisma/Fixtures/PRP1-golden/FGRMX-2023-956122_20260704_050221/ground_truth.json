@@ -1,0 +1,50 @@
+{
+  "docId": "FGRMX-2023-956122_20260704_050221",
+  "seed": 1000,
+  "chaosLevel": "none",
+  "requirementType": "judicial",
+  "folioSiara": "FGRMX/2023/956122",
+  "numeroOficio": "FGRMX/2023/956122",
+  "numeroExpediente": "A/AS2-7278-537605-BBB",
+  "autoridadNombre": "Fiscalía General de la República",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Hilda Salazar Lozano",
+  "personaNombre": "Leonel Luna Alonzo",
+  "personaRfc": "LUAL061104JGE",
+  "solicitudPartes": [
+    {
+      "nombre": "Leonel Luna Alonzo",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$1,945,513.42",
+  "fechaDiligencia": "04/07/2026",
+  "juzgadoNombre": "Fiscalía General de la República",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

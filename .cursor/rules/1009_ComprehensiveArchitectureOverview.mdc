@@ -1,0 +1,544 @@
+---
+globs: *.cs
+description: Comprehensive overview of modern software architecture patterns and practices
+---
+
+# Comprehensive Architecture Overview
+
+## Meta
+
+**Title**: Comprehensive Architecture Overview
+**Description**: Comprehensive summary of all architectural patterns and best practices extracted from the ExxerAI codebase
+**Created-at**: 2025-01-06T00:00:00Z
+**Last-updated-at**: 2025-01-06T00:00:00Z
+**Applies-to**: All .NET applications, comprehensive architecture guidance
+**File-matcher**: *.cs files across all layers
+
+## Requirements
+
+### <requirement priority="critical">
+**Description**: Follow the comprehensive architectural stack for all new development
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Complete architectural stack implementation
+namespace ExxerAI.Domain.Entities
+{
+    // Domain Layer - Core business entities
+    public class Agent
+    {
+        public Guid Id { get; init; } = Guid.NewGuid();
+        public string Name { get; init; } = string.Empty;
+        public AgentStatus Status { get; init; } = AgentStatus.Inactive;
+        public AgentCapabilities Capabilities { get; init; } = new();
+        public IReadOnlyCollection<AgentTask> Tasks { get; init; } = [];
+        public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; init; } = DateTime.UtcNow;
+
+        // Rich domain behavior
+        public bool CanAcceptTask(string taskType)
+        {
+            return Status == AgentStatus.Active &&
+                   Capabilities.SupportsTaskType(taskType) &&
+                   Tasks.Count < Capabilities.MaxConcurrentTasks;
+        }
+
+        public Agent AssignTask(AgentTask task)
+        {
+            if (!CanAcceptTask(task.Type))
+                throw new InvalidOperationException($"Agent cannot accept task type: {task.Type}");
+
+            return this with
+            {
+                Tasks = Tasks.Append(task).ToList().AsReadOnly(),
+                UpdatedAt = DateTime.UtcNow
+            };
+        }
+    }
+}
+
+namespace ExxerAI.Domain.Interfaces
+{
+    // Ports (interfaces) in domain layer
+    public interface IAgentRepository
+    {
+        Task<Result<Agent>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<Result<IEnumerable<Agent>>> GetAllAsync(CancellationToken cancellationToken = default);
+        Task<Result<Agent>> AddAsync(Agent agent, CancellationToken cancellationToken = default);
+        Task<Result<Agent>> UpdateAsync(Agent agent, CancellationToken cancellationToken = default);
+    }
+
+    public interface ILLMProvider
+    {
+        Task<Result<LLMResponse>> GenerateResponseAsync(string prompt, LLMParameters parameters, CancellationToken cancellationToken = default);
+    }
+}
+
+namespace ExxerAI.Application.Services
+{
+    // Application Layer - Use cases and orchestration
+    public class AgentService : IAgentService
+    {
+        private readonly IAgentRepository _agentRepository;
+        private readonly ILLMProvider _llmProvider;
+        private readonly ILogger<AgentService> _logger;
+
+        public AgentService(
+            IAgentRepository agentRepository,
+            ILLMProvider llmProvider,
+            ILogger<AgentService> logger)
+        {
+            _agentRepository = agentRepository ?? throw new ArgumentNullException(nameof(agentRepository));
+            _llmProvider = llmProvider ?? throw new ArgumentNullException(nameof(llmProvider));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        public async Task<Result<Agent>> CreateAgentAsync(string name, string description, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                return ResultExtensions.Cancelled<Agent>();
+
+            try
+            {
+                _logger.LogInformation("Creating agent: {AgentName}", name);
+
+                if (string.IsNullOrWhiteSpace(name))
+                    return Result<Agent>.WithFailure("Agent name cannot be empty");
+
+                var agent = new Agent
+                {
+                    Name = name,
+                    Description = description,
+                    Capabilities = capabilities,
+                    Status = AgentStatus.Active
+                };
+
+                var result = await _agentRepository.AddAsync(agent, cancellationToken).ConfigureAwait(false);
+
+                if (result.IsSuccess)
+                    _logger.LogInformation("Successfully created agent with ID: {AgentId}", agent.Id);
+
+                return result;
+            }
+            catch (OperationCanceledException)
+            {
+                return ResultExtensions.Cancelled<Agent>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating agent: {AgentName}", name);
+                return Result<Agent>.WithFailure($"An error occurred while creating the agent: {ex.Message}");
+            }
+        }
+
+        public async Task<Result<Agent>> AssignTaskToAgentAsync(Guid agentId, AgentTask task, CancellationToken cancellationToken = default)
+        {
+            var agentResult = await _agentRepository.GetByIdAsync(agentId, cancellationToken).ConfigureAwait(false);
+            if (agentResult.IsFailure)
+                return Result<Agent>.WithFailure(agentResult.Error ?? "Agent not found");
+
+            var agent = agentResult.Value!;
+            if (!agent.CanAcceptTask(task.Type))
+                return Result<Agent>.WithFailure($"Agent cannot accept task type: {task.Type}");
+
+            var updatedAgent = agent.AssignTask(task);
+            return await _agentRepository.UpdateAsync(updatedAgent, cancellationToken).ConfigureAwait(false);
+        }
+    }
+}
+
+namespace ExxerAI.Infrastructure.Repositories
+{
+    // Infrastructure Layer - Data access implementation
+    public class InMemoryAgentRepository : IAgentRepository
+    {
+        private readonly List<Agent> _agents = new();
+
+        public async Task<Result<Agent>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            await Task.Delay(1, cancellationToken); // Simulate async operation
+
+            var agent = _agents.FirstOrDefault(a => a.Id == id);
+            return agent != null
+                ? Result<Agent>.Success(agent)
+                : Result<Agent>.WithFailure($"Agent not found with ID: {id}");
+        }
+
+        public async Task<Result<IEnumerable<Agent>>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            await Task.Delay(1, cancellationToken);
+            return Result<IEnumerable<Agent>>.Success(_agents.AsReadOnly());
+        }
+
+        public async Task<Result<Agent>> AddAsync(Agent agent, CancellationToken cancellationToken = default)
+        {
+            await Task.Delay(1, cancellationToken);
+
+            if (_agents.Any(a => a.Id == agent.Id))
+                return Result<Agent>.WithFailure($"Agent with ID {agent.Id} already exists");
+
+            _agents.Add(agent);
+            return Result<Agent>.Success(agent);
+        }
+
+        public async Task<Result<Agent>> UpdateAsync(Agent agent, CancellationToken cancellationToken = default)
+        {
+            await Task.Delay(1, cancellationToken);
+
+            var existingIndex = _agents.FindIndex(a => a.Id == agent.Id);
+            if (existingIndex == -1)
+                return Result<Agent>.WithFailure($"Agent with ID {agent.Id} not found");
+
+            _agents[existingIndex] = agent;
+            return Result<Agent>.Success(agent);
+        }
+    }
+}
+
+namespace ExxerAI.Api.Controllers
+{
+    // Presentation Layer - API controllers
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AgentsController : ControllerBase
+    {
+        private readonly IAgentService _agentService;
+        private readonly ILogger<AgentsController> _logger;
+
+        public AgentsController(IAgentService agentService, ILogger<AgentsController> logger)
+        {
+            _agentService = agentService ?? throw new ArgumentNullException(nameof(agentService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        [HttpPost]
+        [ProducesResponseType(typeof(ApiResponse<AgentResponse>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse<AgentResponse>>> CreateAgentAsync(
+            [FromBody] CreateAgentRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogInformation("Create agent request was cancelled");
+                return StatusCode(499, new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Request was cancelled"
+                });
+            }
+
+            try
+            {
+                _logger.LogInformation("Creating new agent: {AgentName}", request.Name);
+
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState
+                        .Where(x => x.Value?.Errors != null)
+                        .SelectMany(x => x.Value!.Errors)
+                        .Select(x => x.ErrorMessage)
+                        .Where(msg => !string.IsNullOrEmpty(msg))
+                        .ToList();
+
+                    return BadRequest(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "Invalid request data",
+                        Errors = errors
+                    });
+                }
+
+                var result = await _agentService.CreateAgentAsync(
+                    request.Name,
+                    request.Description,
+                    request.Capabilities.ToDomain(),
+                    cancellationToken);
+
+                if (result.IsFailure)
+                {
+                    _logger.LogWarning("Failed to create agent: {Error}", result.Error ?? "Unknown error");
+                    return BadRequest(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "Failed to create agent",
+                        Errors = [result.Error ?? "Unknown error"]
+                    });
+                }
+
+                var agent = result.Value!;
+                var response = new ApiResponse<AgentResponse>
+                {
+                    Success = true,
+                    Message = "Agent created successfully",
+                    Data = agent.ToResponse()
+                };
+
+                _logger.LogInformation("Successfully created agent with ID: {AgentId}", agent.Id);
+                return CreatedAtAction(nameof(GetAgentAsync), new { id = agent.Id }, response);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Create agent operation was cancelled");
+                return StatusCode(499, new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Operation was cancelled by the user"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating agent");
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "An internal error occurred",
+                    Errors = [ex.Message]
+                });
+            }
+        }
+    }
+}
+```
+</correct-example>
+
+<incorrect-example>
+```csharp
+// ❌ Mixed architectural concerns
+namespace ExxerAI.Services
+{
+    public class AgentService
+    {
+        private readonly SqlConnection _connection; // Infrastructure concern
+        private readonly HttpClient _httpClient; // External service dependency
+        private readonly ILogger<AgentService> _logger;
+
+        public async Task<Agent> CreateAgent(string name, string description)
+        {
+            // Business logic mixed with data access
+            using var command = _connection.CreateCommand();
+            command.CommandText = "INSERT INTO Agents (Name, Description) VALUES (@name, @description)";
+            command.Parameters.AddWithValue("@name", name);
+            command.Parameters.AddWithValue("@description", description);
+
+            await command.ExecuteNonQueryAsync();
+
+            // External service call mixed with business logic
+            var response = await _httpClient.PostAsync("https://api.notification.com/send",
+                new StringContent($"Agent {name} created"));
+
+            _logger.LogInformation("Agent created: {Name}", name);
+
+            return new Agent { Name = name, Description = description };
+        }
+    }
+}
+
+// ❌ No separation of concerns
+namespace ExxerAI.Api.Controllers
+{
+    public class AgentsController : ControllerBase
+    {
+        private readonly SqlConnection _connection;
+
+        [HttpPost]
+        public async Task<IActionResult> CreateAgent([FromBody] CreateAgentRequest request)
+        {
+            // Business logic in controller
+            if (string.IsNullOrEmpty(request.Name))
+                return BadRequest("Name is required");
+
+            // Data access in controller
+            using var command = _connection.CreateCommand();
+            command.CommandText = "INSERT INTO Agents (Name, Description) VALUES (@name, @description)";
+            command.Parameters.AddWithValue("@name", request.Name);
+            command.Parameters.AddWithValue("@description", request.Description);
+
+            await command.ExecuteNonQueryAsync();
+
+            return Ok(new { message = "Agent created" });
+        }
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+## Comprehensive Architecture Standards
+
+### Core Architectural Principles
+
+#### 1. **Functional Programming Patterns**
+- **Result<T> Pattern**: Replace exceptions with functional error handling
+- **Immutability**: Use init-only properties, records, IReadOnlyCollections
+- **Functional Composition**: Use Map, Bind, Match, Ensure, Tap operations
+- **Pure Functions**: Extract business logic into side-effect-free functions
+- **Error Recovery**: Use functional error aggregation and recovery patterns
+
+#### 2. **Domain-Driven Design Patterns**
+- **Entities**: Rich domain objects with identity and lifecycle management
+- **Value Objects**: Immutable concepts without identity (records, validation)
+- **Aggregates**: Consistency boundaries with business rules and invariants
+- **Domain Services**: Business logic that doesn't belong to entities
+- **Repositories**: Abstract data access with aggregate-specific methods
+
+#### 3. **Clean Architecture Patterns**
+- **Dependency Inversion**: Interfaces in domain layer, implementations in infrastructure
+- **Layer Separation**: Domain, Application, Infrastructure, Presentation layers
+- **Hexagonal Architecture**: Ports and adapters for external dependencies
+- **Dependency Injection**: Constructor injection with null checks
+- **Configuration Management**: Options pattern for external service settings
+
+#### 4. **Modern C# Patterns**
+- **Async/Await**: Proper cancellation token propagation
+- **ConfigureAwait(false)**: Use in library code, avoid in UI
+- **Records**: Immutable value objects and DTOs
+- **Pattern Matching**: Switch expressions and type patterns
+- **Null Safety**: Null-coalescing and null-conditional operators
+
+### Testing Standards
+
+#### 1. **Unit Testing**
+- **Framework**: xUnit v3 with Shouldly assertions
+- **Mocking**: NSubstitute for mocking dependencies
+- **Logging**: Meziantou.Extensions.Logging.Xunit.v3 for real logging
+- **DateTime**: DateTimeMachine for mocking dates
+- **Pattern**: AAA (Arrange, Act, Assert) with descriptive test names
+
+#### 2. **Integration Testing**
+- **Database**: InMemory provider for EF Core testing
+- **Real Data**: Use SeedDataFiles for realistic test scenarios
+- **Performance**: High-performance data loading with caching
+- **Boundaries**: Test aggregation boundaries and cross-aggregate consistency
+
+#### 3. **Domain Testing**
+- **Entities**: Test all domain entities systematically
+- **Invariants**: Test domain invariants and business rules
+- **Events**: Test domain events and state transitions
+- **Value Objects**: Test immutability and equality
+- **Services**: Test domain services in isolation
+
+### Error Handling Standards
+
+#### 1. **Result<T> Pattern**
+- **Purpose**: Type-safe error handling without exceptions
+- **Usage**: All business logic operations return Result<T>
+- **Composition**: Use Map, Bind, Match for functional composition
+- **Recovery**: Use Recover and RecoverWith for error recovery
+
+#### 2. **Cancellation Token Support**
+- **Propagation**: Pass CancellationToken through all async methods
+- **Early Checks**: Check cancellation at method start
+- **Proper Handling**: Handle OperationCanceledException appropriately
+- **Library vs UI**: Use ConfigureAwait(false) in library code
+
+#### 3. **Structured Logging**
+- **Format**: Use structured logging with named parameters
+- **Levels**: Appropriate log levels (Information, Warning, Error)
+- **Context**: Include relevant context in log messages
+- **Performance**: Avoid expensive operations in logging
+
+### Code Quality Standards
+
+#### 1. **Naming Conventions**
+- **Meaningful Names**: Descriptive names for variables, methods, classes
+- **Consistency**: Follow established naming patterns
+- **Domain Language**: Use business terminology in code
+- **Avoid Magic**: No magic numbers or strings
+
+#### 2. **SOLID Principles**
+- **Single Responsibility**: Each class has one reason to change
+- **Open/Closed**: Open for extension, closed for modification
+- **Liskov Substitution**: Subtypes are substitutable for base types
+- **Interface Segregation**: Small, focused interfaces
+- **Dependency Inversion**: Depend on abstractions, not concretions
+
+#### 3. **Modern C# Features**
+- **Expression-bodied Members**: For one-liners
+- **Switch Expressions**: For cleaner conditional logic
+- **Pattern Matching**: For type-safe operations
+- **Records**: For immutable data structures
+- **Nullable Reference Types**: For null safety
+
+### Performance Standards
+
+#### 1. **Async/Await Best Practices**
+- **ConfigureAwait(false)**: Use in library code for performance
+- **Cancellation**: Support cancellation tokens throughout
+- **Exception Handling**: Proper exception handling in async code
+- **Resource Management**: Use await using for IAsyncDisposable
+
+#### 2. **Memory Management**
+- **Immutability**: Prefer immutable data structures
+- **Collections**: Use IReadOnlyCollections for immutability
+- **Span<T>**: Use for performance-critical operations
+- **Pools**: Use object pools for frequently allocated objects
+
+#### 3. **Database Performance**
+- **InMemory**: Use for testing instead of mocking
+- **Realistic Data**: Use seed data for realistic scenarios
+- **Caching**: Cache test data for performance
+- **Queries**: Optimize database queries and avoid N+1 problems
+
+## Context
+
+This comprehensive architecture overview establishes patterns that promote:
+
+### **For Developers**
+- **Clear Patterns**: Well-defined patterns for building reliable code
+- **Type Safety**: Compile-time guarantees for error handling
+- **Testability**: Easy to test with clear dependencies
+- **Maintainability**: Well-structured, readable code
+
+### **For Maintainers**
+- **Consistency**: Consistent patterns across the codebase
+- **Clarity**: Clear separation of concerns and responsibilities
+- **Documentation**: Self-documenting code with clear intent
+- **Refactoring**: Easy to refactor with clear boundaries
+
+### **For Architects**
+- **Scalability**: Architecture that grows with requirements
+- **Flexibility**: Easy to change implementations
+- **Technology Independence**: Core logic independent of technology
+- **Standards**: Consistent architectural patterns
+
+### **For UX Designers**
+- **Error Handling**: Predictable error handling for user messages
+- **Performance**: Responsive applications with proper async patterns
+- **Reliability**: Robust applications with proper error recovery
+- **User Experience**: Clean separation between UI and business logic
+
+### **For Users**
+- **Reliability**: Applications that handle errors gracefully
+- **Performance**: Responsive applications with proper async patterns
+- **Consistency**: Predictable behavior across the application
+- **Error Messages**: Clear, actionable error messages
+
+### **For Product Managers**
+- **Maintainability**: Code that supports rapid feature development
+- **Quality**: High-quality code with comprehensive testing
+- **Scalability**: Architecture that supports business growth
+- **Time to Market**: Efficient development with clear patterns
+
+### **For Stakeholders**
+- **Robustness**: Systems that handle errors gracefully
+- **Scalability**: Architecture that supports business growth
+- **Maintainability**: Systems that are easy to maintain and extend
+- **Technology Independence**: Core business logic independent of technology choices
+
+## References
+
+- `0000RuleToWriteRules.mdc` - Rule writing standards
+- `1001CSharpCodingStandards.mdc` - C# coding standards
+- `1002CancellationTokenStandards.mdc` - Cancellation token patterns
+- `1004CommitMessageStandards.mdc` - Commit message standards
+- `1005CleanCodeStandards.mdc` - Clean code principles
+- `1006FunctionalProgrammingPatterns.mdc` - Functional programming patterns
+- `1007DomainDrivenDesignPatterns.mdc` - Domain-Driven Design patterns
+- `1008CleanArchitecturePatterns.mdc` - Clean Architecture patterns
+- `0001GeneralEngineeringPrinciples.mdc` - General engineering principles
+description:
+globs:
+alwaysApply: false
+---

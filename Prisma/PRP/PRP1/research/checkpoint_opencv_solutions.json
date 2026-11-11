@@ -1,0 +1,697 @@
+{
+  "source": "nsga2_checkpoint_minimal.pkl",
+  "n_gen": 51,
+  "n_solutions": 30,
+  "solutions": [
+    {
+      "id": 6,
+      "genome": {
+        "denoise_h": 6,
+        "clahe_clip": 1.1601727613681,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 70,
+        "bilateral_sigma_space": 79,
+        "unsharp_amount": 1.9027127572713471,
+        "unsharp_radius": 2.6040244706514253
+      },
+      "objectives": [
+        93,
+        86,
+        166,
+        12,
+        524,
+        644,
+        459,
+        636
+      ],
+      "total_edits": 2620
+    },
+    {
+      "id": 45,
+      "genome": {
+        "denoise_h": 13,
+        "clahe_clip": 1.159932802326897,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 70,
+        "bilateral_sigma_space": 79,
+        "unsharp_amount": 1.9027127572713471,
+        "unsharp_radius": 2.6040244706514253
+      },
+      "objectives": [
+        91,
+        80,
+        153,
+        12,
+        371,
+        739,
+        642,
+        552
+      ],
+      "total_edits": 2640
+    },
+    {
+      "id": 75,
+      "genome": {
+        "denoise_h": 7,
+        "clahe_clip": 1.1655335867701766,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 85,
+        "bilateral_sigma_space": 50,
+        "unsharp_amount": 1.9113739921622663,
+        "unsharp_radius": 1.393267951155104
+      },
+      "objectives": [
+        102,
+        119,
+        162,
+        42,
+        509,
+        652,
+        526,
+        541
+      ],
+      "total_edits": 2653
+    },
+    {
+      "id": 60,
+      "genome": {
+        "denoise_h": 6,
+        "clahe_clip": 1.1674280630564442,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 84,
+        "bilateral_sigma_space": 79,
+        "unsharp_amount": 1.7415158074702923,
+        "unsharp_radius": 2.6040244706514253
+      },
+      "objectives": [
+        92,
+        120,
+        183,
+        30,
+        492,
+        575,
+        524,
+        681
+      ],
+      "total_edits": 2697
+    },
+    {
+      "id": 8,
+      "genome": {
+        "denoise_h": 13,
+        "clahe_clip": 1.0885971045260638,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 87,
+        "bilateral_sigma_space": 84,
+        "unsharp_amount": 1.6266996865200198,
+        "unsharp_radius": 2.6997629186726657
+      },
+      "objectives": [
+        110,
+        126,
+        169,
+        31,
+        335,
+        722,
+        643,
+        570
+      ],
+      "total_edits": 2706
+    },
+    {
+      "id": 50,
+      "genome": {
+        "denoise_h": 8,
+        "clahe_clip": 1.0770353210459995,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 71,
+        "bilateral_sigma_space": 88,
+        "unsharp_amount": 1.6470908392469084,
+        "unsharp_radius": 1.4727287133450582
+      },
+      "objectives": [
+        94,
+        94,
+        127,
+        47,
+        475,
+        633,
+        577,
+        670
+      ],
+      "total_edits": 2717
+    },
+    {
+      "id": 89,
+      "genome": {
+        "denoise_h": 7,
+        "clahe_clip": 1.05695420988369,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 82,
+        "bilateral_sigma_space": 73,
+        "unsharp_amount": 1.8566200436127254,
+        "unsharp_radius": 4.096960500983585
+      },
+      "objectives": [
+        94,
+        106,
+        156,
+        50,
+        464,
+        686,
+        485,
+        703
+      ],
+      "total_edits": 2744
+    },
+    {
+      "id": 94,
+      "genome": {
+        "denoise_h": 6,
+        "clahe_clip": 1.1622111976284677,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 88,
+        "bilateral_sigma_space": 73,
+        "unsharp_amount": 1.8559200777812823,
+        "unsharp_radius": 4.013280639598856
+      },
+      "objectives": [
+        134,
+        101,
+        187,
+        50,
+        502,
+        658,
+        508,
+        607
+      ],
+      "total_edits": 2747
+    },
+    {
+      "id": 47,
+      "genome": {
+        "denoise_h": 7,
+        "clahe_clip": 1.0786453607907223,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 89,
+        "bilateral_sigma_space": 85,
+        "unsharp_amount": 1.9055262717989736,
+        "unsharp_radius": 1.4897336862290436
+      },
+      "objectives": [
+        105,
+        121,
+        124,
+        40,
+        548,
+        669,
+        613,
+        542
+      ],
+      "total_edits": 2762
+    },
+    {
+      "id": 96,
+      "genome": {
+        "denoise_h": 15,
+        "clahe_clip": 1.911057352502809,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 87,
+        "bilateral_sigma_space": 85,
+        "unsharp_amount": 1.865600995942909,
+        "unsharp_radius": 2.6997629186726657
+      },
+      "objectives": [
+        133,
+        152,
+        176,
+        6,
+        413,
+        719,
+        664,
+        524
+      ],
+      "total_edits": 2787
+    },
+    {
+      "id": 3,
+      "genome": {
+        "denoise_h": 5,
+        "clahe_clip": 1.067198713542715,
+        "bilateral_d": 6,
+        "bilateral_sigma_color": 53,
+        "bilateral_sigma_space": 80,
+        "unsharp_amount": 1.930251476954923,
+        "unsharp_radius": 2.7333071712548853
+      },
+      "objectives": [
+        58,
+        66,
+        110,
+        14,
+        527,
+        661,
+        694,
+        665
+      ],
+      "total_edits": 2795
+    },
+    {
+      "id": 61,
+      "genome": {
+        "denoise_h": 5,
+        "clahe_clip": 1.167614704293242,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 88,
+        "bilateral_sigma_space": 50,
+        "unsharp_amount": 1.7417699967243598,
+        "unsharp_radius": 3.914711710237714
+      },
+      "objectives": [
+        120,
+        118,
+        195,
+        51,
+        442,
+        655,
+        558,
+        657
+      ],
+      "total_edits": 2796
+    },
+    {
+      "id": 39,
+      "genome": {
+        "denoise_h": 5,
+        "clahe_clip": 1.0613227094780204,
+        "bilateral_d": 6,
+        "bilateral_sigma_color": 53,
+        "bilateral_sigma_space": 80,
+        "unsharp_amount": 1.9279251186816224,
+        "unsharp_radius": 2.7403656728475707
+      },
+      "objectives": [
+        58,
+        59,
+        109,
+        14,
+        529,
+        737,
+        694,
+        608
+      ],
+      "total_edits": 2808
+    },
+    {
+      "id": 65,
+      "genome": {
+        "denoise_h": 6,
+        "clahe_clip": 1.0984772319448197,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 86,
+        "bilateral_sigma_space": 79,
+        "unsharp_amount": 1.6821272781316505,
+        "unsharp_radius": 1.8326003443216266
+      },
+      "objectives": [
+        93,
+        109,
+        132,
+        44,
+        496,
+        663,
+        678,
+        600
+      ],
+      "total_edits": 2815
+    },
+    {
+      "id": 79,
+      "genome": {
+        "denoise_h": 16,
+        "clahe_clip": 1.1486555462942647,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 55,
+        "bilateral_sigma_space": 88,
+        "unsharp_amount": 1.6421673786629447,
+        "unsharp_radius": 1.4070800037261042
+      },
+      "objectives": [
+        110,
+        127,
+        138,
+        17,
+        401,
+        755,
+        664,
+        603
+      ],
+      "total_edits": 2815
+    },
+    {
+      "id": 10,
+      "genome": {
+        "denoise_h": 5,
+        "clahe_clip": 1.0485250521786496,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 88,
+        "bilateral_sigma_space": 50,
+        "unsharp_amount": 1.8566200436127254,
+        "unsharp_radius": 3.914711710237714
+      },
+      "objectives": [
+        120,
+        131,
+        243,
+        54,
+        499,
+        619,
+        527,
+        623
+      ],
+      "total_edits": 2816
+    },
+    {
+      "id": 27,
+      "genome": {
+        "denoise_h": 5,
+        "clahe_clip": 1.0961504757202556,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 87,
+        "bilateral_sigma_space": 86,
+        "unsharp_amount": 1.9003500006849017,
+        "unsharp_radius": 3.8750520371701196
+      },
+      "objectives": [
+        149,
+        144,
+        185,
+        60,
+        521,
+        706,
+        499,
+        555
+      ],
+      "total_edits": 2819
+    },
+    {
+      "id": 68,
+      "genome": {
+        "denoise_h": 7,
+        "clahe_clip": 1.1768750556687997,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 86,
+        "bilateral_sigma_space": 50,
+        "unsharp_amount": 1.7409644905047803,
+        "unsharp_radius": 3.9790103914034494
+      },
+      "objectives": [
+        101,
+        115,
+        203,
+        84,
+        491,
+        685,
+        547,
+        609
+      ],
+      "total_edits": 2835
+    },
+    {
+      "id": 85,
+      "genome": {
+        "denoise_h": 13,
+        "clahe_clip": 1.1427357228375572,
+        "bilateral_d": 6,
+        "bilateral_sigma_color": 53,
+        "bilateral_sigma_space": 86,
+        "unsharp_amount": 1.8976678144629555,
+        "unsharp_radius": 4.041741245708304
+      },
+      "objectives": [
+        96,
+        82,
+        135,
+        28,
+        411,
+        829,
+        671,
+        586
+      ],
+      "total_edits": 2838
+    },
+    {
+      "id": 5,
+      "genome": {
+        "denoise_h": 7,
+        "clahe_clip": 1.1768750556687997,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 86,
+        "bilateral_sigma_space": 50,
+        "unsharp_amount": 1.7387607973301453,
+        "unsharp_radius": 3.9790103914034494
+      },
+      "objectives": [
+        100,
+        133,
+        198,
+        86,
+        490,
+        684,
+        553,
+        596
+      ],
+      "total_edits": 2840
+    },
+    {
+      "id": 80,
+      "genome": {
+        "denoise_h": 7,
+        "clahe_clip": 1.0965359084552213,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 87,
+        "bilateral_sigma_space": 86,
+        "unsharp_amount": 1.9286174443220685,
+        "unsharp_radius": 3.8750520371701196
+      },
+      "objectives": [
+        104,
+        149,
+        145,
+        72,
+        539,
+        657,
+        564,
+        610
+      ],
+      "total_edits": 2840
+    },
+    {
+      "id": 78,
+      "genome": {
+        "denoise_h": 7,
+        "clahe_clip": 1.1841961232848508,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 85,
+        "bilateral_sigma_space": 50,
+        "unsharp_amount": 1.7421269858754915,
+        "unsharp_radius": 4.214810416637723
+      },
+      "objectives": [
+        103,
+        135,
+        158,
+        70,
+        459,
+        677,
+        607,
+        634
+      ],
+      "total_edits": 2843
+    },
+    {
+      "id": 83,
+      "genome": {
+        "denoise_h": 7,
+        "clahe_clip": 1.1669408670127919,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 85,
+        "bilateral_sigma_space": 51,
+        "unsharp_amount": 1.6381807402092223,
+        "unsharp_radius": 4.1018827076798825
+      },
+      "objectives": [
+        102,
+        110,
+        204,
+        77,
+        458,
+        684,
+        587,
+        626
+      ],
+      "total_edits": 2848
+    },
+    {
+      "id": 15,
+      "genome": {
+        "denoise_h": 5,
+        "clahe_clip": 1.0611171364573837,
+        "bilateral_d": 7,
+        "bilateral_sigma_color": 51,
+        "bilateral_sigma_space": 85,
+        "unsharp_amount": 1.858067197787388,
+        "unsharp_radius": 2.614223834567655
+      },
+      "objectives": [
+        86,
+        46,
+        98,
+        36,
+        526,
+        781,
+        673,
+        604
+      ],
+      "total_edits": 2850
+    },
+    {
+      "id": 4,
+      "genome": {
+        "denoise_h": 5,
+        "clahe_clip": 1.0647586982433601,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 89,
+        "bilateral_sigma_space": 85,
+        "unsharp_amount": 1.9039115000996596,
+        "unsharp_radius": 2.651636593488262
+      },
+      "objectives": [
+        94,
+        168,
+        159,
+        13,
+        505,
+        538,
+        683,
+        709
+      ],
+      "total_edits": 2869
+    },
+    {
+      "id": 93,
+      "genome": {
+        "denoise_h": 5,
+        "clahe_clip": 1.064503481189388,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 89,
+        "bilateral_sigma_space": 85,
+        "unsharp_amount": 1.9039115000996596,
+        "unsharp_radius": 2.651636593488262
+      },
+      "objectives": [
+        94,
+        168,
+        159,
+        13,
+        505,
+        538,
+        683,
+        709
+      ],
+      "total_edits": 2869
+    },
+    {
+      "id": 34,
+      "genome": {
+        "denoise_h": 7,
+        "clahe_clip": 1.1669408670127919,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 85,
+        "bilateral_sigma_space": 50,
+        "unsharp_amount": 1.9113739921622663,
+        "unsharp_radius": 4.022969880369634
+      },
+      "objectives": [
+        111,
+        105,
+        202,
+        80,
+        505,
+        683,
+        555,
+        643
+      ],
+      "total_edits": 2884
+    },
+    {
+      "id": 42,
+      "genome": {
+        "denoise_h": 5,
+        "clahe_clip": 1.15869748761925,
+        "bilateral_d": 6,
+        "bilateral_sigma_color": 89,
+        "bilateral_sigma_space": 85,
+        "unsharp_amount": 1.6558203774673945,
+        "unsharp_radius": 3.916917866974367
+      },
+      "objectives": [
+        119,
+        114,
+        193,
+        54,
+        455,
+        804,
+        570,
+        620
+      ],
+      "total_edits": 2929
+    },
+    {
+      "id": 20,
+      "genome": {
+        "denoise_h": 5,
+        "clahe_clip": 1.1624005037186702,
+        "bilateral_d": 6,
+        "bilateral_sigma_color": 88,
+        "bilateral_sigma_space": 86,
+        "unsharp_amount": 1.8608438009010808,
+        "unsharp_radius": 3.914884528903741
+      },
+      "objectives": [
+        152,
+        231,
+        176,
+        20,
+        503,
+        749,
+        620,
+        487
+      ],
+      "total_edits": 2938
+    },
+    {
+      "id": 99,
+      "genome": {
+        "denoise_h": 17,
+        "clahe_clip": 1.0864061601457804,
+        "bilateral_d": 5,
+        "bilateral_sigma_color": 92,
+        "bilateral_sigma_space": 84,
+        "unsharp_amount": 1.6583625152862382,
+        "unsharp_radius": 3.9107139868402556
+      },
+      "objectives": [
+        114,
+        160,
+        212,
+        48,
+        409,
+        867,
+        669,
+        512
+      ],
+      "total_edits": 2991
+    }
+  ]
+}

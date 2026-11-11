@@ -1,0 +1,192 @@
+{
+  "Pristine Baseline": {
+    "222AAA-44444444442025_page-0001.jpg": {
+      "char_distance": 0,
+      "char_total": 1876,
+      "char_error_rate": 0.0,
+      "word_distance": 0,
+      "word_total": 303,
+      "word_error_rate": 0.0,
+      "accuracy": 1.0
+    },
+    "333BBB-44444444442025_page1.png": {
+      "char_distance": 0,
+      "char_total": 1809,
+      "char_error_rate": 0.0,
+      "word_distance": 0,
+      "word_total": 265,
+      "word_error_rate": 0.0,
+      "accuracy": 1.0
+    },
+    "333ccc-6666666662025_page1.png": {
+      "char_distance": 0,
+      "char_total": 1140,
+      "char_error_rate": 0.0,
+      "word_distance": 0,
+      "word_total": 160,
+      "word_error_rate": 0.0,
+      "accuracy": 1.0
+    },
+    "555CCC-66666662025_page1.png": {
+      "char_distance": 0,
+      "char_total": 1794,
+      "char_error_rate": 0.0,
+      "word_distance": 0,
+      "word_total": 281,
+      "word_error_rate": 0.0,
+      "accuracy": 1.0
+    }
+  },
+  "Q1_Poor Degraded": {
+    "222AAA-44444444442025_page-0001.jpg": {
+      "char_distance": 170,
+      "char_total": 1876,
+      "char_error_rate": 0.0906183368869936,
+      "word_distance": 170,
+      "word_total": 303,
+      "word_error_rate": 0.5610561056105611,
+      "accuracy": 0.9093816631130064
+    },
+    "333BBB-44444444442025_page1.png": {
+      "char_distance": 109,
+      "char_total": 1809,
+      "char_error_rate": 0.06025428413488115,
+      "word_distance": 109,
+      "word_total": 265,
+      "word_error_rate": 0.41132075471698115,
+      "accuracy": 0.9397457158651188
+    },
+    "333ccc-6666666662025_page1.png": {
+      "char_distance": 148,
+      "char_total": 1140,
+      "char_error_rate": 0.12982456140350876,
+      "word_distance": 148,
+      "word_total": 160,
+      "word_error_rate": 0.925,
+      "accuracy": 0.8701754385964913
+    },
+    "555CCC-66666662025_page1.png": {
+      "char_distance": 34,
+      "char_total": 1794,
+      "char_error_rate": 0.0189520624303233,
+      "word_distance": 34,
+      "word_total": 281,
+      "word_error_rate": 0.12099644128113879,
+      "accuracy": 0.9810479375696767
+    }
+  },
+  "Q2_MediumPoor Degraded": {
+    "222AAA-44444444442025_page-0001.jpg": {
+      "char_distance": 807,
+      "char_total": 1876,
+      "char_error_rate": 0.43017057569296374,
+      "word_distance": 807,
+      "word_total": 303,
+      "word_error_rate": 2.6633663366336635,
+      "accuracy": 0.5698294243070363
+    },
+    "333BBB-44444444442025_page1.png": {
+      "char_distance": 738,
+      "char_total": 1809,
+      "char_error_rate": 0.4079601990049751,
+      "word_distance": 738,
+      "word_total": 265,
+      "word_error_rate": 2.7849056603773583,
+      "accuracy": 0.592039800995025
+    },
+    "333ccc-6666666662025_page1.png": {
+      "char_distance": 829,
+      "char_total": 1140,
+      "char_error_rate": 0.7271929824561404,
+      "word_distance": 829,
+      "word_total": 160,
+      "word_error_rate": 5.18125,
+      "accuracy": 0.2728070175438596
+    },
+    "555CCC-66666662025_page1.png": {
+      "char_distance": 1662,
+      "char_total": 1794,
+      "char_error_rate": 0.9264214046822743,
+      "word_distance": 1662,
+      "word_total": 281,
+      "word_error_rate": 5.914590747330961,
+      "accuracy": 0.0735785953177257
+    }
+  },
+  "Q2 Fixed Enhancement": {
+    "222AAA-44444444442025_page-0001.jpg": {
+      "char_distance": 323,
+      "char_total": 1876,
+      "char_error_rate": 0.17217484008528786,
+      "word_distance": 323,
+      "word_total": 303,
+      "word_error_rate": 1.066006600660066,
+      "accuracy": 0.8278251599147122
+    },
+    "333BBB-44444444442025_page1.png": {
+      "char_distance": 431,
+      "char_total": 1809,
+      "char_error_rate": 0.238253178551686,
+      "word_distance": 431,
+      "word_total": 265,
+      "word_error_rate": 1.6264150943396227,
+      "accuracy": 0.761746821448314
+    },
+    "333ccc-6666666662025_page1.png": {
+      "char_distance": 308,
+      "char_total": 1140,
+      "char_error_rate": 0.27017543859649124,
+      "word_distance": 308,
+      "word_total": 160,
+      "word_error_rate": 1.925,
+      "accuracy": 0.7298245614035088
+    },
+    "555CCC-66666662025_page1.png": {
+      "char_distance": 157,
+      "char_total": 1794,
+      "char_error_rate": 0.0875139353400223,
+      "word_distance": 157,
+      "word_total": 281,
+      "word_error_rate": 0.5587188612099644,
+      "accuracy": 0.9124860646599777
+    }
+  },
+  "Q2 Adaptive Enhancement": {
+    "222AAA-44444444442025_page-0001.jpg": {
+      "char_distance": 750,
+      "char_total": 1876,
+      "char_error_rate": 0.3997867803837953,
+      "word_distance": 750,
+      "word_total": 303,
+      "word_error_rate": 2.4752475247524752,
+      "accuracy": 0.6002132196162047
+    },
+    "333BBB-44444444442025_page1.png": {
+      "char_distance": 1013,
+      "char_total": 1809,
+      "char_error_rate": 0.5599778883360973,
+      "word_distance": 1013,
+      "word_total": 265,
+      "word_error_rate": 3.822641509433962,
+      "accuracy": 0.4400221116639027
+    },
+    "333ccc-6666666662025_page1.png": {
+      "char_distance": 805,
+      "char_total": 1140,
+      "char_error_rate": 0.706140350877193,
+      "word_distance": 805,
+      "word_total": 160,
+      "word_error_rate": 5.03125,
+      "accuracy": 0.29385964912280704
+    },
+    "555CCC-66666662025_page1.png": {
+      "char_distance": 613,
+      "char_total": 1794,
+      "char_error_rate": 0.34169453734671124,
+      "word_distance": 613,
+      "word_total": 281,
+      "word_error_rate": 2.1814946619217084,
+      "accuracy": 0.6583054626532887
+    }
+  }
+}

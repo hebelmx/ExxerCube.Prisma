@@ -1,0 +1,348 @@
+name: Quality Gates
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  quality-gates:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # O7: MinVer (git-tag-driven SemVer) needs full history + tags to compute a real version;
+        # actions/checkout's default shallow clone (depth 1, no tags) leaves MinVer blind and it
+        # falls back to its 0.0.0-alpha default. Needed by every job that runs dotnet build/restore
+        # (MinVer) or docker build (--build-arg APP_VERSION=$(git describe ...) below).
+        fetch-depth: 0
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '10.0.x'
+    
+    - name: Make scripts executable
+      run: |
+        chmod +x scripts/*.sh
+    
+    - name: Detect TODO comments
+      run: |
+        ./scripts/detect-todo.sh
+    
+    - name: Detect placeholder implementations
+      run: |
+        ./scripts/detect-placeholders.sh
+    
+    - name: Validate integration tests
+      run: |
+        ./scripts/validate-integration-tests.sh
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --no-restore --verbosity normal
+    
+    - name: Run tests
+      # xUnit v3 runs on Microsoft.Testing.Platform (MTP) here, not VSTest (see global.json's
+      # "test": { "runner": "Microsoft.Testing.Platform" }), so trait filtering uses MTP's
+      # own simple-filter switches passed after `--` to the test host, not VSTest's
+      # `--filter "Category=..."` syntax. LiveOcr-tagged tests construct the real native
+      # Tesseract engine (TesseractHeaderProductOcrEngine) and must be excluded on runners
+      # without Tesseract installed — they are designed to fail LOUD, not skip, when run
+      # without it. Tag: [Trait("Category","LiveOcr")].
+      run: dotnet test --no-build --verbosity normal -- --filter-not-trait "Category=LiveOcr"
+
+    - name: Check test coverage
+      run: |
+        dotnet test --collect:"XPlat Code Coverage" --verbosity normal -- --filter-not-trait "Category=LiveOcr"
+        # Coverage threshold check will be added here
+    
+    - name: Validate XML documentation
+      run: |
+        # Check that all public APIs have XML documentation
+        dotnet build --verbosity normal
+        # Additional documentation validation can be added here
+
+  mutation-test:
+    runs-on: ubuntu-latest
+    needs: quality-gates
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # O7: MinVer (git-tag-driven SemVer) needs full history + tags to compute a real version;
+        # actions/checkout's default shallow clone (depth 1, no tags) leaves MinVer blind and it
+        # falls back to its 0.0.0-alpha default. Needed by every job that runs dotnet build/restore
+        # (MinVer) or docker build (--build-arg APP_VERSION=$(git describe ...) below).
+        fetch-depth: 0
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '10.0.x'
+    
+    - name: Install Stryker.NET
+      run: dotnet tool install -g StrykerMutator.Core
+    
+    - name: Run mutation tests
+      run: |
+        cd Prisma/Code/Src/CSharp
+        stryker run --config-file-path stryker-config.json
+
+  e2e-test:
+    runs-on: ubuntu-latest
+    needs: quality-gates
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # O7: MinVer (git-tag-driven SemVer) needs full history + tags to compute a real version;
+        # actions/checkout's default shallow clone (depth 1, no tags) leaves MinVer blind and it
+        # falls back to its 0.0.0-alpha default. Needed by every job that runs dotnet build/restore
+        # (MinVer) or docker build (--build-arg APP_VERSION=$(git describe ...) below).
+        fetch-depth: 0
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '10.0.x'
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install Python dependencies
+      run: |
+        cd Prisma/Code/Src/CSharp/Python
+        pip install -r requirements.txt
+    
+    - name: Install Playwright
+      run: |
+        dotnet tool install -g Microsoft.Playwright.CLI
+        playwright install
+    
+    - name: Start application
+      run: |
+        cd Prisma/Code/Src/CSharp/UI/ExxerCube.Prisma.Web.UI
+        dotnet run &
+        sleep 30
+    
+    - name: Run E2E tests
+      # Same MTP-vs-VSTest filter-syntax class of bug as the main "Run tests" step above:
+      # the legacy VSTest `--filter "Category=E2E"` form is not honored under
+      # Microsoft.Testing.Platform. MTP's simple-filter switches go after `--`.
+      run: |
+        cd Prisma/Code/Src/CSharp/Tests
+        dotnet test --verbosity normal -- --filter-trait "Category=E2E"
+
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: quality-gates
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # O7: MinVer (git-tag-driven SemVer) needs full history + tags to compute a real version;
+        # actions/checkout's default shallow clone (depth 1, no tags) leaves MinVer blind and it
+        # falls back to its 0.0.0-alpha default. Needed by every job that runs dotnet build/restore
+        # (MinVer) or docker build (--build-arg APP_VERSION=$(git describe ...) below).
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Run security scan
+      run: |
+        # Add security scanning tools here
+        echo "Security scan completed"
+        # This is a placeholder for actual security scanning implementation
+
+  docker-build:
+    name: Docker Build (all four production hosts)
+    runs-on: ubuntu-latest
+    needs: quality-gates
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # O7: MinVer (git-tag-driven SemVer) needs full history + tags to compute a real version;
+        # actions/checkout's default shallow clone (depth 1, no tags) leaves MinVer blind and it
+        # falls back to its 0.0.0-alpha default. Needed by every job that runs dotnet build/restore
+        # (MinVer) or docker build (--build-arg APP_VERSION=$(git describe ...) below).
+        fetch-depth: 0
+
+    # Build context is the repo root so all four Dockerfiles can COPY Prisma/Code/Src/CSharp/
+    # and the root nuget.config in a single docker build invocation per image.
+
+    # O7 FIX 1: MinVer 7.0.0 does NOT apply MinVerTagPrefix to MinVerVersionOverride, so a raw
+    # `git describe` (which emits the repo's "v"-prefixed tags, e.g. v1.4.0-rc.1-549-g<sha>) fails
+    # override parsing with MINVER1005 (exit 2), killing the docker build. Strip the tag prefix,
+    # and fall back to a valid-SemVer synthetic version when describe yields a bare hex SHA (no
+    # tag reachable) rather than a `MAJOR.MINOR.PATCH...` string.
+    - name: Build Orion Worker image
+      run: |
+        APP_VERSION=$(git describe --tags --always)
+        APP_VERSION=${APP_VERSION#v}
+        case "$APP_VERSION" in *.*) ;; *) APP_VERSION="0.0.0-sha.$APP_VERSION";; esac
+        docker build \
+          --build-arg APP_VERSION="$APP_VERSION" \
+          -f "Prisma/Code/Src/CSharp/04 Services/Orion/Prisma.Orion.Worker/Dockerfile" \
+          -t prisma-orion:${{ github.sha }} \
+          .
+      working-directory: ${{ github.workspace }}
+
+    - name: Build Athena Worker image
+      run: |
+        APP_VERSION=$(git describe --tags --always)
+        APP_VERSION=${APP_VERSION#v}
+        case "$APP_VERSION" in *.*) ;; *) APP_VERSION="0.0.0-sha.$APP_VERSION";; esac
+        docker build \
+          --build-arg APP_VERSION="$APP_VERSION" \
+          -f "Prisma/Code/Src/CSharp/04 Services/Athena/Prisma.Athena.Worker/Dockerfile" \
+          -t prisma-athena:${{ github.sha }} \
+          .
+      working-directory: ${{ github.workspace }}
+
+    # O1 (TRACKER-O1-athena-container-ocr.md): prove the built image can actually run OCR. The
+    # --ocr-smoke mode renders a marker via Emgu.CV (libcvextern + noble system deps) and OCRs it
+    # back via the production TesseractOcrExecutor (apt tesseract + link shims + spa tessdata) —
+    # guarding against base-image rebases, apt package renames, and soname drift defeating the shims.
+    - name: Athena in-container OCR smoke (--ocr-smoke)
+      run: |
+        docker run --rm --entrypoint dotnet \
+          prisma-athena:${{ github.sha }} \
+          ExxerCube.Prisma.Athena.Worker.dll --ocr-smoke
+
+    - name: Build Reconciliator Worker image
+      run: |
+        APP_VERSION=$(git describe --tags --always)
+        APP_VERSION=${APP_VERSION#v}
+        case "$APP_VERSION" in *.*) ;; *) APP_VERSION="0.0.0-sha.$APP_VERSION";; esac
+        docker build \
+          --build-arg APP_VERSION="$APP_VERSION" \
+          -f "Prisma/Code/Src/CSharp/04 Services/Reconciliator/Prisma.Reconciliator.Worker/Dockerfile" \
+          -t prisma-reconciliator:${{ github.sha }} \
+          .
+      working-directory: ${{ github.workspace }}
+
+    - name: Build Web UI image
+      run: |
+        APP_VERSION=$(git describe --tags --always)
+        APP_VERSION=${APP_VERSION#v}
+        case "$APP_VERSION" in *.*) ;; *) APP_VERSION="0.0.0-sha.$APP_VERSION";; esac
+        docker build \
+          --build-arg APP_VERSION="$APP_VERSION" \
+          -f "Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Dockerfile" \
+          -t prisma-webui:${{ github.sha }} \
+          .
+      working-directory: ${{ github.workspace }}
+
+    # O1 follow-up (TRACKER-webui-container-ocr.md): prove the built Web.UI image can actually run
+    # OCR, mirroring the Athena in-container OCR smoke above. The --ocr-smoke mode renders a marker
+    # via Emgu.CV (libcvextern + noble system deps) and OCRs it back via the production
+    # TesseractOcrExecutor (apt tesseract + link shims + spa tessdata) — guarding against base-image
+    # rebases, apt package renames, and soname drift defeating the shims.
+    - name: Web UI in-container OCR smoke (--ocr-smoke)
+      run: |
+        docker run --rm --entrypoint dotnet \
+          prisma-webui:${{ github.sha }} \
+          ExxerCube.Prisma.Web.UI.dll --ocr-smoke
+
+  publish:
+    # PRISMA-E2-S8 (closes D24): build → scan → tag (git SHA + latest) → push the four production
+    # host images to a container registry. The multi-stage Dockerfiles run `dotnet publish` internally
+    # (see each Dockerfile's build stage), so building via them IS the publish step. Runs ONLY on a
+    # push to the release branch — never on PRs — to avoid polluting the registry.
+    name: Publish Docker images (build, scan, push)
+    runs-on: ubuntu-latest
+    needs: [ quality-gates, docker-build ]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    permissions:
+      contents: read
+      packages: write   # required to push to ghcr.io using the built-in GITHUB_TOKEN
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: prisma-orion
+            dockerfile: "Prisma/Code/Src/CSharp/04 Services/Orion/Prisma.Orion.Worker/Dockerfile"
+          - name: prisma-athena
+            dockerfile: "Prisma/Code/Src/CSharp/04 Services/Athena/Prisma.Athena.Worker/Dockerfile"
+          - name: prisma-reconciliator
+            dockerfile: "Prisma/Code/Src/CSharp/04 Services/Reconciliator/Prisma.Reconciliator.Worker/Dockerfile"
+          - name: prisma-webui
+            dockerfile: "Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Dockerfile"
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # O7: MinVer (git-tag-driven SemVer) needs full history + tags to compute a real version;
+        # actions/checkout's default shallow clone (depth 1, no tags) leaves MinVer blind and it
+        # falls back to its 0.0.0-alpha default. Needed by every job that runs dotnet build/restore
+        # (MinVer) or docker build (--build-arg APP_VERSION=$(git describe ...) below).
+        fetch-depth: 0
+
+    # Resolve the target registry + image tag. Prefer a provisioned REGISTRY_URL secret (e.g. a
+    # private ACR/ECR/Harbor); default to GitHub Container Registry namespaced to the repo owner.
+    # No registry credentials are ever hardcoded in this file.
+    - name: Resolve registry and tag
+      id: reg
+      run: |
+        if [ -n "${{ secrets.REGISTRY_URL }}" ]; then
+          echo "registry=${{ secrets.REGISTRY_URL }}" >> "$GITHUB_OUTPUT"
+        else
+          echo "registry=ghcr.io/${{ github.repository_owner }}" >> "$GITHUB_OUTPUT"
+        fi
+        echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+    # Authenticate. Use explicit REGISTRY_USERNAME/REGISTRY_PASSWORD secrets when provided; otherwise
+    # fall back to the built-in GITHUB_TOKEN for ghcr.io.
+    - name: Log in to container registry
+      run: |
+        if [ -n "${{ secrets.REGISTRY_USERNAME }}" ] && [ -n "${{ secrets.REGISTRY_PASSWORD }}" ]; then
+          host="$(echo '${{ steps.reg.outputs.registry }}' | cut -d/ -f1)"
+          echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login "$host" -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
+        else
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+        fi
+
+    # O7 FIX 1: see the docker-build job's identical comment — MinVer 7.0.0 rejects a raw
+    # "v"-prefixed `git describe` as MinVerVersionOverride (MINVER1005), and a bare hex SHA
+    # (no reachable tag) is not valid SemVer either.
+    - name: Build image (${{ matrix.name }})
+      run: |
+        APP_VERSION=$(git describe --tags --always)
+        APP_VERSION=${APP_VERSION#v}
+        case "$APP_VERSION" in *.*) ;; *) APP_VERSION="0.0.0-sha.$APP_VERSION";; esac
+        docker build \
+          --build-arg APP_VERSION="$APP_VERSION" \
+          -f "${{ matrix.dockerfile }}" \
+          -t "${{ steps.reg.outputs.registry }}/${{ matrix.name }}:${{ steps.reg.outputs.sha }}" \
+          -t "${{ steps.reg.outputs.registry }}/${{ matrix.name }}:latest" \
+          .
+      working-directory: ${{ github.workspace }}
+
+    # Image-layer CVE scan. Fails the publish if a CRITICAL (fixed) vulnerability is found in the
+    # built image so a vulnerable artifact never reaches the registry.
+    - name: Scan image for CRITICAL CVEs (${{ matrix.name }})
+      uses: aquasecurity/trivy-action@0.24.0
+      with:
+        image-ref: "${{ steps.reg.outputs.registry }}/${{ matrix.name }}:${{ steps.reg.outputs.sha }}"
+        format: table
+        severity: CRITICAL
+        exit-code: '1'
+        ignore-unfixed: true
+
+    - name: Push image (${{ matrix.name }})
+      run: |
+        docker push "${{ steps.reg.outputs.registry }}/${{ matrix.name }}:${{ steps.reg.outputs.sha }}"
+        docker push "${{ steps.reg.outputs.registry }}/${{ matrix.name }}:latest"

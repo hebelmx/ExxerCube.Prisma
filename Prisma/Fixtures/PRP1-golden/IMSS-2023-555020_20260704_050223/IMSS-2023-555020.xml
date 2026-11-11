@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>IMSS/2023/555020</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>IMSS/2023/555020</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Oficina para Cobros 8 San Ángel</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>IMSS/2023/555020</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>H/AS2-9295-655574-FGR</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>4</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>José Manuél Merino Núñez</NombreSolicitante>
+  <Referencia>REF-4727</Referencia>
+  <Referencia1>REF1-6741</Referencia1>
+  <Referencia2>REF2-3899</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Timoteo Peña Marín</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Detallar operaciones superiores a $100,000.00 MN
+- Indicar titulares y co-titulares de las cuentas
+- Incluir números de cuenta, saldos y movimientos
+- Proporcionar información de todas las cuentas bancarias
+- Especificar fechas de apertura y cierre de cuentas</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Timoteo Peña Marín</Nombre>
+    <Rfc>PEMT711013HLY</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Circuito Bosnia y Herzegovina No. 8878, Col. Vieja Dominicana, Municipio San Liliana los bajos, Coahuila de Zaragoza, C.P. 51580</Domicilio>
+    <Complementarios>Tel: 1-059-593-5593, Email: daniel19@example.net</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

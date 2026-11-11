@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Expediente xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_NumeroOficio>999/BBB/-0000000000/2025</Cnbv_NumeroOficio>
+  <Cnbv_NumeroExpediente>X/XX1-0000-000000-XXX</Cnbv_NumeroExpediente>
+  <Cnbv_SolicitudSiara>TEST/2025/000001</Cnbv_SolicitudSiara>
+  <Cnbv_Folio>0001</Cnbv_Folio>
+  <Cnbv_OficioYear>2025</Cnbv_OficioYear>
+  <!-- Missing AreaClave/AreaDescripcion on purpose -->
+  <Cnbv_FechaPublicacion>2025-06-11</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>3</Cnbv_DiasPlazo>
+  <TieneAseguramiento>true</TieneAseguramiento>
+  <SolicitudPartes>
+    <ParteId>1</ParteId>
+    <Caracter>Actor</Caracter>
+    <Persona>Fisica</Persona>
+    <Nombre>JUAN SIN SUBDIVISION</Nombre>
+    <Rfc>BBB020202BBB</Rfc>
+  </SolicitudPartes>
+</Expediente>

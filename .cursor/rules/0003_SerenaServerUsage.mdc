@@ -1,0 +1,177 @@
+# Serena Server Usage Standards
+
+## Meta
+**Title**: Serena Server Usage Standards
+**Description**: Always use Serena server for all operations, commands, and file operations
+**Applies-to**: All operations in ExxerAI project
+
+## Requirements
+
+<requirement priority="critical">
+**Description**: Always use Serena server for all operations and commands
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Use Serena server for all operations
+// Use mcp_serena_execute_shell_command for shell commands
+// Use mcp_serena_read_file for file reading
+// Use mcp_serena_create_text_file for file creation
+// Use mcp_serena_replace_regex for text replacement
+// Use mcp_serena_list_dir for directory listing
+// Use mcp_serena_find_file for file searching
+
+// Example: Reading a file with Serena
+var fileContent = await mcp_serena_read_file("path/to/file.cs");
+
+// Example: Creating a file with Serena
+await mcp_serena_create_text_file("path/to/newfile.cs", content);
+
+// Example: Executing shell command with Serena
+var result = await mcp_serena_execute_shell_command("dotnet build");
+
+// Example: Listing directory with Serena
+var files = await mcp_serena_list_dir(".", recursive: true);
+
+// Example: Finding files with Serena
+var foundFiles = await mcp_serena_find_file("*.cs", ".");
+
+// Example: Replacing text with Serena
+await mcp_serena_replace_regex("file.cs", @"old_pattern", "new_pattern");
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Using other tools instead of Serena server
+// Don't use run_terminal_cmd directly
+// Don't use read_file directly
+// Don't use edit_file directly
+// Don't use list_dir directly
+
+// Example: Using run_terminal_cmd instead of Serena
+var result = run_terminal_cmd("dotnet build"); // Wrong
+
+// Example: Using read_file instead of Serena
+var content = read_file("file.cs"); // Wrong
+
+// Example: Using edit_file instead of Serena
+edit_file("file.cs", content); // Wrong
+
+// Example: Using list_dir instead of Serena
+list_dir("."); // Wrong
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Use Serena server for all file operations and code analysis
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Use Serena for all file and code operations
+
+// File operations
+await mcp_serena_read_file("path/to/file.cs");
+await mcp_serena_create_text_file("path/to/file.cs", content);
+await mcp_serena_replace_regex("file.cs", pattern, replacement);
+
+// Directory operations
+await mcp_serena_list_dir(".", recursive: true);
+await mcp_serena_find_file("*.cs", ".");
+
+// Code analysis
+await mcp_serena_get_symbols_overview("path/to/file.cs");
+await mcp_serena_find_symbol("methodName", "path/to/file.cs");
+await mcp_serena_find_referencing_symbols("methodName", "path/to/file.cs");
+
+// Code modifications
+await mcp_serena_replace_symbol_body("methodName", "path/to/file.cs", newBody);
+await mcp_serena_insert_after_symbol("methodName", "path/to/file.cs", content);
+await mcp_serena_insert_before_symbol("methodName", "path/to/file.cs", content);
+
+// Shell commands
+await mcp_serena_execute_shell_command("dotnet build", cwd: "project/path");
+await mcp_serena_execute_shell_command("dotnet test", cwd: "test/path");
+await mcp_serena_execute_shell_command("git status", cwd: ".");
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Using non-Serena tools for operations
+
+// File operations
+read_file("file.cs"); // Wrong
+edit_file("file.cs", content); // Wrong
+search_replace("file.cs", old, new); // Wrong
+
+// Directory operations
+list_dir("."); // Wrong
+file_search("*.cs"); // Wrong
+
+// Code analysis
+codebase_search("method"); // Wrong
+grep_search("pattern"); // Wrong
+
+// Shell commands
+run_terminal_cmd("dotnet build"); // Wrong
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Use Serena server for all project operations and analysis
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Use Serena for project operations
+
+// Project analysis
+await mcp_serena_get_symbols_overview(".");
+await mcp_serena_find_symbol("ClassName", "path/to/file.cs");
+await mcp_serena_find_referencing_symbols("methodName", "path/to/file.cs");
+
+// File operations
+await mcp_serena_read_file("path/to/file.cs");
+await mcp_serena_create_text_file("path/to/newfile.cs", content);
+await mcp_serena_replace_regex("file.cs", @"old_pattern", "new_pattern");
+
+// Directory operations
+await mcp_serena_list_dir(".", recursive: true);
+await mcp_serena_find_file("*.cs", ".");
+
+// Shell commands with proper working directory
+await mcp_serena_execute_shell_command("dotnet build", cwd: "project/path");
+await mcp_serena_execute_shell_command("dotnet test", cwd: "test/path");
+await mcp_serena_execute_shell_command("git status", cwd: ".");
+
+// Code modifications
+await mcp_serena_replace_symbol_body("methodName", "path/to/file.cs", newBody);
+await mcp_serena_insert_after_symbol("methodName", "path/to/file.cs", content);
+await mcp_serena_insert_before_symbol("methodName", "path/to/file.cs", content);
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Using non-Serena tools for project operations
+
+// Project analysis
+codebase_search("method"); // Wrong
+grep_search("pattern"); // Wrong
+
+// File operations
+read_file("file.cs"); // Wrong
+edit_file("file.cs", content); // Wrong
+search_replace("file.cs", old, new); // Wrong
+
+// Directory operations
+list_dir("."); // Wrong
+file_search("*.cs"); // Wrong
+
+// Shell commands
+run_terminal_cmd("dotnet build"); // Wrong
+
+// Code modifications
+edit_file("file.cs", content); // Wrong
+search_replace("file.cs", old, new); // Wrong
+```
+</incorrect-example>
+</requirement>

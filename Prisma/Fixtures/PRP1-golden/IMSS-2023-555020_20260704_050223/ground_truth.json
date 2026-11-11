@@ -1,0 +1,50 @@
+{
+  "docId": "IMSS-2023-555020_20260704_050223",
+  "seed": 1000,
+  "chaosLevel": "none",
+  "requirementType": "judicial",
+  "folioSiara": "IMSS/2023/555020",
+  "numeroOficio": "IMSS/2023/555020",
+  "numeroExpediente": "H/AS2-9295-655574-FGR",
+  "autoridadNombre": "Instituto Mexicano del Seguro Social",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "José Manuél Merino Núñez",
+  "personaNombre": "Timoteo Peña Marín",
+  "personaRfc": "PEMT711013HLY",
+  "solicitudPartes": [
+    {
+      "nombre": "Timoteo Peña Marín",
+      "caracter": "Investigado"
+    }
+  ],
+  "monto": "$5,549,063.51",
+  "fechaDiligencia": "04/07/2026",
+  "juzgadoNombre": "Instituto Mexicano del Seguro Social",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": true,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>SHCP/2023/631352</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>SHCP/2023/631352</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Dirección General de Análisis Económico</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>SHCP/2023/631352</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>A/JU1-6129-778206-FGR</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>10</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>Abril Bravo Oquendo</NombreSolicitante>
+  <Referencia>REF-2935</Referencia>
+  <Referencia1>REF1-2340</Referencia1>
+  <Referencia2>REF2-4266</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Diana Pelayo Valencia</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Especificar fechas de apertura y cierre de cuentas
+- Indicar titulares y co-titulares de las cuentas
+- Proporcionar información de todas las cuentas bancarias
+- Detallar operaciones superiores a $100,000.00 MN
+- Incluir números de cuenta, saldos y movimientos</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Diana Pelayo Valencia</Nombre>
+    <Rfc>PEVD821209Q95</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Calzada Tlaxcala No. 6365, Col. Vieja Burundi, Municipio Nueva Santa Lucía, Tabasco, C.P. 47468</Domicilio>
+    <Complementarios>Tel: (071)135-6466, Email: gamboagustavo@example.com</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

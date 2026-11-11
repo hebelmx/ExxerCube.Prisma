@@ -1,0 +1,995 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ExxerCube.Prisma.Infrastructure.BrowserAutomation</name>
+    </assembly>
+    <members>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.BrowserAutomationOptions">
+            <summary>
+            Configuration options for browser automation.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.BrowserAutomationOptions.Headless">
+            <summary>
+            Gets or sets whether to run browser in headless mode.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.BrowserAutomationOptions.BrowserLaunchTimeoutMs">
+            <summary>
+            Gets or sets the browser launch timeout in milliseconds.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.BrowserAutomationOptions.PageTimeoutMs">
+            <summary>
+            Gets or sets the page navigation timeout in milliseconds.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.BrowserAutomationOptions.IgnoreHttpsErrors">
+            <summary>
+            Gets or sets whether to ignore TLS certificate errors. Default <c>false</c> (production SIARA has a
+            valid certificate). Set <c>true</c> only against a dev/sim host with a self-signed certificate — the
+            browser may trust a locally-installed dev cert via the OS store, but Playwright's API-request stack
+            (used to fetch document bytes) validates TLS independently and would otherwise reject it.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.BrowserAutomationOptions.DefaultWebsiteUrl">
+            <summary>
+            Gets or sets the default regulatory website URL to navigate to.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.BrowserAutomationOptions.FilePatterns">
+            <summary>
+            Gets or sets the list of file patterns to match for downloadable files (e.g., "*.pdf", "*.xml", "*.docx").
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection.ProcessIdentityServiceCollectionExtensions">
+            <summary>
+            Registers the per-process JWT clearance token service used to stamp and verify cross-process handoff
+            events with a short-lived process identity token (MVP-PATH 1.5, A5 DoD).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection.ProcessIdentityServiceCollectionExtensions.AddProcessIdentity(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Adds the process identity services:
+            <list type="bullet">
+              <item><see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.ProcessIdentityOptions"/> bound from the <c>ProcessIdentity</c> configuration section.</item>
+              <item><see cref="T:ExxerCube.Prisma.Domain.Interfaces.IProcessClearanceTokenService"/> → <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.JwtProcessClearanceTokenService"/> (singleton; stateless).</item>
+              <item><see cref="T:ExxerCube.Prisma.Domain.Interfaces.ISiaraActorIdentityProvider"/> → <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.ConfiguredSiaraActorIdentityProvider"/> (singleton; no-op where <c>AddSiaraAuthentication</c> has already registered it).</item>
+            </list>
+            </summary>
+            <param name="services">The service collection.</param>
+            <param name="configuration">
+            The configuration root used to bind <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.ProcessIdentityOptions"/> from the
+            <c>ProcessIdentity</c> section and <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions"/> (Actor sub-section) from the
+            <c>Siara</c> section. Both sections are required in each worker's <c>appsettings.json</c>.
+            </param>
+            <returns>The service collection for chaining.</returns>
+            <remarks>
+            <para>
+            Call this in each worker's <c>Program.cs</c>. In Orion (where <c>AddSiaraAuthentication</c> is
+            also called), the <see cref="T:ExxerCube.Prisma.Domain.Interfaces.ISiaraActorIdentityProvider"/> registration is a no-op because
+            <c>TryAddSingleton</c> does not replace an existing registration. In Athena and the Reconciliator
+            the actor identity provider is registered for the first time here.
+            </para>
+            <para>
+            The <c>ProcessIdentity:JwtSecret</c> must be provided at deployment time via an environment
+            variable or a Key Vault config provider — never commit a real secret to source control. The three
+            processes must share the same secret value. See ADR-011 and deployment docs.
+            </para>
+            </remarks>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection.ServiceCollectionExtensions">
+            <summary>
+            Extension methods for configuring browser automation dependency injection.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection.ServiceCollectionExtensions.AddBrowserAutomationServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{ExxerCube.Prisma.Infrastructure.BrowserAutomation.BrowserAutomationOptions})">
+            <summary>
+            Adds browser automation services to the service collection.
+            </summary>
+            <param name="services">The service collection.</param>
+            <param name="configureOptions">Optional action to configure browser automation options.</param>
+            <returns>The service collection for chaining.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection.SiaraAuthenticationServiceCollectionExtensions">
+            <summary>
+            Registers the SIARA authentication seam (ADR-010): the three keyed
+            <see cref="T:ExxerCube.Prisma.Domain.Interfaces.ISiaraSessionProvider"/> strategies, the fail-closed
+            <see cref="T:ExxerCube.Prisma.Domain.Interfaces.ISiaraSessionProviderResolver"/>, and the supporting credential source and lockout-safety
+            circuit-breaker.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection.SiaraAuthenticationServiceCollectionExtensions.AddSiaraAuthentication(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration,System.Action{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions})">
+            <summary>
+            Adds the SIARA authentication services. The client selects the mode at deployment time via
+            <see cref="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions.AuthMode"/>; the resolver honors it fail-closed.
+            </summary>
+            <param name="services">The service collection.</param>
+            <param name="configuration">
+            Optional configuration to bind <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions"/> from the <c>Siara</c> section (the
+            secret store the credential source reads is also expected here for <c>AutomatedLogin</c>).
+            </param>
+            <param name="configure">Optional code-based override applied after binding.</param>
+            <returns>The service collection for chaining.</returns>
+            <remarks>
+            Call alongside <c>AddBrowserAutomationServices</c>, which provides the
+            <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IBrowserAutomationAgent"/>, <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IBrowserSessionContext"/>, and
+            <see cref="T:ExxerCube.Prisma.Domain.Interfaces.ISiaraLoginService"/> these providers depend on. Lifetimes: the providers and resolver
+            are <strong>scoped</strong> (they ride the scoped live browser); the credential source and the
+            <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraLoginCircuitBreaker"/> are <strong>singletons</strong> so the P3 failure/backoff
+            state persists across acquisition attempts (a scoped provider depending on a singleton is safe — no
+            captive dependency).
+            </remarks>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.GutenbergNavigationTarget">
+            <summary>
+            Navigation target for Project Gutenberg (gutenberg.org).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.GutenbergNavigationTarget.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.GutenbergNavigationTarget},Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.NavigationTargetOptions})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.GutenbergNavigationTarget"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+            <param name="options">The navigation target options.</param>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.GutenbergNavigationTarget.Id">
+            <inheritdoc />
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.GutenbergNavigationTarget.DisplayName">
+            <inheritdoc />
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.GutenbergNavigationTarget.Description">
+            <inheritdoc />
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.GutenbergNavigationTarget.BaseUrl">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.GutenbergNavigationTarget.NavigateAsync(ExxerCube.Prisma.Domain.Interfaces.IBrowserAutomationAgent,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.GutenbergNavigationTarget.RetrieveDocumentsAsync(ExxerCube.Prisma.Domain.Interfaces.IBrowserAutomationAgent,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.InternetArchiveNavigationTarget">
+            <summary>
+            Navigation target for Internet Archive (archive.org).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.InternetArchiveNavigationTarget.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.InternetArchiveNavigationTarget},Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.NavigationTargetOptions})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.InternetArchiveNavigationTarget"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+            <param name="options">The navigation target options.</param>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.InternetArchiveNavigationTarget.Id">
+            <inheritdoc />
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.InternetArchiveNavigationTarget.DisplayName">
+            <inheritdoc />
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.InternetArchiveNavigationTarget.Description">
+            <inheritdoc />
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.InternetArchiveNavigationTarget.BaseUrl">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.InternetArchiveNavigationTarget.NavigateAsync(ExxerCube.Prisma.Domain.Interfaces.IBrowserAutomationAgent,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.InternetArchiveNavigationTarget.RetrieveDocumentsAsync(ExxerCube.Prisma.Domain.Interfaces.IBrowserAutomationAgent,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.NavigationTargetOptions">
+            <summary>
+            Configuration options for navigation targets.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.NavigationTargetOptions.SiaraUrl">
+            <summary>
+            Gets or sets the URL for the SIARA simulator.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.NavigationTargetOptions.ArchiveUrl">
+            <summary>
+            Gets or sets the URL for Internet Archive.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.NavigationTargetOptions.GutenbergUrl">
+            <summary>
+            Gets or sets the URL for Project Gutenberg.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.SiaraNavigationTarget">
+            <summary>
+            Navigation target for SIARA (Sistema de Atención de Requerimientos de Autoridad) simulator.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.SiaraNavigationTarget.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.SiaraNavigationTarget},Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.NavigationTargetOptions})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.SiaraNavigationTarget"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+            <param name="options">The navigation target options.</param>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.SiaraNavigationTarget.Id">
+            <inheritdoc />
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.SiaraNavigationTarget.DisplayName">
+            <inheritdoc />
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.SiaraNavigationTarget.Description">
+            <inheritdoc />
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.SiaraNavigationTarget.BaseUrl">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.SiaraNavigationTarget.NavigateAsync(ExxerCube.Prisma.Domain.Interfaces.IBrowserAutomationAgent,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.SiaraNavigationTarget.RetrieveDocumentsAsync(ExxerCube.Prisma.Domain.Interfaces.IBrowserAutomationAgent,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter">
+            <summary>
+            Playwright-based implementation of browser automation agent for downloading regulatory documents.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter},Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.BrowserAutomation.BrowserAutomationOptions})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+            <param name="options">The browser automation options.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter.LaunchBrowserAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter.NavigateToAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter.GetCurrentUrlAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter.IdentifyDownloadableFilesAsync(System.String[],System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter.DownloadFileAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter.CloseBrowserAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter.FillInputAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter.ClickElementAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter.WaitForSelectorAsync(System.String,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter.ExportStorageStateAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter.LoadStorageStateAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter.ConnectToExistingContextAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter.IsAuthenticatedAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.JwtProcessClearanceTokenService">
+            <summary>
+            HMAC-SHA256 JWT implementation of <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IProcessClearanceTokenService"/> (MVP-PATH 1.5, A5 DoD).
+            Modelled on <c>EfCoreIdentityAdapter.CreateTokenAsync / ValidateTokenAsync</c> — same symmetric-key
+            algorithm, same config structure — without pulling in <c>UserManager</c> or the Identity DB.
+            </summary>
+            <remarks>
+            <para>
+            <strong>MintAsync:</strong> builds a JWT with the claims listed in the design (§3): <c>sub</c>,
+            <c>actor_type</c>, <c>clearance</c>, <c>file_id</c>, <c>jti</c>, <c>iss</c>, <c>aud</c>, <c>exp</c>.
+            Signing uses HMAC-SHA256 over <see cref="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.ProcessIdentityOptions.JwtSecret"/>.
+            </para>
+            <para>
+            <strong>ValidateAsync:</strong> uses <see cref="T:System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler"/> with
+            <c>ValidateIssuer/Audience/Lifetime/IssuerSigningKey = true</c> and a <c>ClockSkew</c> of 30 seconds
+            to tolerate minor NTP drift between containers (design R5). Fails closed on any error — exceptions are
+            caught and converted to a failure result; the caller never sees an exception.
+            </para>
+            <para>
+            Registered as a singleton: the service is stateless (reads options once, mints/validates per call).
+            </para>
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.JwtProcessClearanceTokenService.#ctor(Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.ProcessIdentityOptions},Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.JwtProcessClearanceTokenService})">
+            <summary>Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.JwtProcessClearanceTokenService"/> class.</summary>
+            <param name="options">The process identity configuration (JWT secret, issuer, audience, lifetime).</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.JwtProcessClearanceTokenService.MintAsync(ExxerCube.Prisma.Domain.ValueObjects.SiaraActor,ExxerCube.Prisma.Domain.Enum.ProcessClearance,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.JwtProcessClearanceTokenService.ValidateAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.ProcessIdentityOptions">
+            <summary>
+            Deployment-time configuration for the per-process JWT clearance token service (MVP-PATH 1.5, A5).
+            Bind from the <c>ProcessIdentity</c> configuration section.
+            </summary>
+            <remarks>
+            <para>
+            Each of the three pipeline processes (Orion Downloader, Athena Extractor, Reconciliator) is configured
+            with the same <see cref="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.ProcessIdentityOptions.JwtIssuer"/>, <see cref="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.ProcessIdentityOptions.JwtAudience"/>, and shared <see cref="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.ProcessIdentityOptions.JwtSecret"/>
+            (mount via Kubernetes Secret or Key Vault config provider — never hardcode a real secret).
+            The <see cref="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.ProcessIdentityOptions.Clearance"/> differs per process and determines which stage it is authorised to push.
+            </para>
+            <para>
+            Modelled on <c>EfCoreIdentityConfiguration</c> in the Auth.Infrastructure project: same field names,
+            same HMAC-SHA256 signing pattern. The two are independent — no Identity DB dependency here.
+            </para>
+            </remarks>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.ProcessIdentityOptions.SectionName">
+            <summary>The configuration section name these options bind to.</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.ProcessIdentityOptions.JwtSecret">
+            <summary>
+            Gets or sets the symmetric signing secret shared across all three pipeline processes. This is a
+            bearer secret — provide it via an environment variable or a Key Vault config provider in
+            production; never commit a real value to source control.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.ProcessIdentityOptions.JwtIssuer">
+            <summary>
+            Gets or sets the JWT issuer claim. All three processes must use the same value so tokens minted
+            by one process pass validation in another. Defaults to <c>prisma-pipeline</c>.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.ProcessIdentityOptions.JwtAudience">
+            <summary>
+            Gets or sets the JWT audience claim. All three processes must use the same value. Defaults to
+            <c>prisma-pipeline</c>.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.ProcessIdentityOptions.TokenLifetime">
+            <summary>
+            Gets or sets how long minted tokens remain valid. Defaults to 5 minutes — long enough to survive
+            worst-case transit latency; short enough to limit replay exposure. Set <c>ClockSkew = 30s</c> in
+            the receiver to tolerate minor NTP drift (see <c>JwtProcessClearanceTokenService</c>).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity.ProcessIdentityOptions.Clearance">
+            <summary>
+            Gets or sets which pipeline stage this process is cleared to initiate.
+            Orion Downloader → <see cref="F:ExxerCube.Prisma.Domain.Enum.ProcessClearance.Download"/>;
+            Athena Extractor → <see cref="F:ExxerCube.Prisma.Domain.Enum.ProcessClearance.Extract"/>;
+            Reconciliator → <see cref="F:ExxerCube.Prisma.Domain.Enum.ProcessClearance.Reconcile"/>.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Services.SiaraLoginService">
+            <summary>
+            Service for handling SIARA Simulator login operations using browser automation.
+            </summary>
+            <remarks>
+            The raw-credential form driver invoked by the <c>AutomatedLogin</c> provider with transient,
+            vault-sourced credentials. Per ADR-010 P6 it deliberately takes <strong>no</strong> configuration
+            access (only a logger and the secret-free <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraHostPolicy"/>), so it can never read persisted
+            credentials itself; and per ADR-010 P8 it consults the host policy <strong>before</strong> entering any
+            credentials, failing closed on the real SIARA production host unless a deployment has explicitly opted
+            in. This is what structurally prevents the fake-credential simulator + automation tooling from being
+            repointed at the regulator's portal.
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Services.SiaraLoginService.#ctor(ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraHostPolicy,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Services.SiaraLoginService})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Services.SiaraLoginService"/> class.
+            </summary>
+            <param name="hostPolicy">The P8 production-host guardrail consulted before entering credentials.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Services.SiaraLoginService.LoginAsync(ExxerCube.Prisma.Domain.Interfaces.IBrowserAutomationAgent,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.AutomatedLoginSiaraSessionProvider">
+            <summary>
+            <see cref="F:ExxerCube.Prisma.Domain.Enum.SiaraAuthMode.AutomatedLogin"/> provider: drives SIARA's login form <strong>unattended</strong>
+            with credentials sourced transiently from a client secret store (<see cref="T:ExxerCube.Prisma.Domain.Interfaces.ISiaraCredentialSource"/>),
+            used once and discarded, producing a credential-free <see cref="T:ExxerCube.Prisma.Domain.ValueObjects.SiaraSession"/>. Enables 24/7 operation
+            (ADR-010).
+            </summary>
+            <remarks>
+            <para>
+            ⚠️ <strong>Liability-gated.</strong> This is the mode whose lawfulness is gated on legal sign-off
+            (ADR-010 P1/P2/P4). Engineering preconditions honored here: the credentials are read transiently and
+            disposed immediately after the login (P5 — they are never persisted and the
+            <see cref="T:ExxerCube.Prisma.Domain.ValueObjects.SiaraCredential"/> self-clears), and every attempt is gated by the
+            <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraLoginCircuitBreaker"/> (P3 — exponential backoff + hard stop-and-alert) so an unattended
+            loop can never become a retry storm that locks out the bank's real SIARA account.
+            </para>
+            <para>
+            Only a genuine login <em>rejection</em> (the form was submitted and SIARA refused) counts toward the
+            lockout threshold; infrastructure faults (browser launch, navigation, capture) fail closed without
+            tripping the breaker, because they never reach SIARA's auth.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.AutomatedLoginSiaraSessionProvider.#ctor(ExxerCube.Prisma.Domain.Interfaces.IBrowserAutomationAgent,ExxerCube.Prisma.Domain.Interfaces.IBrowserSessionContext,ExxerCube.Prisma.Domain.Interfaces.ISiaraActorIdentityProvider,ExxerCube.Prisma.Domain.Interfaces.ISiaraLoginService,ExxerCube.Prisma.Domain.Interfaces.ISiaraCredentialSource,ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraLoginCircuitBreaker,Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions},Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.AutomatedLoginSiaraSessionProvider})">
+            <summary>Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.AutomatedLoginSiaraSessionProvider"/> class.</summary>
+            <param name="agent">The browser agent used to launch and navigate.</param>
+            <param name="sessionContext">The browser session capability used to probe/capture/re-hydrate.</param>
+            <param name="actorIdentity">The provider that resolves the trustworthy acquiring actor (ADR-010 P2).</param>
+            <param name="loginService">The form driver that fills and submits the login form.</param>
+            <param name="credentialSource">The transient secret-store source for the credentials.</param>
+            <param name="circuitBreaker">The P3 lockout-safety control gating each attempt.</param>
+            <param name="options">The SIARA auth options (the automated section is read).</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.AutomatedLoginSiaraSessionProvider.Mode">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.AutomatedLoginSiaraSessionProvider.AcquireAsync(ExxerCube.Prisma.Domain.ValueObjects.SiaraSessionRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.AutomatedLoginSiaraSessionProvider.EnsureValidAsync(ExxerCube.Prisma.Domain.ValueObjects.SiaraSession,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.AutomatedLoginSiaraSessionProvider.ReleaseAsync(ExxerCube.Prisma.Domain.ValueObjects.SiaraSession,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.ConfiguredSiaraActorIdentityProvider">
+            <summary>
+            Configuration-backed implementation of ISiaraActorIdentityProvider that resolves the service-account
+            identity from SiaraAuthOptions.Actor at runtime (ADR-010 P2).
+            </summary>
+            <remarks>
+            <para>
+            This is the default, deployment-time actor source: the ActorId is set in the deployment configuration
+            (appsettings / Key Vault config provider) and stamped on every acquired SIARA session for audit and
+            per-document non-repudiation. A future implementation can source the identity from an authenticated
+            principal (for example, the operator who triggered an interactive acquisition) behind the same port.
+            </para>
+            <para>
+            Fail-closed: if ActorId is missing or empty, resolution fails and the caller must not proceed with
+            the acquisition. Only the ActorId is logged (never credentials or secrets). Registered as a singleton
+            because the configured identity is stateless and stable across requests.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.ConfiguredSiaraActorIdentityProvider.#ctor(Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions},Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.ConfiguredSiaraActorIdentityProvider})">
+            <summary>Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.ConfiguredSiaraActorIdentityProvider"/> class.</summary>
+            <param name="options">The SIARA auth options (the Actor sub-section is read).</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.ConfiguredSiaraActorIdentityProvider.GetCurrentActorAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.ConfiguredSiaraCredentialSource">
+            <summary>
+            Reads SIARA credentials from the client's configuration-backed secret store (env vars / Key Vault
+            configuration provider) at the moment of login, for <see cref="F:ExxerCube.Prisma.Domain.Enum.SiaraAuthMode.AutomatedLogin"/>
+            (ADR-010). Prisma never persists them in a strongly-typed field; they live only inside the returned,
+            self-clearing <see cref="T:ExxerCube.Prisma.Domain.ValueObjects.SiaraCredential"/>.
+            </summary>
+            <remarks>
+            <para>
+            The credential values are read from <see cref="T:Microsoft.Extensions.Configuration.IConfiguration"/> by the configured keys
+            (<see cref="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAutomatedOptions.UsernameConfigKey"/> / <see cref="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAutomatedOptions.PasswordConfigKey"/>)
+            on each call — not bound into a long-lived options object — so the only place the secret resides is the
+            client's own configuration source. A missing/empty value fails closed.
+            </para>
+            <para>
+            Each read is audited (ADR-010 Consequences) — the log records that a read occurred and which keys were
+            used, never the values (P5). The vault-native source is a future swap behind this same port.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.ConfiguredSiaraCredentialSource.#ctor(Microsoft.Extensions.Configuration.IConfiguration,Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions},Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.ConfiguredSiaraCredentialSource})">
+            <summary>Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.ConfiguredSiaraCredentialSource"/> class.</summary>
+            <param name="configuration">The configuration-backed secret store.</param>
+            <param name="options">The SIARA auth options (the automated section names the keys to read).</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.ConfiguredSiaraCredentialSource.GetCredentialsAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.InteractiveLoginSiaraSessionProvider">
+            <summary>
+            <see cref="F:ExxerCube.Prisma.Domain.Enum.SiaraAuthMode.InteractiveLogin"/> provider: a human logs in <em>once</em> on SIARA's own
+            page in a headed browser, and Prisma captures the resulting authenticated context as a credential-free
+            <see cref="T:ExxerCube.Prisma.Domain.ValueObjects.SiaraSession"/> the headless watch loop can keep warm (ADR-010).
+            </summary>
+            <remarks>
+            <para>
+            Acquisition launches the (headed) browser, navigates to the configured SIARA login page, then waits up
+            to <see cref="P:ExxerCube.Prisma.Domain.ValueObjects.SiaraSessionRequest.MaxWaitForHuman"/> (falling back to the configured default) for the
+            post-login selector to appear — i.e. for the human to finish whatever auth SIARA presents (password,
+            MFA, CAPTCHA). It <strong>never types credentials itself</strong>: the human does. Once the selector
+            appears, it captures a portable storage-state so the watch loop (MVP-PATH 1.2) can re-hydrate headlessly.
+            </para>
+            <para>
+            The headed launch option is an adapter/DI concern (S7); this provider only drives navigation, the
+            post-login wait, and the storage-state capture. The captured
+            <see cref="P:ExxerCube.Prisma.Domain.ValueObjects.SiaraSession.StorageStateRef"/> is a bearer session secret (ADR-010 footnote 1) — never log
+            it in full. This provider carries no username/password.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.InteractiveLoginSiaraSessionProvider.#ctor(ExxerCube.Prisma.Domain.Interfaces.IBrowserAutomationAgent,ExxerCube.Prisma.Domain.Interfaces.IBrowserSessionContext,ExxerCube.Prisma.Domain.Interfaces.ISiaraActorIdentityProvider,Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions},Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.InteractiveLoginSiaraSessionProvider})">
+            <summary>Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.InteractiveLoginSiaraSessionProvider"/> class.</summary>
+            <param name="agent">The browser agent used to launch, navigate, and wait for the human login.</param>
+            <param name="sessionContext">The browser session capability used to probe/capture/re-hydrate.</param>
+            <param name="actorIdentity">The provider that resolves the trustworthy acquiring actor (ADR-010 P2).</param>
+            <param name="options">The SIARA auth options (the interactive section is read).</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.InteractiveLoginSiaraSessionProvider.Mode">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.InteractiveLoginSiaraSessionProvider.AcquireAsync(ExxerCube.Prisma.Domain.ValueObjects.SiaraSessionRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.InteractiveLoginSiaraSessionProvider.EnsureValidAsync(ExxerCube.Prisma.Domain.ValueObjects.SiaraSession,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.InteractiveLoginSiaraSessionProvider.ReleaseAsync(ExxerCube.Prisma.Domain.ValueObjects.SiaraSession,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SessionPassthroughSiaraSessionProvider">
+            <summary>
+            <see cref="F:ExxerCube.Prisma.Domain.Enum.SiaraAuthMode.SessionPassthrough"/> provider: rides a browser context that was
+            authenticated <em>outside</em> Prisma and produces a credential-free <see cref="T:ExxerCube.Prisma.Domain.ValueObjects.SiaraSession"/>.
+            It <strong>never logs in</strong> (ADR-010).
+            </summary>
+            <remarks>
+            <para>
+            Acquisition attaches to the external context per the configured
+            <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraPassthroughTransport"/> (import a storage-state, or attach over CDP), confirms the
+            context is actually authenticated with a post-login probe, then captures a portable storage-state so
+            the headless watch loop (MVP-PATH 1.2) can re-hydrate. Confirmation is fail-closed: an unauthenticated
+            or unverifiable context yields a failure so the system never scrapes unauthenticated.
+            </para>
+            <para>
+            The captured <see cref="P:ExxerCube.Prisma.Domain.ValueObjects.SiaraSession.StorageStateRef"/> is a bearer session secret (ADR-010 footnote
+            1), not a benign handle — never log it in full. This provider carries no username/password.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SessionPassthroughSiaraSessionProvider.#ctor(ExxerCube.Prisma.Domain.Interfaces.IBrowserSessionContext,ExxerCube.Prisma.Domain.Interfaces.IBrowserAutomationAgent,ExxerCube.Prisma.Domain.Interfaces.ISiaraActorIdentityProvider,Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions},Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SessionPassthroughSiaraSessionProvider})">
+            <summary>Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SessionPassthroughSiaraSessionProvider"/> class.</summary>
+            <param name="sessionContext">The browser session capability used to attach/probe/capture.</param>
+            <param name="agent">The browser agent used to navigate to a real SIARA page before probing auth.</param>
+            <param name="actorIdentity">The provider that resolves the trustworthy acquiring actor (ADR-010 P2).</param>
+            <param name="options">The SIARA auth options (the passthrough section is read).</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SessionPassthroughSiaraSessionProvider.Mode">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SessionPassthroughSiaraSessionProvider.AcquireAsync(ExxerCube.Prisma.Domain.ValueObjects.SiaraSessionRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SessionPassthroughSiaraSessionProvider.EnsureValidAsync(ExxerCube.Prisma.Domain.ValueObjects.SiaraSession,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SessionPassthroughSiaraSessionProvider.ReleaseAsync(ExxerCube.Prisma.Domain.ValueObjects.SiaraSession,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions">
+            <summary>
+            Deployment-time configuration for the SIARA authentication seam (ADR-010). The client selects the
+            mode and the per-mode parameters; nothing is hardcoded and no raw credentials are carried here.
+            </summary>
+            <remarks>
+            Grown incrementally across the SIARA-AUTH-DESIGN tasks: S5 adds <see cref="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions.Passthrough"/>; S6 adds
+            <see cref="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions.Interactive"/>; the <see cref="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions.AuthMode"/> selector plus the automated sub-options and the
+            resolver wiring land in S7. Bind from the <c>Siara</c> configuration section.
+            </remarks>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions.SectionName">
+            <summary>The configuration section these options bind to.</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions.AuthMode">
+            <summary>
+            Gets or sets the auth mode the resolver should honor. Defaults to the bank-safe
+            <see cref="F:ExxerCube.Prisma.Domain.Enum.SiaraAuthMode.SessionPassthrough"/>. (The resolver that reads this lands in S7.)
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions.AllowProductionHost">
+            <summary>
+            Gets or sets whether logging in against the real SIARA production host
+            (<see cref="F:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraHostPolicy.ProductionHost"/>) is permitted. Defaults to <c>false</c> — the login
+            driver fails closed on the production host (ADR-010 P8) so the fake-credential simulator and the
+            automation tooling cannot be repointed at the regulator's portal. A deployment may only set this to
+            <c>true</c> once legal/compliance has signed off on automated access (ADR-010 P1); flipping it is a
+            configuration change, not a code change.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions.Passthrough">
+            <summary>Gets or sets the <see cref="F:ExxerCube.Prisma.Domain.Enum.SiaraAuthMode.SessionPassthrough"/> parameters.</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions.Interactive">
+            <summary>Gets or sets the <see cref="F:ExxerCube.Prisma.Domain.Enum.SiaraAuthMode.InteractiveLogin"/> parameters.</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions.Automated">
+            <summary>Gets or sets the <see cref="F:ExxerCube.Prisma.Domain.Enum.SiaraAuthMode.AutomatedLogin"/> parameters.</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions.Actor">
+            <summary>
+            Gets or sets the deployment-configured service-account identity used by all acquisition modes to
+            stamp the acquiring actor on every session for audit and non-repudiation (ADR-010 P2). Consumed by
+            ConfiguredSiaraActorIdentityProvider.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraActorOptions">
+            <summary>
+            Deployment-configured identity of the service account that acquires SIARA sessions in unattended
+            modes. Consumed by ConfiguredSiaraActorIdentityProvider (ADR-010 P2).
+            </summary>
+            <remarks>
+            Set these values at deployment time (appsettings / Key Vault config provider). The ActorId is
+            recorded in audit trails — it must be a stable, recognizable identifier (for example, a service
+            principal name or a process identity string), not a credential.
+            </remarks>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraActorOptions.ActorId">
+            <summary>
+            Gets or sets the stable service-account identifier recorded in audit trails. Must be non-empty
+            for actor resolution to succeed. Never a credential.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraActorOptions.DisplayName">
+            <summary>
+            Gets or sets an optional human-readable label for the actor (for example, a display name or team
+            name). Informational only; the canonical audit identity is ActorId.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraPassthroughOptions">
+            <summary>
+            Parameters for <see cref="F:ExxerCube.Prisma.Domain.Enum.SiaraAuthMode.SessionPassthrough"/>: how to attach to the
+            externally-authenticated browser context and how to confirm it is authenticated.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraPassthroughOptions.Transport">
+            <summary>
+            Gets or sets the transport used to ride the external context. Defaults to
+            <see cref="F:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraPassthroughTransport.StorageState"/> — the portable, headless, bank-safe option
+            (ADR-010 §Resolved decisions); <see cref="F:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraPassthroughTransport.Cdp"/> is opt-in.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraPassthroughOptions.StorageStateRef">
+            <summary>
+            Gets or sets a default storage-state reference used when the acquisition request does not carry
+            its own <see cref="P:ExxerCube.Prisma.Domain.ValueObjects.SiaraSessionRequest.ExistingContextEndpoint"/>. This is a
+            bearer session secret (ADR-010 §footnote 1) — never log it in full. Optional.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraPassthroughOptions.DashboardUrl">
+            <summary>
+            Gets or sets the SIARA URL the provider navigates to before probing authentication. Required because
+            importing a storage-state leaves the browser on a blank page — the provider must load a real SIARA
+            page for the <see cref="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraPassthroughOptions.PostLoginSelector"/> probe to mean anything. Defaults to the SIARA portal.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraPassthroughOptions.PostLoginSelector">
+            <summary>
+            Gets or sets a selector that is present only once authenticated, used to confirm (fail-closed)
+            that the handed-in context really is logged in. Deployment-specific to whatever SIARA presents.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraInteractiveOptions">
+            <summary>
+            Parameters for <see cref="F:ExxerCube.Prisma.Domain.Enum.SiaraAuthMode.InteractiveLogin"/>: where the human logs in, how to confirm
+            the login completed, and how long to wait for them (ADR-010).
+            </summary>
+            <remarks>
+            Interactive login requires a <strong>headed</strong> browser so the human can complete whatever auth
+            SIARA presents (password, MFA, CAPTCHA). The headed launch option is an adapter/DI concern (S7); this
+            provider drives navigation and the post-login wait against that browser.
+            </remarks>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraInteractiveOptions.LoginUrl">
+            <summary>
+            Gets or sets the URL the human is taken to in order to log in on SIARA's own page. Deployment-
+            specific; defaults to the real SIARA portal.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraInteractiveOptions.PostLoginSelector">
+            <summary>
+            Gets or sets a selector that is present only once authenticated, used to detect that the human has
+            completed login (fail-closed) and, later, to re-probe the session. Deployment-specific.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraInteractiveOptions.MaxWaitForHuman">
+            <summary>
+            Gets or sets the default time to wait for the human to complete login when the acquisition request
+            does not carry its own <see cref="P:ExxerCube.Prisma.Domain.ValueObjects.SiaraSessionRequest.MaxWaitForHuman"/>.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAutomatedOptions">
+            <summary>
+            Parameters for <see cref="F:ExxerCube.Prisma.Domain.Enum.SiaraAuthMode.AutomatedLogin"/>: where to find the credentials, how to drive
+            and confirm login, and the P3 lockout-safety controls (ADR-010). ⚠️ This mode is gated on legal
+            sign-off (ADR-010 P1) and must never enable a retry storm against SIARA's max-attempt lockout (P3).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAutomatedOptions.LoginUrl">
+            <summary>Gets or sets the URL of the SIARA login page the unattended login navigates to.</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAutomatedOptions.PostLoginSelector">
+            <summary>
+            Gets or sets a selector that is present only once authenticated, used to confirm (fail-closed) and
+            re-probe the session. Deployment-specific.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAutomatedOptions.UsernameConfigKey">
+            <summary>
+            Gets or sets the configuration key the credential source reads the username from. The key names a
+            location in the client's secret store (env var / Key Vault config provider) — not the secret itself.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAutomatedOptions.PasswordConfigKey">
+            <summary>Gets or sets the configuration key the credential source reads the password from.</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAutomatedOptions.MaxConsecutiveFailures">
+            <summary>
+            Gets or sets how many consecutive login failures are tolerated before the circuit-breaker
+            <strong>hard-stops</strong> and alerts a human (ADR-010 P3) — never a retry storm. Default 3.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAutomatedOptions.InitialBackoff">
+            <summary>Gets or sets the backoff applied after the first failure; grows exponentially. Default 30s.</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAutomatedOptions.BackoffMultiplier">
+            <summary>Gets or sets the exponential growth factor applied to the backoff per failure. Default 2.</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAutomatedOptions.MaxBackoff">
+            <summary>Gets or sets the ceiling on the backoff window. Default 15 minutes.</summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraPassthroughTransport">
+            <summary>
+            How <see cref="F:ExxerCube.Prisma.Domain.Enum.SiaraAuthMode.SessionPassthrough"/> attaches to the externally-authenticated context.
+            </summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraPassthroughTransport.StorageState">
+            <summary>Import a captured storage-state (cookies/local-storage) into a fresh context. Default.</summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraPassthroughTransport.Cdp">
+            <summary>Attach to a live, remote-debuggable browser over a CDP/WebSocket endpoint. Opt-in.</summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraCaseGrouping">
+            <summary>
+            Pure, stateless helper that groups a flat list of <see cref="T:ExxerCube.Prisma.Domain.Interfaces.DownloadableFile"/> entries into
+            <see cref="T:ExxerCube.Prisma.Domain.ValueObjects.SiaraCase"/> bundles, one bundle per distinct SIARA case folder (MVP-PATH 2.1).
+            </summary>
+            <remarks>
+            SIARA serves companion files at URLs shaped <c>/document_store/{caseId}/{fileName}</c>.
+            This helper extracts the case id from the path segment immediately before the file name and
+            groups all files that share the same case id into one <see cref="T:ExxerCube.Prisma.Domain.ValueObjects.SiaraCase"/>. It is intentionally
+            free of I/O, DI, and side-effects so it can be exercised by pure unit tests without any browser
+            infrastructure.
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraCaseGrouping.GroupByCase(System.Collections.Generic.IReadOnlyList{ExxerCube.Prisma.Domain.Interfaces.DownloadableFile})">
+            <summary>
+            Groups <paramref name="files"/> by the case id derived from each file's URL and returns one
+            <see cref="T:ExxerCube.Prisma.Domain.ValueObjects.SiaraCase"/> per distinct case id, in the order the first file of each case appears
+            in the input.
+            </summary>
+            <param name="files">The flat list of downloadable files discovered from SIARA.</param>
+            <returns>
+            A read-only list of <see cref="T:ExxerCube.Prisma.Domain.ValueObjects.SiaraCase"/> instances, one per distinct case id. Never throws;
+            files whose URL cannot be parsed fall back to a single-file case keyed by the file's
+            <see cref="P:ExxerCube.Prisma.Domain.Interfaces.DownloadableFile.FileName"/> (or the raw URL if the file name is also blank).
+            </returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraCaseGrouping.ExtractCaseId(ExxerCube.Prisma.Domain.Interfaces.DownloadableFile)">
+            <summary>
+            Derives the case id from a <see cref="T:ExxerCube.Prisma.Domain.Interfaces.DownloadableFile"/>. Never throws.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraDocumentDownloader">
+            <summary>
+            The real SIARA document downloader (MVP-PATH 1.1): adapts the existing browser-automation scraper
+            (<see cref="T:ExxerCube.Prisma.Domain.Interfaces.Navigation.INavigationTarget"/> + <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IBrowserAutomationAgent"/>) into the
+            <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IDocumentDownloader"/> port the Orion worker consumes, behind the credential-free SIARA auth
+            seam (ADR-010).
+            </summary>
+            <remarks>
+            <para>
+            Railway-Oriented and fail-closed: it resolves the configured <see cref="T:ExxerCube.Prisma.Domain.Interfaces.ISiaraSessionProvider"/>
+            (<see cref="T:ExxerCube.Prisma.Domain.Interfaces.ISiaraSessionProviderResolver"/>), acquires a credential-free <see cref="T:ExxerCube.Prisma.Domain.ValueObjects.SiaraSession"/>,
+            hydrates this scope's browser with the session's storage-state, navigates to SIARA, finds the requested
+            document among the links SIARA presents, and downloads it. Any failed step yields a failure result —
+            never an empty-but-successful download. The returned <see cref="T:ExxerCube.Prisma.Domain.ValueObjects.DownloadedDocument"/> carries the
+            trustworthy <see cref="T:ExxerCube.Prisma.Domain.ValueObjects.SiaraActor"/> and session id that authorized the pull, realizing per-document
+            non-repudiation (ADR-010 P2).
+            </para>
+            <para>
+            The session is always released in a finally so an acquired session never leaks, even on a mid-pull
+            failure. Browser teardown is left to the DI scope (the Playwright adapter is disposed at scope end);
+            the launch/attach lifecycle versus the provider's own attach is exercised end-to-end against the
+            cookie-faithful simulator (the 1.1 integration test).
+            </para>
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraDocumentDownloader.#ctor(ExxerCube.Prisma.Domain.Interfaces.ISiaraSessionProviderResolver,ExxerCube.Prisma.Domain.Interfaces.IBrowserAutomationAgent,ExxerCube.Prisma.Domain.Interfaces.IBrowserSessionContext,ExxerCube.Prisma.Domain.Interfaces.Navigation.INavigationTarget,Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions},Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraDocumentDownloader})">
+            <summary>Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraDocumentDownloader"/> class.</summary>
+            <param name="resolver">The fail-closed resolver for the configured SIARA session provider.</param>
+            <param name="agent">The browser automation agent (navigation + download).</param>
+            <param name="sessionContext">The browser session capability used to hydrate the authenticated state.</param>
+            <param name="navigationTarget">The SIARA navigation target (base URL + file discovery).</param>
+            <param name="authOptions">The SIARA auth options (per-mode acquisition parameters).</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraDocumentDownloader.DownloadAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraDocumentDownloader.SelectDocument(System.Collections.Generic.IReadOnlyList{ExxerCube.Prisma.Domain.Interfaces.DownloadableFile},System.String)">
+            <summary>
+            Selects the SIARA file the caller asked for: an exact file-name match, else a file whose name or URL
+            contains the id, else — when the id is itself an absolute URL — the document at that URL.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraDocumentSource">
+            <summary>
+            The real SIARA document discovery source (MVP-PATH 1.2): the "list" half of ingestion. It rides the
+            same credential-free SIARA auth seam (ADR-010) the downloader uses, navigates SIARA, and returns the
+            ids of the documents SIARA currently presents so the watch loop knows what to pull.
+            </summary>
+            <remarks>
+            <para>
+            Railway-Oriented and fail-closed: it resolves the configured <see cref="T:ExxerCube.Prisma.Domain.Interfaces.ISiaraSessionProvider"/>
+            (<see cref="T:ExxerCube.Prisma.Domain.Interfaces.ISiaraSessionProviderResolver"/>), keeps <strong>one warm session</strong> across watch-loop
+            cycles (acquire on the first call; re-validate via <see cref="M:ExxerCube.Prisma.Domain.Interfaces.ISiaraSessionProvider.EnsureValidAsync(ExxerCube.Prisma.Domain.ValueObjects.SiaraSession,System.Threading.CancellationToken)"/>
+            on subsequent calls, re-acquiring only if it has died), hydrates this scope's browser with the session's
+            storage-state, navigates to SIARA, and lists the downloadable files. Any failed step yields a failure
+            result — never a silently-empty success.
+            </para>
+            <para>
+            This instance is <strong>scoped</strong> and is meant to live for the lifetime of the watch loop's
+            single long-lived discovery scope, so the browser and session stay warm. It releases the session on
+            disposal (scope teardown). The browser is launched at most once for the passthrough mode (whose
+            acquisition attaches to an existing browser); the login modes launch their own browser inside
+            acquisition, so this source does not pre-launch for them.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraDocumentSource.#ctor(ExxerCube.Prisma.Domain.Interfaces.ISiaraSessionProviderResolver,ExxerCube.Prisma.Domain.Interfaces.IBrowserAutomationAgent,ExxerCube.Prisma.Domain.Interfaces.IBrowserSessionContext,ExxerCube.Prisma.Domain.Interfaces.Navigation.INavigationTarget,Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions},Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraDocumentSource})">
+            <summary>Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraDocumentSource"/> class.</summary>
+            <param name="resolver">The fail-closed resolver for the configured SIARA session provider.</param>
+            <param name="agent">The browser automation agent (navigation + file discovery).</param>
+            <param name="sessionContext">The browser session capability used to hydrate the authenticated state.</param>
+            <param name="navigationTarget">The SIARA navigation target (base URL + file discovery).</param>
+            <param name="authOptions">The SIARA auth options (per-mode acquisition parameters).</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraDocumentSource.DiscoverCasesAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraDocumentSource.EnsureWarmSessionAsync(System.Threading.CancellationToken)">
+            <summary>
+            Acquires the SIARA session on the first call and keeps it warm thereafter: re-validates the existing
+            session and only re-acquires when it has died (fail-closed if it cannot be re-acquired).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraDocumentSource.RetrieveFilesLockedAsync(System.Threading.CancellationToken)">
+            <summary>
+            Acquires a warm session (if not already held), hydrates the browser, navigates, and retrieves the raw
+            file list from SIARA. Must be called while the caller holds <see cref="F:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraDocumentSource._gate"/>.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraDocumentSource.DisposeAsync">
+            <summary>Releases the warm session on scope teardown so it never leaks; the browser is torn down by the scope.</summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraHostPolicy">
+            <summary>
+            The P8 production-host guardrail for the SIARA login driver (ADR-010): decides whether a given target
+            URL is an allowed host to enter credentials against. The real SIARA production host is rejected
+            <strong>fail-closed</strong> unless a deployment has explicitly opted in via
+            <see cref="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions.AllowProductionHost"/> — so the fake-credential simulator and the automation
+            tooling, which never set that flag, cannot be repointed at the regulator's portal.
+            </summary>
+            <remarks>
+            <para>
+            This is a stateless, secret-free collaborator (it carries <em>no</em> credentials and reads only the
+            non-secret <see cref="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions.AllowProductionHost"/> flag), <strong>not</strong> a domain port —
+            mirroring <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraLoginCircuitBreaker"/>. Keeping it credential-free is what lets the login
+            driver depend on it without violating the P6 isolation (the login service must never gain raw
+            configuration access).
+            </para>
+            <para>
+            Enabling the production host is gated on written legal/compliance sign-off (ADR-010 P1); flipping
+            <see cref="P:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions.AllowProductionHost"/> to <c>true</c> is a deployment-time configuration
+            change, not a code change.
+            </para>
+            </remarks>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraHostPolicy.ProductionHost">
+            <summary>The canonical real SIARA production host that is fail-closed by default (ADR-010 P8).</summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraHostPolicy.#ctor(Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions},Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraHostPolicy})">
+            <summary>Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraHostPolicy"/> class.</summary>
+            <param name="options">The SIARA auth options; only the non-secret production-host flag is read.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraHostPolicy.Validate(System.String)">
+            <summary>
+            Validates that credentials may be entered against the page at <paramref name="url"/>. Fails closed on
+            the real SIARA production host (or any of its subdomains) unless the deployment opted in, and on any
+            URL that cannot be parsed.
+            </summary>
+            <param name="url">The current page URL the login driver is about to authenticate against.</param>
+            <returns>Success when the host is allowed; otherwise a failure describing why it is barred.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraLoginCircuitBreaker">
+            <summary>
+            The P3 lockout-safety control for <see cref="F:ExxerCube.Prisma.Domain.Enum.SiaraAuthMode.AutomatedLogin"/> (ADR-010):
+            counts consecutive login failures, applies exponential backoff between attempts, and
+            <strong>hard-stops and alerts a human</strong> after a threshold — so an unattended loop can never
+            become a retry storm that locks out the bank's real SIARA account.
+            </summary>
+            <remarks>
+            <para>
+            This is a stateful, thread-safe collaborator, <strong>not</strong> a domain port: it holds the
+            failure/backoff state that must persist <em>across</em> login attempts, so it is registered as a
+            singleton (S7) while the provider that consults it stays scoped. The clock is injected via
+            <see cref="T:System.TimeProvider"/> so the backoff windows are deterministically testable.
+            </para>
+            <para>
+            Only genuine login <em>rejections</em> should be recorded as failures (a submitted login SIARA refused);
+            infrastructure faults (browser launch, navigation, capture) do not count toward the lockout threshold
+            because they never reach SIARA's auth.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraLoginCircuitBreaker.#ctor(Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions},System.TimeProvider,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraLoginCircuitBreaker})">
+            <summary>Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraLoginCircuitBreaker"/> class.</summary>
+            <param name="options">The SIARA auth options (the automated section supplies the thresholds).</param>
+            <param name="timeProvider">The clock used for the backoff windows.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraLoginCircuitBreaker.CheckCanAttempt">
+            <summary>
+            Decides whether a login attempt may proceed now. Returns a failure (without attempting) when the
+            circuit is backing off or has hard-stopped — so the caller never drives the form during a storm.
+            </summary>
+            <returns>Success when an attempt is allowed; otherwise a failure describing why it is blocked.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraLoginCircuitBreaker.RecordSuccess">
+            <summary>Records a successful login, clearing the failure count and any backoff/hard-stop state.</summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraLoginCircuitBreaker.RecordFailure">
+            <summary>
+            Records a rejected login: increments the failure count and either opens the circuit for an
+            exponentially-growing backoff window, or hard-stops and alerts once the threshold is reached.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraSessionProviderResolver">
+            <summary>
+            Fail-closed resolver that returns the <see cref="T:ExxerCube.Prisma.Domain.Interfaces.ISiaraSessionProvider"/> registered for the
+            deployment's configured <see cref="T:ExxerCube.Prisma.Domain.Enum.SiaraAuthMode"/> (ADR-010). The mode is the client's deployment-time
+            technical-legal choice, read from <see cref="T:Microsoft.Extensions.Options.IOptions`1"/>.
+            </summary>
+            <remarks>
+            Providers are registered keyed by <see cref="T:ExxerCube.Prisma.Domain.Enum.SiaraAuthMode"/>; this resolver looks up the keyed service
+            for the configured mode. If the configured mode is unknown or has no registered provider it returns a
+            failure result rather than throwing or silently defaulting, so the downloader
+            (MVP-PATH 1.1) can never proceed unauthenticated.
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraSessionProviderResolver.#ctor(System.IServiceProvider,Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraAuthOptions},Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraSessionProviderResolver})">
+            <summary>Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraSessionProviderResolver"/> class.</summary>
+            <param name="serviceProvider">The scope's service provider used to resolve the keyed provider.</param>
+            <param name="options">The SIARA auth options carrying the configured mode.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara.SiaraSessionProviderResolver.Resolve">
+            <inheritdoc />
+        </member>
+    </members>
+</doc>

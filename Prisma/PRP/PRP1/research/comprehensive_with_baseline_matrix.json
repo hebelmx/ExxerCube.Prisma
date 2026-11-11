@@ -1,0 +1,1739 @@
+[
+  {
+    "filter_id": "BASELINE",
+    "filter_type": "BASELINE",
+    "params": {},
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 30,
+        "333BBB": 0,
+        "333ccc": 0,
+        "555CCC": 0
+      },
+      "Q05_VeryGood": {
+        "222AAA": 219,
+        "333BBB": 126,
+        "333ccc": 148,
+        "555CCC": 82
+      },
+      "Q1_Poor": {
+        "222AAA": 195,
+        "333BBB": 118,
+        "333ccc": 167,
+        "555CCC": 58
+      },
+      "Q15_Medium": {
+        "222AAA": 1532,
+        "333BBB": 1332,
+        "333ccc": 531,
+        "555CCC": 790
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 2175,
+        "333BBB": 1316,
+        "333ccc": 1201,
+        "555CCC": 1898
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_0",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 1.1573620712395511,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 170,
+        "333BBB": 138,
+        "333ccc": 145,
+        "555CCC": 46
+      },
+      "Q05_VeryGood": {
+        "222AAA": 192,
+        "333BBB": 156,
+        "333ccc": 166,
+        "555CCC": 37
+      },
+      "Q1_Poor": {
+        "222AAA": 205,
+        "333BBB": 159,
+        "333ccc": 143,
+        "555CCC": 35
+      },
+      "Q15_Medium": {
+        "222AAA": 289,
+        "333BBB": 275,
+        "333ccc": 214,
+        "555CCC": 276
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 368,
+        "333BBB": 445,
+        "333ccc": 374,
+        "555CCC": 257
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_1",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 2.0746389469496416,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 186,
+        "333BBB": 169,
+        "333ccc": 168,
+        "555CCC": 55
+      },
+      "Q05_VeryGood": {
+        "222AAA": 193,
+        "333BBB": 145,
+        "333ccc": 180,
+        "555CCC": 30
+      },
+      "Q1_Poor": {
+        "222AAA": 194,
+        "333BBB": 183,
+        "333ccc": 198,
+        "555CCC": 39
+      },
+      "Q15_Medium": {
+        "222AAA": 289,
+        "333BBB": 312,
+        "333ccc": 254,
+        "555CCC": 272
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 371,
+        "333BBB": 506,
+        "333ccc": 426,
+        "555CCC": 299
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_2",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 1.811837534202327,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 175,
+        "333BBB": 143,
+        "333ccc": 185,
+        "555CCC": 51
+      },
+      "Q05_VeryGood": {
+        "222AAA": 175,
+        "333BBB": 129,
+        "333ccc": 177,
+        "555CCC": 33
+      },
+      "Q1_Poor": {
+        "222AAA": 193,
+        "333BBB": 185,
+        "333ccc": 187,
+        "555CCC": 32
+      },
+      "Q15_Medium": {
+        "222AAA": 310,
+        "333BBB": 269,
+        "333ccc": 221,
+        "555CCC": 215
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 371,
+        "333BBB": 508,
+        "333ccc": 425,
+        "555CCC": 280
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_3",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 1.6541036616626295,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 158,
+        "333BBB": 137,
+        "333ccc": 150,
+        "555CCC": 49
+      },
+      "Q05_VeryGood": {
+        "222AAA": 179,
+        "333BBB": 131,
+        "333ccc": 158,
+        "555CCC": 29
+      },
+      "Q1_Poor": {
+        "222AAA": 188,
+        "333BBB": 166,
+        "333ccc": 137,
+        "555CCC": 32
+      },
+      "Q15_Medium": {
+        "222AAA": 317,
+        "333BBB": 270,
+        "333ccc": 194,
+        "555CCC": 274
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 370,
+        "333BBB": 478,
+        "333ccc": 415,
+        "555CCC": 283
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_4",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 1.9308880246367262,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 177,
+        "333BBB": 143,
+        "333ccc": 166,
+        "555CCC": 59
+      },
+      "Q05_VeryGood": {
+        "222AAA": 226,
+        "333BBB": 126,
+        "333ccc": 180,
+        "555CCC": 29
+      },
+      "Q1_Poor": {
+        "222AAA": 190,
+        "333BBB": 182,
+        "333ccc": 183,
+        "555CCC": 44
+      },
+      "Q15_Medium": {
+        "222AAA": 315,
+        "333BBB": 313,
+        "333ccc": 261,
+        "555CCC": 212
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 380,
+        "333BBB": 509,
+        "333ccc": 434,
+        "555CCC": 311
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_5",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 1.8182486389969368,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 170,
+        "333BBB": 144,
+        "333ccc": 184,
+        "555CCC": 51
+      },
+      "Q05_VeryGood": {
+        "222AAA": 176,
+        "333BBB": 130,
+        "333ccc": 168,
+        "555CCC": 32
+      },
+      "Q1_Poor": {
+        "222AAA": 186,
+        "333BBB": 186,
+        "333ccc": 173,
+        "555CCC": 33
+      },
+      "Q15_Medium": {
+        "222AAA": 317,
+        "333BBB": 261,
+        "333ccc": 211,
+        "555CCC": 210
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 364,
+        "333BBB": 480,
+        "333ccc": 431,
+        "555CCC": 299
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_6",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 1.5165719371019049,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 160,
+        "333BBB": 141,
+        "333ccc": 145,
+        "555CCC": 47
+      },
+      "Q05_VeryGood": {
+        "222AAA": 185,
+        "333BBB": 131,
+        "333ccc": 161,
+        "555CCC": 36
+      },
+      "Q1_Poor": {
+        "222AAA": 180,
+        "333BBB": 165,
+        "333ccc": 142,
+        "555CCC": 31
+      },
+      "Q15_Medium": {
+        "222AAA": 295,
+        "333BBB": 276,
+        "333ccc": 193,
+        "555CCC": 278
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 371,
+        "333BBB": 502,
+        "333ccc": 373,
+        "555CCC": 259
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_7",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 1.8120565373984678,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 178,
+        "333BBB": 144,
+        "333ccc": 188,
+        "555CCC": 50
+      },
+      "Q05_VeryGood": {
+        "222AAA": 174,
+        "333BBB": 126,
+        "333ccc": 178,
+        "555CCC": 34
+      },
+      "Q1_Poor": {
+        "222AAA": 195,
+        "333BBB": 185,
+        "333ccc": 184,
+        "555CCC": 34
+      },
+      "Q15_Medium": {
+        "222AAA": 313,
+        "333BBB": 270,
+        "333ccc": 221,
+        "555CCC": 215
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 371,
+        "333BBB": 508,
+        "333ccc": 425,
+        "555CCC": 279
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_8",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 1.1571055295061656,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 169,
+        "333BBB": 140,
+        "333ccc": 142,
+        "555CCC": 47
+      },
+      "Q05_VeryGood": {
+        "222AAA": 194,
+        "333BBB": 154,
+        "333ccc": 165,
+        "555CCC": 35
+      },
+      "Q1_Poor": {
+        "222AAA": 201,
+        "333BBB": 158,
+        "333ccc": 140,
+        "555CCC": 34
+      },
+      "Q15_Medium": {
+        "222AAA": 292,
+        "333BBB": 277,
+        "333ccc": 214,
+        "555CCC": 264
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 367,
+        "333BBB": 445,
+        "333ccc": 373,
+        "555CCC": 266
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_9",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 2.0791003001376884,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 193,
+        "333BBB": 170,
+        "333ccc": 167,
+        "555CCC": 55
+      },
+      "Q05_VeryGood": {
+        "222AAA": 194,
+        "333BBB": 146,
+        "333ccc": 162,
+        "555CCC": 29
+      },
+      "Q1_Poor": {
+        "222AAA": 189,
+        "333BBB": 183,
+        "333ccc": 199,
+        "555CCC": 36
+      },
+      "Q15_Medium": {
+        "222AAA": 286,
+        "333BBB": 321,
+        "333ccc": 262,
+        "555CCC": 292
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 376,
+        "333BBB": 508,
+        "333ccc": 422,
+        "555CCC": 284
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_10",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 1.9311070278328673,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 174,
+        "333BBB": 143,
+        "333ccc": 166,
+        "555CCC": 59
+      },
+      "Q05_VeryGood": {
+        "222AAA": 229,
+        "333BBB": 126,
+        "333ccc": 178,
+        "555CCC": 29
+      },
+      "Q1_Poor": {
+        "222AAA": 191,
+        "333BBB": 182,
+        "333ccc": 182,
+        "555CCC": 36
+      },
+      "Q15_Medium": {
+        "222AAA": 291,
+        "333BBB": 322,
+        "333ccc": 257,
+        "555CCC": 212
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 377,
+        "333BBB": 507,
+        "333ccc": 428,
+        "555CCC": 308
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_11",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 1.5165719371019049,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 160,
+        "333BBB": 141,
+        "333ccc": 145,
+        "555CCC": 47
+      },
+      "Q05_VeryGood": {
+        "222AAA": 185,
+        "333BBB": 131,
+        "333ccc": 161,
+        "555CCC": 36
+      },
+      "Q1_Poor": {
+        "222AAA": 180,
+        "333BBB": 165,
+        "333ccc": 142,
+        "555CCC": 31
+      },
+      "Q15_Medium": {
+        "222AAA": 295,
+        "333BBB": 276,
+        "333ccc": 193,
+        "555CCC": 278
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 371,
+        "333BBB": 502,
+        "333ccc": 373,
+        "555CCC": 259
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_12",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 1.7124299396070946,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 169,
+        "333BBB": 146,
+        "333ccc": 182,
+        "555CCC": 53
+      },
+      "Q05_VeryGood": {
+        "222AAA": 177,
+        "333BBB": 129,
+        "333ccc": 171,
+        "555CCC": 33
+      },
+      "Q1_Poor": {
+        "222AAA": 191,
+        "333BBB": 186,
+        "333ccc": 177,
+        "555CCC": 33
+      },
+      "Q15_Medium": {
+        "222AAA": 317,
+        "333BBB": 280,
+        "333ccc": 220,
+        "555CCC": 275
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 367,
+        "333BBB": 479,
+        "333ccc": 418,
+        "555CCC": 281
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_13",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 1.8781980056194842,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 176,
+        "333BBB": 139,
+        "333ccc": 181,
+        "555CCC": 52
+      },
+      "Q05_VeryGood": {
+        "222AAA": 222,
+        "333BBB": 126,
+        "333ccc": 181,
+        "555CCC": 28
+      },
+      "Q1_Poor": {
+        "222AAA": 190,
+        "333BBB": 186,
+        "333ccc": 181,
+        "555CCC": 32
+      },
+      "Q15_Medium": {
+        "222AAA": 327,
+        "333BBB": 317,
+        "333ccc": 246,
+        "555CCC": 214
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 371,
+        "333BBB": 480,
+        "333ccc": 432,
+        "555CCC": 299
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_14",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 1.5142539357914684,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 158,
+        "333BBB": 144,
+        "333ccc": 143,
+        "555CCC": 46
+      },
+      "Q05_VeryGood": {
+        "222AAA": 181,
+        "333BBB": 128,
+        "333ccc": 174,
+        "555CCC": 32
+      },
+      "Q1_Poor": {
+        "222AAA": 175,
+        "333BBB": 161,
+        "333ccc": 138,
+        "555CCC": 32
+      },
+      "Q15_Medium": {
+        "222AAA": 293,
+        "333BBB": 275,
+        "333ccc": 197,
+        "555CCC": 204
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 368,
+        "333BBB": 518,
+        "333ccc": 367,
+        "555CCC": 254
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_15",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 1.8112592468268411,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 178,
+        "333BBB": 147,
+        "333ccc": 188,
+        "555CCC": 52
+      },
+      "Q05_VeryGood": {
+        "222AAA": 221,
+        "333BBB": 123,
+        "333ccc": 178,
+        "555CCC": 34
+      },
+      "Q1_Poor": {
+        "222AAA": 195,
+        "333BBB": 186,
+        "333ccc": 190,
+        "555CCC": 31
+      },
+      "Q15_Medium": {
+        "222AAA": 312,
+        "333BBB": 271,
+        "333ccc": 215,
+        "555CCC": 213
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 363,
+        "333BBB": 506,
+        "333ccc": 422,
+        "555CCC": 285
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_16",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 1.1127202321947811,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 167,
+        "333BBB": 138,
+        "333ccc": 154,
+        "555CCC": 47
+      },
+      "Q05_VeryGood": {
+        "222AAA": 192,
+        "333BBB": 136,
+        "333ccc": 165,
+        "555CCC": 36
+      },
+      "Q1_Poor": {
+        "222AAA": 207,
+        "333BBB": 156,
+        "333ccc": 137,
+        "555CCC": 35
+      },
+      "Q15_Medium": {
+        "222AAA": 294,
+        "333BBB": 248,
+        "333ccc": 196,
+        "555CCC": 227
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 362,
+        "333BBB": 513,
+        "333ccc": 352,
+        "555CCC": 256
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_17",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 1.5254252852225765,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 158,
+        "333BBB": 144,
+        "333ccc": 149,
+        "555CCC": 47
+      },
+      "Q05_VeryGood": {
+        "222AAA": 177,
+        "333BBB": 129,
+        "333ccc": 161,
+        "555CCC": 30
+      },
+      "Q1_Poor": {
+        "222AAA": 207,
+        "333BBB": 162,
+        "333ccc": 135,
+        "555CCC": 32
+      },
+      "Q15_Medium": {
+        "222AAA": 300,
+        "333BBB": 267,
+        "333ccc": 202,
+        "555CCC": 211
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 368,
+        "333BBB": 476,
+        "333ccc": 417,
+        "555CCC": 267
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_18",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 1.660624691629111,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 175,
+        "333BBB": 145,
+        "333ccc": 153,
+        "555CCC": 51
+      },
+      "Q05_VeryGood": {
+        "222AAA": 177,
+        "333BBB": 129,
+        "333ccc": 185,
+        "555CCC": 37
+      },
+      "Q1_Poor": {
+        "222AAA": 182,
+        "333BBB": 180,
+        "333ccc": 140,
+        "555CCC": 32
+      },
+      "Q15_Medium": {
+        "222AAA": 300,
+        "333BBB": 274,
+        "333ccc": 196,
+        "555CCC": 270
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 364,
+        "333BBB": 478,
+        "333ccc": 411,
+        "555CCC": 294
+      }
+    }
+  },
+  {
+    "filter_id": "PIL_19",
+    "filter_type": "PIL",
+    "params": {
+      "contrast_factor": 1.0401935523863086,
+      "median_size": 3
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 171,
+        "333BBB": 139,
+        "333ccc": 142,
+        "555CCC": 43
+      },
+      "Q05_VeryGood": {
+        "222AAA": 200,
+        "333BBB": 156,
+        "333ccc": 161,
+        "555CCC": 30
+      },
+      "Q1_Poor": {
+        "222AAA": 212,
+        "333BBB": 165,
+        "333ccc": 151,
+        "555CCC": 39
+      },
+      "Q15_Medium": {
+        "222AAA": 294,
+        "333BBB": 272,
+        "333ccc": 195,
+        "555CCC": 213
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 359,
+        "333BBB": 472,
+        "333ccc": 364,
+        "555CCC": 289
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_0",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 5,
+      "clahe_clip": 1.0613227094780204,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 53,
+      "bilateral_sigma_space": 80,
+      "unsharp_amount": 1.9279251186816224,
+      "unsharp_radius": 2.7403656728475707
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 149,
+        "333BBB": 97,
+        "333ccc": 102,
+        "555CCC": 6
+      },
+      "Q05_VeryGood": {
+        "222AAA": 160,
+        "333BBB": 95,
+        "333ccc": 114,
+        "555CCC": 44
+      },
+      "Q1_Poor": {
+        "222AAA": 141,
+        "333BBB": 106,
+        "333ccc": 128,
+        "555CCC": 57
+      },
+      "Q15_Medium": {
+        "222AAA": 566,
+        "333BBB": 518,
+        "333ccc": 688,
+        "555CCC": 1084
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 957,
+        "333BBB": 850,
+        "333ccc": 1064,
+        "555CCC": 741
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_1",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 5,
+      "clahe_clip": 1.1845998369427184,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.650232425087997,
+      "unsharp_radius": 2.5560318531848543
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 128,
+        "333BBB": 90,
+        "333ccc": 111,
+        "555CCC": 37
+      },
+      "Q05_VeryGood": {
+        "222AAA": 149,
+        "333BBB": 100,
+        "333ccc": 118,
+        "555CCC": 45
+      },
+      "Q1_Poor": {
+        "222AAA": 157,
+        "333BBB": 108,
+        "333ccc": 118,
+        "555CCC": 45
+      },
+      "Q15_Medium": {
+        "222AAA": 488,
+        "333BBB": 480,
+        "333ccc": 481,
+        "555CCC": 574
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 736,
+        "333BBB": 859,
+        "333ccc": 811,
+        "555CCC": 1691
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_2",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 5,
+      "clahe_clip": 1.067198713542715,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 53,
+      "bilateral_sigma_space": 80,
+      "unsharp_amount": 1.930251476954923,
+      "unsharp_radius": 2.7333071712548853
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 146,
+        "333BBB": 92,
+        "333ccc": 103,
+        "555CCC": 7
+      },
+      "Q05_VeryGood": {
+        "222AAA": 160,
+        "333BBB": 98,
+        "333ccc": 114,
+        "555CCC": 49
+      },
+      "Q1_Poor": {
+        "222AAA": 161,
+        "333BBB": 110,
+        "333ccc": 128,
+        "555CCC": 60
+      },
+      "Q15_Medium": {
+        "222AAA": 591,
+        "333BBB": 516,
+        "333ccc": 604,
+        "555CCC": 1227
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 949,
+        "333BBB": 796,
+        "333ccc": 1085,
+        "555CCC": 1476
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_3",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 6,
+      "clahe_clip": 1.0994484330360694,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.6762752602127025,
+      "unsharp_radius": 2.849045967410608
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 136,
+        "333BBB": 104,
+        "333ccc": 93,
+        "555CCC": 38
+      },
+      "Q05_VeryGood": {
+        "222AAA": 141,
+        "333BBB": 97,
+        "333ccc": 104,
+        "555CCC": 40
+      },
+      "Q1_Poor": {
+        "222AAA": 156,
+        "333BBB": 104,
+        "333ccc": 110,
+        "555CCC": 34
+      },
+      "Q15_Medium": {
+        "222AAA": 465,
+        "333BBB": 402,
+        "333ccc": 363,
+        "555CCC": 653
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 1224,
+        "333BBB": 822,
+        "333ccc": 718,
+        "555CCC": 1658
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_4",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 7,
+      "clahe_clip": 1.013509807288226,
+      "bilateral_d": 7,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.85817844061093,
+      "unsharp_radius": 2.652606031781906
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 148,
+        "333BBB": 147,
+        "333ccc": 118,
+        "555CCC": 10
+      },
+      "Q05_VeryGood": {
+        "222AAA": 169,
+        "333BBB": 94,
+        "333ccc": 103,
+        "555CCC": 50
+      },
+      "Q1_Poor": {
+        "222AAA": 140,
+        "333BBB": 84,
+        "333ccc": 115,
+        "555CCC": 72
+      },
+      "Q15_Medium": {
+        "222AAA": 435,
+        "333BBB": 487,
+        "333ccc": 526,
+        "555CCC": 794
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 647,
+        "333BBB": 819,
+        "333ccc": 819,
+        "555CCC": 725
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_5",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 6,
+      "clahe_clip": 1.0976476234611765,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.6738420057030863,
+      "unsharp_radius": 3.914800549728294
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 128,
+        "333BBB": 80,
+        "333ccc": 103,
+        "555CCC": 34
+      },
+      "Q05_VeryGood": {
+        "222AAA": 156,
+        "333BBB": 95,
+        "333ccc": 107,
+        "555CCC": 35
+      },
+      "Q1_Poor": {
+        "222AAA": 153,
+        "333BBB": 108,
+        "333ccc": 115,
+        "555CCC": 73
+      },
+      "Q15_Medium": {
+        "222AAA": 402,
+        "333BBB": 450,
+        "333ccc": 428,
+        "555CCC": 463
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 751,
+        "333BBB": 900,
+        "333ccc": 723,
+        "555CCC": 1527
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_6",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 7,
+      "clahe_clip": 1.0199280912015296,
+      "bilateral_d": 7,
+      "bilateral_sigma_color": 51,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.8593789743338192,
+      "unsharp_radius": 2.652606031781906
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 148,
+        "333BBB": 146,
+        "333ccc": 121,
+        "555CCC": 11
+      },
+      "Q05_VeryGood": {
+        "222AAA": 164,
+        "333BBB": 89,
+        "333ccc": 103,
+        "555CCC": 51
+      },
+      "Q1_Poor": {
+        "222AAA": 139,
+        "333BBB": 84,
+        "333ccc": 114,
+        "555CCC": 70
+      },
+      "Q15_Medium": {
+        "222AAA": 436,
+        "333BBB": 486,
+        "333ccc": 528,
+        "555CCC": 792
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 643,
+        "333BBB": 825,
+        "333ccc": 805,
+        "555CCC": 739
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_7",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 7,
+      "clahe_clip": 1.1655335867701766,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 85,
+      "bilateral_sigma_space": 50,
+      "unsharp_amount": 1.9113739921622663,
+      "unsharp_radius": 1.393267951155104
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 165,
+        "333BBB": 80,
+        "333ccc": 111,
+        "555CCC": 35
+      },
+      "Q05_VeryGood": {
+        "222AAA": 168,
+        "333BBB": 91,
+        "333ccc": 142,
+        "555CCC": 59
+      },
+      "Q1_Poor": {
+        "222AAA": 180,
+        "333BBB": 145,
+        "333ccc": 183,
+        "555CCC": 64
+      },
+      "Q15_Medium": {
+        "222AAA": 504,
+        "333BBB": 461,
+        "333ccc": 509,
+        "555CCC": 427
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 657,
+        "333BBB": 782,
+        "333ccc": 705,
+        "555CCC": 587
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_8",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 5,
+      "clahe_clip": 1.1601727613681,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 70,
+      "bilateral_sigma_space": 78,
+      "unsharp_amount": 1.9027127572713471,
+      "unsharp_radius": 2.6040244706514253
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 153,
+        "333BBB": 88,
+        "333ccc": 102,
+        "555CCC": 7
+      },
+      "Q05_VeryGood": {
+        "222AAA": 139,
+        "333BBB": 107,
+        "333ccc": 110,
+        "555CCC": 40
+      },
+      "Q1_Poor": {
+        "222AAA": 167,
+        "333BBB": 145,
+        "333ccc": 207,
+        "555CCC": 65
+      },
+      "Q15_Medium": {
+        "222AAA": 471,
+        "333BBB": 647,
+        "333ccc": 531,
+        "555CCC": 418
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 982,
+        "333BBB": 870,
+        "333ccc": 752,
+        "555CCC": 783
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_9",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 5,
+      "clahe_clip": 1.0485250521786496,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 88,
+      "bilateral_sigma_space": 50,
+      "unsharp_amount": 1.8566200436127254,
+      "unsharp_radius": 3.914711710237714
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 192,
+        "333BBB": 109,
+        "333ccc": 143,
+        "555CCC": 35
+      },
+      "Q05_VeryGood": {
+        "222AAA": 149,
+        "333BBB": 147,
+        "333ccc": 174,
+        "555CCC": 34
+      },
+      "Q1_Poor": {
+        "222AAA": 158,
+        "333BBB": 184,
+        "333ccc": 223,
+        "555CCC": 84
+      },
+      "Q15_Medium": {
+        "222AAA": 421,
+        "333BBB": 611,
+        "333ccc": 550,
+        "555CCC": 359
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 739,
+        "333BBB": 835,
+        "333ccc": 745,
+        "555CCC": 664
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_10",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 13,
+      "clahe_clip": 1.0885971045260638,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 86,
+      "bilateral_sigma_space": 83,
+      "unsharp_amount": 1.6266996865200198,
+      "unsharp_radius": 2.6997629186726657
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 134,
+        "333BBB": 86,
+        "333ccc": 110,
+        "555CCC": 42
+      },
+      "Q05_VeryGood": {
+        "222AAA": 155,
+        "333BBB": 121,
+        "333ccc": 118,
+        "555CCC": 49
+      },
+      "Q1_Poor": {
+        "222AAA": 173,
+        "333BBB": 131,
+        "333ccc": 169,
+        "555CCC": 61
+      },
+      "Q15_Medium": {
+        "222AAA": 350,
+        "333BBB": 368,
+        "333ccc": 356,
+        "555CCC": 252
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 457,
+        "333BBB": 761,
+        "333ccc": 683,
+        "555CCC": 553
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_11",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 5,
+      "clahe_clip": 1.1674280630564442,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 83,
+      "bilateral_sigma_space": 78,
+      "unsharp_amount": 1.7415158074702923,
+      "unsharp_radius": 2.6040244706514253
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 163,
+        "333BBB": 98,
+        "333ccc": 100,
+        "555CCC": 7
+      },
+      "Q05_VeryGood": {
+        "222AAA": 140,
+        "333BBB": 123,
+        "333ccc": 132,
+        "555CCC": 58
+      },
+      "Q1_Poor": {
+        "222AAA": 154,
+        "333BBB": 128,
+        "333ccc": 213,
+        "555CCC": 52
+      },
+      "Q15_Medium": {
+        "222AAA": 490,
+        "333BBB": 534,
+        "333ccc": 571,
+        "555CCC": 373
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 868,
+        "333BBB": 785,
+        "333ccc": 750,
+        "555CCC": 678
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_12",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 5,
+      "clahe_clip": 1.1622111976284677,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 88,
+      "bilateral_sigma_space": 73,
+      "unsharp_amount": 1.8559200777812823,
+      "unsharp_radius": 4.013280639598856
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 197,
+        "333BBB": 108,
+        "333ccc": 142,
+        "555CCC": 38
+      },
+      "Q05_VeryGood": {
+        "222AAA": 171,
+        "333BBB": 148,
+        "333ccc": 187,
+        "555CCC": 30
+      },
+      "Q1_Poor": {
+        "222AAA": 179,
+        "333BBB": 194,
+        "333ccc": 205,
+        "555CCC": 73
+      },
+      "Q15_Medium": {
+        "222AAA": 517,
+        "333BBB": 596,
+        "333ccc": 573,
+        "555CCC": 347
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 807,
+        "333BBB": 851,
+        "333ccc": 715,
+        "555CCC": 669
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_13",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 5,
+      "clahe_clip": 1.0961504757202556,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 87,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.9003500006849017,
+      "unsharp_radius": 3.8750520371701196
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 178,
+        "333BBB": 117,
+        "333ccc": 111,
+        "555CCC": 33
+      },
+      "Q05_VeryGood": {
+        "222AAA": 153,
+        "333BBB": 158,
+        "333ccc": 165,
+        "555CCC": 29
+      },
+      "Q1_Poor": {
+        "222AAA": 166,
+        "333BBB": 169,
+        "333ccc": 206,
+        "555CCC": 78
+      },
+      "Q15_Medium": {
+        "222AAA": 460,
+        "333BBB": 594,
+        "333ccc": 588,
+        "555CCC": 359
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 744,
+        "333BBB": 881,
+        "333ccc": 905,
+        "555CCC": 637
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_14",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 13,
+      "clahe_clip": 1.159932802326897,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 69,
+      "bilateral_sigma_space": 78,
+      "unsharp_amount": 1.9027127572713471,
+      "unsharp_radius": 2.6040244706514253
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 126,
+        "333BBB": 101,
+        "333ccc": 107,
+        "555CCC": 5
+      },
+      "Q05_VeryGood": {
+        "222AAA": 162,
+        "333BBB": 102,
+        "333ccc": 101,
+        "555CCC": 45
+      },
+      "Q1_Poor": {
+        "222AAA": 173,
+        "333BBB": 102,
+        "333ccc": 175,
+        "555CCC": 47
+      },
+      "Q15_Medium": {
+        "222AAA": 345,
+        "333BBB": 390,
+        "333ccc": 327,
+        "555CCC": 265
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 505,
+        "333BBB": 768,
+        "333ccc": 671,
+        "555CCC": 577
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_15",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 7,
+      "clahe_clip": 1.0770353210459995,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 70,
+      "bilateral_sigma_space": 87,
+      "unsharp_amount": 1.6470908392469084,
+      "unsharp_radius": 1.4727287133450582
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 140,
+        "333BBB": 77,
+        "333ccc": 126,
+        "555CCC": 24
+      },
+      "Q05_VeryGood": {
+        "222AAA": 136,
+        "333BBB": 105,
+        "333ccc": 124,
+        "555CCC": 55
+      },
+      "Q1_Poor": {
+        "222AAA": 149,
+        "333BBB": 148,
+        "333ccc": 127,
+        "555CCC": 69
+      },
+      "Q15_Medium": {
+        "222AAA": 512,
+        "333BBB": 498,
+        "333ccc": 508,
+        "555CCC": 430
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 774,
+        "333BBB": 736,
+        "333ccc": 687,
+        "555CCC": 678
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_16",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 6,
+      "clahe_clip": 1.05695420988369,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 81,
+      "bilateral_sigma_space": 72,
+      "unsharp_amount": 1.8566200436127254,
+      "unsharp_radius": 4.096960500983585
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 173,
+        "333BBB": 113,
+        "333ccc": 124,
+        "555CCC": 32
+      },
+      "Q05_VeryGood": {
+        "222AAA": 153,
+        "333BBB": 130,
+        "333ccc": 137,
+        "555CCC": 27
+      },
+      "Q1_Poor": {
+        "222AAA": 148,
+        "333BBB": 134,
+        "333ccc": 178,
+        "555CCC": 75
+      },
+      "Q15_Medium": {
+        "222AAA": 487,
+        "333BBB": 531,
+        "333ccc": 604,
+        "555CCC": 319
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 839,
+        "333BBB": 803,
+        "333ccc": 793,
+        "555CCC": 689
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_17",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 7,
+      "clahe_clip": 1.0786453607907223,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 88,
+      "bilateral_sigma_space": 85,
+      "unsharp_amount": 1.9055262717989736,
+      "unsharp_radius": 1.4897336862290436
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 155,
+        "333BBB": 83,
+        "333ccc": 101,
+        "555CCC": 22
+      },
+      "Q05_VeryGood": {
+        "222AAA": 151,
+        "333BBB": 106,
+        "333ccc": 150,
+        "555CCC": 61
+      },
+      "Q1_Poor": {
+        "222AAA": 186,
+        "333BBB": 176,
+        "333ccc": 165,
+        "555CCC": 68
+      },
+      "Q15_Medium": {
+        "222AAA": 429,
+        "333BBB": 558,
+        "333ccc": 444,
+        "555CCC": 302
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 693,
+        "333BBB": 722,
+        "333ccc": 710,
+        "555CCC": 582
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_18",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 14,
+      "clahe_clip": 1.911057352502809,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 86,
+      "bilateral_sigma_space": 84,
+      "unsharp_amount": 1.865600995942909,
+      "unsharp_radius": 2.6997629186726657
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 200,
+        "333BBB": 176,
+        "333ccc": 146,
+        "555CCC": 5
+      },
+      "Q05_VeryGood": {
+        "222AAA": 189,
+        "333BBB": 166,
+        "333ccc": 192,
+        "555CCC": 46
+      },
+      "Q1_Poor": {
+        "222AAA": 225,
+        "333BBB": 211,
+        "333ccc": 190,
+        "555CCC": 30
+      },
+      "Q15_Medium": {
+        "222AAA": 334,
+        "333BBB": 407,
+        "333ccc": 404,
+        "555CCC": 288
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 523,
+        "333BBB": 828,
+        "333ccc": 683,
+        "555CCC": 511
+      }
+    }
+  },
+  {
+    "filter_id": "OpenCV_19",
+    "filter_type": "OpenCV",
+    "params": {
+      "denoise_h": 5,
+      "clahe_clip": 1.167614704293242,
+      "bilateral_d": 5,
+      "bilateral_sigma_color": 88,
+      "bilateral_sigma_space": 50,
+      "unsharp_amount": 1.7417699967243598,
+      "unsharp_radius": 3.914711710237714
+    },
+    "performance": {
+      "Q0_Pristine": {
+        "222AAA": 193,
+        "333BBB": 106,
+        "333ccc": 138,
+        "555CCC": 38
+      },
+      "Q05_VeryGood": {
+        "222AAA": 165,
+        "333BBB": 147,
+        "333ccc": 202,
+        "555CCC": 51
+      },
+      "Q1_Poor": {
+        "222AAA": 189,
+        "333BBB": 199,
+        "333ccc": 199,
+        "555CCC": 81
+      },
+      "Q15_Medium": {
+        "222AAA": 457,
+        "333BBB": 633,
+        "333ccc": 558,
+        "555CCC": 327
+      },
+      "Q2_MediumPoor": {
+        "222AAA": 802,
+        "333BBB": 859,
+        "333ccc": 680,
+        "555CCC": 632
+      }
+    }
+  }
+]

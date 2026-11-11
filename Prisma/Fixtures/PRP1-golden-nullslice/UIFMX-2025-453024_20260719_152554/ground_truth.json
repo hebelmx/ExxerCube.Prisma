@@ -1,0 +1,50 @@
+{
+  "docId": "UIFMX-2025-453024_20260719_152554",
+  "seed": 5001,
+  "chaosLevel": "none",
+  "requirementType": "fiscal",
+  "folioSiara": "UIFMX/2025/453024",
+  "numeroOficio": "UIFMX/2025/453024",
+  "numeroExpediente": "H/FI1-6128-374410-BBB",
+  "autoridadNombre": "Unidad de Inteligencia Financiera",
+  "recipientInstitucion": "Comisión Nacional Bancaria y de Valores",
+  "nombreSolicitante": "Adán de la Rosa Soliz",
+  "personaNombre": "Itzel Garza Camacho",
+  "personaRfc": "GACI580130W46",
+  "solicitudPartes": [
+    {
+      "nombre": "Itzel Garza Camacho",
+      "caracter": "Contribuyente"
+    }
+  ],
+  "monto": "$4,577,344.41",
+  "fechaDiligencia": "19/07/2026",
+  "juzgadoNombre": "Unidad de Inteligencia Financiera",
+  "ejercicio": "2026",
+  "bodyContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  },
+  "pdfContained": {
+    "numeroOficio": true,
+    "numeroExpediente": true,
+    "autoridadNombre": true,
+    "nombreSolicitante": true,
+    "personaNombre": true,
+    "personaRfc": true,
+    "monto": true,
+    "fechaDiligencia": true,
+    "juzgadoNombre": null,
+    "ejercicio": null,
+    "solicitudPartes": null
+  }
+}

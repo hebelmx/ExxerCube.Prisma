@@ -1,0 +1,106 @@
+﻿@inherits LayoutComponentBase
+@implements IDisposable
+
+<MudThemeProvider Theme="@_currentTheme" IsDarkMode="@_isDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudStaticNavDrawerToggle DrawerId="nav-drawer"
+                                  Icon="@Icons.Material.Filled.Menu"
+                                  Color="Color.Inherit"
+                                  Edge="Edge.Start"
+                                  AriaLabel="Open navigation menu" />
+        <MudText Typo="Typo.h5" Class="ml-3">ExxerCube.Prisma</MudText>
+        <MudSpacer />
+        <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" 
+                       Color="Color.Inherit" 
+                       Edge="Edge.End"
+                       OnClick="ToggleTheme"
+                       Title="@(_isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode")" />
+    </MudAppBar>
+    <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+        <NavMenu />
+    </MudDrawer>
+    <MudMainContent Class="pt-16 pa-4">
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+@code {
+    private bool _drawerOpen = true;
+    private bool _isDarkMode = true;
+    private MudTheme _currentTheme = new();
+
+    protected override void OnInitialized()
+    {
+        // Load theme preference from localStorage or use default
+        _isDarkMode = true; // Default to dark mode
+        _currentTheme = CreateTheme(_isDarkMode);
+    }
+
+    private void ToggleTheme()
+    {
+        _isDarkMode = !_isDarkMode;
+        _currentTheme = CreateTheme(_isDarkMode);
+        StateHasChanged();
+    }
+
+    private static MudTheme CreateTheme(bool isDarkMode)
+    {
+        if (isDarkMode)
+        {
+            return new MudTheme
+            {
+                PaletteDark = new PaletteDark
+                {
+                    Primary = "#1976D2",
+                    Secondary = "#424242",
+                    Success = "#4CAF50",
+                    Warning = "#FF9800",
+                    Error = "#F44336",
+                    Info = "#2196F3",
+                    Background = "#121212",
+                    Surface = "#1E1E1E",
+                    AppbarBackground = "#1976D2",
+                    DrawerBackground = "#1E1E1E",
+                    DrawerText = "rgba(255,255,255, 0.87)"
+                }
+            };
+        }
+        else
+        {
+            return new MudTheme
+            {
+                PaletteLight = new PaletteLight
+                {
+                    Primary = "#1976D2",
+                    Secondary = "#424242",
+                    Success = "#4CAF50",
+                    Warning = "#FF9800",
+                    Error = "#F44336",
+                    Info = "#2196F3",
+                    Background = "#FAFAFA",
+                    Surface = "#FFFFFF",
+                    AppbarBackground = "#1976D2",
+                    DrawerBackground = "#FFFFFF",
+                    DrawerText = "#212121"
+                }
+            };
+        }
+    }
+
+    public void Dispose()
+    {
+        // Cleanup if needed
+    }
+}
+

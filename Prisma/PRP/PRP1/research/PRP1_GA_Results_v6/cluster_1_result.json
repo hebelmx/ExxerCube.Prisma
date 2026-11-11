@@ -1,0 +1,19 @@
+{
+  "status": "optimized",
+  "cluster_id": 1,
+  "n_images": 17,
+  "best_edit_distance": 233.0,
+  "best_params": {
+    "contrast": 0.707,
+    "brightness": 1.08,
+    "sharpness": 2.569,
+    "median_size": 0,
+    "unsharp_radius": 2.215,
+    "unsharp_percent": 200,
+    "unsharp_threshold": 1,
+    "scan_removal": 0,
+    "morph_kernel_w": 13,
+    "morph_kernel_h": 3,
+    "bilateral": 0
+  }
+}

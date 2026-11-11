@@ -1,0 +1,156 @@
+---
+description: Constructor-Patterns-in-Functional.NET-Applications
+globs:
+alwaysApply: false
+---
+
+
+# Formalized Constructor Patterns for Functional .NET Systems
+
+## Objective
+
+To provide a transition path from traditional object construction to functional instantiation patterns using `Result<T>` in .NET applications. These rules ensure validation consistency, maintain functional integrity, and support extensibility via dependency injection (DI).
+
+---
+
+## Pattern 1: Static Validator Method (Non-Constructive)
+
+### Intent
+
+Encapsulate validation logic within the target class while preserving the existing constructor structure. This allows for non-exception-based validation prior to object instantiation.
+
+### Implementation
+
+```csharp
+public class CommandRouter
+{
+     public Lock locl
+    public static Result ValidateConstructorParameters(AgentCommands agentCommands, TaskCommands taskCommands, WorkflowCommands workflowCommands)
+    {
+        return ResultExtensions.ValidateNotNull(
+            (agentCommands, nameof(agentCommands)),
+            (taskCommands, nameof(taskCommands)),
+            (workflowCommands, nameof(workflowCommands))
+        );
+    }
+
+    public CommandRouter(AgentCommands agentCommands, TaskCommands taskCommands, WorkflowCommands workflowCommands)
+    {
+        AgentCommands = agentCommands;
+        TaskCommands = taskCommands;
+        WorkflowCommands = workflowCommands;
+    }
+}
+```
+
+### Usage
+
+```csharp
+var result = CommandRouter.ValidateConstructorParameters(...);
+if (result.IsFailure) return result;
+
+var instance = new CommandRouter(...);
+```
+
+---
+
+## Pattern 2: Static Builder Method (Constructive)
+
+### Intent
+
+Offer a centralized, functional entry point for object creation that returns `Result<T>`, encapsulating both validation and instantiation logic.
+
+### Implementation
+
+```csharp
+public class CommandRouter
+{
+    private CommandRouter(AgentCommands agentCommands, TaskCommands taskCommands, WorkflowCommands workflowCommands)
+    {
+        AgentCommands = agentCommands;
+        TaskCommands = taskCommands;
+        WorkflowCommands = workflowCommands;
+    }
+
+    public static Result<CommandRouter> Build(AgentCommands agentCommands, TaskCommands taskCommands, WorkflowCommands workflowCommands)
+    {
+        var validation = ValidateConstructorParameters(agentCommands, taskCommands, workflowCommands);
+        return validation.IsFailure
+            ? Result<CommandRouter>.WithFailure(validation.Error!)
+            : Result<CommandRouter>.Success(new CommandRouter(agentCommands, taskCommands, workflowCommands));
+    }
+}
+```
+
+### Usage
+
+```csharp
+var result = CommandRouter.Build(...);
+if (result.IsSuccess)
+{
+    var instance = result.Value;
+}
+```
+
+---
+
+## Pattern 3: Injectable Builder Class
+
+### Intent
+
+Provide a dedicated, DI-compliant construction service for class instantiation that encapsulates validation and maintains separation of concerns.
+
+### Implementation
+
+```csharp
+public class CommandRouterBuilder
+{
+    public Result<CommandRouter> Build(AgentCommands agentCommands, TaskCommands taskCommands, WorkflowCommands workflowCommands)
+    {
+        var validation = CommandRouter.ValidateConstructorParameters(agentCommands, taskCommands, workflowCommands);
+        return validation.IsFailure
+            ? Result<CommandRouter>.WithFailure(validation.Error!)
+            : Result<CommandRouter>.Success(new CommandRouter(agentCommands, taskCommands, workflowCommands));
+    }
+}
+```
+
+### Dependency Injection
+
+```csharp
+services.AddScoped<CommandRouterBuilder>();
+```
+
+### Usage in Consumer
+
+```csharp
+public class SomeService
+{
+    private readonly CommandRouterBuilder _builder;
+
+    public SomeService(CommandRouterBuilder builder)
+    {
+        _builder = builder;
+    }
+
+    public async Task<Result> ExecuteAsync()
+    {
+        var result = _builder.Build(...);
+        if (result.IsFailure) return result.ToResult();
+
+        var router = result.Value;
+        // Proceed with logic...
+        return Result.Success();
+    }
+}
+```
+
+---
+
+## Comparison Table
+
+| Pattern Type              | Use Case                                 | Pros                                        | Cons                                      |
+|---------------------------|-------------------------------------------|---------------------------------------------|-------------------------------------------|
+| Static Validator Method   | Legacy preservation, quick validation     | Minimal changes, fast adoption              | Separate validation from instantiation    |
+| Static Builder Method     | Centralized creation logic                | Functional purity, encapsulation            | Requires transition to method-based usage |
+| Injectable Builder Class  | Full DI integration, complex systems      | High extensibility, clean separation        | DI setup required                         |

@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Expediente xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_NumeroOficio>222/AAA/-4444444444/2025</Cnbv_NumeroOficio>
+  <Cnbv_NumeroExpediente>A/AS1-1111-222222-AAA    </Cnbv_NumeroExpediente>
+  <Cnbv_SolicitudSiara>AGAFADAFSON2/2025/000084</Cnbv_SolicitudSiara>
+  <Cnbv_Folio>6789</Cnbv_Folio>
+  <Cnbv_OficioYear>2025</Cnbv_OficioYear>
+  <Cnbv_AreaClave>3</Cnbv_AreaClave>
+  <Cnbv_AreaDescripcion>ASEGURAMIENTO</Cnbv_AreaDescripcion>
+  <Cnbv_FechaPublicacion>2025-06-05</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>7</Cnbv_DiasPlazo>
+  <AutoridadNombre>SUBDELEGACION 8 SAN ANGEL</AutoridadNombre>
+  <NombreSolicitante xsi:nil="true" />
+  <Referencia>                         </Referencia>
+  <Referencia1>                         </Referencia1>
+  <Referencia2>IMSSCOB/40/01/001283/2025</Referencia2>
+  <TieneAseguramiento>true</TieneAseguramiento>
+  <SolicitudPartes>
+    <ParteId>1</ParteId>
+    <Caracter>Patrón Determinado</Caracter>
+    <Persona>Moral</Persona>
+    <Paterno />
+    <Materno />
+    <Nombre>AEROLINEAS PAYASO ORGULLO NACIONAL</Nombre>
+    <Rfc>             </Rfc>
+  </SolicitudPartes>
+  <SolicitudEspecifica>
+    <SolicitudEspecificaId>1</SolicitudEspecificaId>
+    <InstruccionesCuentasPorConocer>“Para efectos de la inmunización ordenada en el presente oficio se solicita instruye a las instituciones de crédito y entidades financieras para que los depósitos se encuentran sean identificados inmovilizados retenidos y conservados a disposición del de doble pago en caso de desobediencia en términos de la instituto mexicano del seguro social hasta por el monto antes indicado no así el excedente que pudiera existir a la cuenta objeto del embargo apercibiéndoles dispuestos en el artículo 160 del código fiscal de la federación exceptuando de embargo de las cuentas destinadas al pago de sueldos y salarios de conformidad con lo señalado en el artículo 157 fracción x del mismo ordenamiento legal.
+Así mismo debe de estar a lo preceptuado en los artículos 142 de la ley de los instituciones de crédito y 192 de la ley de mercado de valores.
+Finalmente es importante que esa H. Comisión nos de a conocer los datos sobre el importe de los depósitos inmovilizados y el número y tipo de cuenta la fecha de inmovilización así como la denominación de las instituciones de crédito o entidad financiera en donde se localizan los saldos”</InstruccionesCuentasPorConocer>
+    <PersonasSolicitud>
+      <PersonaId>1</PersonaId>
+      <Caracter>Patrón Determinado</Caracter>
+      <Persona>Moral</Persona>
+      <Paterno />
+      <Materno />
+      <Nombre>EAEROLÍNEAS PAYASO ORGULLO NACIONALIVE, S.A. DE C.V.</Nombre>
+      <Rfc>APON33333444</Rfc>
+      <Relacion />
+      <Domicilio>Pza. de la Constitución S/N  CP 066V60 Col centro , CDMX</Domicilio>
+      <Complementarios>Y33 W 22512 01</Complementarios>
+    </PersonasSolicitud>
+  </SolicitudEspecifica>
+</Expediente>

@@ -1,0 +1,47 @@
+@if (IsLoading)
+{
+    <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+        <MudPaper Class="pa-6" Elevation="2">
+            <MudStack AlignItems="AlignItems.Center" Spacing="3">
+                <MudProgressCircular 
+                    Indeterminate="true" 
+                    Color="@Color" 
+                    Size="Size.Large" 
+                    Class="mb-2" />
+                @if (!string.IsNullOrEmpty(Message))
+                {
+                    <MudText Typo="Typo.body1" Align="Align.Center">
+                        @Message
+                    </MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body1" Align="Align.Center">
+                        Loading...
+                    </MudText>
+                }
+            </MudStack>
+        </MudPaper>
+    </MudContainer>
+}
+
+@code {
+    /// <summary>
+    /// Gets or sets whether the loading spinner is visible.
+    /// </summary>
+    [Parameter]
+    public bool IsLoading { get; set; }
+
+    /// <summary>
+    /// Gets or sets the loading message to display.
+    /// </summary>
+    [Parameter]
+    public string? Message { get; set; }
+
+    /// <summary>
+    /// Gets or sets the color of the loading spinner.
+    /// </summary>
+    [Parameter]
+    public Color Color { get; set; } = Color.Primary;
+}
+

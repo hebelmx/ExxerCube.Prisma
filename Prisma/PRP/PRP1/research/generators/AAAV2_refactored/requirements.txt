@@ -1,0 +1,19 @@
+# Core dependencies
+faker>=20.0.0
+jinja2>=3.1.0
+python-docx>=1.1.0
+markdown>=3.5.0
+
+# Export (Chrome/Edge already installed - no additional deps needed for PDF)
+
+# LLM Integration
+requests>=2.31.0
+tqdm>=4.66.0
+
+# Validation
+jsonschema>=4.20.0
+lxml>=5.0.0
+
+# Utilities
+pyyaml>=6.0.0
+python-dateutil>=2.8.0

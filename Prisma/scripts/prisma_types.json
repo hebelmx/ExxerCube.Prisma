@@ -1,0 +1,3542 @@
+{
+  "scan_date": "2025-11-17T19:21:23.755147",
+  "base_path": "Prisma",
+  "statistics": {
+    "total_types": 299,
+    "total_namespaces": 60,
+    "total_projects": 27,
+    "types_by_kind": {
+      "class": 240,
+      "enum": 14,
+      "struct": 2,
+      "interface": 32
+    }
+  },
+  "type_lookup": {
+    "PlaywrightBrowserAutomationAdapter": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.BrowserAutomation",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.BrowserAutomation"
+    },
+    "BrowserAutomationOptions": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.BrowserAutomation",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.BrowserAutomation"
+    },
+    "FieldMatcherService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Classification"
+    },
+    "FileClassifierService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Classification"
+    },
+    "LegalDirectiveClassifierService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Classification"
+    },
+    "MatchingPolicyOptions": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Classification"
+    },
+    "FieldMatchingRule": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Classification"
+    },
+    "MatchingPolicyService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Classification"
+    },
+    "PersonIdentityResolverService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Classification"
+    },
+    "AuditLoggerService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "AuditOptions": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "AuditRetentionOptions": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "DownloadTrackerService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "FileMetadataLoggerService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "ManualReviewerService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "SLAEnforcerService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "SLAOptions": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "SLAUpdateOptions": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "CertificateOptions": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Export"
+    },
+    "CompositeResponseExporter": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Export"
+    },
+    "CriterionMapperService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Export"
+    },
+    "DigitalPdfSigner": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Export"
+    },
+    "ExcelLayoutGenerator": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Export"
+    },
+    "PdfRequirementSummarizerService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Export"
+    },
+    "SiroXmlExporter": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Export"
+    },
+    "CompositeMetadataExtractor": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Extraction"
+    },
+    "DocxFieldExtractor": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Extraction"
+    },
+    "DocxMetadataExtractor": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Extraction"
+    },
+    "FileTypeIdentifierService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Extraction"
+    },
+    "PdfMetadataExtractor": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Extraction"
+    },
+    "PdfOcrFieldExtractor": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Extraction"
+    },
+    "XmlExpedienteParser": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Extraction"
+    },
+    "XmlMetadataExtractor": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Extraction"
+    },
+    "FileMoverService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.FileStorage",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.FileStorage"
+    },
+    "FileSystemDownloadStorageAdapter": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.FileStorage",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.FileStorage"
+    },
+    "FileStorageOptions": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.FileStorage",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.FileStorage"
+    },
+    "SafeFileNamerService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.FileStorage",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.FileStorage"
+    },
+    "PlaywrightConfig": {
+      "namespace": "ExxerCube.Prisma.Tests",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests"
+    },
+    "TestConfiguration": {
+      "namespace": "ExxerCube.Prisma.Tests",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests"
+    },
+    "IIManualReviewerPanelTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Domain.Interfaces",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Domain.Interfaces"
+    },
+    "IPersonIdentityResolverContractExecutionTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Domain.Interfaces",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Domain.Interfaces"
+    },
+    "PlaywrightEndToEndTests": {
+      "namespace": "ExxerCube.Prisma.Tests.EndToEnd",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.EndToEnd"
+    },
+    "FieldMatcherServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Classification"
+    },
+    "FileClassifierServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Classification"
+    },
+    "LegalDirectiveClassifierServiceEdgeCaseTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Classification"
+    },
+    "LegalDirectiveClassifierServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Classification"
+    },
+    "MatchingPolicyOptionsTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Classification"
+    },
+    "MatchingPolicyServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Classification"
+    },
+    "PersonIdentityResolverServiceEdgeCaseTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Classification"
+    },
+    "PersonIdentityResolverServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Classification"
+    },
+    "AuditLoggerIntegrationTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database"
+    },
+    "AuditLoggerServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database"
+    },
+    "DownloadTrackerServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database"
+    },
+    "EfCoreRepositoryTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database"
+    },
+    "FileMetadataLoggerServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database"
+    },
+    "ManualReviewerServiceIntegrationTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database"
+    },
+    "ManualReviewerServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database"
+    },
+    "SLAEnforcerServiceIntegrationTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database"
+    },
+    "SLAEnforcerServicePerformanceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database"
+    },
+    "SLAEnforcerServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database"
+    },
+    "DigitalPdfSignerTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Export"
+    },
+    "ExportIntegrationTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Export"
+    },
+    "PdfExportPerformanceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Export"
+    },
+    "PdfRequirementSummarizerServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Export"
+    },
+    "CompositeMetadataExtractorTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Extraction"
+    },
+    "DocxFieldExtractorTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Extraction"
+    },
+    "DocxMetadataExtractorTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Extraction"
+    },
+    "FileTypeIdentifierServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Extraction"
+    },
+    "PdfMetadataExtractorTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Extraction"
+    },
+    "PdfOcrFieldExtractorEnhancedTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Extraction"
+    },
+    "PdfOcrFieldExtractorTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Extraction"
+    },
+    "XmlExpedienteParserTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Extraction"
+    },
+    "XmlMetadataExtractorTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Extraction"
+    },
+    "FileSystemDownloadStorageAdapterTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.FileStorage",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.FileSystem"
+    },
+    "FileSystemLoaderTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.FileSystem",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.FileSystem"
+    },
+    "FileSystemOutputWriterTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.FileSystem",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.FileSystem"
+    },
+    "EndToEndPipelineTests": {
+      "namespace": "ExxerCube.Prisma.Tests.System",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.System"
+    },
+    "DocumentProcessingController": {
+      "namespace": "ExxerCube.Prisma.Web.UI.Controllers",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI"
+    },
+    "HealthCheckController": {
+      "namespace": "ExxerCube.Prisma.Web.UI.Controllers",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI"
+    },
+    "MetricsController": {
+      "namespace": "ExxerCube.Prisma.Web.UI.Controllers",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI"
+    },
+    "ApplicationDbContext": {
+      "namespace": "ExxerCube.Prisma.Web.UI.Data",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI"
+    },
+    "ApplicationUser": {
+      "namespace": "ExxerCube.Prisma.Web.UI.Data",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI"
+    },
+    "ProcessingHub": {
+      "namespace": "ExxerCube.Prisma.Web.UI.Hubs",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI"
+    },
+    "ProcessingResponse": {
+      "namespace": "ExxerCube.Prisma.Web.UI.Models",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI"
+    },
+    "ProcessingStatusResponse": {
+      "namespace": "ExxerCube.Prisma.Web.UI.Models",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI"
+    },
+    "ProcessingResultResponse": {
+      "namespace": "ExxerCube.Prisma.Web.UI.Models",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI"
+    },
+    "DashboardMetrics": {
+      "namespace": "ExxerCube.Prisma.Web.UI.Models",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI"
+    },
+    "SLACaseViewModel": {
+      "namespace": "ExxerCube.Prisma.Web.UI.Models",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI"
+    },
+    "CreateIdentitySchema": {
+      "namespace": "ExxerCube.Prisma.Web.UI.Migrations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI"
+    },
+    "IdentityComponentsEndpointRouteBuilderExtensions": {
+      "namespace": "Microsoft.AspNetCore.Routing",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI"
+    },
+    "IdentityNoOpEmailSender": {
+      "namespace": "ExxerCube.Prisma.Web.UI.Components.Account",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI"
+    },
+    "IdentityRedirectManager": {
+      "namespace": "ExxerCube.Prisma.Web.UI.Components.Account",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI"
+    },
+    "IdentityRevalidatingAuthenticationStateProvider": {
+      "namespace": "ExxerCube.Prisma.Web.UI.Components.Account",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI"
+    },
+    "IdentityUserAccessor": {
+      "namespace": "ExxerCube.Prisma.Web.UI.Components.Account",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI"
+    },
+    "SentenceTransformer": {
+      "namespace": "TransformersSharp",
+      "kind": "class",
+      "project": "TransformersSharp"
+    },
+    "TorchDtypeAttribute": {
+      "namespace": "TransformersSharp",
+      "kind": "class",
+      "project": "TransformersSharp"
+    },
+    "TorchDtype": {
+      "namespace": "TransformersSharp",
+      "kind": "enum",
+      "project": "TransformersSharp"
+    },
+    "TransformerEnvironment": {
+      "namespace": "TransformersSharp",
+      "kind": "class",
+      "project": "TransformersSharp"
+    },
+    "SentenceTransformerTests": {
+      "namespace": "TransformersSharp.Tests",
+      "kind": "class",
+      "project": "TransformersSharp.Tests"
+    },
+    "TransformerEnvironmentTest": {
+      "namespace": "TransformersSharp.Tests",
+      "kind": "class",
+      "project": "TransformersSharp.Tests"
+    },
+    "TransformerSharpMEAITests": {
+      "namespace": "TransformersSharp.Tests",
+      "kind": "class",
+      "project": "TransformersSharp.Tests"
+    },
+    "TextGenerationPipelineChatClient": {
+      "namespace": "TransformersSharp.MEAI",
+      "kind": "class",
+      "project": "TransformersSharp"
+    },
+    "SpeechToTextClient": {
+      "namespace": "TransformersSharp.MEAI",
+      "kind": "class",
+      "project": "TransformersSharp"
+    },
+    "ImageData": {
+      "namespace": "Unknown",
+      "kind": "struct",
+      "project": "TransformersSharp"
+    },
+    "ImagePixelMode": {
+      "namespace": "Unknown",
+      "kind": "enum",
+      "project": "TransformersSharp"
+    },
+    "AutomaticSpeechRecognitionPipeline": {
+      "namespace": "TransformersSharp.Pipelines",
+      "kind": "class",
+      "project": "TransformersSharp"
+    },
+    "ImageClassificationPipeline": {
+      "namespace": "TransformersSharp.Pipelines",
+      "kind": "class",
+      "project": "TransformersSharp"
+    },
+    "ClassificationResult": {
+      "namespace": "TransformersSharp.Pipelines",
+      "kind": "struct",
+      "project": "TransformersSharp"
+    },
+    "ObjectDetectionPipeline": {
+      "namespace": "TransformersSharp.Pipelines",
+      "kind": "class",
+      "project": "TransformersSharp"
+    },
+    "Pipeline": {
+      "namespace": "TransformersSharp.Pipelines",
+      "kind": "class",
+      "project": "TransformersSharp"
+    },
+    "TextClassificationPipeline": {
+      "namespace": "TransformersSharp.Pipelines",
+      "kind": "class",
+      "project": "TransformersSharp"
+    },
+    "TextGenerationPipeline": {
+      "namespace": "TransformersSharp.Pipelines",
+      "kind": "class",
+      "project": "TransformersSharp"
+    },
+    "TextToAudioPipeline": {
+      "namespace": "TransformersSharp.Pipelines",
+      "kind": "class",
+      "project": "TransformersSharp"
+    },
+    "PreTrainedTokenizerBase": {
+      "namespace": "TransformersSharp.Tokenizers",
+      "kind": "class",
+      "project": "TransformersSharp"
+    },
+    "ResultTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Domain.Common",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Domain"
+    },
+    "OrderRepositoryTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Domain.Repositories",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Domain"
+    },
+    "AuditReportingServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "ConfigurationValidationServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "DecisionLogicIntegrationTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "DecisionLogicServiceEdgeCaseTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "DecisionLogicServiceManualReviewTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "DecisionLogicServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "DocumentIngestionIntegrationTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "DocumentIngestionServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "ExportServicePerformanceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "ExportServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "FieldMatchingIntegrationTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "FieldMatchingPerformanceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "FieldMatchingServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "FileMetadataQueryServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "ManualReviewIntegrationTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "MetadataExtractionIntegrationTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "MetadataExtractionPerformanceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "MetadataExtractionServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "OcrProcessingServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "PerformanceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "SLATrackingServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application"
+    },
+    "PythonInteropServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests"
+    },
+    "FileMoverServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.FileStorage",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests"
+    },
+    "SafeFileNamerServiceTests": {
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.FileStorage",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests"
+    },
+    "TestImageDataGenerator": {
+      "namespace": "ExxerCube.Prisma.Tests.TestData",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests"
+    },
+    "TestFixtureBase": {
+      "namespace": "ExxerCube.Prisma.Testing.Abstractions",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Testing.Abstractions"
+    },
+    "IPersonIdentityResolverContractTests": {
+      "namespace": "ExxerCube.Prisma.Testing.Contracts",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Testing.Contracts"
+    },
+    "PythonEnvironmentTestFixture": {
+      "namespace": "ExxerCube.Prisma.Testing.Python",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Testing.Python"
+    },
+    "ITestLogger": {
+      "namespace": "ExxerCube.Prisma.Testing.Infrastructure.Logging",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Testing.Infrastructure"
+    },
+    "NoOpLogger": {
+      "namespace": "ExxerCube.Prisma.Testing.Infrastructure.Logging",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Testing.Infrastructure"
+    },
+    "TestLoggerFactory": {
+      "namespace": "ExxerCube.Prisma.Testing.Infrastructure.Logging",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Testing.Infrastructure"
+    },
+    "XUnitLoggerAdapter": {
+      "namespace": "ExxerCube.Prisma.Testing.Infrastructure.Logging",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Testing.Infrastructure"
+    },
+    "ServiceCollectionExtensions": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.FileStorage.DependencyInjection",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.FileStorage"
+    },
+    "IPrismaDbContext": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.EntityFramework",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "PrismaDbContext": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.EntityFramework",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "Repository": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.EntityFramework",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "SLABackgroundJobHealthCheck": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.HealthChecks",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "SLAEnforcerHealthCheck": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.HealthChecks",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "SLAMetricsCollector": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Metrics",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "AddSLAStatusTable": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Migrations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "AddAuditRecordsTable": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Migrations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "AddReviewCasesAndReviewDecisionsTables": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Migrations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "AddFileMetadataTable": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Migrations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "EfCoreRepository": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Repositories",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "SpecificationEvaluator": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Repositories",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "ResilientSLAEnforcerService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Resilience",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "SLAResilienceOptions": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Resilience",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "AuditRetentionBackgroundService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "QueuedAuditProcessorService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "QueuedAuditLoggerService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "SLAUpdateBackgroundService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "AuditRecordConfiguration": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "FileMetadataConfiguration": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "PersonaConfiguration": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "ReviewCaseConfiguration": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "ReviewDecisionConfiguration": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "SLAStatusConfiguration": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database"
+    },
+    "FileSystemLoader": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.FileSystem",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure"
+    },
+    "FileSystemOutputWriter": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.FileSystem",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure"
+    },
+    "CircuitBreakerPythonInteropService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Python",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure"
+    },
+    "CircuitBreakerState": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Python",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure"
+    },
+    "CircuitBreakerStatus": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Python",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Infrastructure"
+    },
+    "OcrProcessingAdapter": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Python",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure"
+    },
+    "PrismaOcrService": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Python",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure"
+    },
+    "PrismaPythonEnvironment": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Python",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure"
+    },
+    "PythonConfiguration": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Python",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure"
+    },
+    "PythonEnvironmentExtensions": {
+      "namespace": "ExxerCube.Prisma.Infrastructure.Python",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure"
+    },
+    "AmountData": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "AuditActionType": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "AuditRecord": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ClassificationLevel1": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ClassificationLevel2": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ClassificationScores": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ComplianceAction": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ComplianceActionType": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ComplianceRequirement": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "DecisionType": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "DocxSource": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "EscalationLevel": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "Expediente": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ExtractedFields": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ExtractedMetadata": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "FieldAnnotations": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "FieldAnnotation": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "FieldDefinition": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "FieldMatchResult": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "FieldValue": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "FileMetadata": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "MatchedFields": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "OCRConfig": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "OCRResult": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "Oficio": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "PdfSource": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "Persona": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ProcessingConfig": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ProcessingResult": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ProcessingStage": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "RequirementSummary": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ReviewCase": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ReviewDecision": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ReviewFilters": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ReviewReason": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ReviewStatus": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "SLAStatus": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "SolicitudEspecifica": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "SolicitudParte": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "UnifiedMetadataRecord": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "XmlSource": {
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IAuditLogger": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "DownloadableFile": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "DownloadedFile": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IBrowserAutomationAgent": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "FileFormat": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ICriterionMapper": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IDownloadStorage": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IDownloadTracker": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IFieldExtractor": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IFieldMatcher": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IFileClassifier": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IFileLoader": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IFileMetadataLogger": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IFileMover": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IFileTypeIdentifier": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IImagePreprocessor": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ILayoutGenerator": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ILegalDirectiveClassifier": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IManualReviewerPanel": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IMatchingPolicy": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IMetadataExtractor": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IOcrExecutor": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IOcrProcessingService": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IOutputWriter": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IPdfRequirementSummarizer": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IPersonIdentityResolver": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IPythonInteropService": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IResponseExporter": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ISafeFileNamer": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ISLAEnforcer": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IXmlNullableParser": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "FileMetadataFiltersSpecification": {
+      "namespace": "ExxerCube.Prisma.Domain.Specifications",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "IRepository": {
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces.Contracts",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "ISpecification": {
+      "namespace": "Unknown",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain"
+    },
+    "AuditReportingService": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "ConfigurationValidationResult": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "ConfigurationValidationService": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "DecisionLogicResult": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "DecisionLogicService": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "DocumentIngestionService": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "DownloadStatistics": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "ExportService": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "FieldMatchingService": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "FileDownloadResult": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "FileDownloadService": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "FileMetadataQueryService": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "HealthCheckReport": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "HealthCheckResult": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "HealthCheckService": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "HealthStatus": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "MetadataExtractionResult": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "MetadataExtractionService": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "OcrProcessingService": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "PerformanceValidation": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "ProcessingContext": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "ProcessingEvent": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "ProcessingMetrics": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "ProcessingMetricsService": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "ProcessingStatistics": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "SLATrackingService": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "ThroughputStatistics": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    },
+    "ValidationResult": {
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application"
+    }
+  },
+  "all_types": {
+    "ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter": {
+      "name": "PlaywrightBrowserAutomationAdapter",
+      "namespace": "ExxerCube.Prisma.Infrastructure.BrowserAutomation",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.BrowserAutomation",
+      "file": "code\\src\\CSharp\\Infrastructure.BrowserAutomation\\PlaywrightBrowserAutomationAdapter.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.BrowserAutomation.BrowserAutomationOptions": {
+      "name": "BrowserAutomationOptions",
+      "namespace": "ExxerCube.Prisma.Infrastructure.BrowserAutomation",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.BrowserAutomation",
+      "file": "code\\src\\CSharp\\Infrastructure.BrowserAutomation\\PlaywrightBrowserAutomationAdapter.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Classification.FieldMatcherService": {
+      "name": "FieldMatcherService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Classification",
+      "file": "code\\src\\CSharp\\Infrastructure.Classification\\FieldMatcherService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Classification.FileClassifierService": {
+      "name": "FileClassifierService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Classification",
+      "file": "code\\src\\CSharp\\Infrastructure.Classification\\FileClassifierService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Classification.LegalDirectiveClassifierService": {
+      "name": "LegalDirectiveClassifierService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Classification",
+      "file": "code\\src\\CSharp\\Infrastructure.Classification\\LegalDirectiveClassifierService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Classification.MatchingPolicyOptions": {
+      "name": "MatchingPolicyOptions",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Classification",
+      "file": "code\\src\\CSharp\\Infrastructure.Classification\\MatchingPolicyOptions.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Classification.FieldMatchingRule": {
+      "name": "FieldMatchingRule",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Classification",
+      "file": "code\\src\\CSharp\\Infrastructure.Classification\\MatchingPolicyOptions.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Classification.MatchingPolicyService": {
+      "name": "MatchingPolicyService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Classification",
+      "file": "code\\src\\CSharp\\Infrastructure.Classification\\MatchingPolicyService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Classification.PersonIdentityResolverService": {
+      "name": "PersonIdentityResolverService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Classification",
+      "file": "code\\src\\CSharp\\Infrastructure.Classification\\PersonIdentityResolverService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.AuditLoggerService": {
+      "name": "AuditLoggerService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\AuditLoggerService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.AuditOptions": {
+      "name": "AuditOptions",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\AuditOptions.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.AuditRetentionOptions": {
+      "name": "AuditRetentionOptions",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\AuditRetentionOptions.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.DownloadTrackerService": {
+      "name": "DownloadTrackerService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\DownloadTrackerService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.FileMetadataLoggerService": {
+      "name": "FileMetadataLoggerService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\FileMetadataLoggerService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.ManualReviewerService": {
+      "name": "ManualReviewerService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\ManualReviewerService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.SLAEnforcerService": {
+      "name": "SLAEnforcerService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\SLAEnforcerService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.SLAOptions": {
+      "name": "SLAOptions",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\SLAOptions.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.SLAUpdateOptions": {
+      "name": "SLAUpdateOptions",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\SLAUpdateOptions.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Export.CertificateOptions": {
+      "name": "CertificateOptions",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Export",
+      "file": "code\\src\\CSharp\\Infrastructure.Export\\CertificateOptions.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Export.CompositeResponseExporter": {
+      "name": "CompositeResponseExporter",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Export",
+      "file": "code\\src\\CSharp\\Infrastructure.Export\\CompositeResponseExporter.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Export.CriterionMapperService": {
+      "name": "CriterionMapperService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Export",
+      "file": "code\\src\\CSharp\\Infrastructure.Export\\CriterionMapperService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Export.DigitalPdfSigner": {
+      "name": "DigitalPdfSigner",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Export",
+      "file": "code\\src\\CSharp\\Infrastructure.Export\\DigitalPdfSigner.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Export.ExcelLayoutGenerator": {
+      "name": "ExcelLayoutGenerator",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Export",
+      "file": "code\\src\\CSharp\\Infrastructure.Export\\ExcelLayoutGenerator.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Export.PdfRequirementSummarizerService": {
+      "name": "PdfRequirementSummarizerService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Export",
+      "file": "code\\src\\CSharp\\Infrastructure.Export\\PdfRequirementSummarizerService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Export.SiroXmlExporter": {
+      "name": "SiroXmlExporter",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Export",
+      "file": "code\\src\\CSharp\\Infrastructure.Export\\SiroXmlExporter.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Extraction.CompositeMetadataExtractor": {
+      "name": "CompositeMetadataExtractor",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "file": "code\\src\\CSharp\\Infrastructure.Extraction\\CompositeMetadataExtractor.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Extraction.DocxFieldExtractor": {
+      "name": "DocxFieldExtractor",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "file": "code\\src\\CSharp\\Infrastructure.Extraction\\DocxFieldExtractor.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Extraction.DocxMetadataExtractor": {
+      "name": "DocxMetadataExtractor",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "file": "code\\src\\CSharp\\Infrastructure.Extraction\\DocxMetadataExtractor.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Extraction.FileTypeIdentifierService": {
+      "name": "FileTypeIdentifierService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "file": "code\\src\\CSharp\\Infrastructure.Extraction\\FileTypeIdentifierService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Extraction.PdfMetadataExtractor": {
+      "name": "PdfMetadataExtractor",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "file": "code\\src\\CSharp\\Infrastructure.Extraction\\PdfMetadataExtractor.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Extraction.PdfOcrFieldExtractor": {
+      "name": "PdfOcrFieldExtractor",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "file": "code\\src\\CSharp\\Infrastructure.Extraction\\PdfOcrFieldExtractor.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Extraction.XmlExpedienteParser": {
+      "name": "XmlExpedienteParser",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "file": "code\\src\\CSharp\\Infrastructure.Extraction\\XmlExpedienteParser.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Extraction.XmlMetadataExtractor": {
+      "name": "XmlMetadataExtractor",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "file": "code\\src\\CSharp\\Infrastructure.Extraction\\XmlMetadataExtractor.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.FileStorage.FileMoverService": {
+      "name": "FileMoverService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.FileStorage",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.FileStorage",
+      "file": "code\\src\\CSharp\\Infrastructure.FileStorage\\FileMoverService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.FileStorage.FileSystemDownloadStorageAdapter": {
+      "name": "FileSystemDownloadStorageAdapter",
+      "namespace": "ExxerCube.Prisma.Infrastructure.FileStorage",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.FileStorage",
+      "file": "code\\src\\CSharp\\Infrastructure.FileStorage\\FileSystemDownloadStorageAdapter.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.FileStorage.FileStorageOptions": {
+      "name": "FileStorageOptions",
+      "namespace": "ExxerCube.Prisma.Infrastructure.FileStorage",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.FileStorage",
+      "file": "code\\src\\CSharp\\Infrastructure.FileStorage\\FileSystemDownloadStorageAdapter.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.FileStorage.SafeFileNamerService": {
+      "name": "SafeFileNamerService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.FileStorage",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.FileStorage",
+      "file": "code\\src\\CSharp\\Infrastructure.FileStorage\\SafeFileNamerService.cs"
+    },
+    "ExxerCube.Prisma.Tests.PlaywrightConfig": {
+      "name": "PlaywrightConfig",
+      "namespace": "ExxerCube.Prisma.Tests",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests",
+      "file": "code\\src\\CSharp\\Tests\\playwright.config.cs"
+    },
+    "ExxerCube.Prisma.Tests.TestConfiguration": {
+      "name": "TestConfiguration",
+      "namespace": "ExxerCube.Prisma.Tests",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests",
+      "file": "code\\src\\CSharp\\Tests\\TestConfiguration.cs"
+    },
+    "ExxerCube.Prisma.Tests.Domain.Interfaces.IIManualReviewerPanelTests": {
+      "name": "IIManualReviewerPanelTests",
+      "namespace": "ExxerCube.Prisma.Tests.Domain.Interfaces",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Domain.Interfaces",
+      "file": "code\\src\\CSharp\\Tests.Domain.Interfaces\\IIManualReviewerPanelTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Domain.Interfaces.IPersonIdentityResolverContractExecutionTests": {
+      "name": "IPersonIdentityResolverContractExecutionTests",
+      "namespace": "ExxerCube.Prisma.Tests.Domain.Interfaces",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Domain.Interfaces",
+      "file": "code\\src\\CSharp\\Tests.Domain.Interfaces\\IPersonIdentityResolverContractExecutionTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.EndToEnd.PlaywrightConfig": {
+      "name": "PlaywrightConfig",
+      "namespace": "ExxerCube.Prisma.Tests.EndToEnd",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.EndToEnd",
+      "file": "code\\src\\CSharp\\Tests.EndToEnd\\playwright.config.cs"
+    },
+    "ExxerCube.Prisma.Tests.EndToEnd.PlaywrightEndToEndTests": {
+      "name": "PlaywrightEndToEndTests",
+      "namespace": "ExxerCube.Prisma.Tests.EndToEnd",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.EndToEnd",
+      "file": "code\\src\\CSharp\\Tests.EndToEnd\\PlaywrightEndToEndTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Classification.FieldMatcherServiceTests": {
+      "name": "FieldMatcherServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Classification\\FieldMatcherServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Classification.FileClassifierServiceTests": {
+      "name": "FileClassifierServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Classification\\FileClassifierServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Classification.LegalDirectiveClassifierServiceEdgeCaseTests": {
+      "name": "LegalDirectiveClassifierServiceEdgeCaseTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Classification\\LegalDirectiveClassifierServiceEdgeCaseTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Classification.LegalDirectiveClassifierServiceTests": {
+      "name": "LegalDirectiveClassifierServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Classification\\LegalDirectiveClassifierServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Classification.MatchingPolicyOptionsTests": {
+      "name": "MatchingPolicyOptionsTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Classification\\MatchingPolicyOptionsTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Classification.MatchingPolicyServiceTests": {
+      "name": "MatchingPolicyServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Classification\\MatchingPolicyServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Classification.PersonIdentityResolverServiceEdgeCaseTests": {
+      "name": "PersonIdentityResolverServiceEdgeCaseTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Classification\\PersonIdentityResolverServiceEdgeCaseTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Classification.PersonIdentityResolverServiceTests": {
+      "name": "PersonIdentityResolverServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Classification",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Classification\\PersonIdentityResolverServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Database.AuditLoggerIntegrationTests": {
+      "name": "AuditLoggerIntegrationTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Database\\AuditLoggerIntegrationTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Database.AuditLoggerServiceTests": {
+      "name": "AuditLoggerServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Database\\AuditLoggerServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Database.DownloadTrackerServiceTests": {
+      "name": "DownloadTrackerServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Database\\DownloadTrackerServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Database.EfCoreRepositoryTests": {
+      "name": "EfCoreRepositoryTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Database\\EfCoreRepositoryTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Database.FileMetadataLoggerServiceTests": {
+      "name": "FileMetadataLoggerServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Database\\FileMetadataLoggerServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Database.ManualReviewerServiceIntegrationTests": {
+      "name": "ManualReviewerServiceIntegrationTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Database\\ManualReviewerServiceIntegrationTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Database.ManualReviewerServiceTests": {
+      "name": "ManualReviewerServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Database\\ManualReviewerServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Database.SLAEnforcerServiceIntegrationTests": {
+      "name": "SLAEnforcerServiceIntegrationTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Database\\SLAEnforcerServiceIntegrationTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Database.SLAEnforcerServicePerformanceTests": {
+      "name": "SLAEnforcerServicePerformanceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Database\\SLAEnforcerServicePerformanceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Database.SLAEnforcerServiceTests": {
+      "name": "SLAEnforcerServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Database\\SLAEnforcerServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Export.DigitalPdfSignerTests": {
+      "name": "DigitalPdfSignerTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Export",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Export\\DigitalPdfSignerTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Export.ExportIntegrationTests": {
+      "name": "ExportIntegrationTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Export",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Export\\ExportIntegrationTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Export.PdfExportPerformanceTests": {
+      "name": "PdfExportPerformanceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Export",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Export\\PdfExportPerformanceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Export.PdfRequirementSummarizerServiceTests": {
+      "name": "PdfRequirementSummarizerServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Export",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Export",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Export\\PdfRequirementSummarizerServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Extraction.CompositeMetadataExtractorTests": {
+      "name": "CompositeMetadataExtractorTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Extraction\\CompositeMetadataExtractorTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Extraction.DocxFieldExtractorTests": {
+      "name": "DocxFieldExtractorTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Extraction\\DocxFieldExtractorTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Extraction.DocxMetadataExtractorTests": {
+      "name": "DocxMetadataExtractorTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Extraction\\DocxMetadataExtractorTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Extraction.FileTypeIdentifierServiceTests": {
+      "name": "FileTypeIdentifierServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Extraction\\FileTypeIdentifierServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Extraction.PdfMetadataExtractorTests": {
+      "name": "PdfMetadataExtractorTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Extraction\\PdfMetadataExtractorTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Extraction.PdfOcrFieldExtractorEnhancedTests": {
+      "name": "PdfOcrFieldExtractorEnhancedTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Extraction\\PdfOcrFieldExtractorEnhancedTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Extraction.PdfOcrFieldExtractorTests": {
+      "name": "PdfOcrFieldExtractorTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Extraction\\PdfOcrFieldExtractorTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Extraction.XmlExpedienteParserTests": {
+      "name": "XmlExpedienteParserTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Extraction\\XmlExpedienteParserTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.Extraction.XmlMetadataExtractorTests": {
+      "name": "XmlMetadataExtractorTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.Extraction\\XmlMetadataExtractorTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.FileStorage.FileSystemDownloadStorageAdapterTests": {
+      "name": "FileSystemDownloadStorageAdapterTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.FileStorage",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.FileSystem",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.FileSystem\\FileSystemDownloadStorageAdapterTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.FileSystem.FileSystemLoaderTests": {
+      "name": "FileSystemLoaderTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.FileSystem",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.FileSystem",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.FileSystem\\FileSystemLoaderTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.FileSystem.FileSystemOutputWriterTests": {
+      "name": "FileSystemOutputWriterTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.FileSystem",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Infrastructure.FileSystem",
+      "file": "code\\src\\CSharp\\Tests.Infrastructure.FileSystem\\FileSystemOutputWriterTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.System.EndToEndPipelineTests": {
+      "name": "EndToEndPipelineTests",
+      "namespace": "ExxerCube.Prisma.Tests.System",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.System",
+      "file": "code\\src\\CSharp\\Tests.System\\EndToEndPipelineTests.cs"
+    },
+    "ExxerCube.Prisma.Web.UI.Controllers.DocumentProcessingController": {
+      "name": "DocumentProcessingController",
+      "namespace": "ExxerCube.Prisma.Web.UI.Controllers",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI",
+      "file": "code\\src\\CSharp\\UI\\ExxerCube.Prisma.Web.UI\\Controllers\\DocumentProcessingController.cs"
+    },
+    "ExxerCube.Prisma.Web.UI.Controllers.HealthCheckController": {
+      "name": "HealthCheckController",
+      "namespace": "ExxerCube.Prisma.Web.UI.Controllers",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI",
+      "file": "code\\src\\CSharp\\UI\\ExxerCube.Prisma.Web.UI\\Controllers\\HealthCheckController.cs"
+    },
+    "ExxerCube.Prisma.Web.UI.Controllers.MetricsController": {
+      "name": "MetricsController",
+      "namespace": "ExxerCube.Prisma.Web.UI.Controllers",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI",
+      "file": "code\\src\\CSharp\\UI\\ExxerCube.Prisma.Web.UI\\Controllers\\MetricsController.cs"
+    },
+    "ExxerCube.Prisma.Web.UI.Data.ApplicationDbContext": {
+      "name": "ApplicationDbContext",
+      "namespace": "ExxerCube.Prisma.Web.UI.Data",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI",
+      "file": "code\\src\\CSharp\\UI\\ExxerCube.Prisma.Web.UI\\Data\\ApplicationDbContext.cs"
+    },
+    "ExxerCube.Prisma.Web.UI.Data.ApplicationUser": {
+      "name": "ApplicationUser",
+      "namespace": "ExxerCube.Prisma.Web.UI.Data",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI",
+      "file": "code\\src\\CSharp\\UI\\ExxerCube.Prisma.Web.UI\\Data\\ApplicationUser.cs"
+    },
+    "ExxerCube.Prisma.Web.UI.Hubs.ProcessingHub": {
+      "name": "ProcessingHub",
+      "namespace": "ExxerCube.Prisma.Web.UI.Hubs",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI",
+      "file": "code\\src\\CSharp\\UI\\ExxerCube.Prisma.Web.UI\\Hubs\\ProcessingHub.cs"
+    },
+    "ExxerCube.Prisma.Web.UI.Models.ProcessingResponse": {
+      "name": "ProcessingResponse",
+      "namespace": "ExxerCube.Prisma.Web.UI.Models",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI",
+      "file": "code\\src\\CSharp\\UI\\ExxerCube.Prisma.Web.UI\\Models\\ProcessingResponse.cs"
+    },
+    "ExxerCube.Prisma.Web.UI.Models.ProcessingStatusResponse": {
+      "name": "ProcessingStatusResponse",
+      "namespace": "ExxerCube.Prisma.Web.UI.Models",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI",
+      "file": "code\\src\\CSharp\\UI\\ExxerCube.Prisma.Web.UI\\Models\\ProcessingResponse.cs"
+    },
+    "ExxerCube.Prisma.Web.UI.Models.ProcessingResultResponse": {
+      "name": "ProcessingResultResponse",
+      "namespace": "ExxerCube.Prisma.Web.UI.Models",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI",
+      "file": "code\\src\\CSharp\\UI\\ExxerCube.Prisma.Web.UI\\Models\\ProcessingResponse.cs"
+    },
+    "ExxerCube.Prisma.Web.UI.Models.DashboardMetrics": {
+      "name": "DashboardMetrics",
+      "namespace": "ExxerCube.Prisma.Web.UI.Models",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI",
+      "file": "code\\src\\CSharp\\UI\\ExxerCube.Prisma.Web.UI\\Models\\ProcessingResponse.cs"
+    },
+    "ExxerCube.Prisma.Web.UI.Models.SLACaseViewModel": {
+      "name": "SLACaseViewModel",
+      "namespace": "ExxerCube.Prisma.Web.UI.Models",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI",
+      "file": "code\\src\\CSharp\\UI\\ExxerCube.Prisma.Web.UI\\Models\\SLACaseViewModel.cs"
+    },
+    "ExxerCube.Prisma.Web.UI.Migrations.CreateIdentitySchema": {
+      "name": "CreateIdentitySchema",
+      "namespace": "ExxerCube.Prisma.Web.UI.Migrations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI",
+      "file": "code\\src\\CSharp\\UI\\ExxerCube.Prisma.Web.UI\\Data\\Migrations\\00000000000000_CreateIdentitySchema.cs"
+    },
+    "Microsoft.AspNetCore.Routing.IdentityComponentsEndpointRouteBuilderExtensions": {
+      "name": "IdentityComponentsEndpointRouteBuilderExtensions",
+      "namespace": "Microsoft.AspNetCore.Routing",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI",
+      "file": "code\\src\\CSharp\\UI\\ExxerCube.Prisma.Web.UI\\Components\\Account\\IdentityComponentsEndpointRouteBuilderExtensions.cs"
+    },
+    "ExxerCube.Prisma.Web.UI.Components.Account.IdentityNoOpEmailSender": {
+      "name": "IdentityNoOpEmailSender",
+      "namespace": "ExxerCube.Prisma.Web.UI.Components.Account",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI",
+      "file": "code\\src\\CSharp\\UI\\ExxerCube.Prisma.Web.UI\\Components\\Account\\IdentityNoOpEmailSender.cs"
+    },
+    "ExxerCube.Prisma.Web.UI.Components.Account.IdentityRedirectManager": {
+      "name": "IdentityRedirectManager",
+      "namespace": "ExxerCube.Prisma.Web.UI.Components.Account",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI",
+      "file": "code\\src\\CSharp\\UI\\ExxerCube.Prisma.Web.UI\\Components\\Account\\IdentityRedirectManager.cs"
+    },
+    "ExxerCube.Prisma.Web.UI.Components.Account.IdentityRevalidatingAuthenticationStateProvider": {
+      "name": "IdentityRevalidatingAuthenticationStateProvider",
+      "namespace": "ExxerCube.Prisma.Web.UI.Components.Account",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI",
+      "file": "code\\src\\CSharp\\UI\\ExxerCube.Prisma.Web.UI\\Components\\Account\\IdentityRevalidatingAuthenticationStateProvider.cs"
+    },
+    "ExxerCube.Prisma.Web.UI.Components.Account.IdentityUserAccessor": {
+      "name": "IdentityUserAccessor",
+      "namespace": "ExxerCube.Prisma.Web.UI.Components.Account",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Web.UI",
+      "file": "code\\src\\CSharp\\UI\\ExxerCube.Prisma.Web.UI\\Components\\Account\\IdentityUserAccessor.cs"
+    },
+    "TransformersSharp.SentenceTransformer": {
+      "name": "SentenceTransformer",
+      "namespace": "TransformersSharp",
+      "kind": "class",
+      "project": "TransformersSharp",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp\\SentenceTransformer.cs"
+    },
+    "TransformersSharp.TorchDtypeAttribute": {
+      "name": "TorchDtypeAttribute",
+      "namespace": "TransformersSharp",
+      "kind": "class",
+      "project": "TransformersSharp",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp\\TorchDtype.cs"
+    },
+    "TransformersSharp.TorchDtype": {
+      "name": "TorchDtype",
+      "namespace": "TransformersSharp",
+      "kind": "enum",
+      "project": "TransformersSharp",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp\\TorchDtype.cs"
+    },
+    "TransformersSharp.TransformerEnvironment": {
+      "name": "TransformerEnvironment",
+      "namespace": "TransformersSharp",
+      "kind": "class",
+      "project": "TransformersSharp",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp\\TransformerEnvironment.cs"
+    },
+    "TransformersSharp.Tests.SentenceTransformerTests": {
+      "name": "SentenceTransformerTests",
+      "namespace": "TransformersSharp.Tests",
+      "kind": "class",
+      "project": "TransformersSharp.Tests",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp.Tests\\SentenceTransformer.Test.cs"
+    },
+    "TransformersSharp.Tests.TransformerEnvironmentTest": {
+      "name": "TransformerEnvironmentTest",
+      "namespace": "TransformersSharp.Tests",
+      "kind": "class",
+      "project": "TransformersSharp.Tests",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp.Tests\\TransformerEnvironment.Test.cs"
+    },
+    "TransformersSharp.Tests.TransformerSharpMEAITests": {
+      "name": "TransformerSharpMEAITests",
+      "namespace": "TransformersSharp.Tests",
+      "kind": "class",
+      "project": "TransformersSharp.Tests",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp.Tests\\TransformerSharp.MEAI.Tests.cs"
+    },
+    "TransformersSharp.MEAI.TextGenerationPipelineChatClient": {
+      "name": "TextGenerationPipelineChatClient",
+      "namespace": "TransformersSharp.MEAI",
+      "kind": "class",
+      "project": "TransformersSharp",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp\\MEAI\\ChatClient.cs"
+    },
+    "TransformersSharp.MEAI.SpeechToTextClient": {
+      "name": "SpeechToTextClient",
+      "namespace": "TransformersSharp.MEAI",
+      "kind": "class",
+      "project": "TransformersSharp",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp\\MEAI\\SpeechToTextClient.cs"
+    },
+    "Unknown.ImageData": {
+      "name": "ImageData",
+      "namespace": "Unknown",
+      "kind": "struct",
+      "project": "TransformersSharp",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp\\Models\\ImageData.cs"
+    },
+    "Unknown.ImagePixelMode": {
+      "name": "ImagePixelMode",
+      "namespace": "Unknown",
+      "kind": "enum",
+      "project": "TransformersSharp",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp\\Models\\ImageData.cs"
+    },
+    "TransformersSharp.Pipelines.AutomaticSpeechRecognitionPipeline": {
+      "name": "AutomaticSpeechRecognitionPipeline",
+      "namespace": "TransformersSharp.Pipelines",
+      "kind": "class",
+      "project": "TransformersSharp",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp\\Pipelines\\AutomaticSpeechRecognitionPipeline.cs"
+    },
+    "TransformersSharp.Pipelines.ImageClassificationPipeline": {
+      "name": "ImageClassificationPipeline",
+      "namespace": "TransformersSharp.Pipelines",
+      "kind": "class",
+      "project": "TransformersSharp",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp\\Pipelines\\ImageClassificationPipeline.cs"
+    },
+    "TransformersSharp.Pipelines.ClassificationResult": {
+      "name": "ClassificationResult",
+      "namespace": "TransformersSharp.Pipelines",
+      "kind": "struct",
+      "project": "TransformersSharp",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp\\Pipelines\\ImageClassificationPipeline.cs"
+    },
+    "TransformersSharp.Pipelines.ObjectDetectionPipeline": {
+      "name": "ObjectDetectionPipeline",
+      "namespace": "TransformersSharp.Pipelines",
+      "kind": "class",
+      "project": "TransformersSharp",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp\\Pipelines\\ObjectDetectionPipeline.cs"
+    },
+    "TransformersSharp.Pipelines.Pipeline": {
+      "name": "Pipeline",
+      "namespace": "TransformersSharp.Pipelines",
+      "kind": "class",
+      "project": "TransformersSharp",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp\\Pipelines\\Pipeline.cs"
+    },
+    "TransformersSharp.Pipelines.TextClassificationPipeline": {
+      "name": "TextClassificationPipeline",
+      "namespace": "TransformersSharp.Pipelines",
+      "kind": "class",
+      "project": "TransformersSharp",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp\\Pipelines\\TextClassificationPipeline.cs"
+    },
+    "TransformersSharp.Pipelines.TextGenerationPipeline": {
+      "name": "TextGenerationPipeline",
+      "namespace": "TransformersSharp.Pipelines",
+      "kind": "class",
+      "project": "TransformersSharp",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp\\Pipelines\\TextGenerationPipeline.cs"
+    },
+    "TransformersSharp.Pipelines.TextToAudioPipeline": {
+      "name": "TextToAudioPipeline",
+      "namespace": "TransformersSharp.Pipelines",
+      "kind": "class",
+      "project": "TransformersSharp",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp\\Pipelines\\TextToAudioPipeline.cs"
+    },
+    "TransformersSharp.Tokenizers.PreTrainedTokenizerBase": {
+      "name": "PreTrainedTokenizerBase",
+      "namespace": "TransformersSharp.Tokenizers",
+      "kind": "class",
+      "project": "TransformersSharp",
+      "file": "code\\src\\CSharp\\Transformers\\TransformersSharp\\Tokenizers\\PreTrainedTokenizerBase.cs"
+    },
+    "ExxerCube.Prisma.Tests.Domain.Common.ResultTests": {
+      "name": "ResultTests",
+      "namespace": "ExxerCube.Prisma.Tests.Domain.Common",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Domain",
+      "file": "code\\src\\CSharp\\Tests.Domain\\Common\\ResultTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Domain.Repositories.OrderRepositoryTests": {
+      "name": "OrderRepositoryTests",
+      "namespace": "ExxerCube.Prisma.Tests.Domain.Repositories",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Domain",
+      "file": "code\\src\\CSharp\\Tests.Domain\\Repositories\\OrderRepositoryTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.AuditReportingServiceTests": {
+      "name": "AuditReportingServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\AuditReportingServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.ConfigurationValidationServiceTests": {
+      "name": "ConfigurationValidationServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\ConfigurationValidationServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.DecisionLogicIntegrationTests": {
+      "name": "DecisionLogicIntegrationTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\DecisionLogicIntegrationTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.DecisionLogicServiceEdgeCaseTests": {
+      "name": "DecisionLogicServiceEdgeCaseTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\DecisionLogicServiceEdgeCaseTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.DecisionLogicServiceManualReviewTests": {
+      "name": "DecisionLogicServiceManualReviewTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\DecisionLogicServiceManualReviewTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.DecisionLogicServiceTests": {
+      "name": "DecisionLogicServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\DecisionLogicServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.DocumentIngestionIntegrationTests": {
+      "name": "DocumentIngestionIntegrationTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\DocumentIngestionIntegrationTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.DocumentIngestionServiceTests": {
+      "name": "DocumentIngestionServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\DocumentIngestionServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.ExportServicePerformanceTests": {
+      "name": "ExportServicePerformanceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\ExportServicePerformanceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.ExportServiceTests": {
+      "name": "ExportServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\ExportServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.FieldMatchingIntegrationTests": {
+      "name": "FieldMatchingIntegrationTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\FieldMatchingIntegrationTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.FieldMatchingPerformanceTests": {
+      "name": "FieldMatchingPerformanceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\FieldMatchingPerformanceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.FieldMatchingServiceTests": {
+      "name": "FieldMatchingServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\FieldMatchingServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.FileMetadataQueryServiceTests": {
+      "name": "FileMetadataQueryServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\FileMetadataQueryServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.ManualReviewIntegrationTests": {
+      "name": "ManualReviewIntegrationTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\ManualReviewIntegrationTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.MetadataExtractionIntegrationTests": {
+      "name": "MetadataExtractionIntegrationTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\MetadataExtractionIntegrationTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.MetadataExtractionPerformanceTests": {
+      "name": "MetadataExtractionPerformanceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\MetadataExtractionPerformanceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.MetadataExtractionServiceTests": {
+      "name": "MetadataExtractionServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\MetadataExtractionServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.OcrProcessingServiceTests": {
+      "name": "OcrProcessingServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\OcrProcessingServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.PerformanceTests": {
+      "name": "PerformanceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\PerformanceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.SLATrackingServiceTests": {
+      "name": "SLATrackingServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests.Application",
+      "file": "code\\src\\CSharp\\Tests.Application\\Services\\SLATrackingServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.PythonInteropServiceTests": {
+      "name": "PythonInteropServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests",
+      "file": "code\\src\\CSharp\\Tests\\Infrastructure\\PythonInteropServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.FileStorage.FileMoverServiceTests": {
+      "name": "FileMoverServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.FileStorage",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests",
+      "file": "code\\src\\CSharp\\Tests\\Infrastructure.FileStorage\\FileMoverServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Infrastructure.FileStorage.SafeFileNamerServiceTests": {
+      "name": "SafeFileNamerServiceTests",
+      "namespace": "ExxerCube.Prisma.Tests.Infrastructure.FileStorage",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests",
+      "file": "code\\src\\CSharp\\Tests\\Infrastructure.FileStorage\\SafeFileNamerServiceTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Interfaces.IIManualReviewerPanelTests": {
+      "name": "IIManualReviewerPanelTests",
+      "namespace": "ExxerCube.Prisma.Tests.Interfaces",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests",
+      "file": "code\\src\\CSharp\\Tests\\Interfaces\\IIManualReviewerPanelTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.TestData.TestImageDataGenerator": {
+      "name": "TestImageDataGenerator",
+      "namespace": "ExxerCube.Prisma.Tests.TestData",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests",
+      "file": "code\\src\\CSharp\\Tests\\TestData\\TestImageDataGenerator.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.EndToEndPipelineTests": {
+      "name": "EndToEndPipelineTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests",
+      "file": "code\\src\\CSharp\\Tests\\Application\\Services\\EndToEndPipelineTests.cs"
+    },
+    "ExxerCube.Prisma.Tests.Application.Services.PlaywrightEndToEndTests": {
+      "name": "PlaywrightEndToEndTests",
+      "namespace": "ExxerCube.Prisma.Tests.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Tests",
+      "file": "code\\src\\CSharp\\Tests\\Application\\Services\\PlaywrightEndToEndTests.cs"
+    },
+    "ExxerCube.Prisma.Testing.Abstractions.TestFixtureBase": {
+      "name": "TestFixtureBase",
+      "namespace": "ExxerCube.Prisma.Testing.Abstractions",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Testing.Abstractions",
+      "file": "code\\src\\CSharp\\Testing\\Abstractions\\TestFixtureBase.cs"
+    },
+    "ExxerCube.Prisma.Testing.Contracts.IPersonIdentityResolverContractTests": {
+      "name": "IPersonIdentityResolverContractTests",
+      "namespace": "ExxerCube.Prisma.Testing.Contracts",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Testing.Contracts",
+      "file": "code\\src\\CSharp\\Testing\\Contracts\\IPersonIdentityResolverContractTests.cs"
+    },
+    "ExxerCube.Prisma.Testing.Python.PythonEnvironmentTestFixture": {
+      "name": "PythonEnvironmentTestFixture",
+      "namespace": "ExxerCube.Prisma.Testing.Python",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Testing.Python",
+      "file": "code\\src\\CSharp\\Testing\\Python\\PythonEnvironmentTestFixture.cs"
+    },
+    "ExxerCube.Prisma.Testing.Infrastructure.Logging.ITestLogger": {
+      "name": "ITestLogger",
+      "namespace": "ExxerCube.Prisma.Testing.Infrastructure.Logging",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Testing.Infrastructure",
+      "file": "code\\src\\CSharp\\Testing\\Infrastructure\\Logging\\ITestLogger.cs"
+    },
+    "ExxerCube.Prisma.Testing.Infrastructure.Logging.NoOpLogger": {
+      "name": "NoOpLogger",
+      "namespace": "ExxerCube.Prisma.Testing.Infrastructure.Logging",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Testing.Infrastructure",
+      "file": "code\\src\\CSharp\\Testing\\Infrastructure\\Logging\\NoOpLogger.cs"
+    },
+    "ExxerCube.Prisma.Testing.Infrastructure.Logging.TestLoggerFactory": {
+      "name": "TestLoggerFactory",
+      "namespace": "ExxerCube.Prisma.Testing.Infrastructure.Logging",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Testing.Infrastructure",
+      "file": "code\\src\\CSharp\\Testing\\Infrastructure\\Logging\\TestLoggerFactory.cs"
+    },
+    "ExxerCube.Prisma.Testing.Infrastructure.Logging.XUnitLoggerAdapter": {
+      "name": "XUnitLoggerAdapter",
+      "namespace": "ExxerCube.Prisma.Testing.Infrastructure.Logging",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Testing.Infrastructure",
+      "file": "code\\src\\CSharp\\Testing\\Infrastructure\\Logging\\XUnitLoggerAdapter.cs"
+    },
+    "ExxerCube.Prisma.Testing.Infrastructure.TestData.TestImageDataGenerator": {
+      "name": "TestImageDataGenerator",
+      "namespace": "ExxerCube.Prisma.Testing.Infrastructure.TestData",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Testing.Infrastructure",
+      "file": "code\\src\\CSharp\\Testing\\Infrastructure\\TestData\\TestImageDataGenerator.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.FileStorage.DependencyInjection.ServiceCollectionExtensions": {
+      "name": "ServiceCollectionExtensions",
+      "namespace": "ExxerCube.Prisma.Infrastructure.FileStorage.DependencyInjection",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.FileStorage",
+      "file": "code\\src\\CSharp\\Infrastructure.FileStorage\\DependencyInjection\\ServiceCollectionExtensions.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Extraction.ServiceCollectionExtensions": {
+      "name": "ServiceCollectionExtensions",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Extraction",
+      "file": "code\\src\\CSharp\\Infrastructure.Extraction\\DependencyInjection\\ServiceCollectionExtensions.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Export.DependencyInjection.ServiceCollectionExtensions": {
+      "name": "ServiceCollectionExtensions",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Export.DependencyInjection",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Export",
+      "file": "code\\src\\CSharp\\Infrastructure.Export\\DependencyInjection\\ServiceCollectionExtensions.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.DependencyInjection.ServiceCollectionExtensions": {
+      "name": "ServiceCollectionExtensions",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.DependencyInjection",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\DependencyInjection\\ServiceCollectionExtensions.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext": {
+      "name": "IPrismaDbContext",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.EntityFramework",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\EntityFramework\\IPrismaDbContext.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext": {
+      "name": "PrismaDbContext",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.EntityFramework",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\EntityFramework\\PrismaDbContext.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository": {
+      "name": "Repository",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.EntityFramework",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\EntityFramework\\Repository.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.HealthChecks.SLABackgroundJobHealthCheck": {
+      "name": "SLABackgroundJobHealthCheck",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.HealthChecks",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\HealthChecks\\SLABackgroundJobHealthCheck.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.HealthChecks.SLAEnforcerHealthCheck": {
+      "name": "SLAEnforcerHealthCheck",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.HealthChecks",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\HealthChecks\\SLAEnforcerHealthCheck.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.Metrics.SLAMetricsCollector": {
+      "name": "SLAMetricsCollector",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Metrics",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\Metrics\\SLAMetricsCollector.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.Migrations.AddSLAStatusTable": {
+      "name": "AddSLAStatusTable",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Migrations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\Migrations\\20250115000000_AddSLAStatusTable.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.Migrations.AddAuditRecordsTable": {
+      "name": "AddAuditRecordsTable",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Migrations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\Migrations\\20250116000000_AddAuditRecordsTable.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.Migrations.AddReviewCasesAndReviewDecisionsTables": {
+      "name": "AddReviewCasesAndReviewDecisionsTables",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Migrations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\Migrations\\20250116000000_AddReviewCasesAndReviewDecisionsTables.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.Migrations.AddFileMetadataTable": {
+      "name": "AddFileMetadataTable",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Migrations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\Migrations\\20251114070952_AddFileMetadataTable.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.Repositories.EfCoreRepository": {
+      "name": "EfCoreRepository",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Repositories",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\Repositories\\EfCoreRepository.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.Repositories.SpecificationEvaluator": {
+      "name": "SpecificationEvaluator",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Repositories",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\Repositories\\SpecificationEvaluator.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.Resilience.ResilientSLAEnforcerService": {
+      "name": "ResilientSLAEnforcerService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Resilience",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\Resilience\\ResilientSLAEnforcerService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.Resilience.SLAResilienceOptions": {
+      "name": "SLAResilienceOptions",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Resilience",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\Resilience\\SLAResilienceOptions.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.Services.AuditRetentionBackgroundService": {
+      "name": "AuditRetentionBackgroundService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\Services\\AuditRetentionBackgroundService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.Services.QueuedAuditProcessorService": {
+      "name": "QueuedAuditProcessorService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\Services\\QueuedAuditLoggerService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.Services.QueuedAuditLoggerService": {
+      "name": "QueuedAuditLoggerService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\Services\\QueuedAuditLoggerService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.Services.SLAUpdateBackgroundService": {
+      "name": "SLAUpdateBackgroundService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\Services\\SLAUpdateBackgroundService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.AuditRecordConfiguration": {
+      "name": "AuditRecordConfiguration",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\EntityFramework\\Configurations\\AuditRecordConfiguration.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.FileMetadataConfiguration": {
+      "name": "FileMetadataConfiguration",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\EntityFramework\\Configurations\\FileMetadataConfiguration.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.PersonaConfiguration": {
+      "name": "PersonaConfiguration",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\EntityFramework\\Configurations\\PersonaConfiguration.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.ReviewCaseConfiguration": {
+      "name": "ReviewCaseConfiguration",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\EntityFramework\\Configurations\\ReviewCaseConfiguration.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.ReviewDecisionConfiguration": {
+      "name": "ReviewDecisionConfiguration",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\EntityFramework\\Configurations\\ReviewDecisionConfiguration.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.SLAStatusConfiguration": {
+      "name": "SLAStatusConfiguration",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Database",
+      "file": "code\\src\\CSharp\\Infrastructure.Database\\EntityFramework\\Configurations\\SLAStatusConfiguration.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Classification.ServiceCollectionExtensions": {
+      "name": "ServiceCollectionExtensions",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Classification",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.Classification",
+      "file": "code\\src\\CSharp\\Infrastructure.Classification\\DependencyInjection\\ServiceCollectionExtensions.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection.ServiceCollectionExtensions": {
+      "name": "ServiceCollectionExtensions",
+      "namespace": "ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure.BrowserAutomation",
+      "file": "code\\src\\CSharp\\Infrastructure.BrowserAutomation\\DependencyInjection\\ServiceCollectionExtensions.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.DependencyInjection.ServiceCollectionExtensions": {
+      "name": "ServiceCollectionExtensions",
+      "namespace": "ExxerCube.Prisma.Infrastructure.DependencyInjection",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure",
+      "file": "code\\src\\CSharp\\Infrastructure\\DependencyInjection\\ServiceCollectionExtensions.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemLoader": {
+      "name": "FileSystemLoader",
+      "namespace": "ExxerCube.Prisma.Infrastructure.FileSystem",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure",
+      "file": "code\\src\\CSharp\\Infrastructure\\FileSystem\\FileSystemLoader.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemOutputWriter": {
+      "name": "FileSystemOutputWriter",
+      "namespace": "ExxerCube.Prisma.Infrastructure.FileSystem",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure",
+      "file": "code\\src\\CSharp\\Infrastructure\\FileSystem\\FileSystemOutputWriter.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Python.CircuitBreakerPythonInteropService": {
+      "name": "CircuitBreakerPythonInteropService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Python",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure",
+      "file": "code\\src\\CSharp\\Infrastructure\\Python\\CircuitBreakerPythonInteropService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Python.CircuitBreakerState": {
+      "name": "CircuitBreakerState",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Python",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure",
+      "file": "code\\src\\CSharp\\Infrastructure\\Python\\CircuitBreakerPythonInteropService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Python.CircuitBreakerStatus": {
+      "name": "CircuitBreakerStatus",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Python",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Infrastructure",
+      "file": "code\\src\\CSharp\\Infrastructure\\Python\\CircuitBreakerPythonInteropService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Python.OcrProcessingAdapter": {
+      "name": "OcrProcessingAdapter",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Python",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure",
+      "file": "code\\src\\CSharp\\Infrastructure\\Python\\OcrProcessingAdapter.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Python.PrismaOcrService": {
+      "name": "PrismaOcrService",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Python",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure",
+      "file": "code\\src\\CSharp\\Infrastructure\\Python\\PrismaOcrService.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Python.PrismaPythonEnvironment": {
+      "name": "PrismaPythonEnvironment",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Python",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure",
+      "file": "code\\src\\CSharp\\Infrastructure\\Python\\PrismaPythonEnvironment.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Python.PythonConfiguration": {
+      "name": "PythonConfiguration",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Python",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure",
+      "file": "code\\src\\CSharp\\Infrastructure\\Python\\PythonConfiguration.cs"
+    },
+    "ExxerCube.Prisma.Infrastructure.Python.PythonEnvironmentExtensions": {
+      "name": "PythonEnvironmentExtensions",
+      "namespace": "ExxerCube.Prisma.Infrastructure.Python",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Infrastructure",
+      "file": "code\\src\\CSharp\\Infrastructure\\Python\\PythonEnvironmentExtensions.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.AmountData": {
+      "name": "AmountData",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\AmountData.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.AuditActionType": {
+      "name": "AuditActionType",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\AuditActionType.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.AuditRecord": {
+      "name": "AuditRecord",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\AuditRecord.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.ClassificationLevel1": {
+      "name": "ClassificationLevel1",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\ClassificationLevel1.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.ClassificationLevel2": {
+      "name": "ClassificationLevel2",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\ClassificationLevel2.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.ClassificationResult": {
+      "name": "ClassificationResult",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\ClassificationResult.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.ClassificationScores": {
+      "name": "ClassificationScores",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\ClassificationScores.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.ComplianceAction": {
+      "name": "ComplianceAction",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\ComplianceAction.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.ComplianceActionType": {
+      "name": "ComplianceActionType",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\ComplianceActionType.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.ComplianceRequirement": {
+      "name": "ComplianceRequirement",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\ComplianceRequirement.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.DecisionType": {
+      "name": "DecisionType",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\DecisionType.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.DocxSource": {
+      "name": "DocxSource",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\DocxSource.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.EscalationLevel": {
+      "name": "EscalationLevel",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\EscalationLevel.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.Expediente": {
+      "name": "Expediente",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\Expediente.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.ExtractedFields": {
+      "name": "ExtractedFields",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\ExtractedFields.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.ExtractedMetadata": {
+      "name": "ExtractedMetadata",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\ExtractedMetadata.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.FieldAnnotations": {
+      "name": "FieldAnnotations",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\FieldAnnotations.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.FieldAnnotation": {
+      "name": "FieldAnnotation",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\FieldAnnotations.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.FieldDefinition": {
+      "name": "FieldDefinition",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\FieldDefinition.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.FieldMatchResult": {
+      "name": "FieldMatchResult",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\FieldMatchResult.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.FieldValue": {
+      "name": "FieldValue",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\FieldValue.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.FileMetadata": {
+      "name": "FileMetadata",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\FileMetadata.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.ImageData": {
+      "name": "ImageData",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\ImageData.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.MatchedFields": {
+      "name": "MatchedFields",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\MatchedFields.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.OCRConfig": {
+      "name": "OCRConfig",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\OCRConfig.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.OCRResult": {
+      "name": "OCRResult",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\OCRResult.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.Oficio": {
+      "name": "Oficio",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\Oficio.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.PdfSource": {
+      "name": "PdfSource",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\PdfSource.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.Persona": {
+      "name": "Persona",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\Persona.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.ProcessingConfig": {
+      "name": "ProcessingConfig",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\ProcessingConfig.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.ProcessingResult": {
+      "name": "ProcessingResult",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\ProcessingResult.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.ProcessingStage": {
+      "name": "ProcessingStage",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\ProcessingStage.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.RequirementSummary": {
+      "name": "RequirementSummary",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\RequirementSummary.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.ReviewCase": {
+      "name": "ReviewCase",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\ReviewCase.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.ReviewDecision": {
+      "name": "ReviewDecision",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\ReviewDecision.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.ReviewFilters": {
+      "name": "ReviewFilters",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\ReviewFilters.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.ReviewReason": {
+      "name": "ReviewReason",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\ReviewReason.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.ReviewStatus": {
+      "name": "ReviewStatus",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\ReviewStatus.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.SLAStatus": {
+      "name": "SLAStatus",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\SLAStatus.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.SolicitudEspecifica": {
+      "name": "SolicitudEspecifica",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\SolicitudEspecifica.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.SolicitudParte": {
+      "name": "SolicitudParte",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\SolicitudParte.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.UnifiedMetadataRecord": {
+      "name": "UnifiedMetadataRecord",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\UnifiedMetadataRecord.cs"
+    },
+    "ExxerCube.Prisma.Domain.Entities.XmlSource": {
+      "name": "XmlSource",
+      "namespace": "ExxerCube.Prisma.Domain.Entities",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Entities\\XmlSource.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IAuditLogger": {
+      "name": "IAuditLogger",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IAuditLogger.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.DownloadableFile": {
+      "name": "DownloadableFile",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IBrowserAutomationAgent.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.DownloadedFile": {
+      "name": "DownloadedFile",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IBrowserAutomationAgent.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IBrowserAutomationAgent": {
+      "name": "IBrowserAutomationAgent",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IBrowserAutomationAgent.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.FileFormat": {
+      "name": "FileFormat",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IBrowserAutomationAgent.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.ICriterionMapper": {
+      "name": "ICriterionMapper",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\ICriterionMapper.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IDownloadStorage": {
+      "name": "IDownloadStorage",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IDownloadStorage.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IDownloadTracker": {
+      "name": "IDownloadTracker",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IDownloadTracker.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IFieldExtractor": {
+      "name": "IFieldExtractor",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IFieldExtractor.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IFieldMatcher": {
+      "name": "IFieldMatcher",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IFieldMatcher{T}.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IFileClassifier": {
+      "name": "IFileClassifier",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IFileClassifier.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IFileLoader": {
+      "name": "IFileLoader",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IFileLoader.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IFileMetadataLogger": {
+      "name": "IFileMetadataLogger",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IFileMetadataLogger.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IFileMover": {
+      "name": "IFileMover",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IFileMover.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IFileTypeIdentifier": {
+      "name": "IFileTypeIdentifier",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IFileTypeIdentifier.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IImagePreprocessor": {
+      "name": "IImagePreprocessor",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IImagePreprocessor.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.ILayoutGenerator": {
+      "name": "ILayoutGenerator",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\ILayoutGenerator.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.ILegalDirectiveClassifier": {
+      "name": "ILegalDirectiveClassifier",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\ILegalDirectiveClassifier.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IManualReviewerPanel": {
+      "name": "IManualReviewerPanel",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IManualReviewerPanel.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IMatchingPolicy": {
+      "name": "IMatchingPolicy",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IMatchingPolicy.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IMetadataExtractor": {
+      "name": "IMetadataExtractor",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IMetadataExtractor.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IOcrExecutor": {
+      "name": "IOcrExecutor",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IOcrExecutor.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IOcrProcessingService": {
+      "name": "IOcrProcessingService",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IOcrProcessingService.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IOutputWriter": {
+      "name": "IOutputWriter",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IOutputWriter.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IPdfRequirementSummarizer": {
+      "name": "IPdfRequirementSummarizer",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IPdfRequirementSummarizer.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IPersonIdentityResolver": {
+      "name": "IPersonIdentityResolver",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IPersonIdentityResolver.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IPythonInteropService": {
+      "name": "IPythonInteropService",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IPythonInteropService.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IResponseExporter": {
+      "name": "IResponseExporter",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IResponseExporter.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.ISafeFileNamer": {
+      "name": "ISafeFileNamer",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\ISafeFileNamer.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.ISLAEnforcer": {
+      "name": "ISLAEnforcer",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\ISLAEnforcer.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.IXmlNullableParser": {
+      "name": "IXmlNullableParser",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\IXmlNullableParser.cs"
+    },
+    "ExxerCube.Prisma.Domain.Specifications.FileMetadataFiltersSpecification": {
+      "name": "FileMetadataFiltersSpecification",
+      "namespace": "ExxerCube.Prisma.Domain.Specifications",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Specifications\\FileMetadataFiltersSpecification.cs"
+    },
+    "ExxerCube.Prisma.Domain.Interfaces.Contracts.IRepository": {
+      "name": "IRepository",
+      "namespace": "ExxerCube.Prisma.Domain.Interfaces.Contracts",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\Contracts\\IRepository.cs"
+    },
+    "Unknown.ISpecification": {
+      "name": "ISpecification",
+      "namespace": "Unknown",
+      "kind": "interface",
+      "project": "ExxerCube.Prisma.Domain",
+      "file": "code\\src\\CSharp\\Domain\\Interfaces\\Contracts\\ISpecification.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.AuditReportingService": {
+      "name": "AuditReportingService",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\AuditReportingService.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.ConfigurationValidationResult": {
+      "name": "ConfigurationValidationResult",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\ConfigurationValidationResult.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.ConfigurationValidationService": {
+      "name": "ConfigurationValidationService",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\ConfigurationValidationService.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.DecisionLogicResult": {
+      "name": "DecisionLogicResult",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\DecisionLogicResult.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.DecisionLogicService": {
+      "name": "DecisionLogicService",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\DecisionLogicService.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.DocumentIngestionService": {
+      "name": "DocumentIngestionService",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\DocumentIngestionService.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.DownloadStatistics": {
+      "name": "DownloadStatistics",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\DownloadStatistics.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.ExportService": {
+      "name": "ExportService",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\ExportService.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.FieldMatchingService": {
+      "name": "FieldMatchingService",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\FieldMatchingService.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.FileDownloadResult": {
+      "name": "FileDownloadResult",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\FileDownloadResult.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.FileDownloadService": {
+      "name": "FileDownloadService",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\FileDownloadService.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.FileMetadataQueryService": {
+      "name": "FileMetadataQueryService",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\FileMetadataQueryService.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.HealthCheckReport": {
+      "name": "HealthCheckReport",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\HealthCheckReport.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.HealthCheckResult": {
+      "name": "HealthCheckResult",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\HealthCheckResult.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.HealthCheckService": {
+      "name": "HealthCheckService",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\HealthCheckService.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.HealthStatus": {
+      "name": "HealthStatus",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "enum",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\HealthStatus.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.MetadataExtractionResult": {
+      "name": "MetadataExtractionResult",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\MetadataExtractionResult.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.MetadataExtractionService": {
+      "name": "MetadataExtractionService",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\MetadataExtractionService.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.OcrProcessingService": {
+      "name": "OcrProcessingService",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\OcrProcessingService.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.PerformanceValidation": {
+      "name": "PerformanceValidation",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\PerformanceValidation.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.ProcessingContext": {
+      "name": "ProcessingContext",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\ProcessingContext.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.ProcessingEvent": {
+      "name": "ProcessingEvent",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\ProcessingEvent.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.ProcessingMetrics": {
+      "name": "ProcessingMetrics",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\ProcessingMetrics.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.ProcessingMetricsService": {
+      "name": "ProcessingMetricsService",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\ProcessingMetricsService.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.ProcessingStatistics": {
+      "name": "ProcessingStatistics",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\ProcessingStatistics.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.SLATrackingService": {
+      "name": "SLATrackingService",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\SLATrackingService.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.ThroughputStatistics": {
+      "name": "ThroughputStatistics",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\ThroughputStatistics.cs"
+    },
+    "ExxerCube.Prisma.Application.Services.ValidationResult": {
+      "name": "ValidationResult",
+      "namespace": "ExxerCube.Prisma.Application.Services",
+      "kind": "class",
+      "project": "ExxerCube.Prisma.Application",
+      "file": "code\\src\\CSharp\\Application\\Services\\ValidationResult.cs"
+    }
+  }
+}

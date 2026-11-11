@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>PJFMX/2025/698406</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>PJFMX/2025/698406</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2026</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Juzgado Federal de Procedimientos Penales</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>PJFMX/2025/698406</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>H/FI1-8555-830095-AAA</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>04/07/2026</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>3</Cnbv_DiasPlazo>
+  <AutoridadNombre>Comisión Nacional Bancaria y de Valores</AutoridadNombre>
+  <NombreSolicitante>Dolores Varela Haro</NombreSolicitante>
+  <Referencia>REF-1520</Referencia>
+  <Referencia1>REF1-4832</Referencia1>
+  <Referencia2>REF2-8531</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Cristina Sevilla Tirado</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Detallar operaciones superiores a $100,000.00 MN
+- Especificar fechas de apertura y cierre de cuentas
+- Indicar titulares y co-titulares de las cuentas
+- Proporcionar información de todas las cuentas bancarias
+- Incluir números de cuenta, saldos y movimientos</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Cristina Sevilla Tirado</Nombre>
+    <Rfc>SETC900729ZYT</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Retorno Ceballos No. 7844, Col. San Jaqueline de la Montaña, Municipio Vieja Letonia, Quintana Roo, C.P. 67518</Domicilio>
+    <Complementarios>Tel: (215)519-5530x86877, Email: marisol06@example.org</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

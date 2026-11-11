@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>AGAFF/2023/113545</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>OF-9565-2025</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2025</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Departamento de Cobranza</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>AGAFF/2023/113545</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>EXP-9589-2025</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>21/11/2025</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>9</Cnbv_DiasPlazo>
+  <AutoridadNombre>Instituto Mexicano del Seguro Social</AutoridadNombre>
+  <NombreSolicitante>Esther López Varela</NombreSolicitante>
+  <Referencia>REF-5854</Referencia>
+  <Referencia1>REF1-9985</Referencia1>
+  <Referencia2>REF2-3732</Referencia2>
+  <TieneAseguramiento>true</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Lucía Serna Alba</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Indicar titulares y co-titulares de las cuentas
+- Notificar el monto total asegurado
+- Especificar fechas de apertura y cierre de cuentas
+- Detallar operaciones superiores a $100,000.00 MN
+- Incluir números de cuenta, saldos y movimientos</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Lucía Serna Alba</Nombre>
+    <Rfc>SEAL790913U8A</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Andador Santillán No. 4202, Col. Vieja República de Macedonia del Norte, Municipio San Lorena los altos, San Luis Potosí, C.P. 88127</Domicilio>
+    <Complementarios>Tel: (180)140-8495, Email: gnevarez@example.net</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>
