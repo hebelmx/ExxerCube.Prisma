@@ -42,7 +42,7 @@ SIARA ─► Orion (download) ─► Athena (read + fuse) ─► Reconciliator (
 Functional MVP. The complete pipeline runs end to end against the bundled SIARA simulator
 (`MaxFidelityGateFullPipelineE2ETests`). Remaining work is production hardening — configuration
 externalization, secrets, and validation against the live portal under an adopting
-institution's compliance sign-off. See [`CLAUDE.md`](CLAUDE.md#release-status) for details.
+institution's compliance sign-off. See [the release status](docs/RELEASE-STATUS.md) for details.
 
 ## Tech
 
@@ -59,7 +59,7 @@ contract tests, mutation-killing tests and full-pipeline E2E tests.
 
 Requirements: .NET 10 SDK; Docker (for the full stack and the SQL Server integration tests);
 on Linux, the Tesseract/Leptonica and Emgu CV system libraries listed in
-[`CLAUDE.md`](CLAUDE.md#release-status).
+[the release status](docs/RELEASE-STATUS.md).
 
 ```bash
 # Build and run the fast test suites
