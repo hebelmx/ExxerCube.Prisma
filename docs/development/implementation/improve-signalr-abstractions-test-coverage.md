@@ -281,7 +281,6 @@ Based on typical mutation testing patterns, prioritize:
 
 - **ADR:** `docs/adr/ADR-001-SignalR-Unified-Hub-Abstraction.md`
 - **Stryker Report:** `ExxerCube.Prisma.SignalR.Abstractions/StrykerOutput/2025-11-19.08-17-31/reports/mutation-report.html`
-- **Project Rules:** `.cursor/rules/` (especially testing standards)
 
 ## Progress Tracking
 
@@ -308,8 +307,7 @@ Update this section as you progress:
 If you encounter issues or need clarification:
 1. Review the ADR document
 2. Check existing tests for patterns
-3. Review project rules in `.cursor/rules/`
-4. Check git history for implementation context
+3. Check git history for implementation context
 
 ---
 

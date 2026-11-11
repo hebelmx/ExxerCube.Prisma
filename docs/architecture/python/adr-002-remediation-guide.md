@@ -1046,9 +1046,6 @@ After completing all refactoring:
 
 - [ADR-002: Test Project Split - Clean Architecture Violations](./adr-002-test-project-split-clean-architecture-violations.md)
 - [ADR-003: Test Suite Split Decision](./adr-003-test-suite-split-decision.md)
-- [Clean Architecture Patterns](../../.cursor/rules/1008_CleanArchitecturePatterns.mdc)
-- [Domain-Driven Design Patterns](../../.cursor/rules/1007_DomainDrivenDesignPatterns.mdc)
-- [C# Coding Standards](../../.cursor/rules/1001_CSharpCodingStandards.mdc)
 
 ---
 

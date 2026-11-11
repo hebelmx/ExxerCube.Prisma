@@ -215,7 +215,6 @@ public MyTests()
 ## References
 
 - [ADR-002: Test Project Split Violations](../architecture/adr-002-test-project-split-clean-architecture-violations.md)
-- [Clean Architecture Patterns](../../.cursor/rules/1008_CleanArchitecturePatterns.mdc)
 - [Test Project Separation Plan](../../../docs/qa/test-project-separation-plan.md)
 - [Test Coverage Analysis Scripts](../../../scripts/README.md#test-management)
 

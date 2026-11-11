@@ -78,9 +78,6 @@ dotnet list Prisma/Code/Src/CSharp/Infrastructure.*/*.csproj reference | grep In
 
 ## Related Documentation
 
-- [Clean Architecture Patterns](../../.cursor/rules/1008_CleanArchitecturePatterns.mdc)
-- [Domain-Driven Design Patterns](../../.cursor/rules/1007_DomainDrivenDesignPatterns.mdc)
-- [C# Coding Standards](../../.cursor/rules/1001_CSharpCodingStandards.mdc)
 - [Dependency Architecture Diagram](./dependency-architecture-diagram.md)
 
 ---

@@ -423,9 +423,6 @@ var result = await _repository.ListAsync(spec, cancellationToken);
 - **[📋 Architecture Violation Guidelines](./architecture-violation-guidelines.md)** - Comprehensive guidelines for detecting and preventing violations
 - [ADR-002: Test Project Split Violations](./adr-002-test-project-split-clean-architecture-violations.md)
 - [ADR-003: Test Suite Split Decision](./adr-003-test-suite-split-decision.md)
-- [Clean Architecture Patterns](../../.cursor/rules/1008_CleanArchitecturePatterns.mdc)
-- [Domain-Driven Design Patterns](../../.cursor/rules/1007_DomainDrivenDesignPatterns.mdc)
-- [C# Coding Standards](../../.cursor/rules/1001_CSharpCodingStandards.mdc)
 - [Repository Pattern - Microsoft Docs](https://learn.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/infrastructure-persistence-layer-design)
 - [Specification Pattern - Martin Fowler](https://www.martinfowler.com/apsupp/spec.pdf)
 

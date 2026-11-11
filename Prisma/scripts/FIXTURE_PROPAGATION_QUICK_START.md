@@ -289,8 +289,6 @@ ls code/src/tests/05IntegrationTests/ExxerAI.Vault.Integration.Test/Fixtures/
 ## 📚 Additional Resources
 
 - **Full Documentation**: `scripts/PROPAGATE_VAULT_FIXTURES_README.md`
-- **ExxerAI Guidelines**: `CLAUDE.md`
-- **Git Safety Protocols**: See CLAUDE.md section on script safety
 
 ---
 

@@ -718,9 +718,6 @@ public async Task ProcessFileAsync_XmlFile_CompletesWithin2Seconds()
 ## 📚 References
 
 - **Architecture Guide:** `docs/qa/architecture.md`
-- **Coding Standards:** `.cursor/rules/1001_CSharpCodingStandards.mdc`
-- **Testing Standards:** `.cursor/rules/1029_ExxerAITestingStandards.mdc`
-- **Commit Standards:** `.cursor/rules/1004_CommitMessageStandards.mdc`
 
 ---
 

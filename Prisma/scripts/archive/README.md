@@ -220,7 +220,6 @@ Archived scripts may:
 **Active Script Documentation:**
 - `../README.md` - Complete guide to active scripts
 - `../../SCRIPTS_INVENTORY_AND_INDEX.md` - Full inventory
-- `../../CLAUDE.md` - Development standards
 
 ---
 

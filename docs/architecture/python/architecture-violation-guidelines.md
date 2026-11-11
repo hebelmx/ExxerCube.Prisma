@@ -673,8 +673,6 @@ public class DownloadTrackerService : IDownloadTracker
 - [ADR-002: Test Project Split Violations](./adr-002-test-project-split-clean-architecture-violations.md)
 - [ADR-003: Test Suite Split Decision](./adr-003-test-suite-split-decision.md)
 - [ADR-004: EF Core Application Layer Violation](./adr-004-efcore-application-layer-violation.md)
-- [Clean Architecture Patterns](../../.cursor/rules/1008_CleanArchitecturePatterns.mdc)
-- [Domain-Driven Design Patterns](../../.cursor/rules/1007_DomainDrivenDesignPatterns.mdc)
 
 ---
 

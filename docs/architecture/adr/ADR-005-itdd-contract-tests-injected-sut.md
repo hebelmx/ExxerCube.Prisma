@@ -237,7 +237,7 @@ and the Phase 0 commit):
 - Architecture guardrail (Phase 6, optional earlier): every class named
   `*Contract` in Testing.Contracts must be abstract and have ≥ 1 inheritor.
 - No xunit/MTP package **version** changes are needed or permitted by this ADR
-  (the stack is version-coupled and fragile; see CLAUDE.md).
+  (the stack is version-coupled and fragile).
 
 ## Related
 
@@ -245,4 +245,3 @@ and the Phase 0 commit):
 - Primer: `docs/Interface-Driven-Test-Driven-Development.md`
 - Placement: `ARCHITECTURE_AND_SOLUTION_GUIDELINES.md` §6.5
 - Superseded: `docs/qa/test-plans/iitdd-contract-test-tasks.md`
-- Adversarial gate: `.claude/commands/itdd-adversarial-review.md`

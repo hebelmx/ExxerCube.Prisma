@@ -177,15 +177,14 @@ var output = result.Match(
 
 - [IndQuestResults GitHub Repository](https://github.com/your-org/IndQuestResults)
 - [Result Manual](../ExxerRules/docs/Result-Manual.md) - Complete API reference
-- [Functional .NET Patterns](../.cursor/rules/1021_NullParameterInitializerHandling.mdc)
 
 ### Code Standards & Rules
 
-The following rules enforce ROP patterns and best practices in the codebase:
+The codebase follows these ROP practices:
 
 #### Exception Handling
 
-- **[1026_ExceptionHandlingWithResultT.mdc](../.cursor/rules/1026_ExceptionHandlingWithResultT.mdc)** - Comprehensive standards for managing exceptions using `Result<T>` instead of throwing exceptions for control flow
+- Comprehensive standards for managing exceptions using `Result<T>` instead of throwing exceptions for control flow
   - Never throw exceptions for control flow
   - Use `ResultTryExtensions.Try` to capture and preserve exceptions
   - Handle `OperationCanceledException` separately
@@ -194,7 +193,7 @@ The following rules enforce ROP patterns and best practices in the codebase:
 
 #### Cancellation Token Management
 
-- **[1002_CancellationTokenStandards.mdc](../.cursor/rules/1002_CancellationTokenStandards.mdc)** - Comprehensive standards for accepting, respecting, enforcing, transmitting, and acknowledging cancellation tokens
+- Comprehensive standards for accepting, respecting, enforcing, transmitting, and acknowledging cancellation tokens
   - **ACCEPT**: All async methods must accept `CancellationToken`
   - **RESPECT**: Check cancellation before expensive operations
   - **ENFORCE**: Use `CancellationAwareResult.WrapWithTimeout` for timeout enforcement
@@ -203,8 +202,8 @@ The following rules enforce ROP patterns and best practices in the codebase:
 
 #### General Result Patterns
 
-- **[1025_ResultCancellationHandling.mdc](../.cursor/rules/1025_ResultCancellationHandling.mdc)** - Handling cancellation in functional .NET applications
-- **[1043_ExxerAIResultPattern.mdc](../.cursor/rules/1043_ExxerAIResultPattern.mdc)** - General `Result<T>` pattern usage
+- Handling cancellation in functional .NET applications
+- General `Result<T>` pattern usage
 
 ---
 

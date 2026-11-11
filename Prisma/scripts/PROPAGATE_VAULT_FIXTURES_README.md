@@ -427,7 +427,6 @@ For issues or questions:
 1. Review this README
 2. Check generated reports for detailed error messages
 3. Examine backup directory structure
-4. Consult CLAUDE.md for ExxerAI development guidelines
 
 ## License
 

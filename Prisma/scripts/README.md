@@ -485,7 +485,6 @@ For detailed information on script workflows, see:
 - **SCRIPTS_INVENTORY_AND_INDEX.md**: Complete script inventory and archival plan
 - **LOSETESTS_RELOCATION_MAP.md**: Test relocation guide
 - **ADR-012**: Losetests orphan relocation plan
-- **CLAUDE.md**: Project development standards and patterns
 
 ---
 
@@ -495,7 +494,7 @@ For detailed information on script workflows, see:
 2. **Commit changes before running file-modifying scripts**
 3. **Review script output** before applying changes
 4. **Keep backups** of critical files (scripts auto-backup when possible)
-5. **Never skip git safety protocols** - see CLAUDE.md for details
+5. **Never skip git safety protocols**
 
 ---
 
@@ -519,7 +518,6 @@ If you encounter issues with scripts:
 1. Check the script's help: `python scripts/script_name.py --help`
 2. Review dry-run output before applying
 3. Check archived versions in `archive/` if needed
-4. Refer to CLAUDE.md for development standards
 
 **Last Updated**: 2025-11-08
 **Total Active Scripts**: 36 (33 + 3 new: search_type_fuzzy.py, update_type_database.py, pre-commit hook)

@@ -281,8 +281,6 @@ Tests.EndToEnd/                       # End-to-end workflow tests
 ## References
 
 - [ADR-002: Test Project Split Violations](./adr-002-test-project-split-clean-architecture-violations.md)
-- [Clean Architecture Patterns](../../.cursor/rules/1008_CleanArchitecturePatterns.mdc)
-- [Domain-Driven Design Patterns](../../.cursor/rules/1007_DomainDrivenDesignPatterns.mdc)
 - [Test Project Separation Plan](../../../docs/qa/test-project-separation-plan.md)
 - [Lessons Learned: Test Project Split](../development/lessons-learned-test-project-split.md)
 
